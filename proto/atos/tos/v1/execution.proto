@@ -16,6 +16,7 @@ import "atos/tos/v1/common.proto";
 // binding, Worker task digest, recovery and receipt issuance semantics.
 service ExecutionGatewayService {
   rpc GetProviderStatus(GetProviderStatusRequest) returns (GetProviderStatusResponse);
+  rpc QuoteExecution(QuoteExecutionRequest) returns (QuoteExecutionResponse);
   rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
   rpc GetJob(GetJobRequest) returns (GetJobResponse);
   rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
@@ -49,6 +50,44 @@ message GetProviderStatusResponse {
   string reason_code = 8;
 }
 
+// QuoteExecution obtains the provider/Edge execution quote before ATOS creates
+// its client-facing commercial Quote. For a tos-ai-backed Edge this operation
+// is derived from the existing private Worker Quote plus Edge policy/signing.
+// ATOS may add gateway fees or currency conversion, but must preserve the
+// underlying service quote reference in CommitQuote for Verified/Native work.
+message QuoteExecutionRequest {
+  RequestContext context = 1;
+  string provider_id = 2;
+  string capability_id = 3;
+  string capability_version = 4;
+  Digest input_commitment = 5;
+  uint64 input_bytes = 6;
+  uint64 max_output_bytes = 7;
+  int64 execution_deadline_unix_millis = 8;
+  TrustMode intended_trust_mode = 9;
+  ProofProfile intended_proof_profile = 10;
+  map<string, string> execution_constraints = 11;
+}
+
+message ServiceExecutionQuote {
+  string service_quote_id = 1;
+  string provider_id = 2;
+  string capability_id = 3;
+  string capability_version = 4;
+  NetworkAmount provider_price = 5;
+  int64 expires_unix_millis = 6;
+  int64 execution_deadline_unix_millis = 7;
+  string capacity_revision = 8;
+  string runtime_revision = 9;
+  string model_revision = 10;
+  Digest signed_quote_digest = 11;
+  NetworkReference quote_ref = 12;
+}
+
+message QuoteExecutionResponse {
+  ServiceExecutionQuote quote = 1;
+}
+
 message SubmitJobRequest {
   RequestContext context = 1;
   string job_id = 2;
@@ -57,17 +96,18 @@ message SubmitJobRequest {
   string provider_id = 5;
   string capability_id = 6;
   string capability_version = 7;
-  string quote_id = 8;
-  string escrow_id = 9;
-  TrustMode trust_mode = 10;
-  ProofProfile proof_profile = 11;
-  bytes input = 12;
-  Digest input_commitment = 13;
-  uint64 max_output_bytes = 14;
-  int64 execution_deadline_unix_millis = 15;
-  int64 retain_until_unix_millis = 16;
-  repeated ArtifactCommitment input_artifacts = 17;
-  map<string, string> execution_constraints = 18;
+  string quote_id = 8; // ATOS commercial Quote
+  string service_quote_id = 9; // underlying Edge/provider Quote
+  string escrow_id = 10;
+  TrustMode trust_mode = 11;
+  ProofProfile proof_profile = 12;
+  bytes input = 13;
+  Digest input_commitment = 14;
+  uint64 max_output_bytes = 15;
+  int64 execution_deadline_unix_millis = 16;
+  int64 retain_until_unix_millis = 17;
+  repeated ArtifactCommitment input_artifacts = 18;
+  map<string, string> execution_constraints = 19;
 }
 
 message SubmitJobResponse {
@@ -92,18 +132,19 @@ message JobRecord {
   string edge_action_id = 2;
   string worker_task_id = 3;
   string quote_id = 4;
-  string escrow_id = 5;
-  string provider_id = 6;
-  string capability_id = 7;
-  string capability_version = 8;
-  TrustMode trust_mode = 9;
-  ProofProfile proof_profile = 10;
-  JobState state = 11;
-  ProofStatus proof_status = 12;
-  int64 created_unix_millis = 13;
-  int64 updated_unix_millis = 14;
-  int64 completed_unix_millis = 15;
-  string error_code = 16;
+  string service_quote_id = 5;
+  string escrow_id = 6;
+  string provider_id = 7;
+  string capability_id = 8;
+  string capability_version = 9;
+  TrustMode trust_mode = 10;
+  ProofProfile proof_profile = 11;
+  JobState state = 12;
+  ProofStatus proof_status = 13;
+  int64 created_unix_millis = 14;
+  int64 updated_unix_millis = 15;
+  int64 completed_unix_millis = 16;
+  string error_code = 17;
 }
 
 message GetJobResponse {
