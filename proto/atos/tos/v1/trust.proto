@@ -16,7 +16,9 @@ service TrustService {
   rpc ResolveExecutionSignerAuthorization(ResolveExecutionSignerAuthorizationRequest) returns (ResolveExecutionSignerAuthorizationResponse);
 }
 
-message QuoteCommitment {
+// Caller-supplied semantic Quote fields. Network commitment references are
+// intentionally absent and can only be produced by the service.
+message QuoteCommitmentInput {
   string quote_id = 1;
   string principal_id = 2;
   string provider_id = 3;
@@ -30,13 +32,18 @@ message QuoteCommitment {
   int64 expires_unix_millis = 11;
   string settlement_backend = 12;
   string settlement_asset = 13;
-  NetworkReference commitment_ref = 14;
-  string underlying_service_quote_ref = 15;
+  string underlying_service_quote_ref = 14;
+}
+
+message QuoteCommitment {
+  QuoteCommitmentInput value = 1;
+  NetworkReference commitment_ref = 2;
+  int64 committed_unix_millis = 3;
 }
 
 message CommitQuoteRequest {
   RequestContext context = 1;
-  QuoteCommitment quote = 2;
+  QuoteCommitmentInput quote = 2;
 }
 
 message CommitQuoteResponse {
@@ -54,7 +61,7 @@ message GetQuoteCommitmentResponse {
   bool found = 2;
 }
 
-message ExecutionSignerAuthorization {
+message ExecutionSignerAuthorizationInput {
   string authorization_id = 1;
   string provider_id = 2;
   string capability_id = 3;
@@ -64,13 +71,18 @@ message ExecutionSignerAuthorization {
   string signature_algorithm = 7;
   int64 valid_from_unix_millis = 8;
   int64 valid_until_unix_millis = 9;
-  NetworkReference authorization_ref = 10;
-  bool revoked = 11;
+}
+
+message ExecutionSignerAuthorization {
+  ExecutionSignerAuthorizationInput value = 1;
+  NetworkReference authorization_ref = 2;
+  bool revoked = 3;
+  NetworkReference revocation_ref = 4;
 }
 
 message AuthorizeExecutionSignerRequest {
   RequestContext context = 1;
-  ExecutionSignerAuthorization authorization = 2;
+  ExecutionSignerAuthorizationInput authorization = 2;
 }
 
 message AuthorizeExecutionSignerResponse {
@@ -85,9 +97,8 @@ message RevokeExecutionSignerRequest {
 }
 
 message RevokeExecutionSignerResponse {
-  string authorization_id = 1;
+  ExecutionSignerAuthorization authorization = 1;
   bool revoked = 2;
-  NetworkReference revocation_ref = 3;
 }
 
 message ResolveExecutionSignerAuthorizationRequest {
