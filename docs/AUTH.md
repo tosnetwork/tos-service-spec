@@ -7,7 +7,8 @@
 - scoped credentials;
 - revocation and device visibility;
 - no blockchain key requirement for ordinary consumers;
-- authentication remains separate from transaction trust mode.
+- authentication remains separate from transaction trust mode;
+- MCP tool visibility reflects request authorization without replacing call-time authorization.
 
 ## Authentication Is Not Trust Mode
 
@@ -43,7 +44,9 @@ trust_mode = managed | verified | native
     "capabilities:read",
     "quotes:read",
     "invocations:create",
+    "jobs:create",
     "jobs:read",
+    "jobs:cancel",
     "account:read"
   ]
 }
@@ -85,7 +88,15 @@ Success:
   "expires_in":3600,
   "refresh_token":"...",
   "principal_id":"prn_...",
-  "scopes":["capabilities:read","quotes:read","invocations:create","jobs:read","account:read"]
+  "scopes":[
+    "capabilities:read",
+    "quotes:read",
+    "invocations:create",
+    "jobs:create",
+    "jobs:read",
+    "jobs:cancel",
+    "account:read"
+  ]
 }
 ```
 
@@ -127,6 +138,111 @@ Compatibility may permit:
 
 Do not require a separate user-ID header if the authenticated token already identifies the principal.
 
+## MCP Tool Visibility
+
+MCP `tools/list` is a **projection of the authorization carried on that request**. It is not a session-scoped capability cache and it is not an authorization decision that can be trusted later without re-checking.
+
+For a tool to be returned, both of these conditions apply where relevant:
+
+```text
+request scope permits the operation
+AND
+role/resource precondition permits the operation
+```
+
+Examples:
+
+| Tool | Required visibility condition |
+|---|---|
+| `atos_search` / `atos_get_capability` | `capabilities:read` |
+| `atos_quote` | `quotes:read` |
+| `atos_invoke` | `invocations:create` |
+| `atos_create_job` | `jobs:create` |
+| `atos_get_job` | `jobs:read` |
+| `atos_cancel_job` | `jobs:cancel` |
+| `atos_account` | `account:read` |
+| `atos_register_capability` | `capabilities:write` |
+| `atos_update_capability` | `capabilities:write` |
+| `atos_list_my_capabilities` | `capabilities:write` and provider role |
+| `atos_pause_capability` | `capabilities:write` and ownership of the target capability at call time |
+| `atos_provider_jobs` | `provider_jobs:read` and provider role |
+| `atos_deliver_job` | `provider_jobs:deliver` and authorization for the target provider/job |
+
+The ordinary consumer token therefore sees the 9-tool consumer surface described in `docs/MCP.md`. A provider token may see additional tools.
+
+### Visibility is not authorization
+
+Every `tools/call` MUST independently validate:
+
+1. token validity;
+2. required scope;
+3. current role/resource ownership or job access;
+4. operation-specific policy.
+
+A cached tool list MUST NOT confer authority after a scope is revoked or ownership changes.
+
+### Caching and ordering
+
+Because the tool list can vary by authorization context, ATOS SHOULD return:
+
+```json
+{
+  "ttlMs": 30000,
+  "cacheScope": "private"
+}
+```
+
+The server SHOULD return the same underlying tool set in deterministic order:
+
+```text
+consumer core
+-> artifact
+-> capability-management
+-> provider-job/admin
+```
+
+ATOS does not vary `tools/list` because of earlier tool calls, connection history, selected capabilities, or other hidden session state.
+
+## Artifact Operation Authorization
+
+`atos_artifact` remains model-visible to ordinary consumers because file needs are capability-dependent, but each operation has its own authorization rule.
+
+### `create_upload`
+
+For:
+
+```text
+purpose = job_input
+```
+
+require at least one execution-creation scope appropriate to the intended use:
+
+```text
+invocations:create OR jobs:create
+```
+
+For:
+
+```text
+purpose = capability_asset
+```
+
+require:
+
+```text
+capabilities:write
+```
+
+### `complete_upload`
+
+The caller MUST be the same principal/security context that created the upload, or hold an explicitly delegated administrative permission. Knowing an `upload_id` is never sufficient authorization.
+
+### `get_download_url`
+
+The caller MUST be authorized for the Artifact itself or for the owning Job/output. For Job outputs, authorization SHOULD be equivalent to the corresponding `atos_get_job` access check.
+
+Signed URLs are short-lived transport credentials and MUST NOT grant broader standing Artifact access.
+
 ## Agent Identity Migration
 
 `principal_id` is an **ATOS gateway account identifier**. It is not itself a wallet, private key, or globally canonical TOS Agent Identity.
@@ -137,7 +253,7 @@ Managed Mode can operate with gateway-local `principal_id` identities.
 
 ### Verified integration
 
-When Verified Mode is activated (Roadmap Phase 4), a gateway account/provider MAY be bound to a `tos-core` Agent Identity through `ResolveAgentIdentity` so ownership, receipt verification, reputation evidence, escrow and settlement can be TOS-backed without requiring the user to manually manage TOS keys.
+When Verified Mode is activated, a gateway account/provider MAY be bound to a `tos-core` Agent Identity through `ResolveAgentIdentity` so ownership, receipt verification, reputation evidence, escrow and settlement can be TOS-backed without requiring the user to manually manage TOS keys.
 
 This binding:
 
