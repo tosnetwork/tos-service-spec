@@ -4,7 +4,7 @@
 
 ATOS v0.2 must ship a centralized product quickly without hard-coding centralization into the protocol.
 
-The implementation sequence is therefore:
+Implementation sequence:
 
 ```text
 Managed first
@@ -13,19 +13,35 @@ Managed first
 Verified next
    |
    v
-Native/federated last
+Native / federation last
 ```
 
-But the public schemas MUST support the final model from Phase 0 so later decentralization does not require a breaking API redesign.
+The public contracts, however, MUST model the final semantics from Phase 0 so decentralization does not require a breaking API rewrite.
 
-Core mode rule:
+Core type rule:
 
 ```text
 requested_trust_mode = managed | verified | native | auto
 trust_mode           = managed | verified | native
 ```
 
-`auto` is request-only and MUST resolve at Quote time.
+Provider-mode rule:
+
+```text
+requested_trust_modes = provider intent
+supported_trust_modes = derived active/quotable modes
+```
+
+`auto` is client request-only and resolves at Quote time.
+
+Normative proof profiles:
+
+```text
+verified -> tos_verified_v1
+native   -> tos_native_v1
+```
+
+See `docs/PROOF_PROFILES.md`.
 
 ## 2. Repository Layout
 
@@ -72,42 +88,49 @@ Rules:
 - ordinary gateway packages MUST NOT import TOS consensus/node clients directly;
 - execution integration goes through `adapters/tos-ai`;
 - trust/economy/proof integration goes through `adapters/tos-core`;
-- `trustmode` owns mode-selection/resolution rules and must not be duplicated ad hoc across MCP/API/A2A handlers;
-- `proof` owns proof-profile validation and proof-status normalization;
+- `trustmode` owns mode-selection/resolution rules across MCP/REST/A2A;
+- `proof` owns proof-profile validation, signer-authorization verification, and normalized proof status;
 - `resolver` owns federation-safe Agent/Capability resolution;
-- `indexer` owns off-chain search/index projections of TOS registry/proof events.
+- `indexer` owns off-chain search/index projections of TOS registry/proof events;
+- semantic ranking remains outside consensus.
 
 ## 3. Phase 0 — Contract First (v0.2)
 
-**Goal:** freeze the public semantics before deep TOS integration.
+**Goal:** freeze public semantics before deep TOS integration.
 
 Deliverables:
 
 - Capability/Quote/Invocation/Job/Receipt models;
-- MCP tool definitions;
+- MCP input/output definitions;
 - REST/OpenAPI models;
-- A2A mapping;
-- Agent Card fields;
+- A2A commerce extension mapping;
+- Agent Card extension fields;
 - `requested_trust_mode` and concrete `trust_mode` types;
-- standard error codes for mode/proof failures;
+- provider `requested_trust_modes` vs derived `supported_trust_modes`;
+- standard trust/proof error codes;
 - proof-profile abstraction;
-- federation-safe ID abstraction (encoding may remain provisional);
+- `tos_verified_v1` and `tos_native_v1` contract definitions;
+- execution-signer/delegation abstraction;
+- federation-safe ID abstraction, even if final encoding remains provisional;
 - mock provider;
-- schema validation tests.
+- schema/conformance tests.
 
 Mandatory invariants from day one:
 
-1. Capability `supported_trust_modes` contains only concrete modes.
-2. `auto` is accepted only on pre-Quote requests/policy.
-3. Quote always contains concrete `trust_mode`.
-4. Invocation/Job/Receipt inherit mode from Quote.
-5. No API allows execution to override Quote mode.
-6. No silent downgrade path exists.
-7. Trust/reputation score is modeled separately from transaction trust mode.
+1. Capability `supported_trust_modes` contains only active concrete modes.
+2. Providers request modes through `requested_trust_modes`; they cannot self-certify active support.
+3. `auto` is accepted only on client pre-Quote policy.
+4. Quote always contains concrete `trust_mode`.
+5. Invocation/Job/Receipt inherit mode from Quote.
+6. No execution API allows Quote mode override.
+7. No silent downgrade path exists.
+8. Trust/reputation score is separate from transaction trust mode.
+9. Receipt signer may be delegated, but signer authorization is explicit.
+10. Bulk/private payloads remain off-chain by default.
 
 Success criterion:
 
-A contract test can run the same mock Capability through three simulated resolved modes without changing the client API shape.
+A contract test can run one mock Capability through simulated Managed, Verified, and Native resolved modes without changing the client API shape, and rejects `auto` as a final Job/Receipt mode.
 
 ## 4. Phase 1 — Codex-First Managed MVP
 
@@ -127,11 +150,18 @@ Build:
 10. Stripe/credit-style accounting or internal test credits;
 11. Managed reservation/settlement ledger;
 12. signed Managed Execution Receipts;
-13. `trustmode` resolver with only `managed` active in production but v0.2 semantics already enforced.
+13. centralized mode activation/certification state;
+14. `trustmode` resolver with only `managed` active in production while v0.2 semantics are already enforced.
 
-`requested_trust_mode=auto` resolves to `managed` during this phase because no stronger production mode is active.
+During this phase:
 
-Requests explicitly requiring `verified` or `native` MUST return `trust_mode_unavailable`; they MUST NOT be silently treated as Managed.
+```text
+requested_trust_mode=auto -> managed
+```
+
+because no stronger production mode is active.
+
+Explicit `verified` or `native` requests MUST return `trust_mode_unavailable`; they MUST NOT be silently treated as Managed.
 
 Success criterion:
 
@@ -139,7 +169,7 @@ From a clean Codex environment, one prompt installs/authorizes ATOS and a second
 
 ## 5. Phase 2 — Async Managed Agent Economy + tos-ai
 
-**Goal:** make execution real and support long-running work without prematurely coupling execution to chain logic.
+**Goal:** make execution real and support long-running work without coupling execution to chain logic.
 
 Add:
 
@@ -153,7 +183,8 @@ Add:
 - provider earnings;
 - Managed disputes;
 - usage/metered billing;
-- receipt signing and artifact/output commitments even in Managed Mode where practical.
+- receipt signing and artifact/output commitments where practical;
+- execution-signer identity on receipts.
 
 Trust/settlement remains centrally managed in this phase.
 
@@ -163,11 +194,11 @@ Important boundary:
 atos gateway -> tos-ai = execution
 ```
 
-Do not move identity, escrow, settlement, or reputation authority into `tos-ai`.
+Do not move identity, ownership, escrow, settlement, or reputation authority into `tos-ai`.
 
 Success criterion:
 
-A long-running Capability can execute through `tos-ai`, generate artifacts, produce a signed Execution Receipt, settle through the Managed ledger, and preserve the Quote's concrete mode end-to-end.
+A long-running Capability can execute through `tos-ai`, generate artifacts, produce an authorized-signer Execution Receipt, settle through the Managed ledger, and preserve Quote mode end-to-end.
 
 ## 6. Phase 3 — Provider Self-Service and Mode Readiness
 
@@ -182,24 +213,37 @@ Add:
 - schema validator;
 - provider Agent Cards;
 - sandbox certification;
-- per-mode availability;
+- provider `requested_trust_modes`;
+- derived public `supported_trust_modes`;
 - mode-support state machine: `requested | pending | active | suspended | unsupported`;
+- per-mode availability;
 - immutable Capability manifest/version commitment generation;
-- federation-safe public IDs even though canonical resolution is still via `atos.im`;
-- provider signing-key lifecycle for Execution Receipts;
+- federation-safe public IDs even while canonical resolution still uses `atos.im`;
+- authorized execution-signer lifecycle;
+- delegated signer authorization scope and rotation/revocation;
 - open task marketplace publish/apply/accept flow.
 
 Providers may request `verified`/`native`, but production activation remains gated on later TOS integration.
 
-The public API MUST distinguish "provider requested Verified support" from "Verified guarantee is active."
+The public API MUST distinguish:
+
+```text
+provider requested Verified support
+```
+
+from:
+
+```text
+Verified is active and quotable
+```
 
 Success criterion:
 
-A third-party provider can self-register once, serve Managed traffic, and already possess the identity/manifest/receipt material needed for later Verified certification without changing its Capability identity.
+A third-party provider can self-register once, serve Managed traffic, request stronger modes, and already possess the manifest/signer material needed for later certification without changing its Capability identity.
 
 ## 7. Phase 4 — Verified Mode (`atos.im` UX + TOS Guarantees)
 
-**Goal:** ship `trust_mode=verified` as a real protocol guarantee, not a marketing flag.
+**Goal:** ship `trust_mode=verified` as a real protocol guarantee.
 
 Integrate `tos-core`:
 
@@ -207,19 +251,21 @@ Integrate `tos-core`:
 - Capability ownership anchoring;
 - manifest/version commitment anchoring;
 - Quote/terms commitments;
-- escrow creation/release;
+- enforceable escrow creation/release;
+- execution-signer authorization registration/resolution;
 - Execution Receipt verification;
 - settlement;
 - proof retrieval;
 - reputation evidence / Proof-of-Service updates;
 - dispute outcome commitments.
 
-Required interface families:
+Required interface families include:
 
 ```text
 tos-core.ResolveAgentIdentity
 tos-core.ResolveCapability
 tos-core.VerifyCapabilityOwnership
+tos-core.ResolveExecutionSignerAuthorization
 tos-core.CreateEscrow
 tos-core.ReleaseEscrow
 tos-core.VerifyExecutionReceipt
@@ -229,7 +275,7 @@ tos-core.UpdateReputationEvidence
 tos-core.ReadProof
 ```
 
-Define and implement the first normative proof profile:
+Implement the normative profile:
 
 ```text
 tos_verified_v1
@@ -240,12 +286,13 @@ It must guarantee at least:
 - TOS-backed provider identity/capability ownership;
 - immutable Capability version/manifest commitment;
 - Quote/terms commitment;
-- TOS-backed escrow for paid committed work;
-- signed receipt and TOS-verifiable receipt commitment;
+- economically enforceable TOS-backed escrow for paid committed work;
+- authorized execution signer and verifiable signer authorization;
+- signed Receipt and TOS-verifiable receipt commitment;
 - TOS-backed settlement proof;
 - portable Proof-of-Service evidence.
 
-The implementation MAY aggregate/batch TOS commitments for cost/performance as long as independent verification remains possible.
+The implementation MAY aggregate/batch registry, receipt, and evidence commitments for performance as long as independent verification remains possible. Economic escrow/settlement MUST remain enforceable; a hash of a private ledger is not enough.
 
 Failure rule:
 
@@ -253,11 +300,19 @@ If any required Verified checkpoint is unavailable, return an explicit proof/net
 
 Success criterion:
 
-An independent verifier can take a completed Verified Receipt and prove the provider/capability identity, Quote commitment, receipt commitment, and settlement outcome without trusting the mutable `atos.im` database.
+An independent verifier can take a completed Verified proof package and verify provider/capability ownership, manifest version, Quote commitment, signer authorization, Receipt commitment, and settlement outcome without trusting the mutable `atos.im` database.
 
 ## 8. Phase 5 — Native Resolution and Decentralized Discovery
 
-**Goal:** remove `atos.im` as the canonical namespace authority for Native supply.
+**Goal:** activate `trust_mode=native` and remove `atos.im` as canonical namespace/trust authority for Native supply.
+
+Implement:
+
+```text
+tos_native_v1
+```
+
+which extends all `tos_verified_v1` guarantees with gateway/namespace independence.
 
 Add:
 
@@ -265,21 +320,23 @@ Add:
 - TOS-backed capability registry/ownership events;
 - globally resolvable Capability manifests;
 - open registry event format;
-- indexer ingestion protocol;
+- independent indexer ingestion protocol;
 - reference TOS indexer;
-- native resolver library;
-- Native-mode provider endpoint resolution;
+- Native resolver library;
+- Native provider endpoint resolution;
 - cross-gateway receipt/proof verification;
+- signer-authorization verification independent of `atos.im`;
 - index rebuild from TOS-verifiable registry/proof events;
-- `atos://agent/...` and `atos://capability/...` resolution semantics (or final equivalent URI scheme).
+- replay/domain separation for Native commitments/signatures;
+- `atos://agent/...` and `atos://capability/...` semantics, or final equivalent URI scheme.
 
 Search ranking remains off-chain and competitive.
 
-`atos.im` continues to run its own fast semantic index, but another operator can reconstruct the Native supply/trust facts needed to build a competing index.
+`atos.im` continues to run a fast semantic index, but another operator can reconstruct the Native supply/trust projection needed to build a competing index.
 
 Success criterion:
 
-A Native Capability registered/anchored through one compatible path can be independently discovered/resolved by another indexer/gateway without querying the `atos.im` canonical database.
+A Native Capability anchored through one compatible path can be independently resolved, quoted, invoked, verified, and settled through another compatible gateway/resolver without querying the `atos.im` canonical database.
 
 ## 9. Phase 6 — Open Gateway Federation
 
@@ -294,19 +351,19 @@ Codex
   |-- enterprise private gateway
   |-- local/open-source gateway
           \
-           -> TOS Network / shared proof and registry state
+           -> TOS Network / shared registry, proof, and economic state
 ```
 
 Ship:
 
 - gateway conformance test suite;
 - open reference gateway components;
-- gateway capability/feature advertisement;
+- gateway feature/mode advertisement;
 - cross-gateway Native resolution tests;
-- proof-profile interoperability tests;
-- standardized error semantics;
+- `tos_native_v1` interoperability tests;
+- standardized trust/proof error semantics;
 - federation-safe caching rules;
-- anti-replay/domain separation for cross-gateway signatures;
+- anti-replay/domain separation tests;
 - gateway-local vs globally canonical field rules;
 - failover guidance.
 
@@ -324,7 +381,7 @@ Potential work:
 
 - dispute resolver profiles;
 - multi-resolver/federated arbitration;
-- stronger sybil-resistance for Proof-of-Service;
+- stronger sybil resistance for Proof-of-Service;
 - counterparty-diversity weighting;
 - proof aggregation/rollups;
 - privacy-preserving reputation proofs;
@@ -333,24 +390,26 @@ Potential work:
 - sponsored/meta-transaction flows;
 - multi-asset settlement;
 - cross-region compliance controls;
-- fraud/risk signal portability without exposing private payloads.
+- fraud/risk signal portability without exposing private payloads;
+- signer-delegation policy hardening and hardware/TEE attestations where useful.
 
-These are later optimizations. They MUST NOT be prerequisites for the Managed MVP.
+These are later optimizations and MUST NOT block the Managed MVP.
 
 ## 11. Cross-Phase Compatibility Rules
 
-The following rules apply to every phase:
-
-1. **One Capability identity.** Adding Verified/Native support does not create a new Agent-facing capability solely because trust mode changed.
+1. **One Capability identity.** Adding Verified/Native support does not create a new Agent-facing Capability solely because trust mode changed.
 2. **One client API.** MCP/A2A/REST do not fork into Managed vs Web3 APIs.
 3. **Quote resolves mode.** `auto` never survives into committed transaction state.
-4. **No silent downgrade.** Stronger trust contracts fail/requote rather than weaken.
-5. **Execution remains off-chain by default.** `tos-ai`/providers execute; TOS anchors trust/economic/proof facts.
-6. **Global IDs are planned early.** Local database keys never become accidental protocol IDs.
-7. **Search remains an indexer function.** Consensus does not perform semantic ranking.
-8. **Proof-of-Service grows from receipts.** Do not build a separate unrelated reputation silo.
-9. **Managed Mode remains permanent.** Decentralization is an additional guarantee, not a forced migration.
-10. **Public schemas remain stable.** Later phases activate fields/guarantees already modeled in v0.2 instead of inventing a second protocol.
+4. **Provider intent is not certification.** `requested_trust_modes` does not equal active `supported_trust_modes`.
+5. **No silent downgrade.** Stronger trust contracts fail/requote rather than weaken.
+6. **Execution remains off-chain by default.** `tos-ai`/providers execute; TOS anchors trust/economic/proof facts.
+7. **Economic proofs are enforceable.** A private-ledger hash is not TOS-backed escrow/settlement.
+8. **Global IDs are planned early.** Local database keys never become accidental protocol IDs.
+9. **Search remains an indexer function.** Consensus does not perform semantic ranking.
+10. **Proof-of-Service grows from Receipts.** Do not build a separate unrelated reputation silo.
+11. **Authorized signers are first-class.** Provider root keys do not need to sign every execution.
+12. **Managed Mode remains permanent.** Decentralization is an additional guarantee, not a forced migration.
+13. **Public schemas remain stable.** Later phases activate guarantees already modeled in v0.2.
 
 ## 12. Recommended Build Order Inside Each Mode
 
@@ -358,15 +417,17 @@ For each newly activated concrete trust mode, implement in this order:
 
 ```text
 Capability eligibility
+    -> mode activation/certification
     -> Quote resolution
     -> reservation/escrow
     -> execution inheritance
-    -> receipt generation
-    -> receipt verification
+    -> signer authorization
+    -> Receipt generation
+    -> Receipt verification
     -> settlement
     -> proof retrieval
     -> Proof-of-Service evidence
-    -> failure/retry/dispute paths
+    -> cancellation/expiry/dispute paths
 ```
 
 Do not declare a mode production-ready after implementing only the happy-path settlement call.
