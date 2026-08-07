@@ -22,6 +22,8 @@ message CapabilityIdentity {
   Digest manifest_digest = 5;
   NetworkReference manifest_ref = 6;
   NetworkReference ownership_ref = 7;
+  // Server-derived active/quotable modes only. A provider request does not
+  // make a mode active until the required certification/proof profile is met.
   repeated TrustMode active_trust_modes = 8;
   repeated string endpoints = 9; // public resolution hints; credentials are never returned
   int64 updated_unix_millis = 10;
@@ -62,7 +64,8 @@ message CommitCapabilityManifestRequest {
   string provider_id = 3;
   string version = 4;
   Digest manifest_digest = 5;
-  repeated TrustMode requested_active_modes = 6;
+  // Provider intent only. The response's active_trust_modes is authoritative.
+  repeated TrustMode requested_trust_modes = 6;
 }
 
 message CommitCapabilityManifestResponse {
