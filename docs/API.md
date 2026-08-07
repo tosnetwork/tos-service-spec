@@ -4,26 +4,29 @@ Base URL:
 
 `https://api.atos.im/v1`
 
-## Conventions
+## 1. Conventions
 
 - JSON request/response.
 - Bearer authentication except public discovery/card endpoints.
 - RFC-style HTTP status codes.
-- Financial mutations require `Idempotency-Key` header or equivalent body field.
+- Financial mutations require `Idempotency-Key` or an equivalent body field.
 - Cursor pagination for lists.
 - Errors use stable machine codes.
-- `requested_trust_mode` is a pre-Quote policy value: `managed | verified | native | auto`.
-- `trust_mode` is a resolved transaction value: `managed | verified | native`.
+- `requested_trust_mode = managed | verified | native | auto` is client pre-Quote policy.
+- `trust_mode = managed | verified | native` is resolved transaction state.
 - `auto` MUST resolve at Quote time and MUST NOT appear as a final Invocation/Job/Receipt mode.
 - Invocation/Job creation inherits trust mode from the Quote; callers cannot override it.
+- Verified uses `tos_verified_v1`; Native uses `tos_native_v1` or stronger compatible profiles.
 - Verified/Native operations MUST NOT silently downgrade to Managed.
 
-## Capability Endpoints
+For boolean `proof_requirements`, `true` means required; `false`/omitted means not required, not forbidden.
+
+## 2. Capability Endpoints
 
 - `GET /capabilities?q=...`
 - `GET /capabilities/{capability_id}`
-- `POST /capabilities` — provider create
-- `PATCH /capabilities/{capability_id}` — provider update
+- `POST /capabilities` — provider create/request mode support
+- `PATCH /capabilities/{capability_id}` — provider metadata/request update
 - `POST /capabilities/{capability_id}/pause`
 - `POST /capabilities/{capability_id}/resume`
 
@@ -35,9 +38,61 @@ network_verifiable_receipt=true|false
 tos_settlement=true|false
 ```
 
-Capability responses include `supported_trust_modes` containing only concrete values and SHOULD expose per-mode availability/proof-profile information.
+Capability responses include public active:
 
-## Quote Endpoints
+```text
+supported_trust_modes
+```
+
+containing only concrete `active` modes.
+
+Provider create/update requests instead use:
+
+```text
+requested_trust_modes
+```
+
+because provider intent is not certification.
+
+Example create request:
+
+```json
+{
+  "name":"Document Translation",
+  "description":"...",
+  "delivery_mode":"async",
+  "input_schema":{"type":"object"},
+  "output_schema":{"type":"object"},
+  "pricing":{"model":"per_unit"},
+  "requested_trust_modes":["managed","verified","native"],
+  "bindings":[
+    {
+      "transport":"http",
+      "endpoint_ref":"ep_...",
+      "eligible_trust_modes":["managed","verified"]
+    }
+  ]
+}
+```
+
+Example response:
+
+```json
+{
+  "capability_id":"cap_...",
+  "requested_trust_modes":["managed","verified","native"],
+  "supported_trust_modes":["managed"],
+  "mode_support":{
+    "managed":{"status":"active"},
+    "verified":{"status":"pending","proof_profile":"tos_verified_v1"},
+    "native":{"status":"pending","proof_profile":"tos_native_v1"}
+  }
+}
+```
+
+A generic provider PATCH MUST NOT directly force `supported_trust_modes` or certification state to `active`.
+
+## 3. Quote Endpoints
 
 - `POST /quotes`
 - `GET /quotes/{quote_id}`
@@ -58,7 +113,7 @@ Example request:
 }
 ```
 
-Example response:
+Example Verified response:
 
 ```json
 {
@@ -70,7 +125,11 @@ Example response:
   "trust_mode":"verified",
   "proof_profile":"tos_verified_v1",
   "price":{"total_max":"5.25","currency":"USD"},
-  "settlement":{"backend":"tos","escrow":true},
+  "settlement":{
+    "backend":"tos",
+    "escrow":true,
+    "funding_model":"gateway_sponsored"
+  },
   "proof":{"execution_receipt":true,"settlement_proof":true},
   "expires_at":"...",
   "terms_hash":"sha256:...",
@@ -78,18 +137,20 @@ Example response:
 }
 ```
 
-The returned concrete `trust_mode` is immutable for that Quote.
+The returned concrete `trust_mode` and proof profile are immutable for that Quote.
 
-## Invocation Endpoints
+## 4. Invocation Endpoints
 
 - `POST /invocations`
 - `GET /invocations/{invocation_id}`
 
-Creation request includes `quote_id`, `capability_id`, input and idempotency key/header. It MUST NOT accept a caller-provided trust-mode override.
+Creation includes `quote_id`, `capability_id`, input and idempotency protection. It MUST NOT accept a caller-provided trust-mode override.
 
 Invocation responses include the concrete `trust_mode` inherited from the Quote.
 
-## Job Endpoints
+Verified/Native completed responses SHOULD expose compact Receipt/proof status, including authorized execution signer references where useful.
+
+## 5. Job Endpoints
 
 - `POST /jobs`
 - `GET /jobs/{job_id}`
@@ -97,7 +158,7 @@ Invocation responses include the concrete `trust_mode` inherited from the Quote.
 - `POST /jobs/{job_id}/messages`
 - `GET /jobs/{job_id}/artifacts`
 
-Every Job stores and returns the concrete Quote `trust_mode` and MAY expose compact `proof_status`.
+Every Job stores and returns the concrete Quote `trust_mode` and proof profile.
 
 Example:
 
@@ -117,20 +178,22 @@ Example:
 }
 ```
 
-Cancellation/refund follows the existing Job mode. A Verified/Native Job cannot be canceled by silently moving its economic state to a Managed ledger.
+Cancellation/refund follows the existing Job mode. A Verified/Native Job cannot move its economic state to a Managed ledger merely because cancellation occurs.
 
-## Artifact Endpoints
+## 6. Artifact Endpoints
 
-Optional — see `docs/ARTIFACTS.md`. Upload/download transfers bytes over signed URLs; API endpoints issue/verify references.
+Optional — see `docs/ARTIFACTS.md`.
 
 - `POST /uploads`
 - `POST /uploads/{upload_id}/complete`
 - `GET /artifacts/{artifact_id}`
 - `GET /artifacts/{artifact_id}/download-url`
 
-Artifact bytes remain off-chain by default. Verified/Native receipts may contain content commitments/hashes.
+Artifact bytes remain off-chain by default. Verified/Native Receipts may include content commitments/hashes.
 
-## Account Endpoints
+Signed URLs are temporary transport credentials and MUST NOT be used as durable proof identifiers.
+
+## 7. Account and Receipt Endpoints
 
 - `GET /account`
 - `GET /account/usage`
@@ -152,16 +215,18 @@ Account policy MAY include:
 
 Normal account responses do not expose wallet derivation, validator topology, gas units, or private settlement credentials.
 
-## Authentication Endpoints
+Advanced proof endpoints may return normalized proof packages containing provider/capability ownership proof, manifest/Quote commitments, escrow proof, authorized-signer proof, Receipt commitment, settlement proof, and Proof-of-Service references.
+
+## 8. Authentication Endpoints
 
 - `POST /auth/device`
 - `POST /auth/device/token`
 - `POST /auth/token/refresh`
 - `POST /auth/revoke`
 
-Authentication identifies the principal and policy context. It does not by itself determine a transaction trust mode.
+Authentication identifies the gateway principal and policy context. It does not determine transaction trust mode by itself.
 
-## Provider Endpoints
+## 9. Provider Endpoints
 
 - `GET /provider/jobs`
 - `POST /provider/jobs/{job_id}/accept`
@@ -169,11 +234,11 @@ Authentication identifies the principal and policy context. It does not by itsel
 - `POST /provider/jobs/{job_id}/reject`
 - `GET /provider/earnings`
 
-Provider operations MUST preserve the Job's Quote-bound trust mode and proof profile.
+Provider operations MUST preserve the Job's Quote-bound concrete trust mode and proof profile.
 
-Mode activation/certification MAY use provider/admin endpoints added later, but generic metadata PATCH MUST NOT bypass Verified/Native eligibility checks.
+Mode certification/activation MAY use dedicated provider/admin endpoints later, but ordinary Capability metadata PATCH cannot bypass ownership, manifest, signer-authorization, proof/settlement, or Native-resolution checks.
 
-## Public/Metadata Endpoints
+## 10. Public/Metadata Endpoints
 
 - `GET /taxonomy`
 - `GET /network/status`
@@ -191,7 +256,7 @@ Mode activation/certification MAY use provider/admin endpoints added later, but 
 
 without requiring ordinary clients to inspect chain internals.
 
-## Error Envelope
+## 11. Error Envelope
 
 ```json
 {
@@ -227,10 +292,12 @@ Important error codes:
 - `provider_failed`
 - `settlement_failed`
 
-## REST Invariants
+## 12. REST Invariants
 
 1. `auto` is accepted only before Quote resolution.
-2. Quote returns one concrete mode.
+2. Quote returns one concrete mode and proof profile when required.
 3. Invocation/Job cannot override Quote mode.
 4. Receipt returns the concrete mode actually contracted.
-5. Verified/Native failure returns an error or requires re-quote; it never silently falls back to Managed.
+5. Provider `requested_trust_modes` does not equal public active `supported_trust_modes`.
+6. Verified uses `tos_verified_v1`; Native uses `tos_native_v1` or stronger compatible profiles.
+7. Verified/Native failure returns an error or requires re-quote; it never silently falls back to Managed.
