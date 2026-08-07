@@ -1,0 +1,126 @@
+{
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "atos_search",
+      "description": "Search and rank ATOS capabilities by natural-language intent and constraints.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {"type": "string", "minLength": 1},
+          "filters": {"type": "object"},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 5},
+          "cursor": {"type": ["string", "null"]}
+        }
+      }
+    },
+    {
+      "name": "atos_get_capability",
+      "description": "Get full metadata and schemas for one capability.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["capability_id"],
+        "properties": {"capability_id": {"type": "string"}}
+      }
+    },
+    {
+      "name": "atos_quote",
+      "description": "Create a time-limited executable commercial quote for a capability.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["capability_id"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "input_summary": {"type": "object"},
+          "constraints": {"type": "object"}
+        }
+      }
+    },
+    {
+      "name": "atos_invoke",
+      "description": "Invoke a bounded capability using an executable quote.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["capability_id", "quote_id", "input", "idempotency_key"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "quote_id": {"type": "string"},
+          "input": {},
+          "idempotency_key": {"type": "string"},
+          "max_wait_ms": {"type": "integer", "minimum": 1000, "maximum": 120000}
+        }
+      }
+    },
+    {
+      "name": "atos_create_job",
+      "description": "Create a long-running or interactive ATOS job.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["capability_id", "quote_id", "input", "idempotency_key"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "quote_id": {"type": "string"},
+          "input": {},
+          "idempotency_key": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "atos_get_job",
+      "description": "Get the current state, messages and artifacts of an ATOS job.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["job_id"],
+        "properties": {"job_id": {"type": "string"}}
+      }
+    },
+    {
+      "name": "atos_cancel_job",
+      "description": "Request cancellation of a non-terminal ATOS job.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["job_id", "idempotency_key"],
+        "properties": {
+          "job_id": {"type": "string"},
+          "reason": {"type": "string"},
+          "idempotency_key": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "atos_register_capability",
+      "description": "Register a provider capability on ATOS.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "description", "delivery_mode", "input_schema", "output_schema", "pricing"],
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "delivery_mode": {"enum": ["instant", "async", "interactive"]},
+          "input_schema": {"type": "object"},
+          "output_schema": {"type": "object"},
+          "pricing": {"type": "object"},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    {
+      "name": "atos_update_capability",
+      "description": "Update mutable metadata/configuration of a capability owned by the authenticated provider.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["capability_id", "patch"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "patch": {"type": "object"}
+        }
+      }
+    },
+    {
+      "name": "atos_account",
+      "description": "Get account balance, usage and autonomous spending policy.",
+      "inputSchema": {"type": "object", "properties": {}}
+    }
+  ]
+}

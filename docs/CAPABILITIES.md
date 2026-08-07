@@ -1,0 +1,87 @@
+# ATOS Capability Model
+
+## Canonical Capability
+
+A Capability is the smallest unit that can be discovered, quoted and invoked.
+
+```json
+{
+  "id": "cap_01...",
+  "provider_id": "agt_01...",
+  "name": "Document Translation",
+  "description": "Translate PDF/DOCX documents while preserving structure.",
+  "version": "1.2.0",
+  "tags": ["translation", "pdf", "document"],
+  "modalities": ["text", "file"],
+  "delivery_mode": "async",
+  "input_schema": {"type":"object"},
+  "output_schema": {"type":"object"},
+  "pricing": {
+    "model":"per_unit",
+    "unit":"page",
+    "price_hint":{"amount":"0.10","currency":"USD"}
+  },
+  "sla": {
+    "target_latency_ms": 120000,
+    "timeout_ms": 900000
+  },
+  "trust": {
+    "score":0.96,
+    "level":"verified"
+  },
+  "status":"active",
+  "updated_at":"2026-08-07T00:00:00Z"
+}
+```
+
+## Delivery Modes
+
+- `instant` — usually suitable for `atos_invoke`.
+- `async` — use a Job.
+- `interactive` — may enter `input_required` and continue.
+
+## Pricing Models
+
+MVP:
+
+- `free`
+- `fixed`
+- `per_use`
+- `per_unit`
+- `metered`
+- `negotiated`
+
+The catalog may provide only a hint. The **Quote** is authoritative.
+
+## Search Contract
+
+Search accepts natural-language intent plus hard constraints. The client must not need to know category codes.
+
+Ranking score should combine:
+
+```text
+semantic fit
++ provider trust
++ historical completion quality
++ availability/freshness
++ latency fit
++ price fit
+- policy risk
+```
+
+Do not expose the exact anti-gaming weights.
+
+## Capability Registration
+
+Provider registration requires:
+
+- public metadata;
+- schemas;
+- pricing policy;
+- endpoint adapter type (`http`, `mcp`, `a2a`, `human`, `tos-native`);
+- health check;
+- settlement destination (private provider config, not public capability metadata).
+
+## Versioning
+
+Breaking input/output contract changes require a new capability version. Existing quote/job records retain the version they were created against.
