@@ -88,7 +88,7 @@ ATOS intentionally avoids splitting the Agent-facing protocol into separate Huma
 
 ## Default MCP Tool Set
 
-The default MCP server exposes **10 tools**, not dozens:
+The default MCP server exposes **11 tools**, not dozens:
 
 1. `atos_search`
 2. `atos_get_capability`
@@ -100,8 +100,21 @@ The default MCP server exposes **10 tools**, not dozens:
 8. `atos_register_capability`
 9. `atos_update_capability`
 10. `atos_account`
+11. `atos_artifact` (`operation`: create_upload/complete_upload/get_download_url — see `docs/ARTIFACTS.md`)
 
-Optional/admin/provider tools are discoverable only when the authenticated principal has matching permissions. Optional file transfer tools (`atos_create_upload`/`atos_complete_upload`/`atos_get_download_url`, see `docs/ARTIFACTS.md`) are discoverable only when a capability's schema references a file field — most capabilities never need them.
+File transfer (11) is always visible: any caller might need it for any
+capability with a file-typed field, so there's no reliable per-caller
+signal to gate it on — its three steps are one tool with an `operation`
+argument, not three separate tools, to keep the always-visible count
+from growing every time this surface needs another verb. Provider/admin
+tools are the one category actually gated — `tools/list` is computed per
+request and includes them only for a principal that owns at least one
+capability (see `docs/MCP.md`'s "Per-Caller Tool Visibility"). An earlier
+draft kept file transfer out of the default list entirely, then a later
+one exposed it as three separate always-visible tools (13 total);
+testing against a real MCP client showed the first was simply
+unreachable, and an independent review of the second flagged the
+unnecessary tool-count growth.
 
 ## Recommended Client Flow
 

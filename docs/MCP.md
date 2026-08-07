@@ -10,13 +10,42 @@ Use current MCP Streamable HTTP semantics. The server should be horizontally sca
 
 ## Tool Design Principles
 
-- Keep the default tool list small.
+- Keep the always-visible tool list small — but never hide a tool nobody
+  can then discover. `tools/list` is what a real client uses to decide
+  what it may call; a tool absent from every possible `tools/list`
+  response is not "optional," it is unreachable dead code (confirmed
+  against a real MCP client — see "Per-Caller Tool Visibility" below).
 - Separate discovery from financially committing operations.
 - Use a **Quote** as the commercial contract between search and invocation.
 - Every committing call requires `idempotency_key`.
 - Return machine-readable structured content, with concise text summaries only as secondary output.
 - Use `input_required` when user approval or missing sensitive parameters are needed.
 - Do not return blockchain implementation details in normal responses.
+
+## Per-Caller Tool Visibility
+
+`tools/list` is a session-scoped response, not a fixed constant — a
+server is expected to tailor it to the authenticated caller. This spec
+distinguishes two different reasons a tool might not belong in every
+response, and handles them differently:
+
+- **Cost/routing concern** (file transfer tools): any caller might
+  legitimately need these for any capability with a file-typed schema
+  field. There is no reliable per-caller signal to gate them on, so they
+  are simply part of the always-visible surface — see "Default Tools"
+  below, which now includes them.
+- **Authorization concern** (provider/admin tools): only a caller that
+  actually owns at least one capability has any use for
+  `atos_pause_capability` etc. These ARE conditionally included, computed
+  per request from the caller's real ownership state — not by a static
+  "optional" list that never actually appears in `tools/list`. See
+  "Provider/Admin Tools" below.
+
+An earlier draft of this spec kept both categories out of the default
+`tools/list` unconditionally, intending "discoverable when relevant."
+Testing against a real MCP client showed that produces tools no client
+can ever call, since none of them re-request an unlisted tool by guessing
+its name. Always-visible-but-honest beats hidden-but-dead.
 
 ## Default Tools
 
@@ -240,70 +269,46 @@ Read-only account summary:
 }
 ```
 
-## Optional Provider/Admin Tools
+### 11. `atos_artifact`
 
-Expose only to principals with matching scopes:
+One tool for `docs/ARTIFACTS.md`'s three-step signed-URL flow, not three.
+From a model's perspective, requesting an upload target, finalizing it,
+and fetching a download link are one intent — "work with an ATOS
+artifact" — not three separate ones. An earlier draft exposed these as
+three always-visible tools (13 total); collapsing them to one
+`operation`-dispatched tool keeps the default surface at 11 while still
+being always-visible for the reason given in "Per-Caller Tool
+Visibility" above (file I/O isn't an authorization concern, so there's
+no reliable per-caller signal to gate it on instead).
 
-- `atos_list_my_capabilities`
-- `atos_pause_capability`
-- `atos_provider_jobs`
-- `atos_deliver_job`
-- `atos_request_settlement`
-- `atos_dispute_job`
+Binary bytes never travel through this call itself; every operation
+returns or consumes a signed HTTP URL the client uses directly, the same
+reason the other default tools never accept inline file content either.
 
-Do not burden ordinary Codex clients with these tools.
+Input carries `operation` plus only the fields that operation needs; a
+server validates the operation-specific required fields itself rather
+than leaning on an ever-looser top-level JSON Schema to catch it.
 
-## Optional File Transfer Tools
-
-See `docs/ARTIFACTS.md` for the full object model. These are optional for
-the same reason provider/admin tools are: most capabilities exchange
-plain JSON and never need them. Advertise them only when the caller has
-indicated file I/O is relevant (its `input_schema`/`output_schema`
-references a file field) rather than unconditionally, keeping the
-default tool count at 10.
-
-Binary bytes never travel through an MCP tool call — every one of these
-tools returns or consumes a signed HTTP URL that the client uses
-directly, the same reason the default tools never accept inline file
-content either.
-
-### `atos_create_upload`
-
-Requests a short-lived signed upload target.
+**`operation: "create_upload"`** — requests a short-lived signed upload target.
 
 ```json
-{
-  "content_type": "application/pdf",
-  "size_bytes": 2140233,
-  "purpose": "job_input"
-}
+{"operation": "create_upload", "content_type": "application/pdf", "size_bytes": 2140233, "purpose": "job_input"}
 ```
 
 ```json
-{
-  "upload_id": "up_...",
-  "upload_url": "https://...",
-  "upload_method": "PUT",
-  "expires_at": "2026-08-07T05:10:00Z"
-}
+{"upload_id": "up_...", "upload_url": "https://...", "upload_method": "PUT", "expires_at": "2026-08-07T05:10:00Z"}
 ```
 
-### `atos_complete_upload`
-
-Finalizes an upload after the client has PUT the bytes to `upload_url`,
-returning a stable reference usable in a capability's `input`.
+**`operation: "complete_upload"`** — finalizes an upload after the client
+has PUT the bytes to `upload_url`, returning a stable reference usable in
+a capability's `input`.
 
 ```json
-{"upload_id": "up_..."}
+{"operation": "complete_upload", "upload_id": "up_..."}
 ```
 
 ```json
-{
-  "artifact_id": "art_...",
-  "content_type": "application/pdf",
-  "size_bytes": 2140233,
-  "sha256": "..."
-}
+{"artifact_id": "art_...", "content_type": "application/pdf", "size_bytes": 2140233, "sha256": "..."}
 ```
 
 An `atos_invoke`/`atos_create_job` call then references the upload as
@@ -311,24 +316,43 @@ part of `input`, e.g. `{"document": {"artifact_id": "art_..."}}` — the
 capability's `input_schema` declares which fields are artifact
 references.
 
-### `atos_get_download_url`
-
-Returns a short-lived signed download URL for an artifact the caller
-owns — either something it uploaded, or an artifact produced in a job's
-`artifacts` output.
+**`operation: "get_download_url"`** — returns a short-lived signed
+download URL for an artifact the caller owns — either something it
+uploaded, or an artifact produced in a job's `artifacts` output.
 
 ```json
-{"artifact_id": "art_..."}
+{"operation": "get_download_url", "artifact_id": "art_..."}
 ```
 
 ```json
-{
-  "download_url": "https://...",
-  "expires_at": "2026-08-07T05:10:00Z",
-  "content_type": "application/pdf",
-  "size_bytes": 891004
-}
+{"download_url": "https://...", "expires_at": "2026-08-07T05:10:00Z", "content_type": "application/pdf", "size_bytes": 891004}
 ```
+
+## Provider/Admin Tools
+
+Unlike the 13 tools above, these are genuinely conditional — computed
+into `tools/list` per request rather than statically returned, per
+"Per-Caller Tool Visibility." A server determines eligibility from the
+same fact that governs whether the tool would succeed if called: does
+this authenticated principal actually own at least one capability. That
+check is cheap (an existing lookup, not new state) and cannot be spoofed
+into granting access it wouldn't otherwise enforce, since
+`atos_pause_capability` itself re-checks ownership before acting.
+
+Implemented (Phase 3, gated as above):
+
+- `atos_list_my_capabilities`
+- `atos_pause_capability`
+
+Specified but not yet implemented — depend on a real queued/matched
+provider model that doesn't exist before Phase 3's task marketplace (see
+`docs/IMPLEMENTATION_ROADMAP.md`); the same per-principal-ownership
+gating applies once they exist:
+
+- `atos_provider_jobs`
+- `atos_deliver_job`
+- `atos_request_settlement`
+- `atos_dispute_job`
 
 ## MCP Resources
 
