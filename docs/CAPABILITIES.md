@@ -19,7 +19,12 @@ A Capability is independent of trust mode. The same capability may be available 
   "delivery_mode": "async",
   "input_schema": {"type":"object"},
   "output_schema": {"type":"object"},
-  "supported_trust_modes": ["managed", "verified", "native"],
+  "supported_trust_modes": ["managed", "verified"],
+  "mode_support": {
+    "managed":{"status":"active"},
+    "verified":{"status":"active","proof_profile":"tos_verified_v1"},
+    "native":{"status":"pending","proof_profile":"tos_native_v1"}
+  },
   "transports": ["mcp", "a2a", "http"],
   "pricing": {
     "model":"per_unit",
@@ -45,9 +50,9 @@ A Capability is independent of trust mode. The same capability may be available 
 }
 ```
 
-## 2. Trust Modes on Capabilities
+## 2. Supported vs Requested Trust Modes
 
-`supported_trust_modes` contains only concrete modes:
+Public `supported_trust_modes` contains only concrete modes that are **currently active and quotable**:
 
 ```text
 managed
@@ -55,31 +60,37 @@ verified
 native
 ```
 
-`auto` MUST NOT appear in `supported_trust_modes`. `auto` is a caller-side selection policy used before a Quote resolves to one concrete mode.
+`auto` MUST NOT appear in `supported_trust_modes`. `auto` is a caller-side pre-Quote policy.
 
-A provider MAY support different endpoint bindings, availability, pricing overhead, or proof requirements by trust mode, but the Agent-facing Capability identity remains the same.
+Provider configuration uses a different concept:
 
-Example mode support:
+```text
+requested_trust_modes
+```
+
+A provider may request `verified` or `native` before the gateway/network can certify and activate it. Therefore:
 
 ```json
 {
+  "requested_trust_modes":["managed","verified","native"],
   "supported_trust_modes":["managed","verified"],
-  "mode_support": {
-    "managed": {
-      "status":"active"
-    },
-    "verified": {
-      "status":"active",
-      "proof_profile":"tos_verified_v1"
-    },
-    "native": {
-      "status":"unsupported"
-    }
+  "mode_support":{
+    "managed":{"status":"active"},
+    "verified":{"status":"active","proof_profile":"tos_verified_v1"},
+    "native":{"status":"pending","proof_profile":"tos_native_v1"}
   }
 }
 ```
 
-A capability MUST NOT advertise `verified` or `native` until the gateway can satisfy the minimum guarantees defined in `docs/ARCHITECTURE_V0.2.md`.
+Mode states:
+
+```text
+requested | pending | active | suspended | unsupported
+```
+
+Only `active` modes belong in public `supported_trust_modes`.
+
+A capability MUST NOT advertise `verified` or `native` until the gateway can satisfy the minimum guarantees defined in `docs/ARCHITECTURE_V0.2.md` and the applicable proof profile.
 
 ## 3. Trust Summary Is Not Trust Mode
 
@@ -116,7 +127,7 @@ Delivery mode describes execution interaction, not trust.
 - `async` — use a Job.
 - `interactive` — may enter `input_required` and continue.
 
-Any delivery mode MAY be combined with any supported trust mode.
+Any delivery mode MAY be combined with any active supported trust mode.
 
 ## 5. Pricing Models
 
@@ -149,7 +160,7 @@ Example:
 }
 ```
 
-Mode hints are non-binding.
+Mode hints are non-binding and MUST NOT imply that a non-active mode is currently quotable.
 
 ## 6. Search Contract
 
@@ -180,7 +191,7 @@ semantic fit
 
 Do not expose exact anti-gaming weights.
 
-Search results SHOULD return `supported_trust_modes` and mode availability so the client knows whether a later Quote can satisfy its policy.
+Search results SHOULD return active `supported_trust_modes` and per-mode availability so the client knows whether a later Quote can satisfy its policy.
 
 ## 7. Capability Registration
 
@@ -192,12 +203,12 @@ Provider registration requires:
 - delivery mode;
 - endpoint binding(s) (`http`, `mcp`, `a2a`, `human`, `tos-native`, or future adapters);
 - health check policy;
-- requested concrete trust-mode support;
+- `requested_trust_modes` containing only concrete values;
 - settlement destination/configuration as private provider data.
 
-### Mode activation
+Registration returns derived activation state. The provider does not directly write public `supported_trust_modes` as an authoritative field.
 
-Registration and trust-mode activation are separate concerns.
+### Mode activation
 
 #### Managed
 
@@ -205,21 +216,21 @@ A capability may become searchable in Managed Mode after ordinary gateway valida
 
 #### Verified
 
-Before `verified` becomes active, the implementation MUST be able to provide the applicable proof profile, including at minimum:
+Before `verified` becomes `active`, the implementation MUST be able to provide the applicable proof profile, including at minimum:
 
 - TOS-backed provider identity/capability ownership;
 - immutable capability version/manifest commitment;
 - quote/terms commitment;
-- TOS-backed escrow for paid committed work;
-- signed Execution Receipt and TOS-verifiable receipt commitment;
+- TOS-backed enforceable escrow for paid committed work;
+- authorized-signer Execution Receipt and TOS-verifiable receipt commitment;
 - TOS-backed settlement proof;
 - portable Proof-of-Service evidence.
 
 #### Native
 
-Before `native` becomes active, all Verified guarantees apply and the capability MUST additionally be globally resolvable without relying on `atos.im` as the canonical registry.
+Before `native` becomes `active`, all Verified transaction guarantees apply and the capability MUST additionally be globally resolvable without relying on `atos.im` as the canonical registry/namespace authority.
 
-A provider MAY request a new mode before it is active. Public capability metadata MUST distinguish `requested`, `pending`, `active`, `suspended`, and `unsupported` mode states rather than falsely advertising a guarantee that has not been provisioned.
+The standard Native proof profile SHOULD be distinct from the Verified profile because it includes stronger resolution/federation guarantees.
 
 ## 8. Endpoint Bindings
 
@@ -233,28 +244,64 @@ A capability may expose one or more bindings:
     {
       "transport":"mcp",
       "endpoint_ref":"ep_...",
-      "trust_modes":["managed","verified"]
+      "eligible_trust_modes":["managed","verified"]
     },
     {
       "transport":"a2a",
       "endpoint_ref":"ep_...",
-      "trust_modes":["native"]
+      "eligible_trust_modes":["native"]
     }
   ]
 }
 ```
 
+`eligible_trust_modes` means the binding can technically participate in those paths. It does not activate a capability mode by itself; public activation still comes from `mode_support` certification.
+
 Public metadata SHOULD expose transport type and availability but MUST NOT expose provider secrets, private network topology, internal prompts, wallet keys, or sensitive settlement configuration.
 
-## 9. Third-Party API Passthrough
+## 9. Authorized Execution Signers
+
+An Execution Receipt does not have to be signed directly by the provider's long-term identity key.
+
+Real capabilities may execute through:
+
+- a provider agent key;
+- a `tos-ai` worker/runtime key;
+- an HTTP/MCP adapter key;
+- an enterprise delegated key;
+- a gateway execution adapter for a human-backed capability.
+
+ATOS therefore models an **authorized execution signer**.
+
+Conceptually:
+
+```json
+{
+  "execution_signer": {
+    "signer_id":"sig_...",
+    "authorization_ref":"tos:...",
+    "scope":{
+      "provider_id":"agt_...",
+      "capability_id":"cap_...",
+      "capability_version":"1.2.0"
+    }
+  }
+}
+```
+
+For Verified/Native, the verifier MUST be able to establish that the receipt signer was authorized for the quoted provider/capability/version at the relevant time according to the proof profile.
+
+This preserves provider attribution without forcing every underlying worker or human to hold the provider's root identity key.
+
+## 10. Third-Party API Passthrough
 
 A capability that wraps a third-party API does not need a separate primitive.
 
 Register it as an `http` binding with suitable pricing and SLA. The client still uses `atos_invoke` or `atos_create_job`.
 
-If the wrapper advertises `verified`, the ATOS/TOS guarantees apply to the wrapper's delivered service and receipt. They do not magically make the upstream third-party API itself decentralized or independently trustworthy beyond the evidence actually committed.
+If the wrapper advertises `verified`, ATOS/TOS guarantees apply to the wrapper's delivered service and receipt. They do not make the upstream third-party API itself decentralized or independently trustworthy beyond the evidence actually committed.
 
-## 10. Versioning and Manifest Commitments
+## 11. Versioning and Manifest Commitments
 
 Breaking input/output contract changes require a new capability version. Existing Quotes, Jobs, and Receipts retain the version they were created against.
 
@@ -266,11 +313,11 @@ For `verified` and `native`, the quoted version MUST resolve to an immutable `ma
 - input/output schema commitments;
 - relevant delivery/SLA terms;
 - mode/proof compatibility;
-- immutable provider execution identity/binding references where required by the proof profile.
+- execution-signer authorization policy/binding references where required by the proof profile.
 
 Mutable discovery metadata such as descriptions, tags, popularity, health snapshots, and gateway ranking features do not need to be inside the immutable manifest unless a proof profile explicitly requires them.
 
-## 11. Global IDs and Federation
+## 12. Global IDs and Federation
 
 Public Capability IDs MUST be designed for multi-gateway federation from v0.2 onward.
 
@@ -291,7 +338,7 @@ Conceptual addressing:
 atos://capability/<global-capability-id>
 ```
 
-## 12. Ownership Anchoring
+## 13. Ownership Anchoring
 
 Capability metadata is indexed off-chain for fast search. Ownership is a trust fact and is anchored separately through `tos-core`/TOS.
 
@@ -303,7 +350,7 @@ Concretely:
 - A capability MUST NOT be reassigned to another `provider_id` through a normal metadata patch.
 - Provider reassignment requires a protocol-defined ownership transfer/re-anchoring operation or a new capability identity.
 
-## 13. Availability and Health by Mode
+## 14. Availability and Health by Mode
 
 Availability MAY differ by trust mode.
 
@@ -321,14 +368,16 @@ Example:
 
 A gateway MUST NOT silently route a request quoted for `verified` or `native` through a weaker mode because the stronger path becomes unavailable. It must fail, wait according to the quoted SLA, or require a new Quote.
 
-## 14. Capability Invariants
+## 15. Capability Invariants
 
 1. One capability identity may support multiple concrete trust modes.
-2. `auto` is request-only and never a supported concrete mode.
-3. Delivery mode and trust mode are orthogonal.
-4. Trust/reputation score is not the same thing as transaction trust mode.
-5. A Quote, not catalog pricing, determines the final commercial terms and concrete mode.
-6. Verified/Native capability versions have immutable verifiable manifest commitments.
-7. Native capabilities are globally resolvable without `atos.im` as canonical registry.
-8. Search metadata remains off-chain and indexable; ownership/proof facts may be TOS-backed.
-9. Mode unavailability never permits a silent downgrade after Quote issuance.
+2. `requested_trust_modes` is provider intent; `supported_trust_modes` is the derived set of active modes.
+3. `auto` is client request-only and never a supported concrete mode.
+4. Delivery mode and trust mode are orthogonal.
+5. Trust/reputation score is not the same thing as transaction trust mode.
+6. A Quote, not catalog pricing, determines the final commercial terms and concrete mode.
+7. Verified/Native capability versions have immutable verifiable manifest commitments.
+8. Native capabilities are globally resolvable without `atos.im` as canonical registry.
+9. Execution receipts are signed by an authorized execution signer whose authority is verifiable for Verified/Native.
+10. Search metadata remains off-chain and indexable; ownership/proof facts may be TOS-backed.
+11. Mode unavailability never permits a silent downgrade after Quote issuance.
