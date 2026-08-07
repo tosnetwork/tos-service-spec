@@ -61,13 +61,21 @@ available -> expired
 
 ATOS does not guarantee indefinite retention. Capabilities that need an artifact past its retention window must copy it into permitted provider/customer storage during execution.
 
-## Upload Flow
+## MCP Artifact Tool
 
-`atos_create_upload`/`atos_complete_upload` below are MCP shorthand for
-`atos_artifact` called with `operation: "create_upload"` /
-`operation: "complete_upload"` — see `docs/MCP.md` § 6.11 for why the
-three-step flow is one tool, not three. The REST paths are the
-equivalent, unconsolidated surface for non-MCP clients.
+MCP exposes one model-visible `atos_artifact` tool with three operations:
+
+```text
+create_upload
+complete_upload
+get_download_url
+```
+
+They are one routing intent — **work with an Artifact** — while the REST API may retain separate endpoints.
+
+The operation-dispatched MCP schema is strict: each operation declares its own required input fields and its own structured output shape. Servers MUST reject fields belonging to another operation rather than silently ignoring them.
+
+## Upload Flow
 
 ```text
 atos_artifact(operation: create_upload) (or POST /v1/uploads)
@@ -99,6 +107,40 @@ A signed URL is an ephemeral transport credential. It MUST NOT be embedded into 
 
 Use `artifact_id` and/or content commitment in durable records instead.
 
+## Operation Authorization
+
+Tool visibility is not authorization. Every Artifact operation MUST re-check access at call time.
+
+### `create_upload`
+
+For `purpose=job_input`, require a principal allowed to create the intended execution:
+
+```text
+invocations:create OR jobs:create
+```
+
+For `purpose=capability_asset`, require:
+
+```text
+capabilities:write
+```
+
+An upload target MUST be bound server-side to the creating principal, purpose, declared content type, size bound, expiry, and storage object identity.
+
+### `complete_upload`
+
+The caller MUST match the principal/security context that created the upload unless an explicit administrative delegation applies.
+
+Possession of an `upload_id` alone is never authority.
+
+Completion MUST verify that the uploaded object matches the server-issued upload record and size/content constraints before returning an available Artifact.
+
+### `get_download_url`
+
+The caller MUST be authorized for the Artifact or for the owning Job/output.
+
+For a Job output, access SHOULD be equivalent to the corresponding `atos_get_job` authorization check. A provider does not gain standing access merely because it produced an Artifact.
+
 ## Ownership and Access
 
 - An uploaded Artifact is visible only to authorized principals and the execution pipeline for Jobs that legitimately reference it.
@@ -106,6 +148,7 @@ Use `artifact_id` and/or content commitment in durable records instead.
 - Providers receive permitted input content through the execution pipeline, not a general artifact-read API.
 - Job-output downloads require authorization equivalent to `atos_get_job` ownership/access policy.
 - Signed URL expiry does not change the cryptographic content commitment already recorded in a receipt.
+- Signed URLs SHOULD be short-lived and scoped to exactly one object/action where the storage backend supports it.
 
 ## Trust-Mode Behavior
 
@@ -167,3 +210,5 @@ A verifier can hash the downloaded bytes and compare them with the committed val
 3. Durable proofs use content commitments, not signed URLs.
 4. A signed URL is temporary transport authorization, not a protocol identity.
 5. Quote/proof profile determines whether an Artifact commitment is required in the Receipt.
+6. `upload_id` and `artifact_id` are identifiers, not bearer authorization.
+7. Every Artifact operation re-checks scope and object-level access.
