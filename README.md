@@ -1,23 +1,95 @@
-# ATOS Agent Gateway Specification v0.1
+# ATOS Agent Internet Specification v0.2
 
 **Status:** Draft  
 **Date:** 2026-08-07  
 **Product:** ATOS (`atos.im`)  
-**Network:** TOS Network  
+**Network:** TOS Network
 
-> **ATOS is the gateway to the Agent Internet. TOS Network is the decentralized network underneath it.**
+> **ATOS is an open protocol for discovering, invoking, coordinating, verifying, and settling capabilities across the Agent Internet.**
+>
+> **atos.im is the canonical reference gateway and managed service.**
+>
+> **TOS Network is the decentralized identity, registry, trust, proof, and economic substrate underneath ATOS.**
 
-ATOS gives Codex, Claude Code, Cursor, OpenClaw, Hermes and other agents one simple interface for discovering, invoking, publishing and paying for capabilities. Client agents do not need to understand blockchains, wallets, validators, routing, settlement assets, or TOS internals.
+ATOS gives Codex, Claude Code, Cursor, OpenClaw, Hermes and other agents one compact interface for discovering, invoking, publishing and paying for capabilities without requiring ordinary clients to understand wallets, validators, gas, node topology, or settlement internals.
+
+## Core Product Model
+
+ATOS provides one protocol with three concrete trust modes:
+
+```text
+managed   = atos.im may complete the transaction as a centralized managed service
+verified  = atos.im UX may remain centralized, but critical trust/economic checkpoints are TOS-verifiable
+native    = TOS-backed trust/settlement plus gateway-independent canonical resolution
+```
+
+Clients may request:
+
+```text
+requested_trust_mode = managed | verified | native | auto
+```
+
+`auto` is a pre-Quote policy only. `atos_quote` always resolves it to:
+
+```text
+trust_mode = managed | verified | native
+```
+
+The resolved mode is immutable for that Quote. Verified/Native work MUST NOT silently downgrade to Managed.
+
+**Decentralization is a selectable trust level, not a usability requirement.**
+
+## Architecture
+
+```text
+Codex / Claude Code / Cursor / OpenClaw / Hermes
+                      |
+                 ATOS Skill
+                      |
+                  MCP / A2A
+                      |
+                 ATOS Protocol
+                      |
+         +------------+------------+
+         |            |            |
+      Managed      Verified       Native
+         |            |            |
+      atos.im       atos.im      any gateway
+         |            + TOS         + TOS
+         +------------+------------+
+                      |
+                  Capability
+                      |
+              Provider / tos-ai
+                      |
+                   tos-core
+                      |
+                 TOS Network
+```
+
+Plane boundary:
+
+```text
+atos.im / gateways = UX, discovery, ranking, policy, routing, managed billing
+tos-ai             = execution fabric/provider-worker runtime
+tos-core           = trust/economy/proof adapter boundary
+TOS Network         = identity, registry commitments, reputation evidence, escrow, proof, settlement
+```
+
+The blockchain is not the bulk execution data plane. Prompts, private files and large artifacts remain off-chain by default; Verified/Native modes commit the trust/economic facts and content hashes required for independent verification.
 
 ## Design Goals
 
 1. **One-sentence onboarding** — an agent can install/read an ATOS Skill and complete Device Authorization.
-2. **Protocol-native** — MCP for tool use; A2A for stateful agent-to-agent work; REST for ordinary developers.
-3. **Centralized UX, decentralized infrastructure** — `atos.im` is a stable gateway while identity, discovery, reputation, settlement and execution may progressively move to TOS Network.
-4. **No wallet requirement for clients** — Codex users can operate with ATOS Credits or other supported payment methods; TOS settlement is an implementation detail.
-5. **Machine-safe spending** — discovery is free; financially committing calls carry quote IDs, max-price constraints, idempotency keys and explicit policy/confirmation.
-6. **Small MCP surface** — keep the default tool set compact enough for reliable model routing.
-7. **Opaque providers** — external agents expose capabilities and contracts, not internal prompts, memory or chain topology.
+2. **One client protocol** — Managed, Verified and Native do not fork MCP/A2A/REST APIs.
+3. **Centralized product quality** — `atos.im` can compete directly with centralized agent marketplaces.
+4. **Selectable verifiability** — users can require TOS-backed proof without becoming blockchain operators.
+5. **Open Native network** — Native capabilities survive without `atos.im` as the canonical gateway/namespace authority.
+6. **No wallet requirement for mainstream clients** — fiat/credits may abstract the provider settlement asset.
+7. **Machine-safe spending** — Quotes, max-price constraints, idempotency and explicit approval bind financial commitment.
+8. **Small MCP surface** — keep the default 10 tools reliable for model routing.
+9. **Portable Proof-of-Service** — signed execution receipts become verifiable reputation evidence.
+10. **Opaque providers** — capabilities expose public contracts, not private prompts, memory, secrets or topology.
 
 ## Public Entry Points
 
@@ -27,68 +99,30 @@ ATOS gives Codex, Claude Code, Cursor, OpenClaw, Hermes and other agents one sim
 | API | `https://api.atos.im/v1` |
 | MCP (2026 Streamable HTTP) | `https://mcp.atos.im/mcp` |
 | MCP legacy SSE compatibility | `https://mcp.atos.im/sse` |
-| A2A | `https://a2a.atos.im` |
+| A2A reference gateway | `https://a2a.atos.im` |
 | Agent Card | `https://atos.im/.well-known/agent-card.json` |
 | Agent Card compatibility alias | `https://atos.im/.well-known/agent.json` |
 | Skill | `https://atos.im/skills/atos/SKILL.md` |
 | Skill package | `https://atos.im/skills/atos/atos-skill.zip` |
 
-## Client Architecture
-
-```text
-Codex / Claude Code / Cursor / OpenClaw / Hermes
-                      |
-                 ATOS Skill
-            onboarding + policy
-                      |
-              Device Authorization
-                      |
-          +-----------+-----------+
-          |                       |
-         MCP                     A2A
-  tool discovery/calls    stateful collaboration
-          |                       |
-          +-----------+-----------+
-                      |
-               ATOS Gateway
-                      |
-       +--------------+--------------+
-       |              |              |
-  Discovery/Rank   Execution       Billing
-       |              |              |
-       +--------------+--------------+
-                      |
-              +-------+-------+
-              |               |
-            tos-ai         tos-core
-   provider/worker runtime   identity / registry / reputation
-   model, MCP, HTTP, GPU,    escrow / receipt verification /
-   local, human adapters     settlement / proof
-              |               |
-              +-------+-------+
-                      |
-                 TOS Network
-        consensus / P2P / ledger / settlement commitments
-                      |
-     Agents / APIs / humans / edge compute / services
-```
-
 ## Core Business Objects
 
-ATOS intentionally avoids splitting the Agent-facing protocol into separate Human Skill and Agent Capability models, as some prior art in this space does. The canonical unit is always a **Capability**.
+The canonical discoverable supply unit is always a **Capability**.
 
-- **Capability** — discoverable unit of supply.
-- **Quote** — time-limited executable commercial offer for a capability.
-- **Invocation** — immediate/synchronous execution attempt.
-- **Job** — stateful asynchronous unit of work.
-- **Artifact** — structured or file deliverable produced by an invocation/job.
-- **Provider** — agent, API, human-operated service, or execution node supplying a capability.
-- **Account** — client/provider identity and spending/earning policy at the ATOS gateway.
-- **Settlement** — accounting and provider payout; may be backed by TOS Network without exposing chain details to clients.
+- **Capability** — discoverable unit of supply, with concrete supported trust modes.
+- **Quote** — immutable time-limited commercial/trust contract that resolves the concrete trust mode.
+- **Invocation** — bounded/synchronous execution attempt inheriting Quote mode.
+- **Job** — stateful asynchronous unit of work inheriting Quote mode.
+- **Artifact** — structured/file deliverable; bytes normally remain off-chain.
+- **Provider** — agent, API, human-operated service, execution node, or other supplier.
+- **Execution Receipt** — signed evidence of what was executed and settled.
+- **Proof-of-Service** — portable evidence graph derived from receipts/outcomes.
+- **Account** — gateway-local identity, spend and earning policy where applicable.
+- **Settlement** — Managed or TOS-backed accounting/payout according to the Quote.
 
 ## Default MCP Tool Set
 
-The default MCP server exposes **10 tools**, not dozens:
+The default MCP server exposes 10 tools:
 
 1. `atos_search`
 2. `atos_get_capability`
@@ -101,42 +135,48 @@ The default MCP server exposes **10 tools**, not dozens:
 9. `atos_update_capability`
 10. `atos_account`
 
-Optional/admin/provider tools are discoverable only when the authenticated principal has matching permissions. Optional file transfer tools (`atos_create_upload`/`atos_complete_upload`/`atos_get_download_url`, see `docs/ARTIFACTS.md`) are discoverable only when a capability's schema references a file field — most capabilities never need them.
+Optional provider/admin/file tools are advertised only when relevant.
 
 ## Recommended Client Flow
 
 ```text
-User intent
+User intent / trust policy
    -> atos_search
    -> atos_get_capability (optional)
-   -> atos_quote
-   -> policy check
-       -> under autonomous spend limit: atos_invoke / atos_create_job
-       -> over limit: MCP input_required -> user confirmation
+   -> atos_quote(requested_trust_mode, proof requirements)
+   -> Quote resolves concrete trust_mode
+   -> policy + spend check
+       -> within autonomous policy: invoke/create job
+       -> otherwise: MCP input_required / user approval
    -> result/artifacts
-   -> transparent receipt
+   -> signed receipt
+   -> optional TOS proof / Proof-of-Service evidence
 ```
 
 ## Repository Map
 
-- [`SKILL.md`](./SKILL.md) — install/onboarding/runtime instructions for Codex and other agents.
-- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — gateway/network separation.
-- [`docs/MCP.md`](./docs/MCP.md) — MCP tools, resources and spend-safety contract.
-- [`docs/A2A.md`](./docs/A2A.md) — stateful A2A profile.
-- [`docs/AGENT_CARD.md`](./docs/AGENT_CARD.md) — discovery metadata.
+- [`SKILL.md`](./SKILL.md) — Codex/agent onboarding and runtime policy.
+- [`docs/ARCHITECTURE_V0.2.md`](./docs/ARCHITECTURE_V0.2.md) — normative v0.2 architecture and trust-mode guarantees.
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — historical v0.1 architecture retained for comparison during review.
+- [`docs/MCP.md`](./docs/MCP.md) — MCP v0.2 tool and trust-mode contract.
+- [`docs/A2A.md`](./docs/A2A.md) — A2A v0.2 profile.
+- [`docs/AGENT_CARD.md`](./docs/AGENT_CARD.md) — Agent Card / mode advertisement.
 - [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens and scopes.
-- [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — capability schema and matching.
-- [`docs/SETTLEMENT.md`](./docs/SETTLEMENT.md) — ATOS Credits and hidden TOS settlement.
-- [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL file upload/download model.
-- [`docs/API.md`](./docs/API.md) — REST API surface.
-- [`docs/IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md) — MVP phases.
-- [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — compact machine-readable tool schemas.
+- [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — capability, global ID, mode support and ownership rules.
+- [`docs/SETTLEMENT.md`](./docs/SETTLEMENT.md) — Managed/Verified/Native settlement and proof model.
+- [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL artifact transfer model.
+- [`docs/API.md`](./docs/API.md) — REST API v0.2 semantics.
+- [`docs/IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md) — staged Managed -> Verified -> Native implementation plan.
+- [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — v0.2 MCP input/output schemas.
+- [`schemas/protocol-types.json`](./schemas/protocol-types.json) — reusable trust-mode/proof JSON Schema definitions.
 
 ## Compatibility Principles
 
-- Prefer current MCP **Streamable HTTP**. Keep SSE only as a compatibility adapter.
-- Publish the current A2A standard Agent Card at `/.well-known/agent-card.json`.
+- Prefer the current MCP Streamable HTTP transport; keep legacy SSE only as a compatibility adapter.
+- Publish the current A2A Agent Card at `/.well-known/agent-card.json`, with compatibility aliases where useful.
 - Use semantic versioning in public contracts.
-- Every financially committing operation requires an `idempotency_key`.
-- Every quote contains `expires_at`, currency, total maximum and settlement model.
-- Never require a client agent to own TOS merely to consume a capability.
+- Every financially committing operation requires idempotency protection.
+- Every Quote contains concrete trust mode, expiry, maximum price, settlement/proof contract and terms commitment.
+- Never require an ordinary client agent to own TOS merely to consume a capability.
+- Never treat `auto` as a committed execution mode.
+- Never silently downgrade a Verified/Native Quote.
