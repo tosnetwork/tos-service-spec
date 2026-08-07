@@ -6,13 +6,13 @@ Preferred production endpoint:
 
 `POST https://mcp.atos.im/mcp`
 
-Use current MCP Streamable HTTP semantics. The server should be horizontally scalable and avoid hidden transport session state. Keep an SSE compatibility endpoint at `https://mcp.atos.im/sse` for older clients during migration.
+Use current MCP Streamable HTTP semantics. The server should be horizontally scalable and avoid hidden transport session state. Keep `https://mcp.atos.im/sse` only as a legacy compatibility adapter during migration.
 
 ## 2. Trust-Mode Contract
 
 ATOS v0.2 exposes one MCP surface across all trust modes.
 
-Request-time values:
+Request-time value:
 
 ```text
 requested_trust_mode = managed | verified | native | auto
@@ -24,33 +24,25 @@ Resolved transaction value:
 trust_mode = managed | verified | native
 ```
 
-**`auto` is request-only.** It MUST NOT appear as the resolved trust mode on a Quote, Invocation, Job, Escrow, or Receipt.
+**`auto` is request-only.** It MUST NOT appear as the resolved mode on a Quote, Invocation, Job, Escrow, Receipt, or settlement record.
 
-The mode becomes immutable at `atos_quote`.
+The concrete mode becomes immutable at `atos_quote`.
 
 Therefore:
 
-- `atos_search` MAY filter by requested mode/proof requirements;
+- `atos_search` MAY filter by requested mode and proof requirements;
 - `atos_quote` accepts `requested_trust_mode` and resolves it;
-- `atos_invoke` and `atos_create_job` MUST NOT accept a replacement `trust_mode` field that could override the Quote;
-- results MUST echo the concrete `trust_mode` from the Quote;
-- a weaker fallback requires a new Quote.
+- `atos_invoke` and `atos_create_job` MUST NOT accept a replacement `trust_mode` field;
+- Invocation/Job/Receipt results MUST inherit the Quote's concrete `trust_mode`;
+- a weaker fallback requires a new Quote;
+- `verified` uses `tos_verified_v1` or a stronger compatible proof profile;
+- `native` uses `tos_native_v1` or a stronger compatible proof profile.
 
-## 3. Tool Design Principles
+Normative profile guarantees are defined in `docs/PROOF_PROFILES.md`.
 
-- Keep the default tool list small.
-- Separate discovery from financially committing operations.
-- Use a **Quote** as the immutable commercial/trust contract between search and invocation.
-- Every committing call requires `idempotency_key`.
-- Return machine-readable structured content, with concise text summaries only as secondary output.
-- Use `input_required` when user approval or missing sensitive parameters are needed.
-- Do not expose blockchain implementation details in ordinary responses.
-- Never silently downgrade `verified`/`native` to a weaker mode.
-- Distinguish gateway-computed reputation summaries from network-verifiable proof facts.
+## 3. Proof Requirement Semantics
 
-## 4. Common Trust/Proof Fields
-
-### Request policy
+Example request policy:
 
 ```json
 {
@@ -63,7 +55,28 @@ Therefore:
 }
 ```
 
-### Resolved quote fields
+For v0.2 boolean proof requirements:
+
+- `true` means the property is required;
+- `false` or omission means the property is not required;
+- `false` does **not** mean the property is forbidden.
+
+This lets `auto` choose a stronger mode when it is cheaper or otherwise preferable without violating the request.
+
+## 4. Tool Design Principles
+
+- Keep the default tool list small.
+- Separate discovery from financially committing operations.
+- Use a **Quote** as the immutable commercial/trust contract between search and execution.
+- Every committing call requires `idempotency_key`.
+- Return machine-readable structured content; concise text summaries are secondary.
+- Use MCP `input_required`/elicitation when user approval or missing sensitive parameters are needed.
+- Do not expose blockchain implementation details in ordinary responses.
+- Never silently downgrade `verified`/`native` to a weaker mode.
+- Distinguish gateway-computed reputation summaries from TOS-verifiable proof facts.
+- Keep bulk/private payloads off-chain; Verified/Native receipts carry commitments when required.
+
+## 5. Common Resolved Quote Fields
 
 ```json
 {
@@ -81,9 +94,9 @@ Therefore:
 
 `proof_profile` MAY be null for `managed`. It is required for standard `verified`/`native` guarantees.
 
-## 5. Default Tools
+## 6. Default Tools
 
-### 5.1 `atos_search`
+### 6.1 `atos_search`
 
 Search and rank capabilities.
 
@@ -137,11 +150,11 @@ Output candidate fields:
 }
 ```
 
-Search does not create an economic commitment and does not resolve `auto` permanently.
+`atos_search` does not create an economic commitment and does not permanently resolve `auto`.
 
-### 5.2 `atos_get_capability`
+`supported_trust_modes` contains only modes that are currently active and quotable for the capability.
 
-Retrieve full metadata and schemas for one capability.
+### 6.2 `atos_get_capability`
 
 Input:
 
@@ -154,14 +167,14 @@ Returns:
 - input/output schemas;
 - delivery mode;
 - pricing model/hints;
-- provider/trust summary;
-- `supported_trust_modes` containing only `managed | verified | native`;
-- mode availability;
-- proof profiles supported by concrete mode;
+- provider and `trust_summary`;
+- active `supported_trust_modes` containing only `managed | verified | native`;
+- `mode_support` state;
+- proof profiles supported by active concrete modes;
 - transport bindings;
 - ownership/manifest commitment metadata where public.
 
-### 5.3 `atos_quote`
+### 6.3 `atos_quote`
 
 Create a short-lived executable Quote and resolve trust mode.
 
@@ -183,7 +196,7 @@ Input:
 }
 ```
 
-Output:
+Verified example output:
 
 ```json
 {
@@ -202,7 +215,8 @@ Output:
   },
   "settlement": {
     "backend":"tos",
-    "escrow":true
+    "escrow":true,
+    "funding_model":"gateway_sponsored"
   },
   "proof": {
     "quote_commitment":true,
@@ -220,12 +234,14 @@ Output:
 Rules:
 
 1. If `requested_trust_mode` is concrete, the Quote MUST use that mode or fail.
-2. If it is `auto`, the gateway chooses the cheapest/most suitable concrete mode satisfying all constraints.
+2. If it is `auto`, the gateway chooses a concrete mode satisfying all request constraints.
 3. The returned `trust_mode` is immutable for the Quote.
-4. For `verified`/`native`, the Quote MUST NOT be returned unless the selected proof profile is currently satisfiable.
-5. Network/proof unavailability is an error, not permission to weaken the caller's requirements.
+4. A Verified Quote uses `tos_verified_v1` or stronger.
+5. A Native Quote uses `tos_native_v1` or stronger.
+6. A Verified/Native Quote MUST NOT be returned unless the required proof/settlement path is currently satisfiable.
+7. Network/proof unavailability is an error, not permission to weaken requirements.
 
-### 5.4 `atos_invoke`
+### 6.4 `atos_invoke`
 
 Execute a bounded, normally synchronous capability using a Quote.
 
@@ -246,11 +262,11 @@ Input:
 Possible result types:
 
 - `completed`
-- `accepted` (converted to async Job)
+- `accepted` — converted to async Job
 - `input_required`
 - `failed`
 
-Completed output:
+Completed Verified output:
 
 ```json
 {
@@ -264,16 +280,21 @@ Completed output:
     "receipt_id":"rcpt_...",
     "quote_id": "q_...",
     "trust_mode":"verified",
+    "proof_profile":"tos_verified_v1",
     "charged": {"amount":"5.25","currency":"USD"},
+    "execution_signer_id":"sig_...",
+    "signer_authorization_ref":"tos:...",
     "proof_status":"verified",
     "network_proof_ref":"tos:..."
   }
 }
 ```
 
-For Managed Mode, `network_proof_ref` MAY be absent/null.
+The execution signer may be the provider or an authorized delegated runtime/adapter. Verified/Native proof must establish signer authority for the quoted provider/capability/version.
 
-### 5.5 `atos_create_job`
+For Managed Mode, TOS proof references may be absent.
+
+### 6.5 `atos_create_job`
 
 Create long-running or interactive work.
 
@@ -289,23 +310,23 @@ Input:
 }
 ```
 
-Again, mode is inherited from the Quote and cannot be overridden.
+Mode is inherited from the Quote and cannot be overridden.
 
-Output:
+Native example output:
 
 ```json
 {
   "job_id": "job_...",
   "quote_id":"q_...",
   "trust_mode":"native",
-  "proof_profile":"tos_verified_v1",
+  "proof_profile":"tos_native_v1",
   "state": "submitted",
   "created_at": "...",
   "estimated_completion_at": "..."
 }
 ```
 
-`callback` is reserved and unimplemented in Phase 1/2. Clients MUST omit it or pass `null`; servers MUST reject a non-null value with `validation_failed` until webhook delivery ships.
+`callback` is reserved and unimplemented in the initial phases. Clients MUST omit it or pass `null`; servers MUST reject a non-null value with `validation_failed` until webhook delivery ships.
 
 When implemented, the shape is:
 
@@ -319,9 +340,9 @@ When implemented, the shape is:
 }
 ```
 
-`secret_ref` identifies a client-registered signing secret; the secret value itself is never returned in Job records.
+`secret_ref` identifies a registered webhook-signing secret; the secret value itself is never returned in Job records.
 
-### 5.6 `atos_get_job`
+### 6.6 `atos_get_job`
 
 Input:
 
@@ -341,14 +362,13 @@ Terminal alternatives:
 failed | canceled | rejected
 ```
 
-Response MUST include the concrete `trust_mode` inherited from the Quote. For `verified`/`native`, the response SHOULD also expose compact proof progress/status without requiring chain-specific reasoning.
-
-Example:
+Response MUST include the concrete `trust_mode` inherited from the Quote. For `verified`/`native`, response SHOULD expose compact proof progress/status.
 
 ```json
 {
   "job_id":"job_...",
   "trust_mode":"verified",
+  "proof_profile":"tos_verified_v1",
   "state":"working",
   "proof_status": {
     "quote":"committed",
@@ -359,7 +379,7 @@ Example:
 }
 ```
 
-### 5.7 `atos_cancel_job`
+### 6.7 `atos_cancel_job`
 
 Input:
 
@@ -371,11 +391,11 @@ Input:
 }
 ```
 
-Cancellation uses the Job's existing concrete mode. A Verified/Native refund/release MUST follow that mode's settlement guarantees. Cancellation MUST NOT downgrade the transaction to Managed accounting.
+Cancellation uses the Job's existing concrete mode. Verified/Native release/refund MUST follow that mode's settlement guarantees. Cancellation MUST NOT downgrade the transaction to Managed accounting.
 
-### 5.8 `atos_register_capability`
+### 6.8 `atos_register_capability`
 
-Provider-side registration.
+Provider-side registration requests desired concrete trust modes; it does not self-certify active modes.
 
 Input includes:
 
@@ -385,7 +405,7 @@ Input includes:
 - delivery mode;
 - endpoint bindings;
 - visibility;
-- requested `supported_trust_modes` containing only concrete values.
+- `requested_trust_modes`, containing only `managed | verified | native`.
 
 Example:
 
@@ -397,26 +417,53 @@ Example:
   "input_schema":{"type":"object"},
   "output_schema":{"type":"object"},
   "pricing":{"model":"per_unit"},
-  "supported_trust_modes":["managed","verified"],
+  "requested_trust_modes":["managed","verified","native"],
   "bindings":[
-    {"transport":"http","endpoint_ref":"ep_...","trust_modes":["managed","verified"]}
+    {
+      "transport":"http",
+      "endpoint_ref":"ep_...",
+      "eligible_trust_modes":["managed","verified"]
+    }
   ]
 }
 ```
 
-Requesting a trust mode does not mean it is immediately active. Verified/Native activation requires the guarantees defined in `docs/CAPABILITIES.md` and `docs/ARCHITECTURE_V0.2.md`.
+Example response:
 
-### 5.9 `atos_update_capability`
+```json
+{
+  "capability_id":"cap_...",
+  "requested_trust_modes":["managed","verified","native"],
+  "supported_trust_modes":["managed"],
+  "mode_support":{
+    "managed":{"status":"active"},
+    "verified":{"status":"pending","proof_profile":"tos_verified_v1"},
+    "native":{"status":"pending","proof_profile":"tos_native_v1"}
+  }
+}
+```
+
+Rules:
+
+- `requested_trust_modes` is provider intent.
+- `supported_trust_modes` is the derived set of `active` modes.
+- `eligible_trust_modes` on a transport binding means technical eligibility, not certification.
+- `auto` is invalid in provider concrete-mode sets.
+- Verified/Native activation requires the guarantees in `docs/CAPABILITIES.md`, `docs/ARCHITECTURE_V0.2.md`, and `docs/PROOF_PROFILES.md`.
+
+### 6.9 `atos_update_capability`
 
 Partial provider-side update.
 
 Immutable identity/ownership fields cannot be changed through an ordinary patch.
 
-Adding or activating `verified`/`native` MUST pass the corresponding ownership/proof/resolution validation; a generic metadata PATCH cannot bypass certification.
+Providers may update `requested_trust_modes`. They MUST NOT directly force `supported_trust_modes` or `mode_support.status=active` through a generic metadata patch.
 
-### 5.10 `atos_account`
+Verified/Native activation must pass ownership, manifest, proof-profile, signer-authorization, settlement, and Native-resolution checks as applicable.
 
-Read-only account summary.
+### 6.10 `atos_account`
+
+Read-only account summary:
 
 ```json
 {
@@ -436,22 +483,28 @@ Read-only account summary.
 
 Normal account output should not expose wallet derivation, gas, validators, or internal settlement keys.
 
-## 6. Required Error Semantics
-
-ATOS v0.2 adds explicit trust/proof failures.
+## 7. Required Error Semantics
 
 Recommended machine codes:
 
-- `trust_mode_unavailable` — capability does not currently support the requested concrete mode.
-- `proof_requirements_unsatisfied` — no mode/provider can satisfy requested proof properties.
-- `proof_profile_unavailable` — required proof backend/profile is temporarily unavailable.
-- `network_unavailable` — TOS-backed operation cannot currently meet the Quote contract.
-- `quote_mode_mismatch` — caller attempts execution inconsistent with Quote mode.
-- `requote_required` — a different trust mode/price/terms would be needed.
+- `trust_mode_unavailable`
+- `proof_requirements_unsatisfied`
+- `proof_profile_unavailable`
+- `network_unavailable`
+- `quote_expired`
+- `quote_mismatch`
+- `quote_mode_mismatch`
+- `requote_required`
+- `spend_limit_exceeded`
+- `insufficient_balance`
+- `idempotency_conflict`
+- `job_not_cancelable`
+- `provider_failed`
+- `settlement_failed`
 
-A server MUST NOT convert these failures into a weaker successful execution without a new Quote.
+A server MUST NOT turn a trust/proof failure into a weaker successful execution without a new Quote.
 
-## 7. Optional Provider/Admin Tools
+## 8. Optional Provider/Admin Tools
 
 Expose only to principals with matching scopes:
 
@@ -462,15 +515,13 @@ Expose only to principals with matching scopes:
 - `atos_request_settlement`
 - `atos_dispute_job`
 
-Provider/admin settlement tools MUST preserve the Quote/Job concrete trust mode and proof profile.
+Provider/admin settlement operations MUST preserve the Quote/Job concrete trust mode and proof profile.
 
-## 8. Optional File Transfer Tools
+## 9. Optional File Transfer Tools
 
-See `docs/ARTIFACTS.md` for the object model.
+See `docs/ARTIFACTS.md`.
 
-Binary bytes never travel through an MCP tool call. Signed URLs are used for upload/download.
-
-Artifacts remain off-chain by default. Verified/Native flows MAY commit artifact hashes/commitments to the Execution Receipt according to the selected proof profile.
+Binary bytes never travel through an MCP business tool call. Signed URLs are used for transfer. Artifacts remain off-chain by default; Verified/Native receipts may commit content hashes according to the selected proof profile.
 
 ### `atos_create_upload`
 
@@ -488,16 +539,7 @@ Artifacts remain off-chain by default. Verified/Native flows MAY commit artifact
 {"upload_id": "up_..."}
 ```
 
-Returns:
-
-```json
-{
-  "artifact_id": "art_...",
-  "content_type": "application/pdf",
-  "size_bytes": 2140233,
-  "sha256": "..."
-}
-```
+Returns a stable `artifact_id`, metadata, and content commitment/hash.
 
 ### `atos_get_download_url`
 
@@ -505,9 +547,9 @@ Returns:
 {"artifact_id":"art_..."}
 ```
 
-Returns a short-lived signed URL and artifact metadata.
+Returns a short-lived authorized download URL and artifact metadata.
 
-## 9. MCP Resources
+## 10. MCP Resources
 
 Recommended resources:
 
@@ -517,9 +559,7 @@ Recommended resources:
 - `atos://network/status`
 - `atos://docs/protocol-version`
 
-`atos://network/status` SHOULD report whether `managed`, `verified`, and `native` infrastructure is currently available without exposing unnecessary chain internals.
-
-Example:
+`atos://network/status` SHOULD expose high-level mode availability without chain plumbing:
 
 ```json
 {
@@ -529,19 +569,19 @@ Example:
 }
 ```
 
-## 10. MCP Prompts
+## 11. MCP Prompts
 
-Optional prompts:
+Optional convenience prompts:
 
 - `atos-find-specialist`
 - `atos-publish-capability`
 - `atos-compare-quotes`
 
-Prompts are convenience templates, not business APIs.
+Prompts are not business APIs.
 
-## 11. Spend Confirmation via MCP Elicitation
+## 12. Spend Confirmation via MCP Elicitation
 
-When the requested amount exceeds autonomous policy, return an MCP multi-round-trip response conceptually equivalent to:
+When a Quote exceeds autonomous policy, return an MCP multi-round-trip response conceptually equivalent to:
 
 ```json
 {
@@ -557,27 +597,30 @@ When the requested amount exceeds autonomous policy, return an MCP multi-round-t
 }
 ```
 
-The confirmation MUST bind to the Quote ID, concrete trust mode, maximum amount, and Quote expiry so an approval for one mode cannot be replayed for another.
+The confirmation state MUST bind to Quote ID, concrete trust mode, proof profile, maximum amount, and Quote expiry so approval for one contract cannot be replayed for another.
 
-## 12. Idempotency
+## 13. Idempotency
 
-`atos_invoke`, `atos_create_job`, `atos_cancel_job`, registration mutations and settlement mutations MUST require `idempotency_key`.
+`atos_invoke`, `atos_create_job`, `atos_cancel_job`, registration mutations, and settlement mutations MUST require `idempotency_key`.
 
 Server behavior:
 
 - same principal + same key + same request hash => return original result;
 - same principal + same key + different request hash => `409 idempotency_conflict`;
-- store keys for at least the maximum financial dispute/retry window.
+- retain keys for at least the maximum financial dispute/retry window.
 
-For committing operations, the request hash or idempotency record MUST indirectly bind the Quote and therefore the resolved concrete trust mode.
+For committing operations, the idempotency record MUST bind the Quote and therefore the resolved trust mode/proof profile.
 
-## 13. MCP Invariants
+## 14. MCP Invariants
 
 1. The default surface remains 10 tools.
-2. `auto` is only a request policy value.
+2. `auto` is only a client pre-Quote policy value.
 3. `atos_quote` resolves and freezes a concrete mode.
 4. Invoke/Job creation inherit mode from Quote and cannot override it.
-5. Verified/Native proof failure is a failure/requote, never a silent Managed fallback.
-6. Bulk payloads remain off-chain; receipts may commit their hashes.
-7. Normal MCP clients see proof status/references, not blockchain plumbing.
-8. Trust/reputation summaries are distinct from transaction trust mode.
+5. Verified uses `tos_verified_v1`; Native uses `tos_native_v1` or stronger compatible profiles.
+6. Verified/Native proof failure is a failure/requote, never a silent Managed fallback.
+7. Provider `requested_trust_modes` is not public active `supported_trust_modes`.
+8. Execution Receipts may use an authorized delegated signer; signer authority is proved for Verified/Native.
+9. Bulk payloads remain off-chain; receipts may commit their hashes.
+10. Normal MCP clients see proof status/references, not blockchain plumbing.
+11. Trust/reputation summaries are distinct from transaction trust mode.
