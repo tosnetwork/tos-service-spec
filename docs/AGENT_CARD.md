@@ -1,4 +1,4 @@
-# ATOS Agent Card
+# ATOS Agent Card v0.2
 
 ## Standard Location
 
@@ -17,9 +17,9 @@ The primary path follows the current A2A well-known Agent Card convention.
 ```json
 {
   "name": "ATOS",
-  "description": "Gateway to the Agent Internet. Discover, invoke and pay for capabilities across TOS Network.",
+  "description": "Reference gateway for the ATOS Agent Internet protocol. Discover, invoke, verify and settle capabilities through Managed, Verified or Native trust modes.",
   "url": "https://a2a.atos.im",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "provider": {
     "organization": "TOS Network",
     "url": "https://tos.network"
@@ -40,13 +40,13 @@ The primary path follows the current A2A well-known Agent Card convention.
     {
       "id": "capability-invocation",
       "name": "Capability Invocation",
-      "description": "Invoke a selected capability with policy-aware commercial settlement.",
-      "tags": ["invoke", "commerce", "agents"]
+      "description": "Quote and invoke capabilities with selectable trust and settlement guarantees.",
+      "tags": ["invoke", "commerce", "agents", "verification"]
     }
   ],
   "extensions": {
     "atos": {
-      "version": "1",
+      "protocolVersion": "0.2.0",
       "mcp": {
         "url": "https://mcp.atos.im/mcp",
         "legacySseUrl": "https://mcp.atos.im/sse"
@@ -54,26 +54,57 @@ The primary path follows the current A2A well-known Agent Card convention.
       "api": "https://api.atos.im/v1",
       "deviceAuth": "https://api.atos.im/v1/auth/device",
       "network": "TOS",
-      "clientWalletRequired": false
+      "clientWalletRequired": false,
+      "supportedTrustModes": ["managed", "verified", "native"],
+      "autoTrustModeSelection": true,
+      "proofProfiles": ["tos_verified_v1"],
+      "nativeResolution": true
     }
   }
 }
 ```
 
+`auto` is not included in `supportedTrustModes` because it is a pre-Quote selection policy, not a concrete transaction mode.
+
 ## Individual Provider Cards
 
-Recommended URL:
+Reference gateway URL:
 
 `GET https://api.atos.im/v1/providers/{provider_id}/agent-card`
 
-The gateway may also expose provider-owned signed Agent Cards. Individual cards SHOULD include only public capability metadata and protocol endpoints.
+The gateway may also expose provider-owned signed Agent Cards.
 
-## Signed Cards
+Individual cards SHOULD include only public capability metadata and protocol endpoints. The ATOS extension SHOULD advertise:
 
-Support Agent Card signatures when providers can supply them. ATOS should distinguish:
+- supported concrete trust modes;
+- active proof profiles;
+- global Agent/provider identifier where available;
+- Native resolver/address information where applicable;
+- capability IDs/links;
+- public signing/attestation references.
+
+Do not put private keys, internal prompts, private settlement destinations, or non-public network topology in Agent Cards.
+
+## Trust/Identity Assurance vs Transaction Trust Mode
+
+Agent Card identity assurance is distinct from a transaction's `trust_mode`.
+
+Identity/card assurance may use labels such as:
 
 - `self_asserted`
 - `atos_verified`
 - `tos_attested`
 
-This creates a migration path from centralized verification to decentralized attestations.
+Transaction trust mode is separately:
+
+- `managed`
+- `verified`
+- `native`
+
+Do not use a single ambiguous `verified` label to represent both concepts.
+
+## Signed Cards
+
+Support Agent Card signatures when providers can supply them.
+
+For Native mode, a signed card alone is not sufficient to make the provider globally canonical. The provider/capability identity, ownership and manifest commitments must also satisfy the Native resolution/anchoring requirements in `docs/ARCHITECTURE_V0.2.md` and `docs/CAPABILITIES.md`.
