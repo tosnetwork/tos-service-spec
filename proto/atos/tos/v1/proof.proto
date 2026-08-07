@@ -24,7 +24,9 @@ enum ExecutionResult {
   EXECUTION_RESULT_REJECTED = 5;
 }
 
-message ExecutionReceipt {
+// Signed semantic receipt supplied by Edge/provider execution. It contains no
+// caller-selected network inclusion reference; that is produced by commit.
+message ExecutionReceiptEnvelope {
   string receipt_id = 1;
   string quote_id = 2;
   string escrow_id = 3;
@@ -48,24 +50,29 @@ message ExecutionReceipt {
   bytes signature = 21;
   string signature_algorithm = 22;
   int64 completed_unix_millis = 23;
-  NetworkReference receipt_ref = 24;
-  string error_code = 25;
+  string error_code = 24;
+}
+
+message CommittedExecutionReceipt {
+  ExecutionReceiptEnvelope receipt = 1;
+  NetworkReference receipt_ref = 2;
+  VerificationStatus verification_status = 3;
+  int64 committed_unix_millis = 4;
 }
 
 message CommitExecutionReceiptRequest {
   RequestContext context = 1;
-  ExecutionReceipt receipt = 2;
+  ExecutionReceiptEnvelope receipt = 2;
 }
 
 message CommitExecutionReceiptResponse {
-  ExecutionReceipt receipt = 1;
+  CommittedExecutionReceipt receipt = 1;
   bool created = 2;
-  VerificationStatus verification_status = 3;
 }
 
 message VerifyExecutionReceiptRequest {
   RequestContext context = 1;
-  ExecutionReceipt receipt = 2;
+  ExecutionReceiptEnvelope receipt = 2;
   string expected_quote_id = 3;
   string expected_job_id = 4;
   ProofProfile required_profile = 5;
@@ -78,7 +85,7 @@ message VerifyExecutionReceiptResponse {
   NetworkReference proof_ref = 4;
 }
 
-message ProofOfServiceEvidence {
+message ProofOfServiceEvidenceInput {
   string evidence_id = 1;
   string receipt_id = 2;
   string provider_id = 3;
@@ -90,13 +97,18 @@ message ProofOfServiceEvidence {
   bool disputed = 9;
   string dispute_outcome = 10;
   Digest evidence_digest = 11;
-  NetworkReference evidence_ref = 12;
-  int64 observed_unix_millis = 13;
+  int64 observed_unix_millis = 12;
+}
+
+message ProofOfServiceEvidence {
+  ProofOfServiceEvidenceInput value = 1;
+  NetworkReference evidence_ref = 2;
+  int64 committed_unix_millis = 3;
 }
 
 message CommitProofOfServiceEvidenceRequest {
   RequestContext context = 1;
-  ProofOfServiceEvidence evidence = 2;
+  ProofOfServiceEvidenceInput evidence = 2;
 }
 
 message CommitProofOfServiceEvidenceResponse {
