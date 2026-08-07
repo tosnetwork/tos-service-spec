@@ -96,7 +96,7 @@ The blockchain is not the bulk execution data plane. Prompts, private files and 
 5. **Open Native network** — Native capabilities survive without `atos.im` as the canonical gateway/namespace authority.
 6. **No wallet requirement for mainstream clients** — fiat/credits/sponsored settlement may abstract the provider settlement asset.
 7. **Machine-safe spending** — Quotes, max-price constraints, idempotency and explicit approval bind financial commitment.
-8. **Small MCP surface** — keep the default 11 tools reliable for model routing; never advertise a tool `tools/list` won't return for that caller (see `docs/MCP.md` § 4 "Per-Caller Tool Visibility").
+8. **Small MCP surface** — an ordinary consumer sees 9 stable tools; provider/administrative tools appear only when the request authorization and role/resource preconditions permit them.
 9. **Portable Proof-of-Service** — authorized-signer execution receipts become verifiable reputation evidence.
 10. **Opaque providers** — capabilities expose public contracts, not private prompts, memory, secrets or topology.
 
@@ -130,9 +130,9 @@ The canonical discoverable supply unit is always a **Capability**.
 - **Account** — gateway-local identity, spend and earning policy where applicable.
 - **Settlement** — Managed or TOS-backed accounting/payout according to the Quote.
 
-## Default MCP Tool Set
+## MCP Tool Visibility
 
-The default MCP server exposes 11 tools:
+The ordinary consumer surface is intentionally **9 tools**:
 
 1. `atos_search`
 2. `atos_get_capability`
@@ -141,12 +141,41 @@ The default MCP server exposes 11 tools:
 5. `atos_create_job`
 6. `atos_get_job`
 7. `atos_cancel_job`
-8. `atos_register_capability`
-9. `atos_update_capability`
-10. `atos_account`
-11. `atos_artifact` (`operation`: create_upload/complete_upload/get_download_url — see `docs/ARTIFACTS.md`)
+8. `atos_account`
+9. `atos_artifact` (`operation`: `create_upload` / `complete_upload` / `get_download_url`)
 
-File transfer (11) is always visible: any caller might need it for any Capability with a file-typed field, so there's no reliable per-caller signal to gate it on — its three steps are one tool with an `operation` argument, not three separate tools, to keep the always-visible count from growing every time this surface needs another verb. Provider/admin tools are the one category actually gated: `tools/list` is computed per request and includes them only for a principal that owns at least one Capability (see `docs/MCP.md` § 4 "Per-Caller Tool Visibility" and § 8).
+`atos_artifact` is always present because any consumer may select a Capability whose schema requires file input/output. The three signed-URL operations remain one model-visible intent rather than three tools.
+
+Provider tools are **not** part of the ordinary consumer vocabulary. `tools/list` is computed from the authorization carried on that request and then from relevant role/resource preconditions. Examples:
+
+```text
+capabilities:write
+  -> atos_register_capability
+  -> atos_update_capability
+
+capabilities:write + provider role/ownership
+  -> atos_list_my_capabilities
+  -> atos_pause_capability
+
+provider_jobs:read
+  -> atos_provider_jobs        (when implemented)
+
+provider_jobs:deliver
+  -> atos_deliver_job          (when implemented)
+```
+
+Visibility is an optimization and usability boundary, not an authorization substitute: every `tools/call` MUST re-check the required scope and object-level authorization.
+
+Because `tools/list` varies by authorization, ATOS returns it with private caching semantics and deterministic ordering. The v0.2 recommendation is:
+
+```json
+{
+  "ttlMs": 30000,
+  "cacheScope": "private"
+}
+```
+
+ATOS does not vary the list from connection/session history or from earlier tool calls.
 
 ## Recommended Client Flow
 
@@ -170,21 +199,24 @@ User intent / trust policy
 - [`docs/ARCHITECTURE_V0.2.md`](./docs/ARCHITECTURE_V0.2.md) — normative v0.2 architecture and trust-mode guarantees.
 - [`docs/PROOF_PROFILES.md`](./docs/PROOF_PROFILES.md) — normative `tos_verified_v1` and `tos_native_v1` guarantees.
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — historical v0.1 architecture retained for comparison during review.
-- [`docs/MCP.md`](./docs/MCP.md) — MCP v0.2 tool and trust-mode contract.
+- [`docs/MCP.md`](./docs/MCP.md) — MCP v0.2 tool, visibility and trust-mode contract.
 - [`docs/A2A.md`](./docs/A2A.md) — A2A v0.2 profile.
 - [`docs/AGENT_CARD.md`](./docs/AGENT_CARD.md) — Agent Card / mode advertisement.
-- [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens, scopes and identity binding.
+- [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens, scopes, tool visibility and identity binding.
 - [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — Capability, global ID, mode activation, ownership and signer rules.
 - [`docs/SETTLEMENT.md`](./docs/SETTLEMENT.md) — Managed/Verified/Native settlement and proof model.
 - [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL artifact transfer / content commitments.
 - [`docs/API.md`](./docs/API.md) — REST API v0.2 semantics.
 - [`docs/IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md) — staged Managed -> Verified -> Native implementation plan.
-- [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — v0.2 MCP input/output schemas.
+- [`docs/TOS_RPC.md`](./docs/TOS_RPC.md) — ATOS ↔ tos-protocol RPC/protobuf implementation contract.
+- [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — v0.2 MCP input/output schemas and visibility policy.
 - [`schemas/protocol-types.json`](./schemas/protocol-types.json) — reusable trust-mode/proof/signer JSON Schema definitions.
 
 ## Compatibility Principles
 
 - Prefer current MCP Streamable HTTP; keep legacy SSE only as a compatibility adapter.
+- `tools/list` MAY vary by per-request authorization, MUST NOT vary from connection/session history, and SHOULD use deterministic ordering.
+- Authorization-specific `tools/list` results use `cacheScope: private`; v0.2 recommends `ttlMs: 30000`.
 - Publish the A2A Agent Card at `/.well-known/agent-card.json`, with compatibility aliases where useful.
 - Use semantic versioning in public contracts and proof-profile names.
 - Every financially committing operation requires idempotency protection.
