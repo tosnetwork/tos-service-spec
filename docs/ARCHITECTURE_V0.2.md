@@ -9,7 +9,9 @@
 >
 > **atos.im is the canonical reference gateway and managed service.**
 >
-> **TOS Network is the decentralized trust, proof, execution, and settlement substrate underneath ATOS.**
+> **TOS Network is the decentralized identity, registry, trust, proof, and economic substrate underneath ATOS.**
+>
+> **tos-ai is the execution fabric; tos-core is the trust/economy/proof boundary into TOS Network.**
 
 ## 1. Architectural Thesis
 
@@ -19,16 +21,35 @@ The same Capability and the same MCP/A2A/REST contracts MUST support multiple tr
 
 **Core principle: decentralization is a selectable trust level, not a usability requirement.**
 
-ATOS therefore separates four concepts:
+ATOS separates four concepts:
 
 1. **ATOS Protocol** — the open agent-commerce protocol.
 2. **atos.im** — the canonical managed implementation and reference gateway.
 3. **ATOS-compatible gateways/indexers** — independently operated discovery and access points.
-4. **TOS Network** — decentralized identity, registry anchoring, reputation evidence, proof, escrow, settlement, and native execution infrastructure.
+4. **TOS Network** — decentralized identity, registry anchoring, reputation evidence, escrow, proof, and settlement.
 
-## 2. Three Trust Modes
+Execution itself remains outside consensus. It is performed by providers and/or `tos-ai` workers, with commitments and receipts verified through `tos-core` when required.
 
-ATOS v0.2 defines `managed`, `verified`, and `native`. These are policies, not separate products.
+## 2. Trust-Mode Semantics
+
+ATOS v0.2 defines three concrete trust modes:
+
+- `managed`
+- `verified`
+- `native`
+
+It also defines one request policy value:
+
+- `auto`
+
+**`auto` is not a concrete trust mode.** It is valid only before quote resolution. A Capability MUST NOT list `auto` in `supported_trust_modes`, and a Quote, Invocation, Job, Escrow, or Receipt MUST NOT persist `auto` as its final mode.
+
+Terminology:
+
+- `requested_trust_mode`: `managed | verified | native | auto`
+- `trust_mode`: resolved concrete value `managed | verified | native`
+
+Once a Quote is issued, its resolved `trust_mode` is immutable. Execution MUST NOT silently downgrade from `verified` or `native` to `managed`; a different mode requires a new Quote.
 
 ```text
                    Codex / Claude / Cursor / OpenClaw
@@ -49,9 +70,28 @@ ATOS v0.2 defines `managed`, `verified`, and `native`. These are policies, not s
                                Provider
 ```
 
-A Capability MAY support one, two, or all three modes.
+A Capability MAY support one, two, or all three concrete modes.
 
-### 2.1 Managed Mode
+## 3. Guarantee Profiles
+
+Trust modes are protocol guarantees, not marketing labels. A gateway MUST satisfy the minimum guarantee profile for the resolved mode.
+
+| Guarantee | managed | verified | native |
+|---|---:|---:|---:|
+| Gateway may be authoritative for account/search/job state | yes | yes | no for canonical trust facts |
+| TOS-backed provider identity / capability ownership | optional | required | required |
+| Quote/terms commitment verifiable through TOS | optional | required | required |
+| TOS-backed escrow for paid committed work | optional | required | required |
+| Signed Execution Receipt | required | required | required |
+| Receipt commitment/verifiability through TOS | optional | required | required |
+| TOS-backed settlement proof | optional | required | required |
+| Proof-of-Service evidence portability | optional | required | required |
+| Canonical capability resolution independent of `atos.im` | no | optional | required |
+| `atos.im` required in transaction path | allowed | allowed | no |
+
+A protocol version MAY define named proof profiles such as `tos_verified_v1`. A Quote MUST identify the proof profile when the resolved mode is `verified` or `native`.
+
+### 3.1 Managed Mode
 
 Managed Mode is the default mainstream experience and may complete entirely inside `atos.im`.
 
@@ -68,9 +108,9 @@ Properties:
 
 Managed Mode MUST remain first-class even after TOS-backed infrastructure matures.
 
-### 2.2 Verified Mode
+### 3.2 Verified Mode
 
-Verified Mode preserves the `atos.im` experience while moving economically or cryptographically important state to TOS Network.
+Verified Mode preserves the `atos.im` experience while making the economically and cryptographically important checkpoints independently verifiable through TOS Network.
 
 ```text
 Client
@@ -78,6 +118,7 @@ Client
 atos.im ----------------------+
   |                            |
   | discovery/ranking/routing | identity/ownership
+  |                            | quote commitment
   |                            | escrow
   |                            | receipt verification
   |                            | reputation evidence
@@ -88,11 +129,11 @@ Provider / tos-ai          tos-core -> TOS Network
 
 The workload normally executes off-chain. TOS carries commitments, verification, trust evidence and settlement rather than bulk application data.
 
-Verified Mode SHOULD be preferred for enterprise, high-value, cross-organization, auditable or trust-sensitive jobs.
+Verified Mode MUST satisfy the minimum guarantees in the table above. It is not sufficient to anchor only a final settlement transaction and call the execution "verified".
 
-### 2.3 Native Mode
+### 3.3 Native Mode
 
-Native Mode removes `atos.im` as a mandatory transaction or trust intermediary.
+Native Mode removes `atos.im` as a mandatory transaction, namespace, or trust intermediary.
 
 ```text
 Client Agent
@@ -110,11 +151,21 @@ Client Agent
         Provider / Worker
 ```
 
-In Native Mode, gateways are replaceable, identities and capabilities are globally resolvable, settlement is TOS-backed, and network-verifiable receipts are available. Failure or censorship of `atos.im` MUST NOT make the underlying native capability economy unavailable.
+In Native Mode:
 
-## 3. One Public Protocol
+- gateways are replaceable;
+- Agent and Capability identities are globally resolvable without relying on an `atos.im` database as the canonical source;
+- capability ownership and manifest/version commitments are TOS-backed;
+- paid committed work uses TOS-backed escrow/settlement;
+- Execution Receipts and Proof-of-Service evidence are network-verifiable;
+- provider execution can still occur off-chain through MCP, A2A, HTTP, `tos-ai`, or another compatible runtime;
+- failure or censorship of `atos.im` MUST NOT make the underlying native capability economy unavailable.
 
-The three modes MUST NOT create three client APIs. Clients continue to use the compact ATOS surface:
+Native Mode means decentralized trust and commerce, not "put the model execution on consensus."
+
+## 4. One Public Protocol
+
+The three concrete modes MUST NOT create three client APIs. Clients continue to use the compact ATOS surface:
 
 ```text
 atos_search
@@ -134,16 +185,19 @@ Mode selection is expressed as policy:
 ```json
 {
   "capability_id":"cap_...",
-  "trust_mode":"verified",
+  "requested_trust_mode":"auto",
+  "proof_requirements": {
+    "network_verifiable_receipt": true
+  },
   "max_price":{"amount":"10.00","currency":"USD"}
 }
 ```
 
-Allowed values are `managed`, `verified`, `native`, and `auto`. `auto` selects the cheapest mode satisfying trust, spending, jurisdiction, latency and provider constraints.
+`auto` selects a concrete mode satisfying caller trust, proof, spending, jurisdiction, latency, provider, and network-availability constraints.
 
-The authoritative Quote MUST state the selected mode before financial commitment.
+The authoritative Quote MUST state the resolved concrete `trust_mode` before financial commitment.
 
-## 4. TOS Is Not the Bulk Data Plane
+## 5. TOS Is Not the Bulk Data Plane
 
 "TOS-backed" MUST NOT mean storing all application payloads on-chain.
 
@@ -158,7 +212,7 @@ Normally off-chain:
 - private provider implementation details;
 - intermediate execution state.
 
-Depending on trust mode, TOS MAY anchor or commit:
+Depending on resolved trust mode, TOS MAY or MUST anchor/commit:
 
 - Agent identity and attestations;
 - Capability ownership and manifest/version commitments;
@@ -166,14 +220,16 @@ Depending on trust mode, TOS MAY anchor or commit:
 - escrow state;
 - optional input commitment;
 - output/artifact commitment;
-- signed Execution Receipt;
+- signed Execution Receipt commitment;
 - settlement state;
 - dispute outcome commitment;
 - reputation evidence and audit proofs.
 
 Use commitments/hashes rather than plaintext whenever the underlying data is private, large or commercially sensitive.
 
-## 5. Capability Model
+"On-chain" in the ATOS protocol means that a state transition or commitment is verifiable against TOS Network. Implementations MAY batch, aggregate, or commit multiple events efficiently as long as an independent verifier can prove the relevant event and the required ordering/finality guarantees are preserved.
+
+## 6. Capability Model
 
 A Capability remains the canonical unit of supply and is independent of trust mode.
 
@@ -188,9 +244,13 @@ A Capability remains the canonical unit of supply and is independent of trust mo
 }
 ```
 
+`auto` MUST NOT appear in `supported_trust_modes`.
+
 The public Capability ID MUST be federation-safe and MUST NOT depend solely on an `atos.im` database primary key.
 
-## 6. Global Addressability
+A capability's mutable search metadata and its immutable/versioned trust commitments are separate concepts. Search metadata may be cached and re-indexed; a quoted capability version MUST resolve to an immutable manifest/version commitment for `verified` and `native` execution.
+
+## 7. Global Addressability
 
 ATOS v0.2 requires globally resolvable Agent and Capability identifiers.
 
@@ -216,9 +276,16 @@ Agent / Capability Manifest
 MCP / A2A / HTTP / TOS-native endpoint
 ```
 
-The design MUST distinguish gateway-local IDs, globally resolvable IDs, immutable manifest commitments, and TOS-anchored ownership records before federation ships.
+Globally minted identifiers MUST be collision-resistant across gateways. The final encoding MAY be self-certifying, provider-key-derived, or issuer-namespaced; the encoding decision is deferred, but a plain gateway-local auto-increment database key is not acceptable as a global identifier.
 
-## 7. Decentralized Discovery
+The design MUST distinguish:
+
+- gateway-local IDs;
+- globally resolvable IDs;
+- immutable manifest/version commitments;
+- TOS-anchored ownership records.
+
+## 8. Decentralized Discovery
 
 Search itself does not belong on-chain. Semantic retrieval, embeddings, personalization, ranking, latency estimation and anti-spam are indexing functions performed by gateways/indexers.
 
@@ -240,7 +307,9 @@ Capability Manifest
 
 No search engine is canonical. Anyone may build a specialized index or ranking system. `atos.im` may remain the best default discovery experience without owning the Agent Internet.
 
-## 8. Gateway Federation
+A search result MUST distinguish gateway-computed ranking/reputation summaries from independently verifiable TOS-backed facts.
+
+## 9. Gateway Federation
 
 Federation is an architectural assumption in v0.2 even if implementation remains a later roadmap phase.
 
@@ -262,7 +331,9 @@ A compliant gateway MAY provide authentication, local accounts, fiat/credit bill
 
 No gateway owns the protocol namespace. A gateway MUST NOT be required for another gateway to verify a TOS-backed identity, ownership record, receipt or settlement proof.
 
-## 9. Execution Receipts and Proof-of-Service
+Gateway-specific ranking scores, account IDs, billing records and local job metadata MAY remain gateway-local. They MUST NOT be presented as globally canonical protocol state.
+
+## 10. Execution Receipts and Proof-of-Service
 
 Execution Receipts are a core ATOS trust primitive, not merely billing records.
 
@@ -274,6 +345,7 @@ WHAT capability/version was used
 FOR WHOM
 WHEN
 UNDER WHICH quote/terms
+WHICH concrete trust mode applied
 WHAT input was committed
 WHAT output/artifact was committed
 WHAT usage/resources were charged
@@ -292,18 +364,20 @@ Example:
   "capability_id":"cap_...",
   "capability_version":"1.2.0",
   "quote_id":"q_...",
+  "trust_mode":"verified",
+  "proof_profile":"tos_verified_v1",
   "input_commitment":"sha256:...",
   "output_commitment":"sha256:...",
   "usage_commitment":"sha256:...",
   "result":"success",
   "provider_signature":"...",
-  "network_proof":"tos:..."
+  "network_proof_ref":"tos:..."
 }
 ```
 
 ### Proof-of-Service
 
-**Proof-of-Service** is the verifiable evidence graph produced by completed capability executions.
+**Proof-of-Service** is the portable evidence graph produced by completed capability executions.
 
 ```text
 Execution Receipts
@@ -322,7 +396,9 @@ Reputation Graph
 
 A gateway may expose a normalized score for usability, but TOS-backed evidence SHOULD be independently verifiable. Reputation MUST NOT be reducible to one mutable platform star rating.
 
-## 10. Three Architectural Planes
+Raw private job contents are not reputation evidence; cryptographic commitments and outcome attestations are.
+
+## 11. Three Architectural Planes
 
 ### Gateway / Control Plane
 
@@ -338,47 +414,65 @@ Global identity, capability ownership, registry commitments/events, reputation e
 
 **The blockchain is not the bulk execution data plane.**
 
-## 11. Legal Call Paths
+## 12. Legal Call Paths
 
 The modularity rule remains:
 
 > **tos-ai is execution, not marketplace. tos-core is trust/economy/proof, not AI orchestration.**
 
 ```text
-ATOS Gateway -> tos-ai      execution
-ATOS Gateway -> tos-core    trust/economy/proof
-tos-ai       -> tos-core    receipt/identity/settlement lifecycle
-tos-core     -> TOS Network consensus/ledger/P2P commitments
+ATOS Gateway -> tos-ai       execution
+ATOS Gateway -> tos-core     trust/economy/proof
+tos-ai       -> tos-core     receipt/identity/settlement lifecycle
+tos-core     -> TOS Network  consensus/ledger/P2P commitments
 ```
 
 Ordinary ATOS schemas MUST NOT leak consensus internals, validators, gas units, contract addresses or node topology.
 
-## 12. Quote and Settlement Semantics
+Managed implementations MAY bypass `tos-core` for managed-only trust/economic state. Verified and Native guarantees MUST route through the defined `tos-core` trust/economy/proof boundary or an equivalent protocol-compatible verifier.
 
-Every financially committing Quote MUST state capability/version, provider, selected trust mode, currency, maximum price, expiry, terms commitment, settlement model and proof availability.
+## 13. Quote and Settlement Semantics
+
+Every financially committing Quote MUST state:
+
+- `requested_trust_mode`;
+- resolved concrete `trust_mode`;
+- capability/version and immutable manifest commitment where required;
+- provider;
+- currency and maximum price;
+- expiry;
+- terms commitment;
+- settlement model;
+- dispute policy reference/hash;
+- proof profile and proof availability.
 
 ```json
 {
   "quote_id":"q_...",
   "capability_id":"cap_...",
+  "requested_trust_mode":"auto",
   "trust_mode":"verified",
+  "proof_profile":"tos_verified_v1",
   "price":{"total_max":"5.25","currency":"USD"},
-  "settlement":{"network":"tos","escrow":true},
+  "settlement":{"backend":"tos","escrow":true},
   "proof":{"execution_receipt":true,"settlement_proof":true},
   "expires_at":"...",
-  "terms_hash":"sha256:..."
+  "terms_hash":"sha256:...",
+  "dispute_policy_hash":"sha256:..."
 }
 ```
 
-Managed Mode may use ATOS's internal ledger. Verified and Native modes SHOULD use TOS-backed escrow/settlement where supported. Client-facing currency does not have to equal provider settlement asset.
+Managed Mode may use ATOS's internal ledger. Verified and Native modes use the TOS-backed settlement guarantees defined by their proof profile.
 
-## 13. Mode Selection Policy
+Client-facing currency does not have to equal provider settlement asset. Fiat/credits may be presented to the client while a gateway, payment processor, or sponsor funds the corresponding TOS-backed settlement position.
+
+## 14. Mode Selection Policy
 
 Users and agents express outcomes, not blockchain mechanics:
 
 ```text
 Use the cheapest provider.
-Require a cryptographic receipt.
+Require a network-verifiable receipt.
 Require TOS-backed settlement.
 Do not use centralized settlement.
 Maximum $10 autonomous spend.
@@ -388,8 +482,8 @@ Example:
 
 ```json
 {
-  "trust_mode":"auto",
-  "requirements":{
+  "requested_trust_mode":"auto",
+  "proof_requirements":{
     "network_verifiable_receipt":true,
     "tos_settlement":false
   }
@@ -398,7 +492,9 @@ Example:
 
 The ATOS Skill/gateway translates policy into routing constraints. Agents should not reason about gas, validators, chain IDs or wallet derivation paths.
 
-## 14. Failure and Censorship Model
+If no concrete mode satisfies the policy, the gateway MUST return a mode/proof availability error rather than silently weakening the requirement.
+
+## 15. Failure, Downgrade and Censorship Model
 
 ### Managed
 
@@ -406,15 +502,27 @@ The ATOS Skill/gateway translates policy into routing constraints. Agents should
 
 ### Verified
 
-`atos.im` may remain in the execution path, but TOS-backed ownership, receipt and settlement evidence can be independently verified. Gateway failure must not erase already committed proofs.
+`atos.im` may remain in the routing/execution path, but TOS-backed ownership, quote, receipt and settlement evidence can be independently verified. Gateway failure must not erase already committed proofs.
 
 ### Native
 
 No single gateway is authoritative. A client can resolve the same globally addressable supply through another compatible gateway/indexer. TOS-backed trust and settlement survive loss of `atos.im`.
 
+### No silent downgrade
+
+After Quote issuance:
+
+```text
+verified -> managed   forbidden without re-quote
+native   -> managed   forbidden without re-quote
+native   -> verified  forbidden without re-quote
+```
+
+A network outage, proof failure, expired commitment, or unavailable escrow path causes the committed call to fail/requote; it does not weaken the user's trust contract.
+
 This is the architectural boundary between **a marketplace using a blockchain** and **an open Agent Internet**.
 
-## 15. Migration Strategy
+## 16. Migration Strategy
 
 ATOS can ship progressively without changing its public mental model.
 
@@ -426,27 +534,31 @@ Phase B: Verified
 atos.im UX + tos-ai execution + tos-core/TOS proofs and settlement
 
 Phase C: Native
-federated gateways + decentralized registry/indexers + TOS-native trust economy
+federated gateways + decentralized registry/indexers + TOS-backed trust economy
 ```
 
 The migration rule is **add verifiability without breaking usability**.
 
 Existing managed capabilities can progressively gain `verified` and `native` support without receiving a new Agent-facing capability type.
 
-## 16. Architecture Invariants
+From v0.2 onward, however, public schemas MUST already distinguish request-mode selection from resolved-mode execution so the later phases do not require a breaking API rewrite.
+
+## 17. Architecture Invariants
 
 1. **One Capability Model.** Human, agent, API, GPU and other supply are adapters behind Capabilities.
 2. **One Client Protocol.** Managed, Verified and Native do not fork MCP/A2A/REST contracts.
-3. **Mode is explicit at commitment.** A Quote states the final trust/settlement mode.
-4. **No mandatory wallet for consumers.** Mainstream clients can use fiat/credits.
-5. **No mandatory chain payloads.** Private and bulk data stay off-chain by default.
-6. **No gateway owns the namespace.** Global IDs are federation-safe.
-7. **Search is competitive.** TOS anchors facts; gateways/indexers rank them.
-8. **Receipts are portable evidence.** Verified/native execution creates independently checkable proof.
-9. **tos-ai executes; tos-core trusts and settles.** Plane boundaries remain strict.
-10. **atos.im is important but replaceable.** Native ATOS survives without it.
+3. **`auto` is request-only.** It never appears as a resolved Quote/Job/Receipt mode.
+4. **Mode is immutable at commitment.** A Quote states the final trust mode and proof profile.
+5. **No silent downgrade.** A weaker mode requires a new Quote and new approval when applicable.
+6. **No mandatory wallet for consumers.** Mainstream clients can use fiat/credits.
+7. **No mandatory chain payloads.** Private and bulk data stay off-chain by default.
+8. **No gateway owns the namespace.** Global IDs are federation-safe.
+9. **Search is competitive.** TOS anchors facts; gateways/indexers rank them.
+10. **Receipts are portable evidence.** Verified/native execution creates independently checkable proof.
+11. **tos-ai executes; tos-core trusts and settles.** Plane boundaries remain strict.
+12. **atos.im is important but replaceable.** Native ATOS survives without it.
 
-## 17. Strategic Positioning
+## 18. Strategic Positioning
 
 ATOS should not be described merely as a decentralized marketplace.
 
@@ -470,4 +582,4 @@ Open Agent Internet
 
 ATOS Protocol competes on interoperability.
 
-TOS Network provides the decentralized trust and economic substrate that makes the protocol open, portable and independently verifiable.
+TOS Network provides the decentralized trust, proof and economic substrate that makes the protocol open, portable and independently verifiable.
