@@ -12,13 +12,15 @@ verified
 native
 ```
 
-`auto` is a pre-quote policy value only. It MUST resolve to a concrete mode before a Quote is issued.
+`auto` is a pre-Quote policy value only. It MUST resolve to a concrete mode before a Quote is issued.
 
 The key invariant is:
 
 > **The Quote locks the economic terms, the concrete trust mode, and the proof/settlement guarantees before commitment.**
 
 No implementation may silently downgrade those guarantees after the Quote is accepted.
+
+Normative proof profiles are defined in `docs/PROOF_PROFILES.md`.
 
 ## 2. Client-Facing Accounting
 
@@ -81,7 +83,7 @@ ATOS managed reserve
         |
 Provider executes
         |
-Signed Execution Receipt
+Authorized signer creates Execution Receipt
         |
 ATOS managed settlement
 ```
@@ -90,7 +92,7 @@ TOS anchoring is optional.
 
 ### 4.2 Verified Mode
 
-Verified Mode keeps the managed UX but requires TOS-backed economic and proof checkpoints according to the selected proof profile.
+Verified Mode keeps the managed UX but requires TOS-backed economic and proof checkpoints using `tos_verified_v1` or a stronger compatible profile.
 
 Minimum paid-job lifecycle:
 
@@ -99,13 +101,13 @@ Quote issued with trust_mode=verified
         |
 Quote/terms commitment -> TOS
         |
-TOS-backed escrow reservation
+TOS-backed enforceable escrow reservation
         |
 Provider / tos-ai executes off-chain
         |
-Provider signs Execution Receipt
+Authorized execution signer signs Receipt
         |
-Receipt commitment + verification -> tos-core / TOS
+Signer authority + Receipt commitment verified -> tos-core / TOS
         |
 TOS-backed settlement
         |
@@ -116,9 +118,9 @@ The gateway may fund, sponsor, custody, or abstract the TOS-side transaction on 
 
 ### 4.3 Native Mode
 
-Native Mode provides the same minimum cryptographic/economic guarantees as Verified Mode, but `atos.im` is not a required authority or transaction intermediary.
+Native Mode uses `tos_native_v1` or a stronger compatible profile.
 
-A compatible gateway or client can resolve the capability and verify the resulting economic/proof state through TOS-compatible infrastructure.
+It includes the Verified economic/proof guarantees and additionally requires gateway-independent canonical identity/capability resolution and proof verification.
 
 Native settlement MUST NOT depend on an `atos.im` database record as the canonical source of ownership, Quote commitment, escrow state, receipt proof, or final settlement state.
 
@@ -134,6 +136,7 @@ Typical required commitments for Verified/Native paid execution:
 - capability version/manifest commitment;
 - quote/terms commitment;
 - escrow state;
+- authorized execution signer identity/authorization;
 - signed Execution Receipt commitment;
 - output/artifact commitment where applicable;
 - usage commitment for metered billing;
@@ -141,7 +144,9 @@ Typical required commitments for Verified/Native paid execution:
 - dispute outcome commitment if disputed;
 - Proof-of-Service evidence.
 
-Implementations MAY batch or aggregate commitments as long as an independent verifier can prove inclusion, ordering where relevant, and finality against TOS Network.
+Implementations MAY batch or aggregate proof/evidence commitments as long as an independent verifier can prove inclusion, ordering where relevant, and finality against TOS Network.
+
+**Economic state is stricter.** A hash/Merkle root of a private centralized balance database is not sufficient to claim TOS-backed escrow or settlement. The value-moving reservation/release/settlement state required by a Verified/Native proof profile must be economically enforceable through the TOS-backed economic mechanism.
 
 ## 6. Quote Object
 
@@ -186,6 +191,7 @@ Example:
   "settlement": {
     "backend":"tos",
     "escrow":true,
+    "funding_model":"gateway_sponsored",
     "client_asset":"USD",
     "provider_asset":"TOS"
   },
@@ -203,13 +209,35 @@ Example:
 
 For `verified` and `native`, the Quote MUST NOT be returned unless the implementation can currently satisfy the selected proof profile and settlement path.
 
-## 7. Reservation / Escrow Model
+## 7. Funding Model vs Settlement Guarantee
+
+Walletless UX and TOS-backed settlement are compatible, but they are not the same thing.
+
+A settlement descriptor MAY identify a funding model such as:
+
+```text
+managed_balance
+client_tos
+client_supported_asset
+gateway_sponsored
+external_sponsor
+```
+
+Examples:
+
+- Managed: client pays ATOS Credits; ATOS reserves/settles internally.
+- Verified: client pays USD/credits; gateway sponsors an enforceable TOS-side escrow corresponding to the Quote.
+- Native: client or a replaceable sponsor funds the TOS-backed escrow; canonical trade state remains verifiable without `atos.im`.
+
+If a Native client uses a gateway-local fiat balance, that fiat account remains gateway-local. The Native guarantee applies to the ATOS/TOS trade contract and proof state, not to making every off-chain fiat account portable.
+
+## 8. Reservation / Escrow Model
 
 Paid, financially committing work SHOULD reserve the maximum authorized amount before provider execution unless the Quote explicitly defines another safe settlement model.
 
 Free capabilities do not require an escrow.
 
-### 7.1 Common logical object
+### 8.1 Common logical object
 
 ```json
 {
@@ -232,9 +260,9 @@ Free capabilities do not require an escrow.
 The logical object is stable across modes even though its backend differs.
 
 - Managed: `backend = atos_managed` or another managed backend.
-- Verified/Native: `backend = tos` or a protocol-defined TOS-backed backend.
+- Verified/Native: `backend = tos` or a protocol-defined TOS-backed backend satisfying the proof profile.
 
-### 7.2 States
+### 8.2 States
 
 ```text
 reserved -> settled
@@ -249,7 +277,7 @@ Every reservation MUST eventually reach `settled` or `released`. A reservation l
 
 For metered/per-unit pricing, `settled` does not imply the full reserved maximum was charged. The unused amount is released/refunded.
 
-## 8. Reservation vs Settlement
+## 9. Reservation vs Settlement
 
 Reservation and settlement are deliberately separate operations.
 
@@ -273,7 +301,7 @@ In Verified/Native Mode they map to `tos-core` trust/economic operations and TOS
 quote
   -> billing.Reserve(total_max)
   -> tos-ai/provider execution
-  -> provider signs Execution Receipt
+  -> authorized execution signer signs Receipt
   -> gateway verifies receipt/policy
   -> billing.Settle(actual_charge)
   -> release unused reserve
@@ -286,7 +314,7 @@ quote
 quote + terms commitment
   -> tos-core.CreateEscrow(total_max)
   -> tos-ai/provider execution
-  -> provider signs Execution Receipt
+  -> authorized execution signer signs Receipt
   -> tos-core.VerifyExecutionReceipt   [side-effect-free verification]
        |-- fail ------------------------------> no settlement; release/dispute path
        |-- pass
@@ -297,11 +325,13 @@ quote + terms commitment
   -> emit Proof-of-Service evidence
 ```
 
-`VerifyExecutionReceipt` MUST be side-effect-free with respect to balances/escrow state. It MAY read identity, ownership, key, Quote commitment, manifest, and network state. "Verification" does not imply "no reads"; it means verification itself does not move value.
+`VerifyExecutionReceipt` MUST verify signer authorization as well as receipt integrity and Quote/capability binding.
+
+It MUST be side-effect-free with respect to balances/escrow state. It MAY read identity, ownership, signer authorization, Quote commitment, manifest, and network state.
 
 `SettleJob` is the operation that changes settlement state and MUST NOT run against a receipt that has not satisfied the selected proof profile.
 
-## 9. Execution Receipt
+## 10. Execution Receipt
 
 The Execution Receipt is both a billing input and an ATOS trust primitive.
 
@@ -324,13 +354,17 @@ Example:
   "charged":{"amount":"4.80","currency":"USD"},
   "refunded":{"amount":"0.45","currency":"USD"},
   "status":"settled",
-  "provider_signature":"...",
+  "execution_signer_id":"sig_...",
+  "signer_authorization_ref":"tos:...",
+  "signature":"...",
   "network_proof_ref":"tos:...",
   "created_at":"..."
 }
 ```
 
 Sensitive input/output payloads are not embedded merely for verification. Commitments are preferred.
+
+The `provider_id` identifies the economic/service provider. `execution_signer_id` identifies the key/runtime that actually attested the execution. Verified/Native proof must establish that the signer was authorized for this provider/capability/version at the relevant time.
 
 ### Receipt arithmetic invariant
 
@@ -344,40 +378,32 @@ where all three amounts are expressed in the same client accounting currency and
 
 Provider payout accounting may use a different settlement asset and is reconciled separately.
 
-## 10. Proof Profiles
+## 11. Proof Profiles
 
-A proof profile defines the exact guarantees that a gateway means when it returns `trust_mode=verified` or `trust_mode=native`.
-
-Initial protocol target:
+Initial standard profiles:
 
 ```text
 tos_verified_v1
+tos_native_v1
 ```
 
-At minimum it should cover:
+`tos_verified_v1` defines the minimum TOS-backed transaction guarantees for Verified Mode.
 
-- provider identity/capability ownership proof;
-- capability version/manifest commitment;
-- quote/terms commitment;
-- reservation/escrow proof for paid committed work;
-- provider-signed Execution Receipt;
-- receipt inclusion/verification proof;
-- settlement proof;
-- Proof-of-Service evidence reference.
+`tos_native_v1` extends those guarantees with gateway-independent canonical resolution/federation requirements for Native Mode.
 
-Native Mode additionally requires federation-safe canonical resolution as defined by the Architecture specification.
+See `docs/PROOF_PROFILES.md` for the normative guarantee sets, signer-authorization rules, batching constraints, and verification package.
 
 A gateway MUST NOT invent a weaker local meaning for a standard proof-profile name.
 
-## 11. Cancellation
+## 12. Cancellation
 
 Cancellation before a billable receipt exists normally releases the full reserve.
 
-If partial billable work is allowed, the Quote/terms MUST define the cancellation charging rule and the provider must produce a receipt for the billable portion.
+If partial billable work is allowed, the Quote/terms MUST define the cancellation charging rule and the authorized execution signer must produce a receipt for the billable portion.
 
-After Quote issuance, cancellation MUST preserve the original concrete `trust_mode`. A Verified/Native cancellation/refund transition is itself handled through the corresponding TOS-backed economic path where required by the proof profile.
+After Quote issuance, cancellation MUST preserve the original concrete `trust_mode`. A Verified/Native cancellation/refund transition is handled through the corresponding TOS-backed economic path where required by the proof profile.
 
-## 12. Expiry
+## 13. Expiry
 
 Every reservation inherits the Quote expiry plus a bounded grace window for in-flight work.
 
@@ -396,7 +422,7 @@ On expiry with no valid settlement:
 
 A gateway MUST NOT bypass an expired Verified/Native escrow by settling the job through a Managed backend.
 
-## 13. Disputes
+## 14. Disputes
 
 The Quote MUST commit to the applicable dispute policy before execution.
 
@@ -414,7 +440,7 @@ For Verified/Native, the final dispute outcome and corrective settlement/refund 
 
 The dispute resolver itself may be centralized, federated, contractual, committee-based, or eventually decentralized; its mechanism is a separate policy concern. The critical protocol requirement is that the resolver/policy is known at Quote time and the final economic transition is auditable.
 
-## 14. No Silent Downgrade
+## 15. No Silent Downgrade
 
 After Quote issuance, the selected mode is part of the commercial contract.
 
@@ -426,11 +452,11 @@ native   -> managed
 native   -> verified
 ```
 
-If TOS settlement, proof production, capability anchoring, or required network infrastructure becomes unavailable, the call MUST fail, wait within its SLA, or require a new Quote.
+If TOS settlement, proof production, capability anchoring, signer authorization, or required network infrastructure becomes unavailable, the call MUST fail, wait within its SLA, or require a new Quote.
 
 The gateway MUST NOT "helpfully" complete the job under a weaker trust mode.
 
-## 15. TOS Abstraction Boundary
+## 16. TOS Abstraction Boundary
 
 Ordinary clients should see stable commercial/proof objects, not blockchain internals.
 
@@ -439,6 +465,7 @@ Default receipt may include:
 ```json
 {
   "trust_mode":"verified",
+  "proof_profile":"tos_verified_v1",
   "proof_status":"verified",
   "network_proof_ref":"tos:..."
 }
@@ -451,19 +478,21 @@ GET /v1/receipts/{id}/settlement-proof
 GET /v1/receipts/{id}/execution-proof
 ```
 
-These endpoints may return protocol-defined commitments, attestations, inclusion proofs, transaction references, or other TOS proof data.
+These endpoints may return protocol-defined commitments, attestations, inclusion proofs, transaction references, signer authorization proofs, or other TOS proof data.
 
 Normal MCP responses MUST NOT require clients to reason about validator IDs, gas units, contract addresses, or chain topology.
 
-## 16. Settlement Invariants
+## 17. Settlement Invariants
 
 1. `auto` is request-only; committed economic objects use a concrete mode.
 2. Quote mode and proof profile are immutable after issuance.
 3. No silent downgrade is allowed.
 4. Managed settlement may remain centralized.
-5. Verified/Native paid work uses the TOS-backed guarantees of the selected proof profile.
-6. Bulk/private payloads remain off-chain; commitments carry the trust facts.
-7. Verification is side-effect-free; settlement is the value-moving state transition.
-8. Reservation expiry cannot leave funds locked indefinitely.
-9. Dispute policy is committed at Quote time.
-10. Client currency and provider payout asset may differ without changing the trust-mode contract.
+5. Verified uses `tos_verified_v1` or stronger; Native uses `tos_native_v1` or stronger.
+6. TOS-backed escrow/settlement must be economically enforceable; a hash of a private ledger is insufficient.
+7. Bulk/private payloads remain off-chain; commitments carry the trust facts.
+8. Execution Receipts are signed by an authorized execution signer, not necessarily the provider root key.
+9. Verification is side-effect-free; settlement is the value-moving state transition.
+10. Reservation expiry cannot leave funds locked indefinitely.
+11. Dispute policy is committed at Quote time.
+12. Client currency and provider payout asset may differ without changing the trust-mode contract.
