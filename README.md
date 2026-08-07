@@ -37,6 +37,15 @@ trust_mode = managed | verified | native
 
 The resolved mode is immutable for that Quote. Verified/Native work MUST NOT silently downgrade to Managed.
 
+Providers separately request desired concrete modes through `requested_trust_modes`; public `supported_trust_modes` contains only modes that ATOS has actually activated/certified for the Capability.
+
+Initial standard proof profiles:
+
+```text
+verified -> tos_verified_v1
+native   -> tos_native_v1
+```
+
 **Decentralization is a selectable trust level, not a usability requirement.**
 
 ## Architecture
@@ -73,7 +82,7 @@ Plane boundary:
 atos.im / gateways = UX, discovery, ranking, policy, routing, managed billing
 tos-ai             = execution fabric/provider-worker runtime
 tos-core           = trust/economy/proof adapter boundary
-TOS Network         = identity, registry commitments, reputation evidence, escrow, proof, settlement
+TOS Network         = identity, registry commitments, reputation evidence, enforceable escrow, proof, settlement
 ```
 
 The blockchain is not the bulk execution data plane. Prompts, private files and large artifacts remain off-chain by default; Verified/Native modes commit the trust/economic facts and content hashes required for independent verification.
@@ -85,10 +94,10 @@ The blockchain is not the bulk execution data plane. Prompts, private files and 
 3. **Centralized product quality** — `atos.im` can compete directly with centralized agent marketplaces.
 4. **Selectable verifiability** — users can require TOS-backed proof without becoming blockchain operators.
 5. **Open Native network** — Native capabilities survive without `atos.im` as the canonical gateway/namespace authority.
-6. **No wallet requirement for mainstream clients** — fiat/credits may abstract the provider settlement asset.
+6. **No wallet requirement for mainstream clients** — fiat/credits/sponsored settlement may abstract the provider settlement asset.
 7. **Machine-safe spending** — Quotes, max-price constraints, idempotency and explicit approval bind financial commitment.
 8. **Small MCP surface** — keep the default 10 tools reliable for model routing.
-9. **Portable Proof-of-Service** — signed execution receipts become verifiable reputation evidence.
+9. **Portable Proof-of-Service** — authorized-signer execution receipts become verifiable reputation evidence.
 10. **Opaque providers** — capabilities expose public contracts, not private prompts, memory, secrets or topology.
 
 ## Public Entry Points
@@ -97,7 +106,7 @@ The blockchain is not the bulk execution data plane. Prompts, private files and 
 |---|---|
 | Website | `https://atos.im` |
 | API | `https://api.atos.im/v1` |
-| MCP (2026 Streamable HTTP) | `https://mcp.atos.im/mcp` |
+| MCP (Streamable HTTP) | `https://mcp.atos.im/mcp` |
 | MCP legacy SSE compatibility | `https://mcp.atos.im/sse` |
 | A2A reference gateway | `https://a2a.atos.im` |
 | Agent Card | `https://atos.im/.well-known/agent-card.json` |
@@ -109,12 +118,13 @@ The blockchain is not the bulk execution data plane. Prompts, private files and 
 
 The canonical discoverable supply unit is always a **Capability**.
 
-- **Capability** — discoverable unit of supply, with concrete supported trust modes.
+- **Capability** — discoverable unit of supply, with derived active concrete trust modes.
 - **Quote** — immutable time-limited commercial/trust contract that resolves the concrete trust mode.
 - **Invocation** — bounded/synchronous execution attempt inheriting Quote mode.
 - **Job** — stateful asynchronous unit of work inheriting Quote mode.
 - **Artifact** — structured/file deliverable; bytes normally remain off-chain.
 - **Provider** — agent, API, human-operated service, execution node, or other supplier.
+- **Execution Signer** — provider or authorized delegated runtime that signs execution evidence.
 - **Execution Receipt** — signed evidence of what was executed and settled.
 - **Proof-of-Service** — portable evidence graph derived from receipts/outcomes.
 - **Account** — gateway-local identity, spend and earning policy where applicable.
@@ -144,39 +154,41 @@ User intent / trust policy
    -> atos_search
    -> atos_get_capability (optional)
    -> atos_quote(requested_trust_mode, proof requirements)
-   -> Quote resolves concrete trust_mode
+   -> Quote resolves concrete trust_mode + proof_profile
    -> policy + spend check
        -> within autonomous policy: invoke/create job
        -> otherwise: MCP input_required / user approval
    -> result/artifacts
-   -> signed receipt
-   -> optional TOS proof / Proof-of-Service evidence
+   -> authorized-signer receipt
+   -> optional/required TOS proof + Proof-of-Service evidence
 ```
 
 ## Repository Map
 
 - [`SKILL.md`](./SKILL.md) — Codex/agent onboarding and runtime policy.
 - [`docs/ARCHITECTURE_V0.2.md`](./docs/ARCHITECTURE_V0.2.md) — normative v0.2 architecture and trust-mode guarantees.
+- [`docs/PROOF_PROFILES.md`](./docs/PROOF_PROFILES.md) — normative `tos_verified_v1` and `tos_native_v1` guarantees.
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — historical v0.1 architecture retained for comparison during review.
 - [`docs/MCP.md`](./docs/MCP.md) — MCP v0.2 tool and trust-mode contract.
 - [`docs/A2A.md`](./docs/A2A.md) — A2A v0.2 profile.
 - [`docs/AGENT_CARD.md`](./docs/AGENT_CARD.md) — Agent Card / mode advertisement.
-- [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens and scopes.
-- [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — capability, global ID, mode support and ownership rules.
+- [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens, scopes and identity binding.
+- [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — Capability, global ID, mode activation, ownership and signer rules.
 - [`docs/SETTLEMENT.md`](./docs/SETTLEMENT.md) — Managed/Verified/Native settlement and proof model.
-- [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL artifact transfer model.
+- [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL artifact transfer / content commitments.
 - [`docs/API.md`](./docs/API.md) — REST API v0.2 semantics.
 - [`docs/IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md) — staged Managed -> Verified -> Native implementation plan.
 - [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — v0.2 MCP input/output schemas.
-- [`schemas/protocol-types.json`](./schemas/protocol-types.json) — reusable trust-mode/proof JSON Schema definitions.
+- [`schemas/protocol-types.json`](./schemas/protocol-types.json) — reusable trust-mode/proof/signer JSON Schema definitions.
 
 ## Compatibility Principles
 
-- Prefer the current MCP Streamable HTTP transport; keep legacy SSE only as a compatibility adapter.
-- Publish the current A2A Agent Card at `/.well-known/agent-card.json`, with compatibility aliases where useful.
-- Use semantic versioning in public contracts.
+- Prefer current MCP Streamable HTTP; keep legacy SSE only as a compatibility adapter.
+- Publish the A2A Agent Card at `/.well-known/agent-card.json`, with compatibility aliases where useful.
+- Use semantic versioning in public contracts and proof-profile names.
 - Every financially committing operation requires idempotency protection.
-- Every Quote contains concrete trust mode, expiry, maximum price, settlement/proof contract and terms commitment.
-- Never require an ordinary client agent to own TOS merely to consume a capability.
+- Every Quote contains concrete trust mode, proof profile when required, expiry, maximum price, settlement/proof contract, terms commitment and dispute-policy commitment.
+- Never require an ordinary client agent to own TOS merely to consume a Capability.
 - Never treat `auto` as a committed execution mode.
+- Never treat provider-requested trust modes as already certified/active.
 - Never silently downgrade a Verified/Native Quote.
