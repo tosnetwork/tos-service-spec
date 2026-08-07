@@ -96,7 +96,7 @@ The blockchain is not the bulk execution data plane. Prompts, private files and 
 5. **Open Native network** — Native capabilities survive without `atos.im` as the canonical gateway/namespace authority.
 6. **No wallet requirement for mainstream clients** — fiat/credits/sponsored settlement may abstract the provider settlement asset.
 7. **Machine-safe spending** — Quotes, max-price constraints, idempotency and explicit approval bind financial commitment.
-8. **Small MCP surface** — keep the default 10 tools reliable for model routing.
+8. **Small MCP surface** — keep the default 11 tools reliable for model routing; never advertise a tool `tools/list` won't return for that caller (see `docs/MCP.md` § 4 "Per-Caller Tool Visibility").
 9. **Portable Proof-of-Service** — authorized-signer execution receipts become verifiable reputation evidence.
 10. **Opaque providers** — capabilities expose public contracts, not private prompts, memory, secrets or topology.
 
@@ -132,7 +132,7 @@ The canonical discoverable supply unit is always a **Capability**.
 
 ## Default MCP Tool Set
 
-The default MCP server exposes 10 tools:
+The default MCP server exposes 11 tools:
 
 1. `atos_search`
 2. `atos_get_capability`
@@ -144,8 +144,9 @@ The default MCP server exposes 10 tools:
 8. `atos_register_capability`
 9. `atos_update_capability`
 10. `atos_account`
+11. `atos_artifact` (`operation`: create_upload/complete_upload/get_download_url — see `docs/ARTIFACTS.md`)
 
-Optional provider/admin/file tools are advertised only when relevant.
+File transfer (11) is always visible: any caller might need it for any Capability with a file-typed field, so there's no reliable per-caller signal to gate it on — its three steps are one tool with an `operation` argument, not three separate tools, to keep the always-visible count from growing every time this surface needs another verb. Provider/admin tools are the one category actually gated: `tools/list` is computed per request and includes them only for a principal that owns at least one Capability (see `docs/MCP.md` § 4 "Per-Caller Tool Visibility" and § 8).
 
 ## Recommended Client Flow
 

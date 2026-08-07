@@ -388,46 +388,64 @@
           "provider_earnings": {"type": ["object", "null"]}
         }
       }
+    },
+    {
+      "name": "atos_artifact",
+      "_comment": "One tool, not three -- create_upload/complete_upload/get_download_url are one intent ('work with an artifact'), not three. Always visible, not gated (see docs/MCP.md section 4 'Per-Caller Tool Visibility'): any caller might need file I/O for any capability with a file-typed field, so there's no reliable per-caller signal to gate this on. A server validates operation-specific required fields itself.",
+      "description": "Work with ATOS artifacts (binary content): create_upload requests a signed upload target, complete_upload finalizes one into a reusable artifact_id, get_download_url returns a signed download link. Bytes never travel through this call itself, only through the signed URL it returns. Artifacts remain off-chain by default; Verified/Native receipts may commit content hashes according to the selected proof profile.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["operation"],
+        "additionalProperties": false,
+        "properties": {
+          "operation": {"type": "string", "enum": ["create_upload", "complete_upload", "get_download_url"]},
+          "content_type": {"type": "string", "description": "create_upload only"},
+          "size_bytes": {"type": "integer", "minimum": 1, "description": "create_upload only"},
+          "purpose": {"type": "string", "enum": ["job_input", "capability_asset"], "description": "create_upload only"},
+          "upload_id": {"type": "string", "description": "complete_upload only"},
+          "artifact_id": {"type": "string", "description": "get_download_url only"}
+        }
+      },
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "upload_id": {"type": "string"},
+          "upload_url": {"type": "string"},
+          "upload_method": {"type": "string"},
+          "artifact_id": {"type": "string"},
+          "content_type": {"type": "string"},
+          "size_bytes": {"type": "integer"},
+          "sha256": {"type": "string"},
+          "download_url": {"type": "string"},
+          "expires_at": {"type": "string"}
+        }
+      }
     }
   ],
-  "optional_tools": {
-    "_comment": "Not part of the default 10-tool surface. Advertise only when relevant. Artifact bytes stay off-chain; Verified/Native receipts may commit artifact hashes.",
-    "file_transfer": [
+  "conditionally_visible_tools": {
+    "_comment": "Unlike the tools array above (which includes atos_artifact -- file I/O is always visible, not gated), these ARE genuinely gated: a server MUST compute tools/list per request and include these only for a principal that actually owns at least one Capability. Listing them here does not itself make them discoverable; the gating logic lives in the server.",
+    "provider_admin": [
       {
-        "name": "atos_create_upload",
-        "description": "Request a short-lived signed upload target for binary content.",
+        "name": "atos_list_my_capabilities",
+        "description": "List capabilities owned by the authenticated provider.",
         "inputSchema": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
-          "required": ["content_type", "size_bytes"],
           "additionalProperties": false,
-          "properties": {
-            "content_type": {"type": "string"},
-            "size_bytes": {"type": "integer", "minimum": 1},
-            "purpose": {"type": "string", "enum": ["job_input", "capability_asset"]}
-          }
+          "properties": {}
         }
       },
       {
-        "name": "atos_complete_upload",
-        "description": "Finalize an upload and return a reusable artifact reference and content commitment.",
+        "name": "atos_pause_capability",
+        "description": "Pause one of the authenticated provider's own capabilities so it stops matching new searches.",
         "inputSchema": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
-          "required": ["upload_id"],
+          "required": ["capability_id"],
           "additionalProperties": false,
-          "properties": {"upload_id": {"type": "string"}}
-        }
-      },
-      {
-        "name": "atos_get_download_url",
-        "description": "Get a short-lived signed download URL for an artifact the caller is authorized to access.",
-        "inputSchema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "type": "object",
-          "required": ["artifact_id"],
-          "additionalProperties": false,
-          "properties": {"artifact_id": {"type": "string"}}
+          "properties": {"capability_id": {"type": "string"}}
         }
       }
     ]

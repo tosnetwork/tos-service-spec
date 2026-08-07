@@ -63,27 +63,33 @@ ATOS does not guarantee indefinite retention. Capabilities that need an artifact
 
 ## Upload Flow
 
+`atos_create_upload`/`atos_complete_upload` below are MCP shorthand for
+`atos_artifact` called with `operation: "create_upload"` /
+`operation: "complete_upload"` — see `docs/MCP.md` § 6.11 for why the
+three-step flow is one tool, not three. The REST paths are the
+equivalent, unconsolidated surface for non-MCP clients.
+
 ```text
-atos_create_upload (or POST /v1/uploads)
+atos_artifact(operation: create_upload) (or POST /v1/uploads)
       |
       v
 client PUTs bytes directly to upload_url
       |
       v
-atos_complete_upload (or POST /v1/uploads/{id}/complete)
+atos_artifact(operation: complete_upload) (or POST /v1/uploads/{id}/complete)
       |
       v
 artifact_id + sha256 usable in capability input
 ```
 
-`atos_create_upload` MUST bound `size_bytes` before issuing a signed URL.
+`create_upload` MUST bound `size_bytes` before issuing a signed URL.
 
-`atos_complete_upload` SHOULD verify or calculate the final content commitment and return it with the stable Artifact reference.
+`complete_upload` SHOULD verify or calculate the final content commitment and return it with the stable Artifact reference.
 
 ## Download Flow
 
 ```text
-atos_get_download_url (or GET /v1/artifacts/{id}/download-url)
+atos_artifact(operation: get_download_url) (or GET /v1/artifacts/{id}/download-url)
       |
       v
 client GETs bytes directly from download_url

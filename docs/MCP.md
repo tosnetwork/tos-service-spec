@@ -75,6 +75,9 @@ This lets `auto` choose a stronger mode when it is cheaper or otherwise preferab
 - Never silently downgrade `verified`/`native` to a weaker mode.
 - Distinguish gateway-computed reputation summaries from TOS-verifiable proof facts.
 - Keep bulk/private payloads off-chain; Verified/Native receipts carry commitments when required.
+- **Never hide a tool nobody can then discover.** `tools/list` is what a real client uses to decide what it may call; a tool absent from every possible `tools/list` response is not "optional," it is unreachable. This spec distinguishes two different reasons a tool might not belong in the always-visible default set, and handles them differently:
+  - *Cost/routing concern* (§ 6.11 `atos_artifact`): any caller might legitimately need it for any Capability with a file-typed schema field. There is no reliable per-caller signal to gate it on, so it is simply part of the always-visible default surface.
+  - *Authorization concern* (§ 8 provider/admin tools): only a caller that actually owns a Capability has any use for these. These ARE conditionally included, computed per request from the caller's real ownership state.
 
 ## 5. Common Resolved Quote Fields
 
@@ -483,6 +486,42 @@ Read-only account summary:
 
 Normal account output should not expose wallet derivation, gas, validators, or internal settlement keys.
 
+### 6.11 `atos_artifact`
+
+One tool for `docs/ARTIFACTS.md`'s three-step signed-URL flow, not three. From a model's perspective, requesting an upload target, finalizing it, and fetching a download link are one intent — "work with an ATOS artifact" — not three separate ones. Collapsing them to one `operation`-dispatched tool keeps the default surface at 11 while staying always-visible per § 4's "Per-Caller Tool Visibility" principle (file I/O isn't an authorization concern, so there's no reliable per-caller signal to gate it on instead).
+
+Binary bytes never travel through this call itself; every operation returns or consumes a signed HTTP URL the client uses directly. Artifacts remain off-chain by default; Verified/Native receipts may commit content hashes according to the selected proof profile. Input carries `operation` plus only the fields that operation needs; a server validates the operation-specific required fields itself rather than leaning on an ever-looser top-level JSON Schema to catch it.
+
+**`operation: "create_upload"`** — requests a short-lived signed upload target. `size_bytes` MUST be bounded before a signed URL is issued.
+
+```json
+{"operation": "create_upload", "content_type": "application/pdf", "size_bytes": 2140233, "purpose": "job_input"}
+```
+
+```json
+{"upload_id": "up_...", "upload_url": "https://...", "upload_method": "PUT", "expires_at": "2026-08-07T05:10:00Z"}
+```
+
+**`operation: "complete_upload"`** — finalizes an upload after the client has PUT the bytes to `upload_url`, returning a stable `artifact_id` and content commitment usable in a Capability's `input`.
+
+```json
+{"operation": "complete_upload", "upload_id": "up_..."}
+```
+
+```json
+{"artifact_id": "art_...", "content_type": "application/pdf", "size_bytes": 2140233, "sha256": "..."}
+```
+
+**`operation: "get_download_url"`** — returns a short-lived authorized download URL and artifact metadata for an artifact the caller is authorized to access — either something it uploaded, or an artifact produced in a Job's output.
+
+```json
+{"operation": "get_download_url", "artifact_id": "art_..."}
+```
+
+```json
+{"download_url": "https://...", "expires_at": "2026-08-07T05:10:00Z", "content_type": "application/pdf", "size_bytes": 891004}
+```
+
 ## 7. Required Error Semantics
 
 Recommended machine codes:
@@ -504,12 +543,27 @@ Recommended machine codes:
 
 A server MUST NOT turn a trust/proof failure into a weaker successful execution without a new Quote.
 
-## 8. Optional Provider/Admin Tools
+## 8. Provider/Admin Tools (Dynamically Gated)
 
-Expose only to principals with matching scopes:
+Unlike § 6's default tools, these are genuinely conditional: `tools/list`
+is computed per request from the authenticated principal, and includes
+them only when that principal actually owns at least one Capability —
+the same fact that governs whether the tool would succeed if called
+(`atos_pause_capability` re-checks ownership before acting regardless).
+This is the real MCP mechanism for per-caller tool visibility: the
+`tools/list` response is a function of who is asking, not a static
+constant. See § 4's "Per-Caller Tool Visibility" principle for why this
+differs from how § 6.11 (`atos_artifact`) is handled.
+
+Implemented, gated as above:
 
 - `atos_list_my_capabilities`
 - `atos_pause_capability`
+
+Specified but not yet implemented — depend on a real queued/matched
+provider model that doesn't exist yet; the same ownership gating applies
+once they do:
+
 - `atos_provider_jobs`
 - `atos_deliver_job`
 - `atos_request_settlement`
@@ -517,39 +571,7 @@ Expose only to principals with matching scopes:
 
 Provider/admin settlement operations MUST preserve the Quote/Job concrete trust mode and proof profile.
 
-## 9. Optional File Transfer Tools
-
-See `docs/ARTIFACTS.md`.
-
-Binary bytes never travel through an MCP business tool call. Signed URLs are used for transfer. Artifacts remain off-chain by default; Verified/Native receipts may commit content hashes according to the selected proof profile.
-
-### `atos_create_upload`
-
-```json
-{
-  "content_type": "application/pdf",
-  "size_bytes": 2140233,
-  "purpose": "job_input"
-}
-```
-
-### `atos_complete_upload`
-
-```json
-{"upload_id": "up_..."}
-```
-
-Returns a stable `artifact_id`, metadata, and content commitment/hash.
-
-### `atos_get_download_url`
-
-```json
-{"artifact_id":"art_..."}
-```
-
-Returns a short-lived authorized download URL and artifact metadata.
-
-## 10. MCP Resources
+## 9. MCP Resources
 
 Recommended resources:
 
@@ -569,7 +591,7 @@ Recommended resources:
 }
 ```
 
-## 11. MCP Prompts
+## 10. MCP Prompts
 
 Optional convenience prompts:
 
@@ -579,7 +601,7 @@ Optional convenience prompts:
 
 Prompts are not business APIs.
 
-## 12. Spend Confirmation via MCP Elicitation
+## 11. Spend Confirmation via MCP Elicitation
 
 When a Quote exceeds autonomous policy, return an MCP multi-round-trip response conceptually equivalent to:
 
@@ -599,7 +621,7 @@ When a Quote exceeds autonomous policy, return an MCP multi-round-trip response 
 
 The confirmation state MUST bind to Quote ID, concrete trust mode, proof profile, maximum amount, and Quote expiry so approval for one contract cannot be replayed for another.
 
-## 13. Idempotency
+## 12. Idempotency
 
 `atos_invoke`, `atos_create_job`, `atos_cancel_job`, registration mutations, and settlement mutations MUST require `idempotency_key`.
 
@@ -611,9 +633,9 @@ Server behavior:
 
 For committing operations, the idempotency record MUST bind the Quote and therefore the resolved trust mode/proof profile.
 
-## 14. MCP Invariants
+## 13. MCP Invariants
 
-1. The default surface remains 10 tools.
+1. The default surface remains 11 tools; `tools/list` is computed per authenticated principal, never per connection/session history (see "Per-Caller Tool Visibility" in § 4).
 2. `auto` is only a client pre-Quote policy value.
 3. `atos_quote` resolves and freezes a concrete mode.
 4. Invoke/Job creation inherit mode from Quote and cannot override it.
