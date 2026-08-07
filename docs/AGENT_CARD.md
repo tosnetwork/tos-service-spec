@@ -57,7 +57,7 @@ The primary path follows the current A2A well-known Agent Card convention.
       "clientWalletRequired": false,
       "supportedTrustModes": ["managed", "verified", "native"],
       "autoTrustModeSelection": true,
-      "proofProfiles": ["tos_verified_v1"],
+      "proofProfiles": ["tos_verified_v1", "tos_native_v1"],
       "nativeResolution": true
     }
   }
@@ -65,6 +65,8 @@ The primary path follows the current A2A well-known Agent Card convention.
 ```
 
 `auto` is not included in `supportedTrustModes` because it is a pre-Quote selection policy, not a concrete transaction mode.
+
+The platform card advertises what the gateway implementation is capable of serving. A specific Capability's public `supported_trust_modes` still contains only modes that are currently active for that Capability.
 
 ## Individual Provider Cards
 
@@ -74,14 +76,16 @@ Reference gateway URL:
 
 The gateway may also expose provider-owned signed Agent Cards.
 
-Individual cards SHOULD include only public capability metadata and protocol endpoints. The ATOS extension SHOULD advertise:
+Individual cards SHOULD include only public Capability metadata and protocol endpoints. The ATOS extension SHOULD advertise:
 
-- supported concrete trust modes;
-- active proof profiles;
+- active concrete trust modes;
+- applicable proof profiles;
 - global Agent/provider identifier where available;
 - Native resolver/address information where applicable;
-- capability IDs/links;
+- Capability IDs/links;
 - public signing/attestation references.
+
+Provider-requested but not yet activated modes SHOULD NOT be presented as supported transaction modes. If useful for provider/admin tooling, they may be represented separately as pending/requested state.
 
 Do not put private keys, internal prompts, private settlement destinations, or non-public network topology in Agent Cards.
 
@@ -107,4 +111,10 @@ Do not use a single ambiguous `verified` label to represent both concepts.
 
 Support Agent Card signatures when providers can supply them.
 
-For Native mode, a signed card alone is not sufficient to make the provider globally canonical. The provider/capability identity, ownership and manifest commitments must also satisfy the Native resolution/anchoring requirements in `docs/ARCHITECTURE_V0.2.md` and `docs/CAPABILITIES.md`.
+A signed card alone is not sufficient for Verified or Native activation.
+
+Verified additionally requires the `tos_verified_v1` trust/economic/proof guarantees.
+
+Native additionally requires `tos_native_v1`, including gateway-independent canonical provider/Capability resolution.
+
+See `docs/PROOF_PROFILES.md`, `docs/ARCHITECTURE_V0.2.md`, and `docs/CAPABILITIES.md`.
