@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://atos.im/schemas/protocol-types/0.2.0",
   "title": "ATOS Protocol Types v0.2",
+  "description": "Normative reusable ATOS v0.2 trust-mode and proof types. Consumers should reference individual $defs.",
   "version": "0.2.0",
   "$defs": {
     "RequestedTrustMode": {
@@ -56,15 +57,6 @@
       "type": "string",
       "enum": ["requested", "pending", "active", "suspended", "unsupported"]
     },
-    "CapabilityModeSupport": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "managed": {"$ref": "#/$defs/ModeSupportEntry"},
-        "verified": {"$ref": "#/$defs/ModeSupportEntry"},
-        "native": {"$ref": "#/$defs/ModeSupportEntry"}
-      }
-    },
     "ModeSupportEntry": {
       "type": "object",
       "required": ["status"],
@@ -73,6 +65,15 @@
         "status": {"$ref": "#/$defs/ModeSupportState"},
         "proof_profile": {"type": ["string", "null"]},
         "reason": {"type": ["string", "null"]}
+      }
+    },
+    "CapabilityModeSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "managed": {"$ref": "#/$defs/ModeSupportEntry"},
+        "verified": {"$ref": "#/$defs/ModeSupportEntry"},
+        "native": {"$ref": "#/$defs/ModeSupportEntry"}
       }
     },
     "TrustSummary": {
@@ -124,9 +125,5 @@
         "usage_commitment": {"type": ["string", "null"]}
       }
     }
-  },
-  "allOf": [
-    {"$ref": "#/$defs/QuoteTrustContract"}
-  ],
-  "description": "Normative reusable ATOS v0.2 trust-mode and proof types. Consumers should reference individual $defs rather than treating the root allOf as the only ATOS object type."
+  }
 }
