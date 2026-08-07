@@ -58,8 +58,17 @@ Codex / Claude Code / Cursor / OpenClaw / Hermes
        |              |              |
        +--------------+--------------+
                       |
+              +-------+-------+
+              |               |
+            tos-ai         tos-core
+   provider/worker runtime   identity / registry / reputation
+   model, MCP, HTTP, GPU,    escrow / receipt verification /
+   local, human adapters     settlement / proof
+              |               |
+              +-------+-------+
+                      |
                  TOS Network
-      identity / routing / reputation / settlement
+        consensus / P2P / ledger / settlement commitments
                       |
      Agents / APIs / humans / edge compute / services
 ```

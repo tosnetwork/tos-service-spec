@@ -162,6 +162,25 @@ Input:
 }
 ```
 
+`callback` is **reserved and unimplemented in Phase 1/2**; the only supported way to learn
+a job's state is polling `atos_get_job`. Clients MUST omit it or pass `null` — servers
+MUST reject any non-null value with `validation_failed` until webhook delivery ships.
+When implemented (Phase 3+, alongside `docs/IMPLEMENTATION_ROADMAP.md`'s provider
+self-service phase), the shape will be:
+
+```json
+{
+  "callback": {
+    "url": "https://client.example/webhooks/atos",
+    "events": ["job.completed", "job.failed", "job.input_required"],
+    "secret_ref": "whsec_..."
+  }
+}
+```
+
+`secret_ref` identifies a client-registered signing secret used to sign the webhook body
+(never the secret value itself, which is never round-tripped through job records).
+
 Output:
 
 ```json

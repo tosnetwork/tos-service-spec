@@ -85,3 +85,19 @@ Provider registration requires:
 ## Versioning
 
 Breaking input/output contract changes require a new capability version. Existing quote/job records retain the version they were created against.
+
+## Ownership Anchoring
+
+Capability metadata itself lives in the ATOS registry index for fast search. Ownership of
+a capability is a trust fact, not a search fact, so it is anchored separately through
+`tos-core.VerifyCapabilityOwnership` and registry-anchoring writes rather than stored as a
+mutable ATOS field. Concretely:
+
+- On registration, ATOS assigns `id`/`provider_id` immediately so the capability is
+  searchable (Phase 1, centralized).
+- Ownership/commitment anchoring through tos-core is additive and MAY lag registration
+  (Phase 3+); until anchored, `trust.level` for that capability should read
+  `self_asserted`, matching the Agent Card signature levels in `AGENT_CARD.md`.
+- A capability MUST NOT be re-assigned to a different `provider_id` without re-anchoring
+  ownership through tos-core; ATOS must treat provider reassignment as a new capability
+  registration, not a `PATCH`.

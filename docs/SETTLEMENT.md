@@ -32,13 +32,20 @@ Provider payout policy is separate from client pricing.
 
 ```text
 quote
-  -> authorize/reserve max amount
-  -> execute
-  -> compute actual amount
-  -> settle provider share
-  -> release unused reserve
-  -> issue receipt
+  -> tos-core.CreateEscrow(total_max)        [reserve, not settle]
+  -> tos-ai.SubmitJob                        [execute]
+  -> provider signs execution receipt
+  -> tos-core.VerifyExecutionReceipt         [stateless, read-only check]
+  -> tos-core.SettleJob                      [state change: only after verification passes]
+  -> release unused escrow
+  -> issue client-facing receipt
 ```
+
+Verification and settlement are separate steps on purpose: `VerifyExecutionReceipt` MUST
+be stateless and MUST NOT move funds by itself. `SettleJob` is the only step allowed to
+change escrow/balance state, and it MUST NOT run against a receipt that has not passed
+verification. A failed or missing verification blocks settlement and routes the escrowed
+amount to refund/dispute handling instead.
 
 ## Quote Object
 

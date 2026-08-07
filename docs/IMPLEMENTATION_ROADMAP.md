@@ -1,5 +1,40 @@
 # ATOS Implementation Roadmap
 
+## Repository Layout
+
+The `~/atos` implementation repo should follow this top-level layout so module
+boundaries match `docs/ARCHITECTURE.md`'s planes from day one:
+
+```text
+atos/
+├── cmd/
+├── gateway/
+├── mcp/
+├── a2a/
+├── api/
+├── auth/
+├── discovery/
+├── search/
+├── matching/
+├── quote/
+├── invoke/
+├── jobs/
+├── marketplace/
+├── billing/
+├── spending/
+├── indexer/
+├── agent-card/
+├── events/
+├── sdk/
+├── skills/
+└── web/
+```
+
+None of these packages should import a TOS Network client directly — only
+`adapters/tos-ai` and `adapters/tos-core` packages (added in Phase 2 and Phase 4
+respectively) may do so, per the Cross-Service Interface Contracts in
+`docs/ARCHITECTURE.md`.
+
 ## Phase 0 — Contract First
 
 Implement and freeze public v0.1 schemas before integrating deep TOS internals.
@@ -41,9 +76,15 @@ Add:
 - `atos_cancel_job`
 - A2A gateway
 - artifacts/files
-- provider delivery flow
+- a real **tos-ai** provider/worker runtime behind the job model — `SubmitJob`,
+  `GetJob`, `StreamJob`, `FetchResult`, `FetchReceipt` (Phase 1's mock provider is
+  retired here, not before)
 - provider earnings
 - disputes
+
+This is the phase where the `ATOS → tos-ai` interface in `docs/ARCHITECTURE.md`
+becomes real rather than mocked. Trust/settlement still stay centralized in ATOS's own
+ledger — do not pull `tos-core` forward into this phase.
 
 ## Phase 3 — Provider Self-Service
 
@@ -56,16 +97,21 @@ Add:
 - provider Agent Cards
 - sandbox certification
 
-## Phase 4 — TOS Network Integration
+## Phase 4 — tos-core Trust Integration
 
-Replace internal centralized functions progressively:
+Replace internal centralized functions progressively, all routed through **tos-core**
+(not tos-ai, which is already live since Phase 2):
 
-- Agent identity -> TOS identity
-- capability attestations -> TOS
-- discovery anchoring -> TOS
-- reputation attestations -> TOS
-- settlement proofs -> TOS
-- machine payment -> TOS
+- Agent identity -> `tos-core.ResolveAgentIdentity` (see `docs/AUTH.md` Agent Identity
+  Migration)
+- capability ownership/attestations -> `tos-core.VerifyCapabilityOwnership` (see
+  `docs/CAPABILITIES.md` Ownership Anchoring)
+- reputation attestations -> `tos-core.ReadReputation` / `UpdateReputationEvidence`
+- escrow -> `tos-core.CreateEscrow`
+- receipt verification -> `tos-core.VerifyExecutionReceipt`
+- settlement -> `tos-core.SettleJob`
+- settlement proofs -> `tos-core.ReadProof`, exposed via the optional
+  `settlement-proof` endpoint
 
 Keep all ATOS public client contracts unchanged.
 
