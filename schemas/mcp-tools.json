@@ -122,5 +122,41 @@
       "description": "Get account balance, usage and autonomous spending policy.",
       "inputSchema": {"type": "object", "properties": {}}
     }
-  ]
+  ],
+  "optional_tools": {
+    "_comment": "Not part of the default 10-tool surface (see docs/MCP.md 'Keep the default tool list small'). Advertise only when relevant, e.g. provider/admin scope or a capability's schema references a file field.",
+    "file_transfer": [
+      {
+        "name": "atos_create_upload",
+        "description": "Request a short-lived signed upload target for binary content.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["content_type", "size_bytes"],
+          "properties": {
+            "content_type": {"type": "string"},
+            "size_bytes": {"type": "integer", "minimum": 1},
+            "purpose": {"type": "string", "enum": ["job_input", "capability_asset"]}
+          }
+        }
+      },
+      {
+        "name": "atos_complete_upload",
+        "description": "Finalize an upload after PUTing bytes to the signed upload_url, returning a reusable artifact_id.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["upload_id"],
+          "properties": {"upload_id": {"type": "string"}}
+        }
+      },
+      {
+        "name": "atos_get_download_url",
+        "description": "Get a short-lived signed download URL for an artifact the caller owns.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["artifact_id"],
+          "properties": {"artifact_id": {"type": "string"}}
+        }
+      }
+    ]
+  }
 }

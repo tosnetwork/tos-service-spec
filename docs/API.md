@@ -40,6 +40,17 @@ Base URL:
 - `POST /jobs/{job_id}/messages`
 - `GET /jobs/{job_id}/artifacts`
 
+## Artifact Endpoints
+
+Optional — see `docs/ARTIFACTS.md`. Every upload/download exchanges
+bytes over a signed URL directly with storage; these endpoints only
+issue/verify those URLs.
+
+- `POST /uploads` — request a signed upload target
+- `POST /uploads/{upload_id}/complete` — finalize, returns `artifact_id`
+- `GET /artifacts/{artifact_id}` — metadata
+- `GET /artifacts/{artifact_id}/download-url` — signed download URL
+
 ## Account Endpoints
 
 - `GET /account`

@@ -253,6 +253,83 @@ Expose only to principals with matching scopes:
 
 Do not burden ordinary Codex clients with these tools.
 
+## Optional File Transfer Tools
+
+See `docs/ARTIFACTS.md` for the full object model. These are optional for
+the same reason provider/admin tools are: most capabilities exchange
+plain JSON and never need them. Advertise them only when the caller has
+indicated file I/O is relevant (its `input_schema`/`output_schema`
+references a file field) rather than unconditionally, keeping the
+default tool count at 10.
+
+Binary bytes never travel through an MCP tool call — every one of these
+tools returns or consumes a signed HTTP URL that the client uses
+directly, the same reason the default tools never accept inline file
+content either.
+
+### `atos_create_upload`
+
+Requests a short-lived signed upload target.
+
+```json
+{
+  "content_type": "application/pdf",
+  "size_bytes": 2140233,
+  "purpose": "job_input"
+}
+```
+
+```json
+{
+  "upload_id": "up_...",
+  "upload_url": "https://...",
+  "upload_method": "PUT",
+  "expires_at": "2026-08-07T05:10:00Z"
+}
+```
+
+### `atos_complete_upload`
+
+Finalizes an upload after the client has PUT the bytes to `upload_url`,
+returning a stable reference usable in a capability's `input`.
+
+```json
+{"upload_id": "up_..."}
+```
+
+```json
+{
+  "artifact_id": "art_...",
+  "content_type": "application/pdf",
+  "size_bytes": 2140233,
+  "sha256": "..."
+}
+```
+
+An `atos_invoke`/`atos_create_job` call then references the upload as
+part of `input`, e.g. `{"document": {"artifact_id": "art_..."}}` — the
+capability's `input_schema` declares which fields are artifact
+references.
+
+### `atos_get_download_url`
+
+Returns a short-lived signed download URL for an artifact the caller
+owns — either something it uploaded, or an artifact produced in a job's
+`artifacts` output.
+
+```json
+{"artifact_id": "art_..."}
+```
+
+```json
+{
+  "download_url": "https://...",
+  "expires_at": "2026-08-07T05:10:00Z",
+  "content_type": "application/pdf",
+  "size_bytes": 891004
+}
+```
+
 ## MCP Resources
 
 Recommended resources:

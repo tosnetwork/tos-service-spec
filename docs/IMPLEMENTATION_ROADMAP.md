@@ -96,6 +96,14 @@ Add:
 - schemas validator
 - provider Agent Cards
 - sandbox certification
+- open task marketplace: publish/apply/accept flow (`atos_publish_task`,
+  `atos_list_open_tasks`, `atos_apply_task`, `atos_accept_task_application`,
+  and related query/cancel/withdraw tools) for work a client wants bid on
+  rather than fulfilled by a single pre-selected capability. Deliberately
+  not part of Phase 0/1/2: it needs a real queued/matched-provider model
+  (multiple providers competing for one task) that synchronous
+  capability invocation doesn't have a reason to build until providers
+  other than tos-ai exist to compete.
 
 ## Phase 4 — tos-core Trust Integration
 

@@ -82,6 +82,16 @@ Provider registration requires:
 - health check;
 - settlement destination (private provider config, not public capability metadata).
 
+### Third-Party API Passthrough
+
+A capability that simply wraps a third-party API (a data-marketplace-style
+pay-per-call passthrough) does not need a new primitive — register it as
+`http` adapter type with `per_use`/`per_unit` pricing and a tight SLA. ATOS
+does not need a distinct "call an external API" tool alongside
+`atos_invoke`; the capability model already covers this, it is only the
+provider's choice of adapter type and pricing model that differs, not the
+client-facing contract.
+
 ## Versioning
 
 Breaking input/output contract changes require a new capability version. Existing quote/job records retain the version they were created against.

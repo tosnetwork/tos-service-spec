@@ -101,7 +101,7 @@ The default MCP server exposes **10 tools**, not dozens:
 9. `atos_update_capability`
 10. `atos_account`
 
-Optional/admin/provider tools are discoverable only when the authenticated principal has matching permissions.
+Optional/admin/provider tools are discoverable only when the authenticated principal has matching permissions. Optional file transfer tools (`atos_create_upload`/`atos_complete_upload`/`atos_get_download_url`, see `docs/ARTIFACTS.md`) are discoverable only when a capability's schema references a file field — most capabilities never need them.
 
 ## Recommended Client Flow
 
@@ -127,6 +127,7 @@ User intent
 - [`docs/AUTH.md`](./docs/AUTH.md) — Device Auth, tokens and scopes.
 - [`docs/CAPABILITIES.md`](./docs/CAPABILITIES.md) — capability schema and matching.
 - [`docs/SETTLEMENT.md`](./docs/SETTLEMENT.md) — ATOS Credits and hidden TOS settlement.
+- [`docs/ARTIFACTS.md`](./docs/ARTIFACTS.md) — signed-URL file upload/download model.
 - [`docs/API.md`](./docs/API.md) — REST API surface.
 - [`docs/IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md) — MVP phases.
 - [`schemas/mcp-tools.json`](./schemas/mcp-tools.json) — compact machine-readable tool schemas.
