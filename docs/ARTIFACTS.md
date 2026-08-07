@@ -1,22 +1,28 @@
-# ATOS Artifacts
+# ATOS Artifacts v0.2
 
 ## Purpose
 
-A capability that accepts or produces binary content (documents, images,
-audio, datasets) needs a way to move that content that isn't "base64 it
-into a JSON-RPC tool call." This document defines the Artifact object and
-the signed-URL transfer flow referenced by `docs/MCP.md`'s optional file
-transfer tools and `docs/API.md`'s upload/artifact endpoints.
+A capability that accepts or produces binary content (documents, images, audio, datasets) needs a way to move that content without embedding bytes in MCP/A2A/REST calls.
+
+This document defines the Artifact object and signed-URL transfer flow referenced by `docs/MCP.md` and `docs/API.md`.
 
 ## Principle
 
-**MCP/A2A/REST tool calls carry references, never bytes.** Every upload
-and download happens over a direct signed HTTP URL between the client and
-object storage; ATOS mediates by issuing and verifying those URLs, not by
-proxying the payload through its own request handlers. This keeps large
-files off the same request path that quote/invoke/job latency budgets are
-built around, and keeps ATOS itself stateless with respect to file
-content.
+**MCP/A2A/REST calls carry references, never bulk bytes.**
+
+Uploads/downloads use direct signed HTTP URLs between the client and the configured storage backend. ATOS mediates authorization and references, not the bulk payload path.
+
+This rule applies to all trust modes:
+
+```text
+managed
+verified
+native
+```
+
+Selecting Verified/Native does **not** mean uploading the raw artifact to TOS Network.
+
+For stronger modes, the Execution Receipt may commit the artifact's content hash/commitment so the delivered bytes can be independently checked against the receipt/proof.
 
 ## Artifact Object
 
@@ -33,18 +39,27 @@ content.
 }
 ```
 
-### Status
+The `sha256` field is a content commitment candidate, not proof that it was actually included in a TOS-backed receipt. Proof inclusion is represented by the Job/Receipt proof fields.
+
+## Artifact IDs and Federation
+
+`artifact_id` may remain gateway-local for Managed/Verified storage delivery unless a protocol flow explicitly requires global portability.
+
+Native Capability identity MUST be globally resolvable, but this does not imply every temporary artifact ID must be a global protocol identifier.
+
+Portable artifacts SHOULD be addressable by stable content commitment and an authorized retrieval mechanism rather than assuming an `atos.im` signed URL is permanently valid.
+
+## Status
 
 ```text
 uploading -> available
-uploading -> expired   (client never called complete-upload before upload_url expired)
-available -> expired   (retention window elapsed)
+uploading -> expired
+available -> expired
 ```
 
-`expired` artifacts return `410 Gone` / `not_found`-equivalent on
-download — ATOS does not guarantee indefinite retention. Capabilities
-that need an artifact past its retention window must copy it into their
-own storage during execution, not treat ATOS as permanent storage.
+`expired` artifacts return `410 Gone` / equivalent not-found/expired semantics on download.
+
+ATOS does not guarantee indefinite retention. Capabilities that need an artifact past its retention window must copy it into permitted provider/customer storage during execution.
 
 ## Upload Flow
 
@@ -58,48 +73,91 @@ client PUTs bytes directly to upload_url
 atos_complete_upload (or POST /v1/uploads/{id}/complete)
       |
       v
-artifact_id usable in a job's `input`
+artifact_id + sha256 usable in capability input
 ```
 
-`atos_create_upload` MUST bound `size_bytes` against a maximum (a
-gateway-wide limit; per-capability limits are a `docs/CAPABILITIES.md`
-concern, not this document's). Rejecting an oversized request before
-issuing a signed URL is cheaper than discovering the limit after the
-client has already uploaded the bytes.
+`atos_create_upload` MUST bound `size_bytes` before issuing a signed URL.
+
+`atos_complete_upload` SHOULD verify or calculate the final content commitment and return it with the stable Artifact reference.
 
 ## Download Flow
-
-Any artifact referenced by a job's `output`/`artifacts` — or one the
-caller uploaded — can be exchanged for a short-lived signed download URL:
 
 ```text
 atos_get_download_url (or GET /v1/artifacts/{id}/download-url)
       |
       v
-client GETs the file directly from download_url
+client GETs bytes directly from download_url
 ```
+
+A signed URL is an ephemeral transport credential. It MUST NOT be embedded into an on-chain commitment or long-lived Execution Receipt.
+
+Use `artifact_id` and/or content commitment in durable records instead.
 
 ## Ownership and Access
 
-- An artifact is visible only to `owner_principal_id` and, for
-  job-output artifacts, the job's `principal_id` — a provider does not
-  get standing access to a client's uploaded input beyond the single job
-  execution it was attached to.
-- `atos_get_download_url` for a job's output artifact requires the
-  caller to be that job's owning principal, mirroring `atos_get_job`'s
-  ownership check.
-- Providers receive artifact content only through the execution pipeline
-  (tos-ai resolves `input.<field>.artifact_id` into actual bytes before
-  invoking the provider), never through a general artifact-read API.
+- An uploaded Artifact is visible only to authorized principals and the execution pipeline for Jobs that legitimately reference it.
+- A provider does not receive standing access to all client artifacts.
+- Providers receive permitted input content through the execution pipeline, not a general artifact-read API.
+- Job-output downloads require authorization equivalent to `atos_get_job` ownership/access policy.
+- Signed URL expiry does not change the cryptographic content commitment already recorded in a receipt.
+
+## Trust-Mode Behavior
+
+### Managed
+
+The gateway may store Artifact metadata and bytes through its managed storage service. Receipt inclusion of artifact commitments is optional but recommended.
+
+### Verified
+
+Bytes remain off-chain. When an Artifact materially represents the input/output being paid for, the selected proof profile SHOULD require the relevant content commitment in the signed Execution Receipt.
+
+Conceptually:
+
+```text
+artifact bytes -> object storage
+       |
+       +-> sha256/content commitment -> Execution Receipt -> tos-core/TOS proof
+```
+
+### Native
+
+The same commitment rule applies, but retrieval MUST NOT assume `atos.im` is the only possible long-term transport/storage authority when portability is required.
+
+Native implementations may use provider/customer storage, content-addressed storage, decentralized storage, or another authorized mechanism. The storage backend itself is outside the ATOS core protocol.
+
+## Receipt Commitment Example
+
+```json
+{
+  "receipt_id":"rcpt_...",
+  "trust_mode":"verified",
+  "output_commitment":"sha256:...",
+  "artifacts":[
+    {
+      "artifact_id":"art_...",
+      "content_commitment":"sha256:..."
+    }
+  ],
+  "network_proof_ref":"tos:..."
+}
+```
+
+A verifier can hash the downloaded bytes and compare them with the committed value without placing the bytes themselves on-chain.
 
 ## What This Document Does Not Define
 
-- The storage backend (S3-compatible bucket, GCS, etc.) — an
-  implementation detail behind `atos_create_upload`/`atos_get_download_url`,
-  not a public contract.
-- Virus/content scanning, size limits per content type, or retention
-  policy specifics — operational policy, not protocol.
-- Streaming/chunked upload for very large files — Phase 1 assumes a
-  single PUT is sufficient; multipart upload is a straightforward
-  extension of `atos_create_upload` (return multiple part URLs) if a
-  real use case needs it later, not a redesign.
+- the storage backend (S3-compatible, GCS, decentralized storage, customer storage, etc.);
+- virus/content scanning;
+- content moderation policy;
+- retention policy specifics;
+- multipart/chunked upload details;
+- encryption/key-management policy;
+- whether a particular Artifact commitment is mandatory for a Capability — that is determined by the Quote/proof profile and capability contract.
+
+## Artifact Invariants
+
+1. Bulk bytes do not travel through MCP/A2A business calls.
+2. Bulk bytes are not placed on TOS merely because trust mode is Verified/Native.
+3. Durable proofs use content commitments, not signed URLs.
+4. A signed URL is temporary transport authorization, not a protocol identity.
+5. Quote/proof profile determines whether an Artifact commitment is required in the Receipt.
