@@ -1,4 +1,4 @@
-# ATOS Authentication and Authorization
+# ATOS Authentication and Authorization v0.2
 
 ## Goals
 
@@ -6,7 +6,28 @@
 - no copying long-lived API keys into chat;
 - scoped credentials;
 - revocation and device visibility;
-- no blockchain key requirement for consumers.
+- no blockchain key requirement for ordinary consumers;
+- authentication remains separate from transaction trust mode.
+
+## Authentication Is Not Trust Mode
+
+Authentication answers **who is calling this gateway**.
+
+Trust mode answers **which guarantees apply to a quoted transaction**.
+
+A Bearer token, Device Authorization session, service account, or `principal_id` MUST NOT implicitly change a Quote from `managed` to `verified`/`native` or vice versa.
+
+Pre-Quote policy may be stored on the account as:
+
+```text
+default_requested_trust_mode = managed | verified | native | auto
+```
+
+but every financially committing Quote still resolves and records its own concrete:
+
+```text
+trust_mode = managed | verified | native
+```
 
 ## Device Authorization
 
@@ -87,37 +108,59 @@ Provider:
 - `provider_jobs:deliver`
 - `earnings:read`
 
-Advanced:
+Advanced/proof:
 
 - `settlement:read`
+- `proofs:read`
 - `network:read`
+
+`proofs:read` permits retrieval of advanced proof material when available; compact proof status/references may still appear on a Receipt/Job visible to its owner.
 
 ## MCP Authentication
 
 Preferred: OAuth-compatible Bearer access token negotiated by the client/Skill.
 
-Legacy compatibility may permit:
+Compatibility may permit:
 
-- `Authorization: Bearer <token>`
-- or temporary `X-ATOS-API-Key` for service accounts.
+- `Authorization: Bearer <token>`;
+- temporary `X-ATOS-API-Key` for service accounts where policy allows it.
 
-Do not require a separate user-ID header if the authenticated token already identifies the principal. A combined API-key-plus-user-ID pair is redundant and error-prone by comparison.
+Do not require a separate user-ID header if the authenticated token already identifies the principal.
 
 ## Agent Identity Migration
 
-`principal_id` returned at token issuance is an **ATOS-internal account identifier** in
-Phase 1/2. It is not a wallet, key, or TOS Agent Identity, and clients must not treat it
-as one.
+`principal_id` is an **ATOS gateway account identifier**. It is not itself a wallet, private key, or globally canonical TOS Agent Identity.
 
-In Phase 3+, `principal_id` MAY be bound one-to-one to a `tos-core` Agent Identity
-(`ResolveAgentIdentity`), so that capability ownership, reputation and settlement can be
-anchored without requiring the client to hold or manage TOS keys. This binding:
+### Managed phases
 
-- happens server-side and is invisible to the client — no new scopes, no new auth flow;
-- is one-directional (ATOS Account → TOS Agent Identity); ATOS never asks a client to
-  import an existing external wallet as a precondition for ordinary consumption;
-- only becomes user-visible through the optional `settlement-proof` endpoint
-  (`docs/SETTLEMENT.md`) for advanced users who explicitly ask for verifiability.
+Managed Mode can operate with gateway-local `principal_id` identities.
+
+### Verified integration
+
+When Verified Mode is activated (Roadmap Phase 4), a gateway account/provider MAY be bound to a `tos-core` Agent Identity through `ResolveAgentIdentity` so ownership, receipt verification, reputation evidence, escrow and settlement can be TOS-backed without requiring the user to manually manage TOS keys.
+
+This binding:
+
+- is server-side by default;
+- does not change the public Device Authorization flow;
+- does not require a consumer to import an external wallet as a precondition for ordinary use;
+- can be surfaced through normalized identity/proof references when a Verified/Native transaction requires it.
+
+### Native identity
+
+Native Mode cannot treat a gateway-local `principal_id` as the globally canonical identity by itself.
+
+Native Agent/provider identity and Capability ownership must be resolvable/verifiable through the TOS-backed identity/registry model defined by the v0.2 architecture.
+
+A gateway MAY maintain a local alias from `principal_id` to that global identity for UX.
+
+## Walletless Verified/Native UX
+
+A client does not necessarily need to sign raw TOS transactions itself.
+
+Where operationally and legally supported, a gateway/sponsor may abstract transaction submission, fees, or settlement funding while the resulting required state remains verifiable through TOS according to the Quote's proof profile.
+
+This is different from weakening the trust mode: abstraction of chain mechanics is allowed; loss of the required TOS-backed proof/settlement guarantees is not.
 
 ## Service Accounts
 
@@ -127,4 +170,7 @@ For headless agents/servers, support service accounts with:
 - optional IP restrictions;
 - rotation;
 - per-service spending limits;
+- default requested trust policy;
 - no interactive user impersonation.
+
+Service-account credentials MUST NOT be embedded in Capability metadata, Agent Cards, Execution Receipts, or A2A extensions.
