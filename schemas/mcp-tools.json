@@ -67,7 +67,7 @@
     },
     {
       "name": "atos_get_capability",
-      "description": "Get full metadata, schemas, concrete trust-mode support, proof profiles, and bindings for one capability.",
+      "description": "Get full metadata, schemas, active concrete trust-mode support, proof profiles, and bindings for one capability.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -264,11 +264,11 @@
     },
     {
       "name": "atos_register_capability",
-      "description": "Register a provider capability and request support for one or more concrete trust modes.",
+      "description": "Register a provider capability and request one or more concrete trust modes. Active supported_trust_modes are derived by ATOS after validation/certification.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
-        "required": ["name", "description", "delivery_mode", "input_schema", "output_schema", "pricing", "supported_trust_modes"],
+        "required": ["name", "description", "delivery_mode", "input_schema", "output_schema", "pricing", "requested_trust_modes"],
         "additionalProperties": false,
         "properties": {
           "name": {"type": "string", "minLength": 1},
@@ -278,7 +278,7 @@
           "output_schema": {"type": "object"},
           "pricing": {"type": "object"},
           "tags": {"type": "array", "items": {"type": "string"}},
-          "supported_trust_modes": {
+          "requested_trust_modes": {
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -288,16 +288,61 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["transport", "endpoint_ref", "trust_modes"],
+              "required": ["transport", "endpoint_ref", "eligible_trust_modes"],
+              "additionalProperties": false,
               "properties": {
                 "transport": {"type": "string", "enum": ["http", "mcp", "a2a", "human", "tos-native"]},
                 "endpoint_ref": {"type": "string"},
-                "trust_modes": {
+                "eligible_trust_modes": {
                   "type": "array",
                   "minItems": 1,
                   "uniqueItems": true,
                   "items": {"type": "string", "enum": ["managed", "verified", "native"]}
                 }
+              }
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["capability_id", "requested_trust_modes", "supported_trust_modes", "mode_support"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "requested_trust_modes": {
+            "type": "array",
+            "items": {"type": "string", "enum": ["managed", "verified", "native"]},
+            "uniqueItems": true
+          },
+          "supported_trust_modes": {
+            "type": "array",
+            "items": {"type": "string", "enum": ["managed", "verified", "native"]},
+            "uniqueItems": true
+          },
+          "mode_support": {"type": "object"}
+        }
+      }
+    },
+    {
+      "name": "atos_update_capability",
+      "description": "Update mutable capability metadata/configuration or requested trust modes. Active mode support remains derived from validation/proof state.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["capability_id", "patch"],
+        "additionalProperties": false,
+        "properties": {
+          "capability_id": {"type": "string"},
+          "patch": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "requested_trust_modes": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {"type": "string", "enum": ["managed", "verified", "native"]}
               }
             }
           }
@@ -314,40 +359,6 @@
             "items": {"type": "string", "enum": ["managed", "verified", "native"]},
             "uniqueItems": true
           },
-          "mode_support": {"type": "object"}
-        }
-      }
-    },
-    {
-      "name": "atos_update_capability",
-      "description": "Update mutable capability metadata/configuration. Trust-mode activation remains subject to proof/ownership validation.",
-      "inputSchema": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "required": ["capability_id", "patch"],
-        "additionalProperties": false,
-        "properties": {
-          "capability_id": {"type": "string"},
-          "patch": {
-            "type": "object",
-            "additionalProperties": true,
-            "properties": {
-              "supported_trust_modes": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {"type": "string", "enum": ["managed", "verified", "native"]}
-              }
-            }
-          }
-        }
-      },
-      "outputSchema": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "required": ["capability_id", "mode_support"],
-        "properties": {
-          "capability_id": {"type": "string"},
           "mode_support": {"type": "object"},
           "updated_at": {"type": "string"}
         }
@@ -426,6 +437,7 @@
     "quote output trust_mode is always managed, verified, or native",
     "invoke and create_job do not accept a trust_mode override",
     "jobs and receipts inherit the quote trust_mode",
+    "provider requested_trust_modes are not the same as active supported_trust_modes",
     "verified/native failures never silently downgrade to managed"
   ]
 }
