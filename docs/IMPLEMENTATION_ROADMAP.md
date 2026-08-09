@@ -249,18 +249,42 @@ in-memory/mock path.
 
 ### 5.3 Phase 2B — Metered billing and provider earnings
 
+✅ **Status: complete**, independently re-verified across three adversarial
+review rounds and live against PostgreSQL 16 (`tosnetwork/atos` PR #6,
+merged as `97441b3`).
+
 Deliverables:
 
-- Execution Receipt usage metering feeding the charged amount;
-- charged amount bounded by the frozen Quote's `total_max`;
-- a provider earnings ledger derived only from verified settlement;
-- earnings maturation, freeze, release, and payout states;
-- every amount-changing transition uses the existing `UpdateJobAndAccount` atomic boundary (or an equivalent atomic Job/Ledger boundary for provider-side earnings) — no new "debit here, checkpoint later" window.
+- ✅ Execution Receipt usage metering feeding the charged amount (`computeBillingSnapshot`, `internal/service/billing.go`), gated on the frozen Quote's `pricing_model` — a non-metered model carrying a stray metered rate (corrupted/legacy data) fails closed rather than silently billing by usage;
+- ✅ charged amount bounded by the frozen Quote's `total_max` — metered usage only ever narrows the charge (`providerGross.Min(subtotal)`, `grossCharge.Min(totalMax)`), verified by adversarial usage-far-in-excess-of-quote tests;
+- ✅ a provider earnings ledger derived only from verified settlement — `RecordSettlement` is only reachable after `VerifyExecutionReceipt` succeeds and `SettleJob` durably commits (`internal/service/economic_recovery.go`'s `settleProviderResultUnderLock`); a receipt that fails verification charges nothing and creates no earning;
+- ✅ earnings maturation and payout states (`maturing -> available -> payout_pending -> paid`) with an idempotent external-payout state machine; `frozen`/`released`/`reversed` are modeled in the schema for Phase 2C but intentionally not driven by any Phase 2B code path;
+- ✅ every amount-changing transition uses an atomic Job/Ledger boundary — `UpdateJobAndAccount` on the job/principal side, and `UpdateEarning`'s row-locked compare-and-swap (mirroring `UpdateJob`) on the provider-earning side, with both stores (Postgres and in-memory) enforcing that only lifecycle fields — never identity/economic fields or the earning's own ID — can change through it.
 
-Success criterion: a lost settlement/payout response, a duplicated settlement
-attempt, and concurrent payout requests for the same earnings each leave
-exactly one economic effect, proven by tests against real PostgreSQL 16 — not
-only in-memory mocks.
+Success criterion: ✅ a lost settlement/payout response, a duplicated
+settlement attempt, and concurrent payout requests for the same earnings
+each leave exactly one economic effect, proven by tests against real
+PostgreSQL 16 — verified by
+`TestCreateEarningConcurrentCreationHasSingleWinner`,
+`TestUpdateEarningCASConcurrentPayoutTransitionHasSingleWinner`
+(`internal/store/postgres/billing_test.go`), and
+`TestEarningsService_TwoRealPostgresInstancesConvergeToOnePayout`
+(`internal/service/earnings_postgres_test.go`, two independent
+`postgres.Store` connections simulating two ATOS replicas racing
+`PayoutSweep` against a shared payout adapter).
+
+Also independently verified beyond the original roadmap text: fail-fast
+`pricing_model`/`metered_rates` contract validation at Capability
+registration/update and at Quote-creation time (rejecting an incompatible
+combination, e.g. a Fixed-priced capability with a stray metered rate,
+before it can ever be frozen into a Quote); and a settlement-time failure
+(invalid or incompatible frozen pricing on a legacy/corrupted Quote) now
+releases escrow and fully refunds the principal instead of leaving the Job
+stuck retrying reconciliation forever — proven by
+`TestJobSettlement_LegacyBadFrozenPricingReleasesAndRefunds` and
+`TestJobSettlement_CorruptFixedModelWithFrozenRatesReleasesAndRefunds`
+(`internal/service/earnings_integration_test.go`), including a confirmed
+reproduction of both failure modes against the pre-fix code.
 
 ### 5.4 Phase 2C — Managed disputes
 
