@@ -353,7 +353,12 @@ Deliverables:
 - HTTP, MCP, and A2A provider adapters (outbound calls to third-party/provider endpoints);
 - provider health checks and per-mode availability projection;
 - Capability input/output schema validation at registration and update time;
-- sandbox certification workflow.
+- sandbox certification workflow;
+- the provider/admin MCP tools `docs/MCP.md` §8 lists under "Specified for later phases" (scope intentionally left undefined there — this sub-phase is where that scope gets defined and the tools get built):
+  - `atos_provider_jobs` — `provider_jobs:read` + provider role;
+  - `atos_deliver_job` — `provider_jobs:deliver` + target-job/provider authorization;
+  - `atos_request_settlement` — appropriate settlement/provider scope when defined;
+  - `atos_dispute_job` — appropriate dispute/provider scope when defined (REST-equivalent `disputes:review` operations already implemented server-side in Phase 2C; this is the MCP consumer-facing surface for the same workflow).
 
 Success criterion: a provider adapter call whose outbound response is lost,
 duplicated, or delayed past deadline does not corrupt Capability state or
