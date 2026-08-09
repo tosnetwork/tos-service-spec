@@ -183,7 +183,7 @@ Also independently verified beyond the original roadmap text: a ✅ crash-safe M
 
 **Goal:** make execution real and support long-running work without coupling execution to chain logic.
 
-Add:
+### 5.0 Already delivered
 
 - ✅ `atos_create_job`;
 - ✅ `atos_get_job`;
@@ -191,10 +191,7 @@ Add:
 - ✅ A2A gateway;
 - ✅ artifacts/files;
 - ✅ real `tos-ai` provider/worker runtime;
-- `SubmitJob`, `GetJob`, ~~`StreamJob`~~, `FetchResult`, `FetchReceipt` — ✅ `SubmitJob`/`GetJob`/`FetchResult`/`FetchReceipt` implemented; `StreamJob` not yet implemented;
-- provider earnings — not yet implemented;
-- Managed disputes — not yet implemented (no user-facing dispute workflow);
-- usage/metered billing — basic usage summary implemented; full metered-billing product flow not yet implemented;
+- ✅ `SubmitJob`, `GetJob`, `FetchResult`, `FetchReceipt` (`StreamJob` is the subject of Phase 2A below);
 - ✅ receipt signing and artifact/output commitments where practical;
 - ✅ execution-signer identity on receipts.
 
@@ -208,34 +205,92 @@ atos gateway -> tos-ai = execution
 
 Do not move identity, ownership, escrow, settlement, or reputation authority into `tos-ai`.
 
-Success criterion:
+### 5.1 Delivery discipline for Phase 2 / Phase 3
 
-✅ A long-running Capability can execute through `tos-ai`, generate artifacts, produce an authorized-signer Execution Receipt, settle through the Managed ledger, and preserve Quote mode end-to-end.
+> **Incident record:** `tosnetwork/atos` PR #4 ("Complete ATOS v0.2 Phase 2 and
+> Phase 3") was opened claiming all of the remaining Phase 2 and Phase 3 work
+> below as delivered and validated. Independent review found its diff against
+> `main` contained zero Go source files, zero tests, and zero migrations —
+> only placeholder documents and two unrelated CI workflows. The PR was
+> rejected. The remaining Phase 2/3 work is split into the independently
+> shippable sub-phases below specifically so this cannot recur: each sub-phase
+> is small enough to review completely, and each has its own success
+> criterion that can be checked against a real diff.
+
+**Mandatory PR reality gate — applies to every sub-phase from here forward.**
+Before a Phase 2 or Phase 3 sub-phase PR is opened for review, `git diff
+main...HEAD` MUST contain actual changes to:
+
+- `*.go` implementation files for the claimed behavior;
+- `*_test.go` files that exercise it, including the PostgreSQL-backed
+  crash-recovery tests named in that sub-phase's success criterion;
+- any PostgreSQL migration the behavior requires;
+- any OpenAPI / MCP / A2A schema changes the behavior requires.
+
+A PR whose diff does not contain these is not eligible for review, regardless
+of what its description, delivery notes, or acceptance-gate documents claim.
+One sub-phase per PR. Do not bundle 2A/2B/2C or 3A/3B/3C into a single PR.
+
+### 5.2 Phase 2A — `StreamJob` and resumable streaming
+
+Deliverables:
+
+- durable stream-event journal per Job;
+- resume cursor binding sequence, offset, and content digest, rejecting substitution;
+- REST Server-Sent Events and MCP/A2A equivalent mappings;
+- real `tos-protocol.StreamJob` RPC integration (not only the mock backend);
+- bounded delivery (no unbounded buffering of a slow or absent consumer).
+
+Success criterion: a client can disconnect mid-stream and resume from its last
+acknowledged cursor without missing, duplicating, or misordering events, and
+this is proven by tests against real PostgreSQL 16 covering process restart,
+a duplicated upstream event, and a mid-stream disconnect — not only the
+in-memory/mock path.
+
+### 5.3 Phase 2B — Metered billing and provider earnings
+
+Deliverables:
+
+- Execution Receipt usage metering feeding the charged amount;
+- charged amount bounded by the frozen Quote's `total_max`;
+- a provider earnings ledger derived only from verified settlement;
+- earnings maturation, freeze, release, and payout states;
+- every amount-changing transition uses the existing `UpdateJobAndAccount` atomic boundary (or an equivalent atomic Job/Ledger boundary for provider-side earnings) — no new "debit here, checkpoint later" window.
+
+Success criterion: a lost settlement/payout response, a duplicated settlement
+attempt, and concurrent payout requests for the same earnings each leave
+exactly one economic effect, proven by tests against real PostgreSQL 16 — not
+only in-memory mocks.
+
+### 5.4 Phase 2C — Managed disputes
+
+Deliverables:
+
+- dispute lifecycle: open, review, resolve;
+- opening a dispute freezes the disputed earnings (they cannot mature/pay out while disputed);
+- resolution results in exactly one of: principal refund, or provider release of the frozen earnings;
+- the resolution transition is one atomic economic operation, not a sequence of independently-failable steps.
+
+Success criterion: a crash between dispute resolution and the atomic
+economic transition leaves the dispute (and the frozen earnings) recoverable
+to a correct terminal state on restart, never silently resolved twice and
+never left frozen forever; proven against real PostgreSQL 16.
 
 ## 6. Phase 3 — Provider Self-Service and Mode Readiness
 
 **Goal:** open supply while preparing providers for stronger trust modes.
 
-Add:
+### 6.0 Already delivered
 
 - ✅ `atos_register_capability`;
 - ✅ `atos_update_capability`;
-- HTTP/MCP/A2A provider adapters — not yet complete;
-- health checks — not yet implemented;
-- schema validator — not yet implemented;
-- provider Agent Cards — ✅ foundations implemented;
-- sandbox certification — not yet implemented;
+- ✅ provider Agent Card foundations;
 - ✅ provider `requested_trust_modes`;
 - ✅ derived public `supported_trust_modes`;
-- ✅ mode-support state machine: `requested | pending | active | suspended | unsupported` (data model implemented; full lifecycle UX not yet complete);
-- per-mode availability — not yet implemented;
+- ✅ mode-support data model: `requested | pending | active | suspended | unsupported` (full lifecycle UX is Phase 3B below);
 - ✅ immutable Capability manifest/version commitment generation;
 - ✅ federation-safe public IDs even while canonical resolution still uses `atos.im`;
-- authorized execution-signer lifecycle — ✅ authorization abstraction implemented; full rotation/revocation lifecycle not yet complete;
-- delegated signer authorization scope and rotation/revocation — not yet complete;
-- open task marketplace publish/apply/accept flow — not yet implemented.
-
-Providers may request `verified`/`native`, but production activation remains gated on later TOS integration.
+- ✅ execution-signer authorization abstraction (rotation/revocation is Phase 3B below).
 
 The public API MUST distinguish:
 
@@ -249,11 +304,56 @@ from:
 Verified is active and quotable
 ```
 
-✅ This distinction is implemented (`requested_trust_modes` vs. `supported_trust_modes`, with `supported_trust_modes`/`mode_support` immutable through a generic provider PATCH).
+✅ This distinction is implemented (`requested_trust_modes` vs. `supported_trust_modes`, with `supported_trust_modes`/`mode_support` immutable through a generic provider PATCH) and MUST remain true through every sub-phase below.
 
-Success criterion:
+The same **mandatory PR reality gate** from §5.1 applies to every Phase 3 sub-phase: one sub-phase per PR, and `git diff main...HEAD` must contain real `*.go`/`*_test.go`/migration/schema changes before the PR is opened.
 
-A third-party provider can self-register once, serve Managed traffic, request stronger modes, and already possess the manifest/signer material needed for later certification without changing its Capability identity. (Self-registration, Managed traffic, and requested-mode/manifest material are ✅ implemented; the full self-service onboarding product is not yet complete — see Phase 3 remaining work above.)
+### 6.1 Phase 3A — Provider adapters
+
+Deliverables:
+
+- HTTP, MCP, and A2A provider adapters (outbound calls to third-party/provider endpoints);
+- provider health checks and per-mode availability projection;
+- Capability input/output schema validation at registration and update time;
+- sandbox certification workflow.
+
+Success criterion: a provider adapter call whose outbound response is lost,
+duplicated, or delayed past deadline does not corrupt Capability state or
+silently mark a mode active; a schema-invalid Capability registration/update
+is rejected before persistence.
+
+### 6.2 Phase 3B — Provider trust readiness
+
+Deliverables:
+
+- full mode-support lifecycle UX: `requested -> pending -> active -> suspended -> unsupported`, driven by certification/adapter/health results rather than provider self-assertion;
+- per-mode availability exposed alongside `supported_trust_modes`;
+- execution-signer authorize / rotate / revoke, with durable pending checkpoints and replay-safe `tos-protocol` calls;
+- `verified`/`native` remain fail-closed throughout — mode-support transitions, health, sandbox certification, and signer registration/rotation MUST NOT, by themselves, activate a stronger trust mode.
+
+Success criterion: a signer rotation or revocation that crashes mid-flight is
+safely resumable/idempotent on restart, and no combination of health status,
+sandbox certification, or signer registration alone can move a capability's
+`supported_trust_modes` to `verified`/`native` without the Phase 4 TOS-backed
+activation path.
+
+### 6.3 Phase 3C — Open task marketplace
+
+Deliverables:
+
+- publish, apply, and accept lifecycle for open tasks;
+- an accepted task is bound to a Quote/Job the same way any other invocation is (no parallel, weaker commercial contract);
+- concurrent accept attempts for the same open task resolve to exactly one winner;
+- durable recovery after a crash mid-publish/apply/accept.
+
+Success criterion: N concurrent accept attempts for one open task against
+real PostgreSQL 16 yield exactly one accepted Job, and a crash between accept
+and Quote/Job binding leaves the task recoverable rather than double-bound or
+permanently stuck.
+
+### 6.4 Phase 3 overall success criterion
+
+A third-party provider can self-register once, serve Managed traffic, request stronger modes, and already possess the manifest/signer material needed for later certification without changing its Capability identity. (Self-registration, Managed traffic, and requested-mode/manifest material are ✅ implemented; 3A/3B/3C above are what remain before the full self-service onboarding product is complete.)
 
 ## 7. Phase 4 — Verified Mode (`atos.im` UX + TOS Guarantees)
 
