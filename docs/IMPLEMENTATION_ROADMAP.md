@@ -302,17 +302,47 @@ reproduction of both failure modes against the pre-fix code.
 
 ### 5.4 Phase 2C — Managed disputes
 
+✅ **Status: complete**, independently re-verified across three adversarial
+review rounds and live against PostgreSQL 16 (`tosnetwork/atos` PR #7,
+merged as `9bd9ba3`).
+
 Deliverables:
 
-- dispute lifecycle: open, review, resolve;
-- opening a dispute freezes the disputed earnings (they cannot mature/pay out while disputed);
-- resolution results in exactly one of: principal refund, or provider release of the frozen earnings;
-- the resolution transition is one atomic economic operation, not a sequence of independently-failable steps.
+- ✅ dispute lifecycle: open, review, resolve (`internal/service/dispute.go`, `internal/httpapi/dispute.go`, `disputes:open`/`disputes:read`/`disputes:review` scopes);
+- ✅ opening a dispute freezes the disputed earnings (they cannot mature/pay out while disputed) — including the case where the earning is mid-payout at open time: `Open` sets a durable `DisputeHoldID` hold so a payout attempt already in flight is allowed to resolve on its own, but no *new* payout intent may begin while the hold is set, even if a rejected attempt returns the earning to `Available` in the interim (`EarningsService.beginPayoutUnderLock`, verified by `TestEarningsService_DisputeHoldBlocksRetryAfterRejectedPayout`); `EarningsAvailableForPayout` additionally excludes held earnings from payout candidate batches so they cannot head-of-line-block genuinely payable ones (`TestEarningsAvailableForPayoutExcludesDisputeHeldEarnings`, both stores);
+- ✅ resolution results in exactly one of: principal refund, provider release of the frozen earnings (maturity-aware — release respects the earning's original, untouched `MaturesAt` rather than letting a dispute let a provider collect earlier than an undisputed settlement would have, verified by `TestDisputeResolve_ProviderWinBeforeMaturityStaysMaturing`), or, for an earning already paid before the dispute opened, `clawback_required` recorded honestly rather than a fabricated reversal (`TestDisputeOpen_AlreadyPaidEarningNoFakeFreeze`);
+- ✅ the resolution transition is one atomic economic operation, not a sequence of independently-failable steps — `store.Disputes.ResolveDispute` row-locks the dispute, its `ProviderEarning` (by the dispute's own immutable `EarningID`, never re-derived from `job_id`), and the principal's `Account` together in one transaction, verified by `TestDisputeResolve_PrincipalWinHasNoObservableIntermediateState` (a concurrent poller proves no intermediate state is ever observable) and `TestResolveDisputeCreditsExactlyOnceConcurrently`/`TestDisputeResolve_TwoReplicasConflictingOutcomesExactlyOneWins` against real PostgreSQL 16.
 
-Success criterion: a crash between dispute resolution and the atomic
+Success criterion: ✅ a crash between dispute resolution and the atomic
 economic transition leaves the dispute (and the frozen earnings) recoverable
 to a correct terminal state on restart, never silently resolved twice and
-never left frozen forever; proven against real PostgreSQL 16.
+never left frozen forever; proven against real PostgreSQL 16 by
+`TestDisputeOpen_RacesRealPayoutSweepExactlyOneOutcome` (two independent
+`postgres.Store` connections racing `OpenDispute` against a real shared
+payout adapter's `Available -> PayoutPending -> Paid` pipeline, with
+`DisputeService.ReconcileDispute` driving any observed
+`pending_payout_resolution` window to a correct terminal state) and
+`TestDispute_ConcurrentSweepsAndDisputeOpsPreserveInvariants`
+(`internal/service/dispute_postgres_test.go`, maturation/payout sweeps and
+dispute open/review/resolve running concurrently across multiple Jobs from
+two replicas, asserting no impossible economic state results).
+
+Also independently verified beyond the original roadmap text: idempotent
+opening under a lost-response replay even after the dispute window has
+since expired (`TestDisputeOpen_IdempotentReplayBypassesWindowExpiry`);
+full economic binding validation between the disputed Job, its durable
+settlement Receipt, `BillingSnapshot`, and `ProviderEarning` — not just
+`earning.JobID == job.ID` — catching e.g. a Capability-version
+substitution a job_id-only check would miss
+(`TestDisputeOpen_CapabilityVersionSubstitutionRejected`); and exclusive
+reviewer claims — a second reviewer may not also claim or resolve a
+dispute already claimed by another (`TestDisputeReview_ClaimIsExclusiveToFirstReviewer`).
+
+Not yet delivered (tracked as an open, non-blocking follow-up from the PR
+#7 review, not a Phase 2C blocker): a dispute-bound evidence-artifact
+authorization path so a reviewer with `disputes:review` can actually
+download evidence they can already see the artifact ID for — current
+Artifact authorization remains owner-or-referencing-Job-principal only.
 
 ## 6. Phase 3 — Provider Self-Service and Mode Readiness
 
