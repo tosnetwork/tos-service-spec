@@ -29,6 +29,10 @@ roadmap deliverables and success criteria, with explicit distinction among:
 A component may be implemented and locally validated without yet being safe to
 advertise as a production trust mode.
 
+✅ marks below indicate items independently re-verified (code read, and/or
+tests run against a live PostgreSQL 16 / `tos-protocol` RPC instance) rather
+than only asserted by this document.
+
 ## 2. Executive Summary
 
 ATOS has moved beyond an architecture-only project. The Managed product path is
@@ -46,11 +50,11 @@ Whole v0.2-to-Federation Roadmap      50-55%
 
 The practical interpretation is:
 
-- **Managed Mode** is close to a deployable product beta.
-- **Verified Mode** has passed the most important architectural threshold: it
+- ✅ **Managed Mode** is close to a deployable product beta.
+- ✅ **Verified Mode** has passed the most important architectural threshold: it
   now has chain-backed commitments, a contract-backed Economic Driver, a
   private key-custody publisher and real-localnet TaskEscrow validation.
-- **Native Mode** and open gateway federation remain later-stage work.
+- **Native Mode** and open gateway federation remain later-stage work (not yet complete).
 
 The current implementation order remains consistent with the roadmap:
 
@@ -121,10 +125,10 @@ activation, escrow validity, settlement authority or TOS finality.
 
 | Mode | Current status | Meaning |
 |---|---|---|
-| `managed` | **Operational in code** | Centralized ATOS account, execution and settlement path; available through explicit mock or real RPC deployments. |
+| `managed` | ✅ **Operational in code** | Centralized ATOS account, execution and settlement path; available through explicit mock or real RPC deployments. |
 | `verified` | **Implemented as a composable protocol path; locally validated; not yet a general production claim** | Supported by `tos-protocol` when a chain-backed Authority and TaskEscrow Economic Driver are configured on the same TOS network. Production deployment, identity/ownership activation and portable proof verification still require completion. |
 | `native` | **Fail closed** | Global canonical resolution, independent index reconstruction, cross-gateway verification and federation are not complete. |
-| `auto` | **Request-time policy only** | Resolves to a concrete mode at Quote time and never survives into Job, Escrow, Receipt or Settlement state. |
+| `auto` | ✅ **Request-time policy only** | Resolves to a concrete mode at Quote time and never survives into Job, Escrow, Receipt or Settlement state. |
 
 The no-downgrade invariant remains mandatory:
 
@@ -142,9 +146,9 @@ native requested + native unavailable
 
 | Roadmap phase | Goal | Estimated completion |
 |---|---|---:|
-| Phase 0 | Contract First | **95-100%** |
-| Phase 1 | Codex-First Managed MVP | **85-90%** |
-| Phase 2 | Async Managed Agent Economy + `tos-ai` | **85-90%** |
+| Phase 0 | Contract First | ✅ **95-100%** |
+| Phase 1 | Codex-First Managed MVP | ✅ **85-90%** |
+| Phase 2 | Async Managed Agent Economy + `tos-ai` | ✅ **85-90%** |
 | Phase 3 | Provider Self-Service and Mode Readiness | **55-65%** |
 | Phase 4 | Verified Mode | **60-70%** |
 | Phase 5 | Native Resolution and Decentralized Discovery | **15-20%** |
@@ -158,30 +162,30 @@ native requested + native unavailable
 The public v0.2 semantics are substantially frozen and implemented across the
 schemas and gateway domain model:
 
-- Capability, Quote, Invocation, Job, Escrow, Execution Receipt and Settlement models;
-- REST/OpenAPI, MCP and A2A mappings;
-- `requested_trust_mode = managed | verified | native | auto`;
-- concrete `trust_mode = managed | verified | native`;
-- provider `requested_trust_modes` separated from active
+- ✅ Capability, Quote, Invocation, Job, Escrow, Execution Receipt and Settlement models;
+- ✅ REST/OpenAPI, MCP and A2A mappings;
+- ✅ `requested_trust_mode = managed | verified | native | auto`;
+- ✅ concrete `trust_mode = managed | verified | native`;
+- ✅ provider `requested_trust_modes` separated from active
   `supported_trust_modes`;
-- normative `tos_verified_v1` and `tos_native_v1` proof-profile types;
-- immutable Quote-mode propagation through execution and settlement;
-- explicit execution-signer authorization and receipt fields;
-- federation-safe identifiers and commitment fields modeled early;
-- mock implementations and conformance-oriented tests;
-- fail-closed stronger-mode behavior.
+- ✅ normative `tos_verified_v1` and `tos_native_v1` proof-profile types;
+- ✅ immutable Quote-mode propagation through execution and settlement;
+- ✅ explicit execution-signer authorization and receipt fields;
+- ✅ federation-safe identifiers and commitment fields modeled early;
+- ✅ mock implementations and conformance-oriented tests;
+- ✅ fail-closed stronger-mode behavior.
 
 The core invariants are present in real code rather than only in documents:
 
-1. providers cannot self-certify active trust modes;
-2. `auto` is not a committed mode;
-3. Quote freezes one concrete mode;
-4. Job, Escrow, Receipt and Settlement inherit the Quote mode;
-5. execution cannot override the Quote mode;
-6. stronger modes never silently downgrade;
-7. trust/reputation is distinct from transaction trust mode;
-8. delegated execution signers are explicit;
-9. bulk and private payloads stay off-chain by default.
+1. ✅ providers cannot self-certify active trust modes;
+2. ✅ `auto` is not a committed mode;
+3. ✅ Quote freezes one concrete mode;
+4. ✅ Job, Escrow, Receipt and Settlement inherit the Quote mode;
+5. ✅ execution cannot override the Quote mode;
+6. ✅ stronger modes never silently downgrade;
+7. ✅ trust/reputation is distinct from transaction trust mode;
+8. ✅ delegated execution signers are explicit;
+9. ✅ bulk and private payloads stay off-chain by default.
 
 ### Remaining work
 
@@ -200,18 +204,18 @@ requires:
 
 The Managed gateway currently includes:
 
-- one REST + MCP + A2A business model;
-- scoped Device Authorization, access-token refresh and revocation;
-- Capability search and retrieval;
-- commercial Quote creation;
-- synchronous invocation;
-- asynchronous jobs;
-- account and spending-policy handling;
-- PostgreSQL relational projections plus complete v0.2 JSON payload persistence;
-- Managed reservation, receipt verification and settlement;
-- signed Managed Execution Receipts;
-- stable Agent Cards and A2A commerce metadata;
-- no stronger-mode downgrade when only Managed is available.
+- ✅ one REST + MCP + A2A business model;
+- ✅ scoped Device Authorization, access-token refresh and revocation;
+- ✅ Capability search and retrieval;
+- ✅ commercial Quote creation;
+- ✅ synchronous invocation;
+- ✅ asynchronous jobs;
+- ✅ account and spending-policy handling;
+- ✅ PostgreSQL relational projections plus complete v0.2 JSON payload persistence;
+- ✅ Managed reservation, receipt verification and settlement;
+- ✅ signed Managed Execution Receipts;
+- ✅ stable Agent Cards and A2A commerce metadata;
+- ✅ no stronger-mode downgrade when only Managed is available.
 
 The ordinary MCP consumer surface is intentionally limited to nine tools:
 
@@ -230,6 +234,14 @@ atos_artifact
 Capability-management and provider tools appear only when the current
 Authorization scopes allow them. Tool visibility is not treated as
 Authorization; every call revalidates scopes and object ownership.
+
+Also independently verified as part of a crash-safety re-review: ✅ an
+explicit crash-safe Managed economic checkpoint state machine (debit/escrow/
+settlement/release all atomic with Job state), ✅ a startup + periodic
+reconciler that resumes stale jobs, and ✅ a real end-to-end `atos ->
+tos-protocol -> tos-ai Worker` RPC path proven by a passing live integration
+test — see `tosnetwork/atos`'s own `IMPLEMENTATION_STATUS.md` for the
+per-repository detail.
 
 ### Remaining work
 
@@ -267,19 +279,19 @@ ATOS
 
 Implemented capabilities include:
 
-- `atos_create_job`, `atos_get_job` and `atos_cancel_job`;
-- shared A2A Task lifecycle;
-- signed-URL Artifact upload/download, with binary bytes outside MCP/A2A calls;
-- real `tos-ai` Worker execution behind `tos-protocol`;
-- private ConnectRPC over owner-controlled Unix sockets;
-- durable Worker task identity and idempotent replay;
-- resource admission, concurrency, RAM/VRAM/output/deadline bounds;
-- runtime and model preflight;
-- signed model artifacts and activation controls;
-- Ollama, OpenAI-compatible and controlled isolated-executor paths;
-- execution signer identity and content commitments on receipts;
-- cross-service Quote -> Escrow -> Worker -> Receipt -> Verify -> Settle tests;
-- explicit `ATOS_TOS_BACKEND=mock|rpc` selection with no failure fallback.
+- ✅ `atos_create_job`, `atos_get_job` and `atos_cancel_job`;
+- ✅ shared A2A Task lifecycle;
+- ✅ signed-URL Artifact upload/download, with binary bytes outside MCP/A2A calls;
+- ✅ real `tos-ai` Worker execution behind `tos-protocol`;
+- ✅ private ConnectRPC over owner-controlled Unix sockets;
+- ✅ durable Worker task identity and idempotent replay;
+- ✅ resource admission, concurrency, RAM/VRAM/output/deadline bounds;
+- ✅ runtime and model preflight;
+- ✅ signed model artifacts and activation controls;
+- ✅ Ollama, OpenAI-compatible and controlled isolated-executor paths;
+- ✅ execution signer identity and content commitments on receipts;
+- ✅ cross-service Quote -> Escrow -> Worker -> Receipt -> Verify -> Settle tests;
+- ✅ explicit `ATOS_TOS_BACKEND=mock|rpc` selection with no failure fallback.
 
 The `tos-ai` implementation is already deeper than the minimum Phase 2
 roadmap in resource safety, model supply-chain controls and container execution
@@ -298,15 +310,15 @@ boundaries.
 
 ### Implemented or substantially present
 
-- Capability registration, update and pause controls;
-- scoped provider MCP visibility;
-- provider-requested modes separated from active/quotable modes;
-- mode support and proof-profile fields;
-- immutable Capability manifest/version commitments;
-- provider Agent Card foundations;
-- execution-signer authorization abstractions;
-- signed receipt and commitment material required by later certification;
-- real provider execution through `tos-protocol` and `tos-ai`.
+- ✅ Capability registration, update and pause controls;
+- ✅ scoped provider MCP visibility;
+- ✅ provider-requested modes separated from active/quotable modes;
+- ✅ mode support and proof-profile fields;
+- ✅ immutable Capability manifest/version commitments;
+- ✅ provider Agent Card foundations;
+- ✅ execution-signer authorization abstractions;
+- ✅ signed receipt and commitment material required by later certification;
+- ✅ real provider execution through `tos-protocol` and `tos-ai`.
 
 ### Partial or missing
 
@@ -328,7 +340,7 @@ but still requires substantial marketplace product work.
 
 Phase 4 has made the largest recent advance.
 
-### 10.1 Implemented: typed ATOS/TOS RPC services
+### 10.1 ✅ Implemented: typed ATOS/TOS RPC services
 
 `tos-protocol` implements the v0.2 service families used by ATOS:
 
@@ -344,7 +356,14 @@ ExecutionGatewayService
 ATOS has a real typed client for these services and does not silently fall back
 to mock behavior when the RPC backend is selected.
 
-### 10.2 Implemented: chain-backed Authority
+✅ Also independently confirmed: the RPC transport's mutation idempotency now
+correctly excludes transport metadata (`request_id`/`trace_id`/deadline) from
+the replay digest (`tos-protocol` PR #12), and ATOS's `CommitQuote` call binds
+`underlying_service_quote_ref` to the same `service_quote_id` `SubmitJob`
+presents later — both fixed, merged, and proven by a passing live
+`TestATOSConnectRPCManagedLifecycle` end-to-end RPC test.
+
+### 10.2 ✅ Implemented: chain-backed Authority
 
 `tos-protocol` supports explicit Authority selection:
 
@@ -355,16 +374,16 @@ chain  -> finalized TOS references verified by strict-majority readers
 
 The chain Authority:
 
-- has no automatic fallback to `local`;
-- uses deterministic, domain-separated Action identities;
-- delegates transaction publication to a narrow private sidecar;
-- independently verifies the exact TOS transaction;
-- checks payer, payee, amount, commitment purpose, code commitment and finality;
-- does not load wallet or treasury private keys into the ATOS RPC process.
+- ✅ has no automatic fallback to `local`;
+- ✅ uses deterministic, domain-separated Action identities;
+- ✅ delegates transaction publication to a narrow private sidecar;
+- ✅ independently verifies the exact TOS transaction;
+- ✅ checks payer, payee, amount, commitment purpose, code commitment and finality;
+- ✅ does not load wallet or treasury private keys into the ATOS RPC process.
 
 A chain commitment anchor alone is not represented as economic escrow.
 
-### 10.3 Implemented: contract-backed Economic Driver
+### 10.3 ✅ Implemented: contract-backed Economic Driver
 
 The TaskEscrow Economic Driver maps the ATOS lifecycle onto the reviewed TOS
 TaskEscrow contract:
@@ -378,16 +397,16 @@ ReleaseEscrow -> cancel, timeout or preserve disputed funds as appropriate
 
 The driver verifies:
 
-- allowlisted TaskEscrow code hash;
-- contract identity and immutable fields;
-- exact sender, opcode, query ID and message-body hash;
-- successful VM/action execution;
-- exact provider payout;
-- minimum principal refund;
-- finalized contract post-state;
-- strict-majority agreement and masterchain finality.
+- ✅ allowlisted TaskEscrow code hash;
+- ✅ contract identity and immutable fields;
+- ✅ exact sender, opcode, query ID and message-body hash;
+- ✅ successful VM/action execution;
+- ✅ exact provider payout;
+- ✅ minimum principal refund;
+- ✅ finalized contract post-state;
+- ✅ strict-majority agreement and masterchain finality.
 
-### 10.4 Implemented: key-custody publisher sidecar
+### 10.4 ✅ Implemented: key-custody publisher sidecar
 
 The merged TaskEscrow publisher provides a production-shaped private signing
 boundary:
@@ -413,30 +432,30 @@ resolve
 
 Its security properties include:
 
-- wallet/vault material remains outside `tos-protocol`;
-- owner-private Unix socket and state database;
-- exact nanoTOS amounts rather than floating-point conversion;
-- deterministic action identities;
-- durable idempotency before broadcast;
-- lost-response recovery using the original transaction;
-- rejection of reused Action IDs with changed semantics;
-- strict wallet-role mapping for creator, provider, verifier and executor.
+- ✅ wallet/vault material remains outside `tos-protocol`;
+- ✅ owner-private Unix socket and state database;
+- ✅ exact nanoTOS amounts rather than floating-point conversion;
+- ✅ deterministic action identities;
+- ✅ durable idempotency before broadcast;
+- ✅ lost-response recovery using the original transaction;
+- ✅ rejection of reused Action IDs with changed semantics;
+- ✅ strict wallet-role mapping for creator, provider, verifier and executor.
 
 The implementation was merged through
 [`tos-protocol` PR #4](https://github.com/tosnetwork/tos-protocol/pull/4).
 
-### 10.5 Implemented: real-localnet TaskEscrow validation
+### 10.5 ✅ Implemented: real-localnet TaskEscrow validation
 
 The TOS repository contains a merged real-localnet acceptance test that:
 
-1. builds TOS and `tosctl`;
-2. boots a real local validator and JSON-RPC endpoint;
-3. creates and funds creator, provider and verifier wallets;
-4. starts the key-custody publisher on a private Unix socket;
-5. deploys the real TaskEscrow contract;
-6. executes reserve/deploy, accept, result and settle;
-7. checks replay recovery and cancellation/refund behavior;
-8. verifies exact payout, refund, terminal state and transaction references.
+1. ✅ builds TOS and `tosctl`;
+2. ✅ boots a real local validator and JSON-RPC endpoint;
+3. ✅ creates and funds creator, provider and verifier wallets;
+4. ✅ starts the key-custody publisher on a private Unix socket;
+5. ✅ deploys the real TaskEscrow contract;
+6. ✅ executes reserve/deploy, accept, result and settle;
+7. ✅ checks replay recovery and cancellation/refund behavior;
+8. ✅ verifies exact payout, refund, terminal state and transaction references.
 
 This was merged through
 [`tos` PR #19](https://github.com/tosnetwork/tos/pull/19).
@@ -476,11 +495,11 @@ Accordingly, Verified should be described as:
 
 ### Existing foundations
 
-- federation-safe IDs and URI fields modeled in v0.2;
-- ARD-compatible discovery and registry components in `tos-protocol`;
-- signed manifests and commitment infrastructure;
-- chain Authority and proof/economic references;
-- resolver and index concepts present in the architecture.
+- ✅ federation-safe IDs and URI fields modeled in v0.2;
+- ✅ ARD-compatible discovery and registry components in `tos-protocol`;
+- ✅ signed manifests and commitment infrastructure;
+- ✅ chain Authority and proof/economic references;
+- ✅ resolver and index concepts present in the architecture.
 
 ### Major missing work
 
@@ -519,10 +538,10 @@ Still required:
 
 Some foundations already exist:
 
-- TaskEscrow dispute and resolution transitions;
-- durable idempotency and crash-recovery mechanisms;
-- signed receipts and proof commitments;
-- bounded chain observation and finality checks.
+- ✅ TaskEscrow dispute and resolution transitions;
+- ✅ durable idempotency and crash-recovery mechanisms;
+- ✅ signed receipts and proof commitments;
+- ✅ bounded chain observation and finality checks.
 
 Later network-hardening work remains largely open:
 
@@ -544,21 +563,22 @@ These are intentionally not blockers for the Managed MVP.
 
 | Capability | Status |
 |---|---|
-| Canonical v0.2 schemas and trust-mode semantics | **Implemented** |
-| REST gateway | **Implemented** |
-| MCP gateway with compact scoped tool surface | **Implemented** |
-| A2A task/message mapping | **Implemented** |
-| Managed Quote -> reserve -> execute -> receipt -> settle | **Implemented** |
-| PostgreSQL persistence | **Implemented** |
-| Artifact signed-URL transfer | **Implemented** |
-| Real ATOS -> `tos-protocol` RPC | **Implemented** |
-| Private `tos-protocol` -> `tos-ai` Worker RPC | **Implemented** |
-| Long-running jobs and durable Worker tasks | **Implemented** |
+| Canonical v0.2 schemas and trust-mode semantics | ✅ **Implemented** |
+| REST gateway | ✅ **Implemented** |
+| MCP gateway with compact scoped tool surface | ✅ **Implemented** |
+| A2A task/message mapping | ✅ **Implemented** |
+| Managed Quote -> reserve -> execute -> receipt -> settle | ✅ **Implemented** |
+| PostgreSQL persistence | ✅ **Implemented** |
+| Artifact signed-URL transfer | ✅ **Implemented** |
+| Real ATOS -> `tos-protocol` RPC | ✅ **Implemented** |
+| Private `tos-protocol` -> `tos-ai` Worker RPC | ✅ **Implemented** |
+| Long-running jobs and durable Worker tasks | ✅ **Implemented** |
+| Crash-safe Managed economic checkpoint state machine | ✅ **Implemented** |
 | Provider self-service | **Partial** |
-| Chain-backed commitment Authority | **Implemented** |
-| Contract-backed TaskEscrow Economic Driver | **Implemented** |
-| Key-custody publisher sidecar | **Implemented** |
-| Real-localnet TaskEscrow economic E2E | **Implemented** |
+| Chain-backed commitment Authority | ✅ **Implemented** |
+| Contract-backed TaskEscrow Economic Driver | ✅ **Implemented** |
+| Key-custody publisher sidecar | ✅ **Implemented** |
+| Real-localnet TaskEscrow economic E2E | ✅ **Implemented** |
 | Production Verified identity/ownership activation | **Not complete** |
 | Portable Verified proof package | **Partial / not product-complete** |
 | Independent Verified verifier | **Not complete** |
@@ -630,13 +650,13 @@ Whole Roadmap Through Federation
 The most important conclusion is that the project no longer needs another
 large architectural rewrite. The central abstractions are holding:
 
-- one Capability identity;
-- one client API;
-- Quote-time mode resolution;
-- off-chain execution by providers/`tos-ai`;
-- TOS-backed trust, economics and proof;
-- Managed Mode as a permanent product option;
-- Native Mode as an additional gateway-independent guarantee.
+- ✅ one Capability identity;
+- ✅ one client API;
+- ✅ Quote-time mode resolution;
+- ✅ off-chain execution by providers/`tos-ai`;
+- ✅ TOS-backed trust, economics and proof;
+- ✅ Managed Mode as a permanent product option;
+- Native Mode as an additional gateway-independent guarantee (not yet complete).
 
 The next work should concentrate on closing the Verified proof chain and
 production activation gates rather than expanding the default MCP vocabulary
