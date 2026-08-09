@@ -375,6 +375,30 @@ Claim-bound cancellation request. An ambiguous cancellation does not create a te
 
 Server streaming of bounded output/state events. Resume uses sequence/offset/digest fields consistent with the existing Worker streaming model.
 
+`JobEvent.stream_digest` (and the `expected_stream_digest` a resumed
+`StreamJobRequest` echoes back) is the digest of the **complete output
+currently retained for the Job** (`digestMessage(stored.Output)`), not a
+progressive digest accumulated chunk by chunk. Every event in one
+`StreamJob` response — the `STATE` event, every `OUTPUT_CHUNK`, and the
+final `TERMINAL` event alike — carries this same value.
+
+Two consequences a caller MUST account for:
+
+- It is an execution-identity check ("am I resuming the same retained
+  output"), not a per-chunk integrity checksum. A consumer that wants a
+  progressive cumulative digest over the bytes it has received must compute
+  that itself from the chunk contents; it cannot derive it from
+  `stream_digest`.
+- Before a Job produces any output (a non-terminal `Job`, where
+  `stored.Output` is still empty), this digest is `digestMessage(nil)` — the
+  digest of zero bytes, identical across every such Job in the system. It is
+  **not yet Job-specific**. A caller must not persist or replay this
+  pre-output value as if it identified a particular Job's execution; only
+  once real output exists (i.e. once at least one `OUTPUT_CHUNK` has
+  actually been observed) does `stream_digest` become a meaningful,
+  Job-specific value safe to echo back as `expected_stream_digest` on a
+  later resumed pull.
+
 ### `FetchResult`
 
 Returns terminal output/artifact commitments and bounded usage.
