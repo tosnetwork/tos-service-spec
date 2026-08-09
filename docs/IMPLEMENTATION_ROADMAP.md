@@ -233,19 +233,33 @@ One sub-phase per PR. Do not bundle 2A/2B/2C or 3A/3B/3C into a single PR.
 
 ### 5.2 Phase 2A — `StreamJob` and resumable streaming
 
+✅ **Status: complete**, independently re-verified by direct code review and
+by running its full test suite live against PostgreSQL 16 (`tosnetwork/atos`
+PR #5, merged as `2f3334e`).
+
 Deliverables:
 
-- durable stream-event journal per Job;
-- resume cursor binding sequence, offset, and content digest, rejecting substitution;
-- REST Server-Sent Events and MCP/A2A equivalent mappings;
-- real `tos-protocol.StreamJob` RPC integration (not only the mock backend);
-- bounded delivery (no unbounded buffering of a slow or absent consumer).
+- ✅ durable stream-event journal per Job — `job_stream_events`/`job_stream_cursors` (`migrations/007_phase2a_stream_job.sql`), with a real transactional Postgres implementation (`internal/store/postgres/stream.go`, advisory-locked per Job) and a parallel in-memory implementation for tests, both behind the same `store.JobStream` interface;
+- ✅ resume cursor binding sequence, offset, and content digest, rejecting substitution — enforced independently at both store backends (`ErrStreamSequenceConflict`/`ErrStreamOffsetInvalid`/`ErrStreamDigestInvalid`) and re-validated at the service layer (`StreamService.validateResumeCursor`, `internal/service/stream.go`) with no bypass path when resuming;
+- ✅ REST Server-Sent Events, with MCP and A2A exposing the same stream through a `stream_url` pointing at that one REST endpoint rather than separate streaming engines (`internal/mcp/tools.go`'s `jobStreamURI`, `internal/a2a/server.go`'s `jobStreamURL`) — an equivalent mapping, not three independent implementations;
+- ✅ real `tos-protocol.StreamJob` RPC integration, not only the mock backend — `internal/adapters/tosprotocol/stream.go`'s `Client.StreamJobEvents` is a genuine Connect-RPC server-streaming client, explicitly selected as the production execution backend in `cmd/api/main.go` (`config.TOSBackendRPC`) rather than silently falling back to mock;
+- ✅ bounded delivery — the SSE handler caps every durable-store read at `sseEventBatchSize=256` (`internal/httpapi/stream.go`) and writes directly to the response socket rather than an application-level queue, so a slow/absent consumer cannot grow server-side memory.
 
-Success criterion: a client can disconnect mid-stream and resume from its last
-acknowledged cursor without missing, duplicating, or misordering events, and
-this is proven by tests against real PostgreSQL 16 covering process restart,
-a duplicated upstream event, and a mid-stream disconnect — not only the
-in-memory/mock path.
+Success criterion: ✅ a client can disconnect mid-stream and resume from its
+last acknowledged cursor without missing, duplicating, or misordering
+events, proven by tests run live against real PostgreSQL 16 (all passing,
+including under `-race`): `TestJobStreamHTTPFullReadThenResumeAfterDisconnect`
+and `TestJobStreamHTTPProcessRestartResumes`
+(`internal/httpapi/stream_postgres_test.go`, process restart via two fully
+independent `Server`/`Store` fixtures against the same database),
+`TestAppendJobStreamEventProcessRestartResumesCursor` and
+`TestAppendJobStreamEventDuplicateIsIdempotent`
+(`internal/store/postgres/stream_test.go`), and
+`TestStreamServiceResumesAcrossGenuineWorkingToCompletedTransition`
+(`internal/adapters/tosprotocol/stream_realtime_postgres_test.go`) —
+end-to-end through the real `tos-protocol` RPC client, a real (in-test)
+`tos-protocol` server, and real PostgreSQL 16, for a Job still genuinely
+executing across the resume boundary.
 
 ### 5.3 Phase 2B — Metered billing and provider earnings
 
