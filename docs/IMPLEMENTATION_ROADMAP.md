@@ -451,9 +451,9 @@ full acceptance criterion):** `atos`'s current `internal/service/job.go`
 hard-fails a Job whose Capability has moved to a new version since its Quote
 (`capability.Version != quote.CapabilityVersion` → rejected before dispatch)
 rather than continuing to resolve the Quote's frozen version/binding, which is
-what this section's rule literally requires (*"an already-issued Quote/Job
+what this section's rule literally requires ("an already-issued Quote/Job
 MUST continue to use its frozen version/binding semantics after a Capability
-update"*). This is `atos` PR #8's pre-existing design (predates the
+update"). This is `atos` PR #8's pre-existing design (predates the
 third-party execution-plane work in §7.1.1 below and was not changed by it),
 confirmed safe under independent review — it fails closed, so no Job can ever
 execute against a binding nobody actually quoted — but it does not yet
@@ -862,7 +862,7 @@ What the PR contains: `domain.ModeSupport.AdvanceToPending`/`.Suspend`/
 implementation, always denies verified/native with
 `ACTIVATION_AUTHORITY_UNAVAILABLE`); `HealthService.CheckCapability` and
 `CertificationService.Open` drive `requested -> pending` and `active ->
-suspended` automatically, and are now constructed and periodically swept in
+`suspended` automatically, and are now constructed and periodically swept in
 `cmd/api/main.go` (closing the §7.1.1/§7.1.3 "known gap" this document
 previously recorded). §7.2.2's durable execution-signer journal
 (`domain.ExecutionSignerOperation`, migration `011_phase3b_execution_signer.sql`,
@@ -1208,25 +1208,287 @@ It protects Managed balances, escrow, provider earnings, refunds, disputes and
 payout state against silent historical rewriting even if an application host
 or privileged database path is compromised.
 
-The target architecture includes:
+### 11.1 Reuse-first implementation rule
 
-- append-oriented double-entry Managed ledger;
-- account/escrow/earning balances as deterministic projections rather than the only financial truth;
-- purpose-built atomic ledger + projection transaction boundaries;
-- immutable historical economic records with compensating/reversal entries instead of in-place edits;
-- runtime/migration/audit privilege separation and break-glass administration;
-- continuous ledger ↔ projection ↔ settlement ↔ payout-rail reconciliation;
-- PITR, independently retained WAL/base backups and immutable/WORM retention;
-- deterministic financial hash chains and Merkle batches;
-- external KMS/HSM signatures outside the normal ATOS application/database host trust domain;
-- periodic signed Managed-ledger root anchoring to TOS Network;
-- an independent verifier and financial safe mode for integrity incidents.
+Phase 7 MUST NOT start by building a new ledger, reconciliation engine, generic
+hold/refund engine, or financial journal from scratch. Two existing TOS Network
+repositories are the required starting point and implementation reference:
+
+```text
+tosnetwork/blnk
+= preferred Managed financial-ledger foundation
+
+tosnetwork/atos-aidrop
+= proven ATOS/Wallet -> Blnk integration and immutable-audit reference
+```
+
+Coding agents MUST inspect both repositories before proposing new Phase 7
+financial primitives. If a required capability already exists there, reuse,
+adapt or harden it unless a documented correctness/security gap makes reuse
+unsafe.
+
+#### `tosnetwork/blnk` — preferred financial core
+
+The current fork already provides substantial Phase 7 foundations that should
+be treated as existing implementation, not greenfield requirements:
+
+- double-entry ledger and authoritative balances;
+- historical balance queries and multi-currency transaction support;
+- inflight/hold flows suitable as the financial primitive beneath Managed escrow;
+- refund/reversal transaction flows that create compensating transactions instead of rewriting history;
+- external reconciliation engine, matching rules and reconciliation persistence;
+- PostgreSQL-backed transaction storage and concurrency controls;
+- transactional/outbox patterns used by lineage processing;
+- metrics, tracing, worker/queue infrastructure and load tests;
+- basic PostgreSQL backup support to disk/S3;
+- transaction immutability enforcement for core financial fields;
+- a background SHA-256 transaction hash chain with serialized `chain_state` advancement;
+- crash-safe hash-chain batching using one PostgreSQL transaction and `FOR UPDATE` on chain state;
+- a local `verify-chain` path that replays the chain and detects discontinuity or changed sealed fields.
+
+Do not duplicate these mechanisms inside `atos`. The intended production
+shape is an explicit financial-service boundary:
+
+```text
+ATOS business state
+       |
+       v
+ATOSFinancialAdapter
+       |
+       v
+tosnetwork/blnk
+       |
+       v
+Blnk PostgreSQL financial journal / balances
+```
+
+ATOS remains responsible for commercial/business identities and workflow;
+Blnk remains responsible for financial accounting primitives.
+
+#### `tosnetwork/atos-aidrop` — proven integration/reference implementation
+
+`atos-aidrop` already demonstrates the architectural pattern Phase 7 should
+follow rather than rediscover:
+
+- the application database does not store a mutable financial balance;
+- Blnk is the authoritative source of truth for balances and journal entries;
+- application/business workflow state is kept separate from financial truth;
+- treasury/user debit-credit flows are expressed through Blnk operations;
+- held/cancelable transfers provide an existing example of business workflow over Blnk inflight transactions;
+- reversal is implemented as a new opposite-direction Blnk transaction;
+- stable idempotency and PostgreSQL advisory-lock patterns protect business workflows from concurrency races;
+- operator financial actions use distinct roles/credentials and audited identities;
+- external immutable audit export uses ordered durable batches, stable batch identity, chained hashes and replay-safe delivery;
+- the archive side is required to be append-only and suitable for object-lock/WORM retention;
+- backup, recovery, database-security, secrets, audit-export and incident-response operational patterns already exist as implementation references.
+
+Phase 7 may extract/refactor reusable patterns from `atos-aidrop`, but MUST NOT
+couple the production ATOS gateway to the airdrop application's product model.
+It is a reference implementation for integration, security and durability
+semantics, not the canonical ATOS financial API.
+
+### 11.2 Existing foundations are not the final integrity format
+
+The existing Blnk transaction hash chain is a useful local tamper-evidence
+foundation, but it is not yet the normative ATOS Financial Commitment format.
+In particular, its current canonicalization is implementation-local and based
+on delimiter-joined transaction fields. Phase 7 MUST define a versioned,
+domain-separated, deterministic canonical encoding before independently
+signed or TOS-anchored commitments depend on it.
+
+Conceptually:
+
+```text
+ATOS_FINANCIAL_COMMITMENT_V1
+    + canonical immutable economic identity
+    + ordered ledger facts
+    + previous commitment / sequence
+        -> deterministic digest
+```
+
+The final encoding MUST have unambiguous field boundaries and normative test
+vectors. Reuse an already-standardized deterministic encoding from the TOS
+stack where appropriate rather than inventing ad-hoc string concatenation.
+
+The existing Blnk `meta_data` field MUST NOT be the sole carrier of immutable
+ATOS economic identity. Current Blnk transaction immutability intentionally
+allows metadata updates, and the existing transaction hash chain does not make
+arbitrary mutable metadata part of its sealed canonical row. Therefore any
+ATOS-specific commitment identity that must survive independent verification
+(Job/Quote/Billing/earning/dispute/payout binding) must be stored in immutable,
+versioned fields or in an immutable external commitment sealed by the financial
+integrity chain.
+
+### 11.3 ATOSFinancialAdapter — remaining business/financial boundary
+
+The primary ATOS-side Phase 7 implementation is an explicit adapter that maps
+existing ATOS economic state into Blnk without making Blnk aware of ATOS
+business policy.
+
+At minimum, immutable financial operations/commitments must bind the relevant
+subset of:
+
+```text
+principal_id
+provider_id
+job_id
+quote_id
+capability_id
+capability_version
+billing_snapshot_id
+execution_receipt_id
+settlement_id
+provider_earning_id
+dispute_id
+payout_id
+asset/currency
+exact amount
+economic event type
+stable idempotency identity
+```
+
+The adapter owns the chart-of-accounts mapping for ATOS concepts such as:
+
+```text
+principal_available
+principal_reserved
+managed_escrow
+provider_payable
+provider_disputed
+gateway_fee_revenue
+gateway_refund_liability
+payout_clearing
+```
+
+The adapter MUST preserve the existing ATOS Job/Quote/Billing/Receipt/Dispute
+state machines; it is not permission to create a parallel settlement engine.
+Blnk transactions are the financial expression of an already-authorized ATOS
+economic transition.
+
+### 11.4 Reconciliation and projection strategy
+
+Reuse Blnk's generic reconciliation engine rather than building another
+matching engine. Add ATOS-specific connectors/projections for the independent
+representations Phase 7 must compare:
+
+```text
+Blnk ledger / balances
+    <-> ATOS account/escrow projections
+
+Blnk settlement entries
+    <-> BillingSnapshot / Receipt / ProviderEarning
+
+payout clearing entries
+    <-> external payout backend results
+
+refund/reversal entries
+    <-> ATOS dispute state
+
+finalized integrity batches
+    <-> external signatures
+    <-> TOS anchors
+```
+
+Projection rebuild and comparison must be deterministic. A mismatch is an
+integrity incident and may trigger financial safe mode; it must not silently
+choose whichever mutable database value is newest.
+
+### 11.5 Financial Commitment, Merkle batches, KMS/HSM and TOS anchor
+
+The main cryptographic work still missing from the reusable foundations is the
+externalized integrity layer:
+
+1. freeze `ATOS Financial Commitment V1` canonical encoding and domain separation in `atos-spec`;
+2. group finalized financial commitments into deterministic Merkle batches;
+3. bind each batch to sequence range/count, previous batch/root, canonicalization version and gateway/network identity;
+4. sign finalized roots through external KMS/HSM/Vault-backed signing authority whose private key is outside the normal ATOS/Blnk application host;
+5. retain signed roots/manifests independently from the operational database;
+6. periodically publish the signed Managed-ledger root commitment to TOS Network through the normal `atos -> tos-protocol -> TOS` trust/economic integration boundary;
+7. ship an independent verifier that can rebuild the commitment/Merkle root from retained ledger evidence and compare it with the external signature and finalized TOS anchor.
+
+The `atos-aidrop` immutable audit exporter is the preferred reference for
+ordered durable batches, stable batch IDs, lost-response-safe delivery and an
+append-only receiver. Phase 7 upgrades that pattern from application audit
+events to normative financial commitments and from HMAC-only transport
+authentication to independently verifiable KMS/HSM signatures plus TOS
+anchoring.
 
 The TOS root anchor is an **integrity commitment for Managed financial
 history**. It does not turn the underlying Managed Jobs into Verified Jobs and
 must never be represented as satisfying `tos_verified_v1` escrow/settlement
 requirements. Verified and Native transactions retain their own stronger
 per-transaction proof/economic guarantees.
+
+### 11.6 Infrastructure hardening still required
+
+Blnk's existing `pg_dump` disk/S3 backup support is a useful baseline but does
+not by itself satisfy the Phase 7 recovery threat model. Production hardening
+still requires:
+
+- PITR with WAL archiving and tested arbitrary-point restore;
+- independently retained base backups/WAL outside the ordinary application trust domain;
+- immutable/WORM/Object-Lock retention where supported;
+- periodic restore drills;
+- independent retention of signed integrity manifests/roots;
+- separate runtime/migration/audit database roles and break-glass procedures;
+- no superuser/owner credential in normal ATOS or Blnk runtime configuration;
+- external SQL/DDL/security audit evidence;
+- monitoring/alerting for reconciliation divergence, hash-chain lag, missing batches, failed signatures/anchors and backup/restore health;
+- tested financial safe mode for detected integrity incidents.
+
+Reuse the operational/security patterns and documents already present in
+`atos-aidrop` where applicable instead of drafting equivalent controls from
+scratch.
+
+### 11.7 Phase 7 implementation order for coding agents
+
+Unless a discovered correctness dependency requires otherwise, implement the
+financial-integrity work in this order:
+
+```text
+1. Audit current tosnetwork/blnk and tosnetwork/atos-aidrop exact HEADs
+2. Freeze ATOS chart of accounts + ATOSFinancialAdapter contract
+3. Integrate ATOS economic transitions with Blnk source-of-truth accounting
+4. Add deterministic ledger/projection reconciliation and rebuild checks
+5. Freeze ATOS Financial Commitment V1 canonicalization + test vectors
+6. Harden/upgrade local hash-chain commitment semantics without duplicating Blnk's engine
+7. Add deterministic Merkle batch builder
+8. Add external KMS/HSM signer abstraction + durable signing checkpoints
+9. Add independent immutable signed-root retention
+10. Add tos-protocol/TOS Managed Financial Ledger Anchor publication/resolution
+11. Extend verifier to validate ledger -> batch -> signature -> finalized TOS anchor
+12. Complete PITR/WAL/WORM/privilege-separation/failure drills
+```
+
+A coding agent MUST NOT claim Phase 7 completion after merely connecting ATOS
+to Blnk or after merely anchoring a local database hash. The acceptance target
+is independent reconstruction and verification across the entire chain of
+evidence.
+
+### 11.8 Financial-integrity acceptance gate
+
+At minimum prove all of the following against real infrastructure where
+applicable:
+
+- ATOS can execute reserve/settle/refund/reversal/payout-related financial transitions through Blnk without maintaining a second mutable source-of-truth balance;
+- the same semantic economic action is idempotent, while changed semantics under the same identity conflict;
+- concurrent replicas cannot double-reserve, double-settle, double-refund or double-pay;
+- historical economic transactions are corrected by compensating entries, not in-place mutation;
+- ATOS projections can be rebuilt or reconciled deterministically from the financial ledger;
+- deliberate mutation/deletion/reordering of sealed financial history is detected by local verification;
+- deterministic Merkle batches reproduce the same root from independently retained evidence;
+- KMS/HSM signature verification fails on a substituted root/key/domain;
+- a lost response after TOS anchor publication is reconciled without publishing a different semantic anchor;
+- the independent verifier detects disagreement between reconstructed history and the finalized TOS anchor;
+- restore from independently retained backup/WAL evidence is tested;
+- compromising the normal ATOS application/database host is insufficient to silently rewrite previously externally finalized Managed financial history.
+
+**Financial-integrity completion gate:** the normal ATOS application/database
+host can no longer silently rewrite previously externally finalized Managed
+financial history; ledger-derived projections are rebuildable, divergence is
+detected by reconciliation/signature/TOS-anchor verification, and recovery from
+independently retained evidence is tested. The detailed acceptance matrix is in
+[`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
 
 Other Phase 7 hardening work includes:
 
@@ -1248,13 +1510,6 @@ forward into Phase 3 merely because adjacent domain fields already exist.
 However, deployments that hold material real customer/provider value SHOULD
 prioritize the Financial Integrity controls proportionally to financial risk
 rather than waiting for every federation feature to be complete.
-
-**Financial-integrity completion gate:** the normal ATOS application/database
-host can no longer silently rewrite previously externally finalized Managed
-financial history; ledger-derived projections are rebuildable, divergence is
-detected by reconciliation/signature/TOS-anchor verification, and recovery from
-independently retained evidence is tested. The detailed acceptance matrix is in
-[`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
 
 ---
 
