@@ -1046,11 +1046,50 @@ historical-dirty-data false failures that database is known to produce for
 unrelated tests. The final `-race` run before merge covered every package
 with zero skips or exclusions.
 
-Known remaining gaps, not yet addressed: no admin-triggered (as opposed to
-evidence-triggered) path to invoke `EvaluateActivation`; and the "real
-ConnectRPC tos-protocol, not only a Go-interface mock" variant of the §29
-acceptance scenario was not built (the mock-based version was judged
-sufficient given tos-protocol's independent RPC-level coverage). §32's
+Both remaining gaps this section used to track here have since been closed:
+
+- **Admin-triggered `EvaluateActivation`**: `CapabilityService.EvaluateActivation`
+  had full service-layer test coverage since this section's original work but
+  zero production callers -- no REST route, no MCP tool, and
+  `cmd/api/main.go` never even constructed a `domain.ActivationAuthority`.
+  Contract frozen in `docs/API.md` §2.2 / `docs/MCP.md` §4.3/§8
+  (`tosnetwork/atos-spec#3`) and implemented in `tosnetwork/atos#14`: new
+  admin-only, explicit-grant-only scope `activation:evaluate` (deliberately
+  no ownership precondition -- this is an activation-authority-side
+  operation, not a provider one), `POST
+  /v1/capabilities/{id}/activation/evaluate`, MCP tool
+  `atos_evaluate_activation`, and `cmd/api/main.go` now wires
+  `service.FailClosedActivationAuthority` into both servers. `granted:false`
+  is a normal `200`/`isError:false` outcome, matching
+  `EvaluateActivation`'s own doc comment.
+- **"Real ConnectRPC tos-protocol, not only a Go-interface mock"**: rebuilding
+  the full §29 scenario against a live server was the wrong scope -- it would
+  have duplicated coverage `tos-protocol#15` already independently provides
+  for the mock-based scenario's business logic (see
+  `phase3b_e2e_acceptance_test.go`'s own doc comment for that reasoning,
+  still valid). The actually-untested slice was narrower:
+  `tosprotocol.Client`'s `AuthorizeExecutionSigner`/`RevokeExecutionSigner`/
+  `ResolveExecutionSignerAuthorization` had never been exercised against a
+  real server, even though `integration_test.go`'s existing harness already
+  stands up a real `TrustService` (just never calls it). Closed in
+  `tosnetwork/atos#15`: real-in-process-server coverage for all three signer
+  RPCs (`internal/adapters/tosprotocol/signer_integration_test.go`), plus one
+  authorize -> rotate -> revoke pass through `ExecutionSignerService`'s real
+  durable checkpoint journal against a real `tosprotocol.Client` and real
+  Postgres instead of `toscoremock`
+  (`internal/service/execution_signer_real_rpc_postgres_test.go`). Writing
+  real assertions caught a stale `toscore.Core` doc comment in the same PR
+  (claimed `created`/`revoked` are `false` on an idempotent replay;
+  verified `RevokeExecutionSigner` has no `revoked=false` path once a signer
+  has ever been revoked, and a literal retry replays the original
+  `created=true` response verbatim) -- fixed to match verified behavior.
+
+`atos` PR #14 and PR #15 are implemented and independently verified
+(`gofmt`/`go vet`/`go build` clean, full `go test ./... -race -count=1`
+clean against a freshly created Postgres 16 instance) as of this writing;
+update this note if either merges with material changes.
+
+§32's
 Receipt-verification requirement ("use signer-authorization semantics
 applicable to the relevant execution time/version, not simply whatever
 signer is current now") was checked, not found to be a gap:
