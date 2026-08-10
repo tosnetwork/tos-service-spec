@@ -851,10 +851,11 @@ interface non-trivial.
 **Progress note (not ✅ -- open, unmerged PR):** the full §7.2 slice below
 (§7.2.0 through §7.2.4) has a working implementation on `atos` PR
 [#12](https://github.com/tosnetwork/atos/pull/12) (branch
-`agent/phase3b-mode-activation`, not yet merged). Per this document's own
-verification standard (see the top of this file), nothing here is marked ✅
-until that PR is merged and independently re-verified; this note is a
-descriptive status snapshot, not a completion claim.
+`agent/phase3b-mode-activation`, 9 commits, HEAD `7328dd6`, not yet merged).
+Per this document's own verification standard (see the top of this file),
+nothing here is marked ✅ until that PR is merged and independently
+re-verified; this note is a descriptive status snapshot, not a completion
+claim.
 
 What the PR contains: `domain.ModeSupport.AdvanceToPending`/`.Suspend`/
 `.Activate` implement the full transition graph above; `domain.ActivationAuthority`
@@ -888,13 +889,101 @@ capability-scoped only, not capability-*version*-scoped, so a signer
 authorized for version N incorrectly stayed "current" after a version bump
 to N+1; `CurrentSigner` now checks both.
 
-`tos-protocol`'s own signer RPCs were audited separately (confirmed already
-idempotent and version-bound, no RPC/proto changes needed) and given
-dedicated test coverage on `tos-protocol` PR
-[#15](https://github.com/tosnetwork/tos-protocol/pull/15) (also unmerged),
-which independently confirmed the same-idempotency-key vs.
-different-idempotency-key-same-content distinction this section's `atos`-side
-journal design depends on.
+`tos-protocol`'s own signer RPCs were audited separately on `tos-protocol` PR
+[#15](https://github.com/tosnetwork/tos-protocol/pull/15) (merged, HEAD
+`fd446c1`). **That audit's initial conclusion -- "already idempotent and
+version-bound, no RPC/proto changes needed" -- was wrong**, caught by an
+independent second review before merge: 5 of the 12 `Authority.Commit` call
+sites in `tos-protocol` (`RevokeExecutionSigner`, `CreateEscrow`,
+`ReleaseEscrow`, `SettleJob`, `CommitCapabilityManifest`) hashed the entire
+request message -- including `RequestContext.request_id`/`trace_id`, which a
+well-behaved caller legitimately regenerates on every retry of the same
+logical operation -- into the commitment digest that `Authority.Commit`'s
+`(kind, id, digest)` idempotency is keyed on. A retry after the caller never
+received the first attempt's response therefore minted a second, divergent
+commitment instead of converging on the original one, exactly the failure
+mode a retry is supposed to recover through. Fixed by excluding
+transport-scoped `RequestContext` fields from the digest before it reaches
+`Authority.Commit` (`withoutTransportContext`, `pkg/atosrpc/mutation.go`);
+`Authority.Commit`'s idempotency contract (same `(kind, id, digest)` must
+always return the same `NetworkReference`) is now stated explicitly on the
+interface and backed by a conformance test run against every `Authority`
+implementation, plus retry-convergence tests for all five previously-broken
+call sites and a true lost-response test (the underlying `Commit` actually
+succeeds and produces a real reference; the caller never sees it; a retry
+must land on that exact reference). Confirmed against what is actually live
+today: `atos_env=production`'s bundled `LocalAuthority` is a pure, stateless
+function of `(kind, id, digest)`, so this bug had zero real-world blast
+radius yet -- it becomes load-bearing the moment a real `ActionPublisher` /
+`chainAuthority` goes live for Verified mode, which is why it was fixed now
+rather than deferred. The same PR also fixed two narrower gaps in
+`AuthorizeExecutionSigner`/`RevokeExecutionSigner`: the business-level dedup
+check only compared `authorization_id` + `signer_public_key` (silently
+accepting a changed validity window or algorithm as "the same request"; now
+a full content-digest comparison, mirroring `CommitQuote`'s existing
+pattern), and `authorization_id` was never enforced unique across different
+`signer_id`s, so `RevokeExecutionSigner`'s full-bucket scan for the first
+cursor match could revoke the wrong one of two signers sharing an ID (new
+secondary index makes `Authorize` reject the reuse and `Revoke` an O(1)
+lookup).
+
+That same second review then re-examined `atos` PR #12 itself and found five
+more gaps in the `atos`-side journal design this section describes, all
+confirmed with tests that fail without the fix and fixed in a follow-up
+commit on the same PR (`7328dd6`, still unmerged):
+
+- **P0**: two concurrent `Rotate` calls on different idempotency keys for
+  the same capability both read the same old signer as current before
+  either persists an operation that would change it, and could both
+  independently authorize a new signer and complete -- two
+  valid-at-`tos-protocol` signers, only one ever visible through
+  `CurrentSigner`, the other permanently orphaned. Locking only the
+  read-then-open sequence per `(capability_id, capability_version)` is NOT
+  sufficient on its own -- verified empirically: a deterministic
+  concurrency test (forcing genuine overlap via a blocking fake `Core`
+  rather than relying on goroutine-scheduling luck) still reproduced the
+  bug with that lock alone, since it only prevents two callers reading at
+  the exact same instant, not in quick succession before the first reaches
+  `completed`. The actual fix adds a second invariant inside the same
+  lock: reject opening a new operation while ANY non-terminal operation
+  already exists for that capability version
+  (`domain.ErrSignerOperationInProgress`, retryable). New store method
+  `OpenSignerOperationForCapability` (postgres + memory) replaces the
+  separate `CurrentSigner`-then-`OpenSignerOperation` call pair in
+  `Revoke`/`Rotate` (`Authorize` was unaffected -- it never reads
+  `CurrentSigner`).
+- `Revoke`/`Rotate` read `CurrentSigner` before checking for an existing
+  operation, so a retry after the original call already **completed** saw
+  whatever is current *now* (nothing, for `Revoke`; the new signer, for
+  `Rotate`) instead of the value the original call actually opened the
+  operation with -- `Revoke` returned `NotFound`, `Rotate`'s own
+  content-hash conflict-detection fired on `Old*` fields the caller never
+  supplied. Fixed by checking `SignerOperationByIdempotencyKey` first and
+  resuming the existing operation when the caller-controlled stable
+  fields match -- which also fixes REST/MCP's omitted-validity-window
+  default (`time.Now()` recomputed on every delivery when `valid_from`/
+  `valid_until` are omitted) spuriously conflicting on a plain retry.
+- `LatestCompletedSignerOperationByCapability` now filters
+  `capability_version` inside the query itself, not after the fact in Go:
+  a stuck v1 operation that a reconciler only finishes recovering AFTER a
+  v2 signer already completed can have a later `updated_at` than v2's own
+  completed operation, masking the real current signer behind the wrong
+  version's row and reporting no current signer at all.
+- `advance()` now takes an `expectedFrom` checkpoint and no-ops on
+  mismatch instead of unconditionally overwriting -- `UpdateSignerOperation`'s
+  per-row lock already made each individual `advance` call atomic, but
+  nothing stopped a stale-snapshot caller from dragging an operation
+  another driver had already legitimately advanced further back down.
+- `signerOperationContentHash` (postgres + memory) now includes
+  `RevocationReasonCode`, which is forwarded verbatim into
+  `tos-protocol`'s own commitment digest and must be identity content like
+  every other caller-supplied field.
+
+Both rounds of verification used a fresh local Postgres (`gofmt`, `go vet`,
+full test suite with `-race`, including the new deterministic concurrency
+and lost-response tests) rather than a shared long-lived dev database, to
+avoid the historical-dirty-data false failures that database is known to
+produce for unrelated tests.
 
 Known remaining gaps, not yet addressed: no admin-triggered (as opposed to
 evidence-triggered) path to invoke `EvaluateActivation`; and the "real
