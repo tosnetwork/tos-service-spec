@@ -130,6 +130,20 @@ message a v0.1/v0.2 implementation already depends on (see
 `WorkerStreamService`'s own doc comment on preserving the frozen unary
 `WorkerService` interface).
 
+`GetProviderStatusRequest` also gains `string capability_version = 5`,
+unset for an ordinary native/model request. A worker-operator allowlist
+entry MAY be version-scoped (§4), so a `ThirdPartyBinding`-carrying probe
+that omits which Capability version it means cannot actually ask "is
+*this* version's binding allowlisted and healthy" -- it can only ask an
+under-specified question that happens to succeed or fail depending on
+whatever version (if any) the allowlist's own matching rules default to.
+`capability_id` alone is not equivalent: `QuoteExecutionRequest` and
+`SubmitJobRequest` already both carry `capability_version` alongside
+`capability_id` for exactly this reason (§3.1 above), and
+`GetProviderStatusRequest` omitting it was an oversight, not a deliberate
+asymmetry -- a health/certification probe should be able to express the
+same specificity a Quote or Job already can.
+
 `GetProviderStatusResponse`'s existing `ProviderReadiness` enum is reused
 unchanged for third-party health/certification results -- there is no new
 readiness vocabulary, only a new way to ask the question. It gains two
