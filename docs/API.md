@@ -188,6 +188,52 @@ reaches `new_authorized`, per the rotation ordering frozen in the roadmap --
 a caller must never observe the new signer advertised as current before its
 authorization is confirmed durable.
 
+### 2.2 Activation-evaluation endpoint
+
+Admin only (`activation:evaluate`), explicit-grant-only like
+`execution_signers:write`/`disputes:review` -- never a default consumer
+scope. Unlike every other Capability mutation in this document, this
+endpoint is deliberately **not** owner-scoped: the authenticated principal
+does not need to own `capability_id`. This is the entry point for
+`docs/IMPLEMENTATION_ROADMAP.md` §7.2.1's `ActivationAuthority.Evaluate`,
+which is by design an activation-authority-side operation, never a provider
+one -- provider self-assertion (however the request is authenticated) is
+explicitly insufficient authority to activate Verified/Native.
+
+- `POST /capabilities/{capability_id}/activation/evaluate`
+
+Request:
+
+```json
+{"mode":"verified"}
+```
+
+`mode` MUST be `verified` or `native` (Managed has no `ActivationAuthority`
+concept and is rejected). The referenced `mode_support[mode].status` MUST
+currently be `pending` or `suspended` -- any other status (e.g. `requested`,
+with no readiness evidence recorded yet, or already `active`) is rejected as
+a validation error, not evaluated.
+
+Response -- HTTP 200 always for a request that passes the state-legality
+check above; a fail-closed denial is a normal, expected outcome here, not an
+error (see `docs/IMPLEMENTATION_ROADMAP.md` §7.2.1: production has no
+implementation that ever returns `granted=true` until Phase 4 supplies a
+real authority):
+
+```json
+{
+  "granted":false,
+  "reason_code":"ACTIVATION_AUTHORITY_UNAVAILABLE",
+  "mode_support":{"status":"pending","reason":"ACTIVATION_AUTHORITY_UNAVAILABLE"}
+}
+```
+
+On `granted:true`, `mode_support[mode].status` becomes `active` and
+`supported_trust_modes` is re-derived to include `mode`, exactly as if
+readiness evidence plus authority approval had converged automatically --
+this endpoint does not bypass any state-machine invariant, it only supplies
+the explicit trigger for evaluating the transition that already existed.
+
 ## 3. Quote Endpoints
 
 - `POST /quotes`
