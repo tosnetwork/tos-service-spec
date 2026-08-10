@@ -1084,10 +1084,43 @@ Both remaining gaps this section used to track here have since been closed:
   has ever been revoked, and a literal retry replays the original
   `created=true` response verbatim) -- fixed to match verified behavior.
 
-`atos` PR #14 and PR #15 are implemented and independently verified
-(`gofmt`/`go vet`/`go build` clean, full `go test ./... -race -count=1`
-clean against a freshly created Postgres 16 instance) as of this writing;
-update this note if either merges with material changes.
+Independent review of `atos#14` before merge found two further real P1s,
+both fixed in the same PR: the new `activation:evaluate` scope could be
+requested and approved through the same self-service Device Authorization
+flow as any ordinary scope (no code-level distinction between "admin" and
+"ordinary" scopes existed anywhere) -- closed with a second operator
+secret (`ATOS_ADMIN_APPROVAL_TOKEN`) additionally required to approve a
+grant carrying an admin scope; and `EvaluateActivation`'s
+`Get`-then-`Put` was a systemic pattern shared by every `CapabilityService`
+mutation (not just this one), already racing against the production
+health/certification reconciler today -- closed by adding a real CAS
+primitive (`store.Capabilities.UpdateCapability`, mirroring the
+pre-existing `UpdateJob` pattern) and migrating all four affected
+mutations to it, which also surfaced and fixed a live-map-mutation bug
+(`EvaluateActivation`'s denial branch bypassed `ModeSupport`'s
+copy-on-write helper) of the exact class Phase 3B's own round-2 review had
+already fixed elsewhere. A separate review of `docs/API.md` §2.2 also
+found the endpoint lacked idempotency protection (a lost response
+followed by a retry would either re-consult the authority or fail as an
+illegal source state); closed by adding the same `Reserve`/`Finish`
+pattern `Register`/`Update` already use, scoped by the calling admin's own
+identity rather than the target capability.
+
+`atos-spec#3`/`#4` merged as `d98c40f`/`d681769`; `atos#14`/`#15` merged
+as `62a5fea`/`25bb98f`. Merging `#14` after `#13` (Phase 3C, §7.3) had
+already landed produced a real conflict -- both PRs added fields to the
+same shared structs (`auth.go`'s scope block, `httpapi.Server`/`mcp.Server`,
+`cmd/api/main.go`'s wiring) -- resolved by keeping both sides' additions
+and re-running the full suite before completing the merge. That same
+full-suite run against a fresh Postgres instance then caught one more real
+bug: `TestPhase3B_EndToEndProviderTrustReadinessAcceptance` used a
+hardcoded idempotency key for its (newly idempotency-protected)
+`EvaluateActivation` call while the target capability ID is randomized
+per run, so a second run against the same persistent database collided
+with the first run's durable idempotency record; fixed by suffixing the
+key with the same per-run identifier every other idempotency key in that
+test already uses (`dd1d7cb`, pushed directly to `main` after `#14`
+merged).
 
 §32's
 Receipt-verification requirement ("use signer-authorization semantics
@@ -1197,6 +1230,88 @@ authority.
 **Goal:** add demand-side open tasks without creating a weaker parallel
 commercial contract.
 
+✅ **Status: complete and merged.** `atos` PR [#13](https://github.com/tosnetwork/atos/pull/13)
+(branch `agent/phase3c-open-task-marketplace`, merged `1a98aeb`) went
+through five independent post-hoc review rounds before merge, each finding
+real, verified issues that were fixed and re-verified rather than
+deferred -- per this document's own verification standard, this mark
+reflects that full history, not a single clean pass.
+
+**Round 1** (manual review): 3 P0 + 3 P1 + 1 P2 found and fixed --
+`OpenAcceptanceOperation` and Cancel locked different advisory-lock keys
+(zero mutual exclusion); operation-Completed/Failed and the OpenTask
+projection were two separate commits (a crash between them could strand a
+task permanently, since Completed/Failed are excluded from the stale-sweep
+query) -- closed with atomic `CompleteAcceptance`/`FailAcceptance` store
+methods; a resumed/reconciler-driven Quote-creation call never checked
+whether the Capability version had drifted since the operation froze it --
+closed with `CreateQuoteInput.ExpectedCapabilityVersion`; `Withdraw`'s
+pre-check raced `Accept` with no shared lock; `Publish`/`Propose` validated
+live state *before* the idempotency-replay check, so a legitimate retry
+could fail on business state instead of replaying its original result;
+MCP's `atos_search_open_tasks` forwarded an omitted `limit` as literal `0`,
+which the in-memory store treats as unlimited and Postgres treats as zero
+rows; `OpenTaskProposal.Public()` leaked `ProposedPrice`. A self-dealing
+gap (neither `Propose` nor `Accept` checked the acting identity differed
+from the task owner) was also found and closed in the same round.
+
+**Round 2** (independent review of the round-1 fix): the round-1 fix
+itself introduced a genuine, reproducible deadlock -- `OpenAcceptanceOperation`
+locked task-then-proposal while the new `WithdrawOpenTaskProposal` locked
+proposal-then-task, confirmed via 30x concurrent runs against real
+Postgres with `deadlock_timeout`/`log_lock_waits` tuned and the server log
+grepped directly rather than trusting Go-level pass/fail -- closed by
+giving `WithdrawOpenTaskProposal` a lock-free preview read (safe, since
+`TaskID` is immutable) purely to learn which task lock to acquire first,
+enforcing task-before-proposal ordering everywhere. Also found: the
+idempotency `Reserve`/`Release` pattern's hard-delete-on-abandoned-reservation
+behavior meant a later, genuinely different request under a reused key
+could silently receive an earlier abandoned attempt's committed result --
+closed with content-hash re-validation on the crash-recovery replay path
+for `Publish`/`Propose`/`Quote.Create`.
+
+**Round 3**: re-verified round 2's fixes using the same server-log-grepping
+methodology (still clean); found the self-dealing regression test never
+actually exercised the self-dealing guard (it used an identity that only
+ever hit the pre-existing ownership check) -- fixed the test to bypass
+`Propose`'s own self-dealing guard directly via `PutOpenTaskProposal` so
+`Accept`'s guard is what's actually under test; found
+`UpdateAcceptanceOperation`'s documented "MUST NOT set a terminal
+checkpoint" contract had no runtime enforcement in either store --
+added it.
+
+**Round 4**: the round-3 enforcement was itself a real P1 regression --
+it rejected *any* attempt to write a terminal checkpoint without checking
+whether the *current* checkpoint was already terminal, which broke
+`advanceAcceptance`'s legitimate CAS no-op branch (a stale worker
+converging after a different worker already completed/failed the same
+operation) and was simultaneously too permissive (never checked whether
+an already-terminal operation was being revived). Fixed by checking
+`current.Checkpoint.Terminal()` first and, if true, returning the stored
+value unconditionally without ever inspecting `next`.
+
+**Round 5**: found two more real, previously unaddressed issues from an
+automated review that predated all four rounds above --
+`ListPublicOpenTasks` applied `LIMIT` before filtering lazily-expired
+rows, so a run of newest-but-expired tasks could consume the entire limit
+window and hide older tasks that are still genuinely open (fixed by
+pushing the expiry filter into the store query itself); and
+`PutOpenTaskProposal` was a plain unconditional insert with no lock and no
+task-state check, so a concurrent `Accept`/`Cancel` could commit between
+`Propose`'s live-state check and the insert, landing a proposal against a
+task that was already closed (fixed with a new `CreateOpenTaskProposal`
+store method sharing `OpenAcceptanceOperation`'s lock discipline). A third
+finding (accept/withdraw lock order) was already fixed in round 2 and
+needed no change.
+
+All five rounds used a freshly created Postgres 16 instance for final
+verification (not a shared long-lived database) after this session
+independently diagnosed and confirmed two apparent test failures during
+the process were pure container-reuse artifacts (accumulated rows from
+many manual runs exceeding a test's own `LIMIT`/count assumptions), not
+product bugs -- confirmed via `git stash` bisection and fresh-container
+reruns.
+
 An OpenTask is a marketplace demand object, not a replacement for Capability,
 Quote or Job.
 
@@ -1227,6 +1342,8 @@ proposal and one bound Job; restart at every accept/bind checkpoint converges
 without double-binding or permanent limbo.
 
 ### 7.4 Phase 3 overall success criterion
+
+✅ **Status: complete.** §7.1 (3A), §7.2 (3B) and §7.3 (3C) are all merged.
 
 A third-party provider can self-register once, configure an immutable execution
 binding, pass schema/sandbox readiness checks, serve Managed traffic, operate
