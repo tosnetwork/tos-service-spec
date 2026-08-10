@@ -20,6 +20,7 @@ Canonical companion documents:
 - `docs/MCP.md` — MCP transport, tool, visibility and scope semantics;
 - `docs/PROOF_PROFILES.md` — normative trust/proof guarantees;
 - `docs/FINANCIAL_INTEGRITY.md` — cross-cutting Managed financial integrity, reconciliation, immutable ledger and TOS anchor hardening;
+- `docs/THIRD_PARTY_EXECUTION_PLANE.md` — the RPC contract and endpoint-allowlist trust model for routing third-party HTTP/MCP/A2A execution/probing behind the execution/data plane instead of the ATOS Gateway;
 - `IMPLEMENTATION_STATUS.md` — current cross-repository implementation status.
 
 ---
@@ -465,6 +466,33 @@ selection; actual provider execution/probing belongs behind the existing
 execution/data-plane boundary (`tos-protocol` ExecutionGateway / `tos-ai` or an
 explicitly specified equivalent execution-side component). If existing code
 cannot support this without a new RPC, define that RPC in `atos-spec` first.
+
+The required RPC is now defined: see
+[`docs/THIRD_PARTY_EXECUTION_PLANE.md`](THIRD_PARTY_EXECUTION_PLANE.md) and
+`proto/atos/tos/v1/execution.proto`'s `ThirdPartyBinding` message
+(`GetProviderStatusRequest`/`QuoteExecutionRequest`/`SubmitJobRequest`, added
+as purely additive optional fields). That document also resolves a real
+trust-model tension this spec work surfaced: `tos-ai`'s existing adapter
+plugin surface (`pkg/runtime.Adapter`) is deliberately built so an invocation
+payload can never select its own outbound endpoint -- the endpoint is
+operator-fixed. A third-party ATOS Capability's `endpoint_ref` is
+provider-chosen, effectively business data. Naively threading it into
+`tos-ai`'s existing worker process would invert that invariant. The
+resolution is a worker-operator-curated endpoint allowlist: an invocation may
+only *reference* a `(transport, endpoint_ref, capability_id)` the operator
+already approved, never introduce a new one. This is normative for whatever
+implements the private `tos-protocol` ↔ `tos-ai` extension, even though that
+wire format itself remains `tos-protocol`'s own implementation concern (same
+status as the existing `WorkerService` message shapes).
+
+This closes the **specification** half of the placement rule. The
+**implementation** half — `tos-protocol` routing `ThirdPartyBinding` requests
+to the execution/data plane instead of failing them, and `tos-ai` (or an
+equivalent component) actually performing the allowlisted dial, and `atos`
+consuming this instead of dialing locally — is cross-repository work tracked
+outside this repository's own PRs; `atos`'s Phase 3A implementation may
+continue to note this as an open item until that lands end-to-end, per
+§7.1.5's cross-repository acceptance criterion.
 
 Adapter request/result binding must include enough immutable identity to reject
 substitution, at least conceptually:
