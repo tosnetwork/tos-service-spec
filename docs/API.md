@@ -214,11 +214,17 @@ currently be `pending` or `suspended` -- any other status (e.g. `requested`,
 with no readiness evidence recorded yet, or already `active`) is rejected as
 a validation error, not evaluated.
 
-Response -- HTTP 200 always for a request that passes the state-legality
-check above; a fail-closed denial is a normal, expected outcome here, not an
-error (see `docs/IMPLEMENTATION_ROADMAP.md` §7.2.1: production has no
-implementation that ever returns `granted=true` until Phase 4 supplies a
-real authority):
+Response -- HTTP 200 only once the activation authority has returned a
+completed decision (granted or denied); a fail-closed denial is a normal,
+expected 200 outcome here, not an error (see
+`docs/IMPLEMENTATION_ROADMAP.md` §7.2.1: production has no implementation
+that ever returns `granted=true` until Phase 4 supplies a real authority).
+If the authority itself errors (timeout, transport failure, or the
+resulting activation cannot be durably persisted), that is a genuine error
+response, not a 200 denial -- an unavailable/failed authority call MUST
+remain distinguishable from an authoritative rejection so callers can apply
+ordinary error/retry handling instead of treating "the authority said no"
+and "we couldn't reach the authority" as the same outcome:
 
 ```json
 {
