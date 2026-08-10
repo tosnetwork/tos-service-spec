@@ -1336,6 +1336,89 @@ reruns.
 An OpenTask is a marketplace demand object, not a replacement for Capability,
 Quote or Job.
 
+#### 7.3.1 Product publishing surface and marketplace entry points
+
+Phase 3C has two first-class demand-entry surfaces and they MUST remain one
+marketplace, not separate human and agent products:
+
+```text
+Human user
+    -> atos.im/tasks/new
+    -> OpenTask
+
+AI Agent
+    -> ATOS REST / MCP / A2A
+    -> OpenTask
+```
+
+The public web product owns the human-facing task marketplace:
+
+```text
+atos.im/tasks
+= browse/search open demand
+
+atos.im/tasks/new
+= publish a task through a human-facing form
+
+atos.im/tasks/{task_id}
+= task detail, proposals and winner-selection UX
+```
+
+The human publishing form should express the same canonical OpenTask semantics
+as the programmatic interfaces. At minimum the product should be able to
+capture a task goal/description, input or artifact references, budget/price
+constraints, deadline/expiry, requested trust requirements and winner-selection
+preference where supported by the frozen OpenTask contract. The web layer MUST
+NOT invent a second task model or bypass the same authorization, idempotency,
+Quote and Job rules used by agents.
+
+Agents publish programmatically through the canonical ATOS protocol surface.
+The intended product-level operations are conceptually:
+
+```text
+REST   -> publish/search/read/propose/accept OpenTask operations
+MCP    -> atos_publish_task / atos_search_tasks / atos_submit_proposal
+A2A    -> equivalent OpenTask publication/discovery/proposal mapping
+```
+
+Exact route/tool names remain owned by `docs/API.md`, `docs/MCP.md` and the A2A
+contract; the Roadmap defines the product responsibility rather than silently
+renaming an already-frozen public operation. An Agent MUST NOT need to know a
+Capability ID before publishing demand. It may publish the goal, budget,
+deadline, inputs and trust requirements first; ATOS discovery/matching and
+Provider proposals resolve suitable Capability/provider candidates afterward.
+
+This creates an intentional two-sided product model:
+
+```text
+atos.im/capabilities
+= supply-driven discovery
+= requester/Agent already knows what service capability it wants
+= requester finds a Provider
+
+atos.im/tasks
+= demand-driven marketplace
+= requester knows the outcome/work it wants, not necessarily the Capability
+= Providers find the requester and compete/propose
+```
+
+Both paths MUST converge on the same commercial contract after selection:
+
+```text
+Human / Agent publishes OpenTask
+        -> Providers discover demand
+        -> proposals/applications
+        -> requester selects exactly one winner
+        -> normal immutable Quote
+        -> normal Job
+        -> Execution Receipt
+        -> settlement / dispute lifecycle
+```
+
+Phase 3C therefore establishes ATOS as an **AI Work Marketplace**, combining
+Capability discovery (supply-driven) with OpenTask publication (demand-driven),
+without creating a weaker parallel transaction path.
+
 Required lifecycle:
 
 ```text
