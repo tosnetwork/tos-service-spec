@@ -78,6 +78,16 @@ message GetProviderStatusResponse {
   int64 observed_unix_millis = 6;
   int64 expires_unix_millis = 7;
   string reason_code = 8;
+  // deep_probe and latency_unix_millis are populated only for a
+  // ThirdPartyBinding-carrying request (see docs/
+  // THIRD_PARTY_EXECUTION_PLANE.md): deep_probe distinguishes bare
+  // reachability from a transport-specific deeper check (e.g. MCP
+  // verifying the bound tool actually exists), mirroring
+  // domain.AdapterHealthCheck / SandboxCertification's evidence model so
+  // ATOS's own HealthService/CertificationService can record equivalent
+  // evidence whether probing locally or through this remote path.
+  bool deep_probe = 9;
+  int64 latency_unix_millis = 10;
 }
 
 // QuoteExecution obtains the provider/Edge execution quote before ATOS creates

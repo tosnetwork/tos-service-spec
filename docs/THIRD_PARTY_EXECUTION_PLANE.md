@@ -132,7 +132,14 @@ message a v0.1/v0.2 implementation already depends on (see
 
 `GetProviderStatusResponse`'s existing `ProviderReadiness` enum is reused
 unchanged for third-party health/certification results -- there is no new
-readiness vocabulary, only a new way to ask the question.
+readiness vocabulary, only a new way to ask the question. It gains two
+additional fields, populated only for a `ThirdPartyBinding`-carrying
+request: `bool deep_probe` and `int64 latency_unix_millis`, mirroring
+`domain.AdapterHealthCheck`/`SandboxCertification`'s existing evidence
+model -- so ATOS's `HealthService`/`CertificationService` can record
+equivalent evidence whether they probe locally or through this remote
+path (see §6 below), instead of the remote path silently degrading to
+coarser evidence than local probing already captured.
 
 ### 3.2 `tos-protocol` ↔ `tos-ai` (private, `tos-protocol`'s own implementation concern)
 
