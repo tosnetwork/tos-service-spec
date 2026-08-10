@@ -19,6 +19,7 @@ Canonical companion documents:
 - `docs/ARCHITECTURE_V0.2.md` — responsibility boundaries and legal call paths;
 - `docs/MCP.md` — MCP transport, tool, visibility and scope semantics;
 - `docs/PROOF_PROFILES.md` — normative trust/proof guarantees;
+- `docs/FINANCIAL_INTEGRITY.md` — cross-cutting Managed financial integrity, reconciliation, immutable ledger and TOS anchor hardening;
 - `IMPLEMENTATION_STATUS.md` — current cross-repository implementation status.
 
 ---
@@ -907,12 +908,38 @@ verifying and settling Native ATOS capabilities.
 
 ---
 
-## 11. Phase 7 — Economy and Proof Hardening
+## 11. Phase 7 — Economy, Financial Integrity and Proof Hardening
 
-**Goal:** harden the network after real multi-provider/multi-gateway volume
-exists.
+**Goal:** harden the network and the `atos.im` Managed financial control plane
+after real multi-provider/multi-gateway volume exists.
 
-Potential work:
+A major cross-cutting workstream in this phase is **Financial Integrity
+Hardening**, defined normatively in [`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
+It protects Managed balances, escrow, provider earnings, refunds, disputes and
+payout state against silent historical rewriting even if an application host
+or privileged database path is compromised.
+
+The target architecture includes:
+
+- append-oriented double-entry Managed ledger;
+- account/escrow/earning balances as deterministic projections rather than the only financial truth;
+- purpose-built atomic ledger + projection transaction boundaries;
+- immutable historical economic records with compensating/reversal entries instead of in-place edits;
+- runtime/migration/audit privilege separation and break-glass administration;
+- continuous ledger ↔ projection ↔ settlement ↔ payout-rail reconciliation;
+- PITR, independently retained WAL/base backups and immutable/WORM retention;
+- deterministic financial hash chains and Merkle batches;
+- external KMS/HSM signatures outside the normal ATOS application/database host trust domain;
+- periodic signed Managed-ledger root anchoring to TOS Network;
+- an independent verifier and financial safe mode for integrity incidents.
+
+The TOS root anchor is an **integrity commitment for Managed financial
+history**. It does not turn the underlying Managed Jobs into Verified Jobs and
+must never be represented as satisfying `tos_verified_v1` escrow/settlement
+requirements. Verified and Native transactions retain their own stronger
+per-transaction proof/economic guarantees.
+
+Other Phase 7 hardening work includes:
 
 - dispute resolver profiles and public resolver policy;
 - federated/multi-resolver arbitration;
@@ -928,7 +955,17 @@ Potential work:
 - signer-delegation policy hardening and hardware/TEE attestations where useful.
 
 These are later hardening steps and MUST NOT block the Managed MVP or be pulled
-forward into Phase 3 simply because adjacent domain fields already exist.
+forward into Phase 3 merely because adjacent domain fields already exist.
+However, deployments that hold material real customer/provider value SHOULD
+prioritize the Financial Integrity controls proportionally to financial risk
+rather than waiting for every federation feature to be complete.
+
+**Financial-integrity completion gate:** the normal ATOS application/database
+host can no longer silently rewrite previously externally finalized Managed
+financial history; ledger-derived projections are rebuildable, divergence is
+detected by reconciliation/signature/TOS-anchor verification, and recovery from
+independently retained evidence is tested. The detailed acceptance matrix is in
+[`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
 
 ---
 
@@ -948,7 +985,8 @@ forward into Phase 3 simply because adjacent domain fields already exist.
 12. ✅ **Managed Mode remains permanent.** Decentralization adds guarantees rather than forcing migration.
 13. **Committed execution binding is immutable.** A later endpoint/binding update cannot reroute an old Quote/Job.
 14. **Operational readiness is not trust activation.** Health/certification cannot self-activate Verified/Native.
-15. **Public schemas remain stable.** Later phases activate guarantees already modeled or version them explicitly rather than silently changing meaning.
+15. **Managed financial integrity is distinct from Verified transaction proof.** Periodically anchoring a Managed ledger root makes historical Managed accounting tamper-evident; it does not upgrade those Jobs to `trust_mode=verified`.
+16. **Public schemas remain stable.** Later phases activate guarantees already modeled or version them explicitly rather than silently changing meaning.
 
 ---
 
