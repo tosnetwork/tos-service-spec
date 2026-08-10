@@ -253,6 +253,67 @@ readiness evidence plus authority approval had converged automatically --
 this endpoint does not bypass any state-machine invariant, it only supplies
 the explicit trigger for evaluating the transition that already existed.
 
+### 2.3 Sandbox certification endpoints
+
+Provider only (`certifications:write` for the mutation, `certifications:read`
+for status), ownership enforced identically to every other provider
+mutation in this document: provider identity comes only from the
+authenticated principal, never from a `provider_id` in the request body,
+and the authenticated provider MUST own `capability_id`. Unlike §2.2, this
+*is* a provider-role operation -- a provider proving their own capability's
+binding actually works, not an authority-side decision.
+
+- `POST /capabilities/{capability_id}/certification`
+- `GET /capabilities/{capability_id}/certification`
+
+`POST` requires `Idempotency-Key` (same convention as every other
+trust/financial mutation in this document, §1) and opens (or, on a replay
+of the same key, recovers) one sandbox certification attempt against the
+Capability's binding for the given `transport`, at the Capability's
+*current* version. The probe itself runs synchronously: health
+(bounded reachability) first, then -- where the resolved adapter supports
+it -- a deeper transport-specific check (protocol handshake, bounded
+execution, response shape and schema compatibility per
+`docs/IMPLEMENTATION_ROADMAP.md` §7.1.3). A newly opened attempt is
+itself the §7.2.0 `requested -> pending` readiness-evidence trigger for
+every mode eligible on that binding, independent of whether the probe
+ultimately passes or fails.
+
+Example request:
+
+```json
+{"transport":"http"}
+```
+
+Example response:
+
+```json
+{
+  "id":"cert_...",
+  "provider_id":"agt_...",
+  "capability_id":"cap_...",
+  "capability_version":"1.2.0",
+  "transport":"http",
+  "endpoint_ref":"ep_...",
+  "status":"passed",
+  "created_at":"...",
+  "completed_at":"..."
+}
+```
+
+`status` is one of `pending|passed|failed`. A `failed` result is a normal
+response (200), not an error -- `failure_reason` and `evidence` explain
+why, mirroring the execution-signer status projection's convention of
+distinguishing "the operation ran and told you no" from "the operation
+could not run at all." Sandbox certification alone -- like health alone,
+like signer authorization alone -- never activates Verified or Native; it
+is one of the readiness dimensions `ActivationAuthority.Evaluate` (§2.2)
+may consider, never a substitute for it.
+
+`GET` returns the certification history for `capability_id` (newest
+first), scoped to the requesting provider's own capability -- there is no
+cross-provider certification visibility.
+
 ## 3. Quote Endpoints
 
 - `POST /quotes`
