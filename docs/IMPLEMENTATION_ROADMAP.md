@@ -848,14 +848,14 @@ Phase 4 later supplies the real TOS-backed authority behind the same
 interface; Phase 3B does not implement fake on-chain activation to make this
 interface non-trivial.
 
-**Progress note (not ✅ -- open, unmerged PR):** the full §7.2 slice below
-(§7.2.0 through §7.2.4) has a working implementation on `atos` PR
-[#12](https://github.com/tosnetwork/atos/pull/12) (branch
-`agent/phase3b-mode-activation`, 9 commits, HEAD `7328dd6`, not yet merged).
+✅ **Status: the full §7.2 slice below (§7.2.0 through §7.2.4) is implemented
+and merged.** `atos` PR [#12](https://github.com/tosnetwork/atos/pull/12)
+(branch `agent/phase3b-mode-activation`, 11 commits, merged as `b7d2be2`)
+went through three independent post-hoc review rounds before merge, each
+finding real, previously-unnoticed correctness gaps that were fixed and
+re-verified rather than deferred -- see below for what each round found.
 Per this document's own verification standard (see the top of this file),
-nothing here is marked ✅ until that PR is merged and independently
-re-verified; this note is a descriptive status snapshot, not a completion
-claim.
+this mark reflects that history, not a single clean pass.
 
 What the PR contains: `domain.ModeSupport.AdvanceToPending`/`.Suspend`/
 `.Activate` implement the full transition graph above; `domain.ActivationAuthority`
@@ -863,7 +863,7 @@ What the PR contains: `domain.ModeSupport.AdvanceToPending`/`.Suspend`/
 implementation, always denies verified/native with
 `ACTIVATION_AUTHORITY_UNAVAILABLE`); `HealthService.CheckCapability` and
 `CertificationService.Open` drive `requested -> pending` and `active ->
-`suspended` automatically, and are now constructed and periodically swept in
+suspended` automatically, and are now constructed and periodically swept in
 `cmd/api/main.go` (closing the §7.1.1/§7.1.3 "known gap" this document
 previously recorded). §7.2.2's durable execution-signer journal
 (`domain.ExecutionSignerOperation`, migration `011_phase3b_execution_signer.sql`,
@@ -927,10 +927,10 @@ cursor match could revoke the wrong one of two signers sharing an ID (new
 secondary index makes `Authorize` reject the reuse and `Revoke` an O(1)
 lookup).
 
-That same second review then re-examined `atos` PR #12 itself and found five
-more gaps in the `atos`-side journal design this section describes, all
-confirmed with tests that fail without the fix and fixed in a follow-up
-commit on the same PR (`7328dd6`, still unmerged):
+That same second review then re-examined `atos` PR #12 itself (round 1 of
+three on this PR) and found five more gaps in the `atos`-side journal design
+this section describes, all confirmed with tests that fail without the fix
+and fixed in commit `7328dd6`:
 
 - **P0**: two concurrent `Rotate` calls on different idempotency keys for
   the same capability both read the same old signer as current before
@@ -979,11 +979,70 @@ commit on the same PR (`7328dd6`, still unmerged):
   `tos-protocol`'s own commitment digest and must be identity content like
   every other caller-supplied field.
 
-Both rounds of verification used a fresh local Postgres (`gofmt`, `go vet`,
-full test suite with `-race`, including the new deterministic concurrency
-and lost-response tests) rather than a shared long-lived dev database, to
-avoid the historical-dirty-data false failures that database is known to
-produce for unrelated tests.
+**Round 2** re-pulled and re-reviewed `7328dd6` specifically and found the
+round-1 fix had itself left one more P0 and two P1s, fixed in `ab34483`:
+
+- **P0**: `Authorize` was not routed through `OpenSignerOperationForCapability`
+  at all -- it still called the plain `OpenSignerOperation`, and never
+  checked whether a current signer already existed despite its own doc
+  comment describing it as authorizing only the "first" signer. Two
+  concurrent `Authorize` calls on different idempotency keys for the same
+  capability could each open and complete independently -- the identical
+  orphaned-signer shape round 1 fixed for `Rotate`, just missed for
+  `Authorize`. Fixed by routing `Authorize` through
+  `OpenSignerOperationForCapability` too, rejecting when a signer is
+  already current (directs the caller to `Rotate` instead); verified with
+  the same deterministic blocking-core concurrency test technique used for
+  `Rotate`.
+- Round 1's validity-explicitness fix (comparing `valid_from`/`valid_until`
+  only when the CURRENT request explicitly supplies them) overcorrected: an
+  explicit, deliberate validity change under a reused idempotency key was
+  also silently ignored instead of conflicting, since the caller had no way
+  to signal "I changed this on purpose" versus "the server defaulted it
+  again." Partially fixed here by comparing whenever the CURRENT request is
+  explicit (closed in round 3 below, which found this was still
+  asymmetric).
+- A genuine, `go test -race`-confirmed data race through PRODUCTION code
+  (not a test fixture): `RecordReadinessEvidence`'s `AdvanceToPending` call
+  mutated a `Capability`'s `ModeSupport` map in place while
+  `CapabilityService.Get` (via `ActiveModes`) concurrently read the same
+  map -- the memory store's `Get` returns a `Capability` by value, but Go
+  copies map fields by reference, so the returned copy's `ModeSupport` was
+  still the store's own live map. Fixed at the root: `AdvanceToPending`/
+  `Suspend`/`Activate` are now copy-on-write, never mutating the receiver.
+  This exposed a test (`TestHealthService_CheckCapability_NeverMutatesModeSupport`)
+  that had been vacuously passing for the identical reason -- a `before`
+  snapshot secretly aliasing `after` -- renamed and fixed to assert the
+  real invariant (never directly activates Verified/Native) instead of a
+  stricter one the design was never meant to satisfy. A second, non-production
+  test-only race noted in passing (`fakeThirdPartyHealthProber`'s call
+  counter) was fixed too, so the full suite runs `-race` clean with zero
+  exclusions.
+
+**Round 3** re-pulled `ab34483` and found round 2's validity-explicitness
+fix was still asymmetric -- fixed in `bc03561`, the PR's final commit:
+
+- **P2**: the comparison only checked "if the CURRENT request is explicit,
+  values must match," so a field explicitly supplied on the FIRST call and
+  then omitted on a same-idempotency-key retry had its comparison skipped
+  entirely and silently resumed the original operation -- the one
+  remaining case where "different content under a reused key" didn't
+  conflict. Fixed by persisting `NewValidFromExplicit`/`NewValidUntilExplicit`
+  on `domain.ExecutionSignerOperation` itself (new columns on migration
+  `011`, which only existed within this unmerged PR so amended in place
+  rather than adding `012`) and comparing symmetrically:
+  `existing.NewValidFromExplicit == in.ValidFromExplicit && (!explicit ||
+  values match)`. All four explicit/omitted combinations now behave
+  correctly; new tests for both `Authorize` and `Rotate` cover the closed
+  gap directly.
+
+All three rounds of verification on `atos` (and the `tos-protocol` review
+above) used a fresh local Postgres (`gofmt`, `go vet`, full test suite with
+`-race`, including the deterministic concurrency and lost-response tests)
+rather than a shared long-lived dev database, to avoid the
+historical-dirty-data false failures that database is known to produce for
+unrelated tests. The final `-race` run before merge covered every package
+with zero skips or exclusions.
 
 Known remaining gaps, not yet addressed: no admin-triggered (as opposed to
 evidence-triggered) path to invoke `EvaluateActivation`; and the "real
