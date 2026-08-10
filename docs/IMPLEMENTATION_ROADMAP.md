@@ -848,6 +848,33 @@ Phase 4 later supplies the real TOS-backed authority behind the same
 interface; Phase 3B does not implement fake on-chain activation to make this
 interface non-trivial.
 
+**Progress note (not ✅ -- uncommitted in `atos`, no PR yet):** `atos`'s
+working tree (`main`, local changes not yet committed) has an initial
+implementation of §7.2.0's transition mechanics and this section's interface:
+`domain.ModeSupport.AdvanceToPending`/`.Suspend`/`.Activate` apply exactly the
+`requested->pending`/`active->suspended`/`{pending,suspended}->active` edges
+from the frozen graph above (each a no-op from any other source state);
+`domain.ActivationAuthority` matches this section's interface, with
+`service.FailClosedActivationAuthority` as the production implementation
+(always denies verified/native with `ACTIVATION_AUTHORITY_UNAVAILABLE`).
+`CapabilityService.RecordReadinessEvidence` / `SuspendModeIfActive` /
+`EvaluateActivation` are the service-level entry points, wired into
+`HealthService.CheckCapability` and `CertificationService.Open` so a recorded
+health check or certification attempt now legitimately drives
+`requested -> pending`, and a failed one drives `active -> suspended`. Seven
+new tests in `internal/service/mode_activation_test.go` exercise the matrix
+mechanically, including a revert-and-confirm-fails cycle against the wiring.
+
+This is a small slice of §7.2, not a completion, and should not be read as
+✅-equivalent -- per this document's own verification standard (see the top
+of this file), nothing here has a merged PR to independently re-verify
+against yet. In particular: nothing yet calls `EvaluateActivation`
+automatically (no periodic reconciler or admin-triggered re-evaluation
+exists); execution-signer authorization (§7.2.2 below) is not yet wired as an
+`EvaluateActivation` input; and §7.2.2's signer rotation/checkpoint model,
+§7.2.3's public REST/MCP surface, and §7.2.4's crash-safety/multi-replica
+success criteria remain entirely unimplemented.
+
 #### 7.2.2 Execution-signer operations (normative)
 
 `tos-protocol`'s `TrustService.AuthorizeExecutionSigner` /
