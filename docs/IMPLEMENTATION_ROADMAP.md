@@ -848,32 +848,67 @@ Phase 4 later supplies the real TOS-backed authority behind the same
 interface; Phase 3B does not implement fake on-chain activation to make this
 interface non-trivial.
 
-**Progress note (not ✅ -- uncommitted in `atos`, no PR yet):** `atos`'s
-working tree (`main`, local changes not yet committed) has an initial
-implementation of §7.2.0's transition mechanics and this section's interface:
-`domain.ModeSupport.AdvanceToPending`/`.Suspend`/`.Activate` apply exactly the
-`requested->pending`/`active->suspended`/`{pending,suspended}->active` edges
-from the frozen graph above (each a no-op from any other source state);
-`domain.ActivationAuthority` matches this section's interface, with
-`service.FailClosedActivationAuthority` as the production implementation
-(always denies verified/native with `ACTIVATION_AUTHORITY_UNAVAILABLE`).
-`CapabilityService.RecordReadinessEvidence` / `SuspendModeIfActive` /
-`EvaluateActivation` are the service-level entry points, wired into
-`HealthService.CheckCapability` and `CertificationService.Open` so a recorded
-health check or certification attempt now legitimately drives
-`requested -> pending`, and a failed one drives `active -> suspended`. Seven
-new tests in `internal/service/mode_activation_test.go` exercise the matrix
-mechanically, including a revert-and-confirm-fails cycle against the wiring.
+**Progress note (not ✅ -- open, unmerged PR):** the full §7.2 slice below
+(§7.2.0 through §7.2.4) has a working implementation on `atos` PR
+[#12](https://github.com/tosnetwork/atos/pull/12) (branch
+`agent/phase3b-mode-activation`, not yet merged). Per this document's own
+verification standard (see the top of this file), nothing here is marked ✅
+until that PR is merged and independently re-verified; this note is a
+descriptive status snapshot, not a completion claim.
 
-This is a small slice of §7.2, not a completion, and should not be read as
-✅-equivalent -- per this document's own verification standard (see the top
-of this file), nothing here has a merged PR to independently re-verify
-against yet. In particular: nothing yet calls `EvaluateActivation`
-automatically (no periodic reconciler or admin-triggered re-evaluation
-exists); execution-signer authorization (§7.2.2 below) is not yet wired as an
-`EvaluateActivation` input; and §7.2.2's signer rotation/checkpoint model,
-§7.2.3's public REST/MCP surface, and §7.2.4's crash-safety/multi-replica
-success criteria remain entirely unimplemented.
+What the PR contains: `domain.ModeSupport.AdvanceToPending`/`.Suspend`/
+`.Activate` implement the full transition graph above; `domain.ActivationAuthority`
++ `service.FailClosedActivationAuthority` (the only production-wired
+implementation, always denies verified/native with
+`ACTIVATION_AUTHORITY_UNAVAILABLE`); `HealthService.CheckCapability` and
+`CertificationService.Open` drive `requested -> pending` and `active ->
+suspended` automatically, and are now constructed and periodically swept in
+`cmd/api/main.go` (closing the §7.1.1/§7.1.3 "known gap" this document
+previously recorded). §7.2.2's durable execution-signer journal
+(`domain.ExecutionSignerOperation`, migration `011_phase3b_execution_signer.sql`,
+`service.ExecutionSignerService`) implements the full checkpoint sequence for
+authorize/rotate/revoke with a startup+periodic reconciler, reusing the
+existing `OpenCertification`-style idempotent-create pattern rather than a
+new digest model. §7.2.3's public surface exists on both REST
+(`POST /v1/capabilities/{id}/execution-signer/{authorize,rotate,revoke}`,
+`GET .../execution-signer`) and MCP (`atos_authorize_execution_signer` /
+`atos_rotate_execution_signer` / `atos_revoke_execution_signer` /
+`atos_get_execution_signer_status`), plus the `readiness` projection
+extension on the existing Capability read response, with `signer_authorized`
+reflecting real signer state (not a placeholder). §7.2.4's success criterion
+has direct test coverage: an 18-step end-to-end acceptance test against real
+Postgres (rotation crashing mid-flight, two simulated restarts, reconciler
+convergence, a lost revoke response, and a final assertion that verified/
+native never entered `supported_trust_modes`), a two-independent-Postgres-
+replicas-race test for the reconciler (5x with `-race`, clean), and a
+positive activation-authority test proving the granted-path derives
+`supported_trust_modes` correctly. A genuine version-scoping bug was found
+and fixed during this work: execution-signer currency was originally
+capability-scoped only, not capability-*version*-scoped, so a signer
+authorized for version N incorrectly stayed "current" after a version bump
+to N+1; `CurrentSigner` now checks both.
+
+`tos-protocol`'s own signer RPCs were audited separately (confirmed already
+idempotent and version-bound, no RPC/proto changes needed) and given
+dedicated test coverage on `tos-protocol` PR
+[#15](https://github.com/tosnetwork/tos-protocol/pull/15) (also unmerged),
+which independently confirmed the same-idempotency-key vs.
+different-idempotency-key-same-content distinction this section's `atos`-side
+journal design depends on.
+
+Known remaining gaps, not yet addressed: no admin-triggered (as opposed to
+evidence-triggered) path to invoke `EvaluateActivation`; and the "real
+ConnectRPC tos-protocol, not only a Go-interface mock" variant of the §29
+acceptance scenario was not built (the mock-based version was judged
+sufficient given tos-protocol's independent RPC-level coverage). §32's
+Receipt-verification requirement ("use signer-authorization semantics
+applicable to the relevant execution time/version, not simply whatever
+signer is current now") was checked, not found to be a gap:
+`toscore.Core.VerifyExecutionReceipt` already resolves authorization via
+`ResolveExecutionSignerAuthorization(..., receipt.CapabilityVersion,
+receipt.ExecutionSignerID, receipt.CompletedAt)` -- the receipt's own frozen
+execution-time identity and timestamp, never "whatever is current now". This
+predates Phase 3B and needed no change.
 
 #### 7.2.2 Execution-signer operations (normative)
 
