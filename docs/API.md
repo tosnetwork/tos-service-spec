@@ -84,13 +84,109 @@ Example response:
   "supported_trust_modes":["managed"],
   "mode_support":{
     "managed":{"status":"active"},
-    "verified":{"status":"pending","proof_profile":"tos_verified_v1"},
-    "native":{"status":"pending","proof_profile":"tos_native_v1"}
+    "verified":{"status":"requested","proof_profile":"tos_verified_v1"},
+    "native":{"status":"requested","proof_profile":"tos_native_v1"}
+  },
+  "readiness":{
+    "verified":{
+      "requested":true,
+      "status":"requested",
+      "transport_healthy":false,
+      "health_fresh":false,
+      "certification_current":false,
+      "signer_authorized":false,
+      "activation_authority_satisfied":false,
+      "reason_code":"NO_READINESS_EVIDENCE_YET"
+    },
+    "native":{
+      "requested":true,
+      "status":"requested",
+      "transport_healthy":false,
+      "health_fresh":false,
+      "certification_current":false,
+      "signer_authorized":false,
+      "activation_authority_satisfied":false,
+      "reason_code":"NO_READINESS_EVIDENCE_YET"
+    }
   }
 }
 ```
 
-A generic provider PATCH MUST NOT directly force `supported_trust_modes` or certification state to `active`.
+`mode_support[mode].status` is one of `requested|pending|active|suspended|unsupported`
+per `docs/IMPLEMENTATION_ROADMAP.md` §7.2.0's frozen transition matrix. A
+generic provider PATCH MUST NOT directly force `supported_trust_modes` or
+`mode_support[mode].status` to `active` -- only the activation authority can,
+and never as a side effect of a metadata PATCH.
+
+`readiness` is the public per-mode availability/evidence projection (§7.2.0/
+§10 of the roadmap), present for every mode in `requested_trust_modes` other
+than `managed` (Managed has no readiness concept -- it is unconditionally
+`active`). It answers, without exposing secrets: was this mode requested; its
+lifecycle status; is an eligible transport healthy and is that health
+evidence fresh; has this exact Capability version/binding passed sandbox
+certification; is a required execution-signer authorization current; is the
+activation-authority condition satisfied; and a `reason_code` explaining
+whichever of these is the blocking one when the mode is not `active` (e.g.
+`NO_READINESS_EVIDENCE_YET`, `TRANSPORT_UNHEALTHY`, `HEALTH_STALE`,
+`CERTIFICATION_NOT_CURRENT`, `SIGNER_NOT_AUTHORIZED`,
+`ACTIVATION_AUTHORITY_UNAVAILABLE`). `readiness[mode].status` MUST always
+equal `mode_support[mode].status` -- it is a detail projection of the same
+authoritative state, never a second source of truth.
+
+### 2.1 Execution-signer endpoints
+
+Provider/admin only (`execution_signers:write` for mutations,
+`execution_signers:read` for status), authorization identical to every other
+provider mutation in this document: provider identity comes only from the
+authenticated principal, never from a `provider_id` in the request body, and
+the authenticated provider MUST own `capability_id`.
+
+- `POST /capabilities/{capability_id}/execution-signer/authorize`
+- `POST /capabilities/{capability_id}/execution-signer/rotate`
+- `POST /capabilities/{capability_id}/execution-signer/revoke`
+- `GET /capabilities/{capability_id}/execution-signer`
+
+All three mutation endpoints require `Idempotency-Key` (same convention as
+every other financial/trust mutation in this document, §1) and accept only a
+signer public key and signer ID -- never a private key. Per
+`docs/IMPLEMENTATION_ROADMAP.md` §7.2.2, `rotate` is durable `atos`-side
+orchestration of authorize-then-revoke, never the reverse order, and the
+response/status projection exposes the current durable checkpoint
+(`intent_persisted|new_authorization_pending|new_authorized|cutover_pending|
+old_revocation_pending|old_revoked|completed|reconciling`) rather than a
+boolean success flag, so a caller can distinguish "still in progress" from
+"failed" from "done."
+
+Example authorize request:
+
+```json
+{
+  "capability_version":"1.2.0",
+  "execution_signer_id":"sig_...",
+  "signer_public_key":"base64:...",
+  "signature_algorithm":"ed25519"
+}
+```
+
+Example status response (mid-rotation):
+
+```json
+{
+  "capability_id":"cap_...",
+  "capability_version":"1.2.0",
+  "operation_id":"sigop_...",
+  "operation_type":"rotate",
+  "checkpoint":"new_authorization_pending",
+  "old_execution_signer_id":"sig_old",
+  "new_execution_signer_id":"sig_new",
+  "current_execution_signer_id":"sig_old"
+}
+```
+
+`current_execution_signer_id` MUST remain the old signer until `checkpoint`
+reaches `new_authorized`, per the rotation ordering frozen in the roadmap --
+a caller must never observe the new signer advertised as current before its
+authorization is confirmed durable.
 
 ## 3. Quote Endpoints
 
@@ -236,7 +332,7 @@ Authentication identifies the gateway principal and policy context. It does not 
 
 Provider operations MUST preserve the Job's Quote-bound concrete trust mode and proof profile.
 
-Mode certification/activation MAY use dedicated provider/admin endpoints later, but ordinary Capability metadata PATCH cannot bypass ownership, manifest, signer-authorization, proof/settlement, or Native-resolution checks.
+Mode certification/activation use the dedicated provider/admin execution-signer endpoints defined in §2.1 (Phase 3B); ordinary Capability metadata PATCH cannot bypass ownership, manifest, signer-authorization, proof/settlement, or Native-resolution checks.
 
 ## 10. Public/Metadata Endpoints
 

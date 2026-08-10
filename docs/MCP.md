@@ -124,6 +124,8 @@ Examples:
 | `atos_deliver_job` | `provider_jobs:deliver` + provider role |
 | `atos_request_settlement` | `settlement:write` + provider role |
 | `atos_dispute_job` | `disputes:review` |
+| `atos_authorize_execution_signer`, `atos_rotate_execution_signer`, `atos_revoke_execution_signer` | `execution_signers:write` + provider role |
+| `atos_get_execution_signer_status` | `execution_signers:read` + provider role |
 
 Target-object ownership is always checked on `tools/call`, even if a coarse ownership condition was already used to hide/show the tool.
 
@@ -489,6 +491,8 @@ Implemented:
 - `atos_deliver_job` — `provider_jobs:deliver` + target-job/provider authorization; delivers a completed result for a Job owned by the authenticated provider. Provider identity always comes from the authenticated principal, never request JSON; the Job's Quote remains authoritative for trust_mode/pricing — only `output` is accepted. A duplicate delivery for an already-completed Job is a safe, idempotent no-op.
 - `atos_request_settlement` — **`settlement:write`** (Phase 3A resolves this scope; deliberately separate from the pre-existing read-only `settlement:read`, never overloading a read scope to authorize a money-changing operation). A thin facade over the existing Job economic-reconciliation entry point — never a second settlement engine, never a caller-supplied settlement amount. Provider ownership of the target Job is required.
 - `atos_dispute_job` — **`disputes:review`** (the same scope Phase 2C's REST dispute-review/-resolve operations already require — Phase 3A reuses it rather than inventing a broader provider/admin dispute scope). Strictly operation-discriminated (`operation: "review" | "resolve"`) thin facade over the existing Phase 2C `DisputeService`; no parallel dispute state machine. `reviewer_id` always comes from the authenticated principal.
+- `atos_authorize_execution_signer` / `atos_rotate_execution_signer` / `atos_revoke_execution_signer` — **`execution_signers:write`** (Phase 3B; new scope, deliberately separate from every other provider/admin scope rather than overloading `capabilities:write`, since signer mutation is a distinct trust-side effect class from ordinary Capability metadata). Distinct tools rather than one operation-discriminated tool (unlike `atos_dispute_job`) because `authorize`/`rotate`/`revoke` take meaningfully different required parameters, not near-identical review/resolve shapes. `provider_id`/`execution_signer_id` ownership always resolves from the authenticated principal + `docs/IMPLEMENTATION_ROADMAP.md` §7.2.0's Capability-ownership rule, never from request JSON. `rotate` is durable orchestration of authorize-then-revoke (§7.2.2) — it is never implemented as two independent tool calls a client must sequence itself. Accepts only a signer public key and signer ID; no tool in this repository's contract ever accepts or returns a private key.
+- `atos_get_execution_signer_status` — **`execution_signers:read`**; returns the current signer, and the in-progress operation's durable checkpoint if one is pending/reconciling, for the target Capability. Read-only, no mutation.
 
 Provider/admin settlement operations MUST preserve Quote/Job concrete trust mode and proof profile.
 

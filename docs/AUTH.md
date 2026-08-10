@@ -118,6 +118,8 @@ Provider:
 - `provider_jobs:read`
 - `provider_jobs:deliver`
 - `earnings:read`
+- `execution_signers:read` (Phase 3B; execution-signer status)
+- `execution_signers:write` (Phase 3B; execution-signer authorize/rotate/revoke -- deliberately separate from `capabilities:write`, since signer mutation is a distinct trust-side effect, not ordinary Capability metadata)
 
 Advanced/proof:
 

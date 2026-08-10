@@ -764,24 +764,182 @@ Deliver:
 - durable pending/reconciliation checkpoints for signer mutations;
 - explicit activation authority boundaries.
 
-Transition authority rule:
+#### 7.2.0 Mode-support transition matrix (normative)
 
-- providers may request modes;
-- health/certification may create readiness evidence and pending/suspended operational states;
-- providers may not set `active` directly;
-- Verified/Native `active` requires the stronger trust activation authority defined by the TOS-backed path; before Phase 4 production activation exists, stronger modes remain fail-closed even if every readiness check is green.
+`domain.ModeSupportStatus` already defines exactly these five states
+(`requested`, `pending`, `active`, `suspended`, `unsupported`); Phase 3A only
+ever produced `active`/`pending`/`unsupported` (Managed goes straight to
+`active`, a requested Verified/Native goes straight to `pending`, `requested`
+itself was defined but never assigned). Phase 3B gives `requested` a real,
+distinct meaning and freezes the complete legal transition graph:
 
-Signer mutations are external trust-side effects and require stable action
-identity, durable intent, replay-safe `tos-protocol` calls and restart
-reconciliation. Rotation/revocation must never briefly advertise both an
-unauthorized new signer and an unrecoverably removed old signer without a
-well-defined transition.
+```text
+requested  = provider has asked for this mode; no readiness evidence
+             (health/certification) has been recorded yet for the
+             Capability's CURRENT version.
+pending    = at least one readiness evidence cycle has run for the current
+             version, but the activation authority has not granted active.
+active     = the activation authority has granted this mode active.
+suspended  = was active; readiness evidence that active depended on
+             (health, certification, or signer authorization) is no longer
+             valid for the current version. Underlying historical trust
+             evidence (e.g. a still-recorded past certification) is not
+             destroyed, only no longer treated as current.
+unsupported = not requested, or the provider stopped requesting it.
+```
 
-**Success criterion:** signer rotation/revocation survives a crash at every
-external-call boundary; two replicas converge on one signer state; and no
-combination of provider self-assertion, health, sandbox certification or signer
-registration alone can add Verified/Native to `supported_trust_modes` without
-the activation authority.
+Legal transitions and their sole authority:
+
+| From | To | Trigger | Authority |
+|---|---|---|---|
+| `unsupported` | `requested` | provider adds the mode to `requested_trust_modes` (existing `PATCH /capabilities/{id}` contract, unchanged) | **Provider** |
+| `requested` | `pending` | first readiness evidence (health check or certification attempt) recorded for the Capability's current version | **Readiness pipeline** (system) |
+| `requested` | `unsupported` | provider removes the mode from `requested_trust_modes` | **Provider** |
+| `pending` | `unsupported` | provider removes the mode from `requested_trust_modes` | **Provider** |
+| `pending` | `active` | activation authority evaluates and grants | **Activation authority** |
+| `active` | `suspended` | readiness evidence this activation depended on becomes invalid for the current version | **Readiness pipeline** (system) |
+| `active` | `unsupported` | provider removes the mode from `requested_trust_modes` | **Provider** |
+| `suspended` | `active` | activation authority re-evaluates and grants (readiness restored) | **Activation authority** |
+| `suspended` | `unsupported` | provider removes the mode from `requested_trust_modes` | **Provider** |
+
+Any other transition (in particular anything driven directly by a
+provider-supplied `{"status":"active"}` or equivalent) MUST be rejected, not
+silently normalized. Managed is a permanent exception to this whole table:
+it has exactly two states (`unsupported`/`active`, no `pending`/`suspended`),
+requires no signer/certification evidence, and Phase 3B MUST NOT change its
+existing unconditional-`active`-on-request behavior.
+
+A Capability version bump resets per-version readiness evidence (health,
+certification, and -- since it is itself version-scoped, see
+`ExecutionSignerAuthorizationInput.capability_version` below -- signer
+authorization currency) for that mode, per the existing binding-freeze
+precedent (§7.1.0). It does NOT automatically demote `active`/`suspended`
+back to `requested` purely because the version changed; readiness re-checks
+against the new version drive any resulting `suspended` transition through
+the normal rule above, the same way health/certification staleness already
+does. Historical evidence tied to the old version remains auditable and is
+never mutated.
+
+#### 7.2.1 ActivationAuthority (normative interface, not just an internal detail)
+
+Stronger-mode activation MUST be delegated to a single, explicit interface
+-- never inlined boolean logic like `if healthy && certified && signerExists`.
+Conceptually:
+
+```text
+ActivationAuthority.Evaluate(provider_id, capability_id, capability_version, mode)
+    -> (granted: bool, reason_code: string)
+```
+
+Two implementations are in scope for Phase 3B:
+
+- **Production** (`atos_env=production` or any deployment without a
+  configured Phase 4 authority): fail-closed for `verified`/`native` --
+  always returns `granted=false` with a stable reason code (e.g.
+  `ACTIVATION_AUTHORITY_UNAVAILABLE`). Managed never goes through this
+  interface at all.
+- **Test-only**: proves the positive path (§7.2's own success criterion
+  requires demonstrating `pending` + readiness + signer authorization +
+  authoritative grant `= active`, and that `supported_trust_modes` is
+  correctly derived from it). MUST NOT be reachable from production
+  configuration.
+
+Phase 4 later supplies the real TOS-backed authority behind the same
+interface; Phase 3B does not implement fake on-chain activation to make this
+interface non-trivial.
+
+#### 7.2.2 Execution-signer operations (normative)
+
+`tos-protocol`'s `TrustService.AuthorizeExecutionSigner` /
+`RevokeExecutionSigner` / `ResolveExecutionSignerAuthorization` (this
+repository's `proto/atos/tos/v1/trust.proto`, already implemented) are
+reused unchanged -- they are already idempotent (shared `atomicMutation`
+canonicalized-digest machinery, same as `CommitQuote`) and already
+version-bound (`ExecutionSignerAuthorizationInput.capability_version`). Phase
+3B does not add a `RotateExecutionSigner` RPC: rotation is durable `atos`-side
+orchestration of `Authorize` + `Revoke`, because the existing two RPCs are
+already sufficient and atomic individually -- only the multi-step sequencing
+between them needs a new durable checkpoint model, entirely on the `atos`
+side.
+
+Rotation is NEVER `revoke old` -> `authorize new`. The frozen sequence and
+its durable checkpoints:
+
+```text
+intent_persisted
+    -> new_authorization_pending
+    -> new_authorized
+    -> cutover_pending
+    -> old_revocation_pending
+    -> old_revoked
+    -> completed
+```
+
+plus a `reconciling` checkpoint for any step whose remote outcome is
+uncertain (RPC response lost, process crashed mid-step). The old signer
+remains authoritative and ATOS MUST NOT advertise the new signer as current
+until `new_authorized` is durably reached; ATOS MUST NOT irrecoverably
+discard the old signer's local record before `new_authorized`. A crash at
+any checkpoint boundary must converge to the correct next step on restart,
+never silently skip a step.
+
+Plain `authorize` and plain `revoke` (not part of a rotation) use the
+relevant subset of the same checkpoint model (`intent_persisted` ->
+`new_authorization_pending`/`old_revocation_pending` -> `new_authorized`/
+`old_revoked` -> `completed`).
+
+An RPC timeout or lost response is never treated as a definitive outcome --
+the operation stays `reconciling` until a subsequent attempt (retry or
+reconciler) observes a deterministic result. `tos-protocol` itself has no
+async/pending concept for these RPCs (confirmed: every signer RPC there is
+synchronous, atomic-or-nothing); all crash recovery is `atos`'s
+responsibility, exactly like the existing Managed economic reconciler.
+
+#### 7.2.3 Public surface (normative)
+
+New REST/MCP surface, following this repository's existing conventions
+(`docs/API.md` / `docs/MCP.md` own the exact schemas; this section freezes
+only the shape and authorization rule):
+
+- Per-mode availability/readiness projection is exposed as an extension of
+  the existing `mode_support` object on the Capability read response
+  (`GET /capabilities/{id}`, `atos_get_capability`) -- not a new endpoint --
+  reusing `domain.ModeAvailability` per §7.1.3, extended with the signer/
+  activation-authority dimensions §7.2.1/§7.2.2 add. Public: no
+  authentication-scoped secrets, callable by any authenticated consumer
+  (existing `capabilities:read` scope), never exposes endpoint credentials
+  or signer key material.
+- Execution-signer authorize/rotate/revoke/status are new provider/admin-only
+  operations (new scopes `execution_signers:read` / `execution_signers:write`,
+  following the existing `provider_jobs:read`/`provider_jobs:deliver` naming
+  convention), REST under `/v1/capabilities/{id}/execution-signer` and MCP
+  tools `atos_authorize_execution_signer` / `atos_rotate_execution_signer` /
+  `atos_revoke_execution_signer` / `atos_get_execution_signer_status`.
+  Ownership is enforced identically to every existing provider mutation
+  (`internal/service/capability.go`'s `ProviderID != requestingProviderID`
+  pattern): provider identity comes only from the authenticated principal,
+  never from request JSON. Idempotency reuses the existing
+  `Reserve`/`Finish`/`Release` + canonical-request-digest primitive
+  (`internal/store`), the same one every other provider mutation already
+  uses -- not a new digest model.
+- Per §7.1.4's rule (and the ordinary-tool-list-compactness rule below),
+  these four tools are visible only to a caller holding the relevant scope
+  and are never added to the ordinary nine-tool consumer surface;
+  `tools/call` re-authorizes independently of `tools/list` visibility,
+  exactly like the existing four Phase 3A provider/admin tools already do.
+
+Signer public/private key handling: the public API accepts only a signer
+public key and signer ID on authorize; there is no operation that accepts or
+returns a private key; no response, log, or observability field may contain
+raw key material.
+
+#### 7.2.4 Success criterion
+
+signer rotation/revocation survives a crash at every external-call boundary;
+two replicas converge on one signer state; and no combination of provider
+self-assertion, health, sandbox certification or signer registration alone
+can add Verified/Native to `supported_trust_modes` without the activation
+authority.
 
 ### 7.3 Phase 3C — Open Task Marketplace
 
