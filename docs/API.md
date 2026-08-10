@@ -202,6 +202,19 @@ explicitly insufficient authority to activate Verified/Native.
 
 - `POST /capabilities/{capability_id}/activation/evaluate`
 
+Requires `Idempotency-Key` (same convention as every other financial/trust
+mutation in this document, §1), scoped by the calling admin's own identity
+-- not `capability_id`, since this endpoint is not owner-scoped and two
+different admins independently using the identical key string must not
+collide. A retry with the same `Idempotency-Key` and identical
+`capability_id`/`mode` replays the ORIGINAL decision this endpoint made
+(the exact `granted`/`reason_code`/`mode_support` values from the first
+call), even if live state has since changed for unrelated reasons -- it
+never re-evaluates the authority a second time, and never fails with "mode
+is already active" merely because the first attempt's response was lost.
+Reusing the key against a different `capability_id` or `mode` is an
+`idempotency_conflict`, not a replay.
+
 Request:
 
 ```json
