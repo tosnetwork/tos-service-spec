@@ -122,6 +122,8 @@ Examples:
 | `atos_pause_capability` | `capabilities:write`; owning at least one Capability may be used as an additional visibility filter |
 | `atos_provider_jobs` | `provider_jobs:read` + provider role |
 | `atos_deliver_job` | `provider_jobs:deliver` + provider role |
+| `atos_request_settlement` | `settlement:write` + provider role |
+| `atos_dispute_job` | `disputes:review` |
 
 Target-object ownership is always checked on `tools/call`, even if a coarse ownership condition was already used to hide/show the tool.
 
@@ -483,13 +485,10 @@ Implemented:
 
 - `atos_list_my_capabilities` — `capabilities:write`; returns an empty list if the provider owns none.
 - `atos_pause_capability` — `capabilities:write`; target ownership re-checked on call.
-
-Specified for later phases:
-
-- `atos_provider_jobs` — `provider_jobs:read` + provider role;
-- `atos_deliver_job` — `provider_jobs:deliver` + target-job/provider authorization;
-- `atos_request_settlement` — appropriate settlement/provider scope when defined;
-- `atos_dispute_job` — appropriate dispute/provider scope when defined.
+- `atos_provider_jobs` — `provider_jobs:read` + provider role; lists Jobs owned by the authenticated provider, or gets one by `job_id` (ownership re-checked on the single-job path).
+- `atos_deliver_job` — `provider_jobs:deliver` + target-job/provider authorization; delivers a completed result for a Job owned by the authenticated provider. Provider identity always comes from the authenticated principal, never request JSON; the Job's Quote remains authoritative for trust_mode/pricing — only `output` is accepted. A duplicate delivery for an already-completed Job is a safe, idempotent no-op.
+- `atos_request_settlement` — **`settlement:write`** (Phase 3A resolves this scope; deliberately separate from the pre-existing read-only `settlement:read`, never overloading a read scope to authorize a money-changing operation). A thin facade over the existing Job economic-reconciliation entry point — never a second settlement engine, never a caller-supplied settlement amount. Provider ownership of the target Job is required.
+- `atos_dispute_job` — **`disputes:review`** (the same scope Phase 2C's REST dispute-review/-resolve operations already require — Phase 3A reuses it rather than inventing a broader provider/admin dispute scope). Strictly operation-discriminated (`operation: "review" | "resolve"`) thin facade over the existing Phase 2C `DisputeService`; no parallel dispute state machine. `reviewer_id` always comes from the authenticated principal.
 
 Provider/admin settlement operations MUST preserve Quote/Job concrete trust mode and proof profile.
 
