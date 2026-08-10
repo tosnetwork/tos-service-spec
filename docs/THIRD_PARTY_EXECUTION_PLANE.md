@@ -1,6 +1,6 @@
 # ATOS Third-Party Execution Plane Placement
 
-**Status:** Planned cross-repository specification
+**Status:** Implemented and merged across all four repositories (`tos-protocol@cf64ae9`, `tos-ai@50fd5d7`, `atos@7196b60`) -- see `docs/IMPLEMENTATION_ROADMAP.md` §7.1.1 for the closure record and two residual known gaps (Quote/binding continuity, no production Health/Certification call site).
 **Applies to:** routing HTTP/MCP/A2A provider execution and readiness probing behind the execution/data plane, instead of from the ATOS Gateway's Job/economic business logic
 **Roadmap phase:** Phase 3A §7.1.1 (3A-A placement rule) and its cross-repository follow-on work
 
@@ -210,15 +210,28 @@ more than one operator is future scope.
 
 1. `atos`'s Job/economic service issues `SubmitJob`/`QuoteExecution`/
    `GetProviderStatus` carrying `ThirdPartyBinding` and never dials the
-   provider endpoint itself;
+   provider endpoint itself -- ✅ `dispatch.WithRemoteThirdPartyExecution`,
+   required in production;
 2. `tos-protocol` routes a request carrying `ThirdPartyBinding` to the
-   execution/data-plane boundary rather than executing it locally;
+   execution/data-plane boundary rather than executing it locally -- ✅
+   `pkg/atosrpc`'s third-party branches of `SubmitJob`/`QuoteExecution`/
+   `GetProviderStatus`;
 3. `tos-ai` (or an explicitly specified equivalent execution-side component)
    performs the actual dial, gated by a worker-operator-curated allowlist that
-   an invocation cannot expand;
+   an invocation cannot expand -- ✅ `internal/thirdparty.Service`, fail-closed
+   before any outbound call;
 4. an end-to-end test demonstrates a third-party Managed Capability executing
    through this full path and landing in the existing Receipt/settlement
-   pipeline unchanged, per §7.1.5's cross-repository acceptance criterion;
+   pipeline unchanged, per §7.1.5's cross-repository acceptance criterion --
+   ✅ `TestATOSConnectRPCThirdPartyManagedLifecycle` (`atos`);
 5. an invocation naming an endpoint_ref/transport/capability_id combination
    the worker's operator did not allowlist is rejected before any outbound
-   network call, with a regression test proving it.
+   network call, with a regression test proving it -- ✅
+   `TestService_RejectsBindingNotOnAllowlist` (`tos-ai`).
+
+Merged: `tos-protocol@cf64ae9`, `tos-ai@50fd5d7`, `atos@7196b60`. See
+`docs/IMPLEMENTATION_ROADMAP.md` §7.1.1/§7.1.3 for two residual known gaps
+tracked as separate Phase 3A follow-up (not blockers for this closure):
+Quote/binding continuity after a Capability version bump, and no production
+call site yet for `HealthService`/`CertificationService`'s remote-probing
+path.

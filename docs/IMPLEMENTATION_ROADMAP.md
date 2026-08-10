@@ -446,6 +446,23 @@ Binding rules:
 proves a new version/manifest is produced while an older Quote/Job continues to
 resolve the old binding.
 
+**Known gap (not a substitution vulnerability, but short of this section's
+full acceptance criterion):** `atos`'s current `internal/service/job.go`
+hard-fails a Job whose Capability has moved to a new version since its Quote
+(`capability.Version != quote.CapabilityVersion` → rejected before dispatch)
+rather than continuing to resolve the Quote's frozen version/binding, which is
+what this section's rule literally requires (*"an already-issued Quote/Job
+MUST continue to use its frozen version/binding semantics after a Capability
+update"*). This is `atos` PR #8's pre-existing design (predates the
+third-party execution-plane work in §7.1.1 below and was not changed by it),
+confirmed safe under independent review — it fails closed, so no Job can ever
+execute against a binding nobody actually quoted — but it does not yet
+implement binding continuity. Closing this requires the Quote itself to carry
+a resolvable snapshot of the binding it froze (not just the version string),
+so a stale-but-still-valid Quote can dispatch against exactly what it quoted
+even after the Capability has moved on. Tracked as Phase 3A follow-up work,
+not a blocker for §7.1.1's placement-rule work below.
+
 #### 7.1.1 3A-A — Adapter execution plane: HTTP, MCP and A2A
 
 Deliver:
@@ -485,14 +502,33 @@ implements the private `tos-protocol` ↔ `tos-ai` extension, even though that
 wire format itself remains `tos-protocol`'s own implementation concern (same
 status as the existing `WorkerService` message shapes).
 
-This closes the **specification** half of the placement rule. The
-**implementation** half — `tos-protocol` routing `ThirdPartyBinding` requests
-to the execution/data plane instead of failing them, and `tos-ai` (or an
-equivalent component) actually performing the allowlisted dial, and `atos`
-consuming this instead of dialing locally — is cross-repository work tracked
-outside this repository's own PRs; `atos`'s Phase 3A implementation may
-continue to note this as an open item until that lands end-to-end, per
-§7.1.5's cross-repository acceptance criterion.
+This closes both the **specification** and **implementation** halves of the
+placement rule. `tos-protocol` routes `ThirdPartyBinding` requests to the
+execution/data plane (`ThirdPartyExecutionService`) instead of failing them;
+`tos-ai` performs the allowlisted dial (`internal/thirdparty`, operator
+endpoint allowlist enforced fail-closed before any outbound call); `atos`
+consumes this instead of dialing locally (`dispatch.WithRemoteThirdPartyExecution`,
+required — not merely available — in production via
+`ATOS_REMOTE_THIRD_PARTY_EXECUTION=true`, enforced by `internal/config.Validate()`).
+Landed end-to-end across `tos-protocol#14`, `tos-ai#3` and `atos#8`/`#9`
+(merged `tos-protocol@cf64ae9`, `tos-ai@50fd5d7`, `atos@7196b60`), including two
+independent post-merge review rounds that fixed: unbounded MCP/A2A response
+reads, a wildcard-`capability_version` allowlist lookup bug, quoted
+`max_output_bytes` not being enforced on the third-party output path, and a
+`capability_version` field missing from `GetProviderStatusRequest` that
+silently under-specified every remote health/certification probe.
+
+**Known gap (not a placement-rule violation, but worth flagging so it isn't
+mistaken for wired-up):** `HealthService`/`CertificationService` in `atos`
+gained an optional remote-probing path (`WithRemoteProber`, consuming the
+same `ThirdPartyExecutionService` boundary as Job execution — see §7.1.3
+below) as part of this work, but neither service is constructed anywhere in
+`cmd/api/main.go`, and there is no HTTP or MCP surface that calls
+`CheckCapability`/`Open` at all. Both services — including the new remote
+path — currently exist with full unit-test coverage but zero production call
+sites, a gap that predates this placement work. Wiring an actual entry point
+is separate follow-up work; inventing one solely to close this note would be
+scope creep beyond what the placement rule itself requires.
 
 Adapter request/result binding must include enough immutable identity to reject
 substitution, at least conceptually:
@@ -624,6 +660,11 @@ supported_trust_modes += verified/native
 concurrent/restarted certification converges, stale results do not certify a
 new Capability version, and health/certification alone never activate
 Verified or Native.
+
+**Known gap:** `atos`'s `HealthService`/`CertificationService` (including the
+optional remote-probing path added alongside §7.1.1's execution-plane
+placement work) have zero production call sites — see §7.1.1's own "Known
+gap" note above for the full explanation.
 
 #### 7.1.4 3A-M — Provider/Admin MCP tools
 
