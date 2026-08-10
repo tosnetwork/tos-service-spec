@@ -446,22 +446,24 @@ Binding rules:
 proves a new version/manifest is produced while an older Quote/Job continues to
 resolve the old binding.
 
-**Known gap (not a substitution vulnerability, but short of this section's
-full acceptance criterion):** `atos`'s current `internal/service/job.go`
-hard-fails a Job whose Capability has moved to a new version since its Quote
-(`capability.Version != quote.CapabilityVersion` → rejected before dispatch)
-rather than continuing to resolve the Quote's frozen version/binding, which is
-what this section's rule literally requires ("an already-issued Quote/Job
-MUST continue to use its frozen version/binding semantics after a Capability
-update"). This is `atos` PR #8's pre-existing design (predates the
-third-party execution-plane work in §7.1.1 below and was not changed by it),
-confirmed safe under independent review — it fails closed, so no Job can ever
-execute against a binding nobody actually quoted — but it does not yet
-implement binding continuity. Closing this requires the Quote itself to carry
-a resolvable snapshot of the binding it froze (not just the version string),
-so a stale-but-still-valid Quote can dispatch against exactly what it quoted
-even after the Capability has moved on. Tracked as Phase 3A follow-up work,
-not a blocker for §7.1.1's placement-rule work below.
+**Resolved:** an earlier revision of this document tracked a "known gap" here
+(`atos`'s `internal/service/job.go` allegedly hard-failing a Job whose
+Capability moved to a new version since its Quote, rather than continuing to
+resolve the Quote's frozen binding). That gap no longer exists in the code —
+commits `f3e6b30` ("fix(phase3a): freeze Quote binding/schema so Job creation
+survives a later Capability update") and `b3a6dca` ("fix(phase3a): keep
+Quote's frozen execution snapshot out of public API responses") closed it,
+and both are ancestors of `origin/main` (part of the Phase 3B PR #12 history).
+`internal/service/job.go`'s `submit()` no longer compares `capability.Version`
+against `quote.CapabilityVersion` at all, and builds the Job's
+`CapabilityVersion`/`Binding`/`InputSchema`/`OutputSchema` fields entirely
+from the Quote's own frozen snapshot (job.go:156-211, with an explicit code
+comment citing this section by name). `internal/service/economic_recovery.go`'s
+dispatch/recovery path (`SubmitJobRequest{...}`, economic_recovery.go:565-580)
+sources the same fields from the Job's own already-frozen state, never
+re-fetching or re-resolving the live Capability's current bindings. This
+closes the contradiction with §7.1.5's "immutable binding/version semantics"
+line, which already marked this ✅.
 
 #### 7.1.1 3A-A — Adapter execution plane: HTTP, MCP and A2A
 
