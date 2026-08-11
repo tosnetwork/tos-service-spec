@@ -1829,6 +1829,12 @@ idempotency/recovery rules and public projection are normative in
 until the real ATOS API path passes adversarial tests against fresh PostgreSQL
 and a real `tos-protocol` server.
 
+The chain-backed recovery boundary includes a production publisher service,
+not only an Authority client: it MUST durably journal intent before broadcast,
+provide versioned tuple resolution and typed Action-ID-bound absence, and
+negotiate those capabilities at readiness. Generic HTTP absence never
+authorizes mutation replay.
+
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
 Define one canonical `tos_verified_v1` proof package sufficient for an

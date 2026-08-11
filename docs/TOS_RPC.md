@@ -412,6 +412,14 @@ Action ID through the publisher's durable read-only receipt journal and then
 independently re-observes the returned exact transaction through the quorum
 chain adapter. Receipt-journal unavailability is not not-found and fails
 closed; discovery never calls the mutation/publish endpoint.
+The publisher MUST persist an intent before broadcasting. A pending or
+uncertain intent MUST NOT be reported as absent. Authoritative absence is a
+versioned `action_not_found` response bound to the requested Action ID from the
+durable journal; a generic HTTP 404, unsupported route, proxy fallback or
+malformed/mismatched response is resolver unavailability. Publisher readiness
+MUST advertise the resolve endpoint, journal version, typed-not-found and
+intent-before-publish capabilities; clients MUST reject legacy health
+responses that do not negotiate this contract.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
