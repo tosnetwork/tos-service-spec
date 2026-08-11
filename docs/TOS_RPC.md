@@ -401,10 +401,13 @@ with different canonical semantics returns `IDEMPOTENCY_CONFLICT` /
 Read-only resolution for recovery/audit.
 
 This is the mandatory recovery operation after a timeout or lost response.
-For Verified Quotes the caller supplies `expected_quote` and, once known,
+For Verified Quotes the caller supplies `expected_quote` and, when known,
 `expected_commitment_ref`. The server independently recomputes the semantic
-digest and freshly resolves that exact Quote/digest/reference using the live
-canonical authority. Process-local persistence is only a cache: it MUST NOT
+digest and freshly resolves that exact `(kind, quote_id, digest)` tuple using
+the live canonical authority. When the reference is unknown after a lost
+response, the resolver MUST perform tuple discovery and return either the
+finalized canonical reference or explicit authoritative not-found.
+Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
 resolution is unavailable, changes network/reference, is non-final, reports

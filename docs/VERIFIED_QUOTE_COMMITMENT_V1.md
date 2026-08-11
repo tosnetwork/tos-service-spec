@@ -47,7 +47,7 @@ The complete literal fixture is `verifiedQuoteFixture` in
 `tos-protocol/pkg/atosrpc/verified_quote_test.go`. Its asserted semantic
 digest is:
 
-`sha256:1ac05ca7ac3f9a4c0a314a43a658febf14031535dbb4ef47d2b2cf03406cb9a8`;
+`sha256:a726197baa2d392aa4dfaf67a81ce89c6617177d607a14104f6d5bdb1a1ae159`;
 the protocol test recomputes and asserts it.
 
 ## Authority validation
@@ -59,6 +59,9 @@ signer authorization; cross-network/domain input; non-Verified mode/profile;
 expired acceptance/expiry/execution windows; invalid money; and unavailable,
 non-final, reorganized or inconsistent authority results. Supplied ownership
 and signer references are equality assertions and cannot select identities.
+For Verified, `settlement_backend=tos`, `settlement_asset=TOS`, a valid
+`dispute_policy_digest`, and a non-empty `underlying_service_quote_ref` are
+mandatory commercial terms, not optional transport defaults.
 
 ## Idempotency and recovery
 
@@ -69,6 +72,10 @@ different canonical bytes is `IDEMPOTENCY_CONFLICT`/`QUOTE_MISMATCH`.
 Before the authority call, ATOS durably binds the authenticated
 `(principal_id, caller_idempotency_key)` to one generated Quote ID, complete
 immutable snapshot and request hash. Ambiguous reservations are retained.
+The operation advances through `intent_persisted`/`reconciling`, then
+`authority_committed`, and becomes `completed` only after both the public
+Quote projection and caller idempotency result are durable. Terminal state is
+monotonic; a stale replica cannot regress `completed` to `reconciling`.
 Retries and a stale-operation reconciler load that snapshot (including on a
 different ATOS replica), call `GetQuoteCommitment` first, and resume the exact
 Quote ID. A found exact finalized value completes the local projection; a
@@ -76,9 +83,11 @@ found mismatch is terminal conflict; only authoritative not-found permits
 replaying the same mutation. Concurrent replicas therefore converge on one
 canonical Quote commitment.
 
-For Verified lookup, `expected_quote` and the known
+For Verified lookup, `expected_quote` and, when known,
 `expected_commitment_ref` are sent so any `tos-protocol` replica can recompute
-the digest and freshly resolve the exact value against the live authority.
+the digest and freshly resolve the exact value against the live authority by
+`(kind, quote_id, digest)`. A missing reference is the normal lost-response
+case and MUST trigger tuple lookup, not a local-cache not-found result.
 Local bbolt state is never sufficient evidence of existence or finality.
 
 No failed or uncertain Verified operation may create or expose a Managed
