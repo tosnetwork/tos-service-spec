@@ -28,6 +28,11 @@ Managed Mode does not require a standard network proof profile.
 6. Economic guarantees require enforceable TOS-backed state, not merely a hash of a private gateway ledger.
 7. Evidence may be batched/aggregated only when independent inclusion/finality verification remains possible.
 8. A failure to satisfy a required proof checkpoint fails/requotes the transaction; it never silently downgrades the trust mode.
+9. For `tos_verified_v1`, execution admission requires the exact finalized
+   Quote commitment and an independently observed finalized TaskEscrow
+   reservation defined by `VERIFIED_TASK_ESCROW_V1.md`. Publisher or journal
+   evidence without canonical contract observation is insufficient. Released,
+   expired, disputed, ambiguous and non-final escrow states close the gate.
 
 ## 3. Authorized Execution Signer
 

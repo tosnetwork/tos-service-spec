@@ -1832,6 +1832,23 @@ provide versioned tuple resolution and typed Action-ID-bound absence, and
 negotiate those capabilities at readiness. Generic HTTP absence never
 authorizes mutation replay.
 
+#### Phase 4B-2 — Verified TaskEscrow Reservation and Release
+
+Connect the exact finalized Phase 4B-1 Quote commitment to an independently
+observed, finalized and economically funded TOS TaskEscrow before provider
+execution. Reservation and pre-settlement release use durable monotonic ATOS
+operations, deterministic no-reference recovery, a journal-before-broadcast
+publisher, live quorum observation on every replay, and no Managed fallback.
+
+The normative schema, monetary model, canonical encoding, deterministic IDs,
+typed-absence rules, enrollment/readiness contract and release semantics are
+frozen in `docs/VERIFIED_TASK_ESCROW_V1.md` and
+`proto/atos/tos/v1/settlement.proto`. This subsection remains unmarked until
+crash recovery, no-reference recovery, multi-replica convergence, canonical
+finality and double-mutation prevention pass through the real API/RPC,
+PostgreSQL and publisher boundaries. Multi-validator production acceptance
+remains a Phase 4D gate.
+
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
 Define one canonical `tos_verified_v1` proof package sufficient for an
