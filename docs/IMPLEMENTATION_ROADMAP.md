@@ -1372,21 +1372,28 @@ preference where supported by the frozen OpenTask contract. The web layer MUST
 NOT invent a second task model or bypass the same authorization, idempotency,
 Quote and Job rules used by agents.
 
-Agents publish programmatically through the canonical ATOS protocol surface.
-The intended product-level operations are conceptually:
+Agents publish programmatically through the canonical ATOS protocol surface,
+already frozen and merged as of `atos` PR #13:
 
 ```text
-REST   -> publish/search/read/propose/accept OpenTask operations
-MCP    -> atos_publish_task / atos_search_tasks / atos_submit_proposal
-A2A    -> equivalent OpenTask publication/discovery/proposal mapping
+REST -> POST/GET /v1/open-tasks, GET/POST .../{task_id}, .../cancel,
+        .../proposals, .../proposals/{proposal_id}/withdraw|accept
+
+MCP  -> atos_publish_open_task, atos_search_open_tasks, atos_get_open_task,
+        atos_apply_to_open_task, atos_list_open_task_proposals,
+        atos_withdraw_open_task_proposal, atos_accept_open_task_proposal,
+        atos_cancel_open_task
+
+A2A  -> equivalent OpenTask publication/discovery/proposal mapping
 ```
 
-Exact route/tool names remain owned by `docs/API.md`, `docs/MCP.md` and the A2A
-contract; the Roadmap defines the product responsibility rather than silently
-renaming an already-frozen public operation. An Agent MUST NOT need to know a
-Capability ID before publishing demand. It may publish the goal, budget,
-deadline, inputs and trust requirements first; ATOS discovery/matching and
-Provider proposals resolve suitable Capability/provider candidates afterward.
+Exact route/tool contracts (request/response shapes, scopes) remain owned by
+`docs/API.md`, `docs/MCP.md` and the A2A contract, not this section -- this
+Roadmap section defines the product responsibility those contracts serve,
+never a second naming of them. An Agent MUST NOT need to know a Capability ID
+before publishing demand. It may publish the goal, budget, deadline, inputs
+and trust requirements first; ATOS discovery/matching and Provider proposals
+resolve suitable Capability/provider candidates afterward.
 
 This creates an intentional two-sided product model:
 
