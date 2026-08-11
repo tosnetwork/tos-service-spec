@@ -1581,6 +1581,51 @@ publish -> propose -> accept lifecycle through a real quote -> escrow ->
 tos-ai execute -> tos-core verify/settle pipeline, plus scope-rejection
 cases) and merged.
 
+### 7.3.3 Phase 3C-P — Human Account Authentication (Passkey/WebAuthn)
+
+**Discovered while scoping the web MVP's own login, not originally part of
+§7.3.1/§7.3.2's checklist.** Every prior item in this section assumed
+`/activate`'s "trusted login/reverse-proxy boundary" already existed
+somewhere -- verified against real code (`internal/httpapi/auth.go`'s
+`handleActivationDecisionPage` requires `X-ATOS-Approval-Token` +
+`X-ATOS-Principal-ID`, both meant to be injected by that boundary) and
+confirmed it does not exist anywhere in `atos`, `atos-spec`, `tos-homepage`,
+or any other repo in this workspace. `ATOS_APPROVAL_TOKEN` is one static
+shared secret, not per-user identity -- so as deployed today, literally no
+human can complete the Device Authorization consent page in production
+(`AutoApprove` bypasses this but is a dev/test-only config flag, used
+throughout this codebase's own test suite, never meant for production).
+
+```text
+"who is this human" identity primitive     NOT STARTED before this item;
+                                            now designed -- docs/AUTH.md's
+                                            "Human Account Authentication
+                                            (Passkey/WebAuthn)" section
+atos implementation                        NOT STARTED
+atos/web integration (replace the Device
+Authorization popup/poll login with
+direct passkey register/login)             NOT STARTED
+```
+
+Design (frozen in `docs/AUTH.md`, modeled directly on
+`tosnetwork/atos-aidrop`'s proven `tos-wallet-web` implementation -- same
+`github.com/go-webauthn/webauthn` library, same usernameless/discoverable-
+credential ceremony shape, not a new design from scratch): passkey
+registration/login mints a token pair through the *same* underlying Device
+Authorization token/scope/revocation machinery, just skipping the
+grant/user-code/poll ceremony -- the passkey ceremony itself is the
+identification step Device Authorization otherwise assumes already
+happened elsewhere. Device Authorization itself is unchanged and remains
+correct for third-party/agent delegated access; passkey login is
+specifically for a human authenticating as themselves on a first-party
+ATOS surface (`atos.im`).
+
+Explicitly out of scope for this item: wallet/ledger provisioning,
+referral codes, captcha/anti-bot hardening (`atos-aidrop` has all three;
+none are relevant to establishing "who is this human" for `atos.im`) --
+adding them later, if ever needed, does not change the identity primitive
+itself.
+
 ### 7.4 Phase 3 overall success criterion
 
 ✅ **Status: complete.** §7.1 (3A), §7.2 (3B) and §7.3 (3C) are all merged.

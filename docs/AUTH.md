@@ -100,6 +100,100 @@ Success:
 }
 ```
 
+## Human Account Authentication (Passkey/WebAuthn)
+
+Device Authorization (above) answers "how does a third-party app/agent get
+scoped, delegated access from an already-identified human" -- it assumes
+that identification already happened somewhere else (see `/activate`'s
+"trusted login/reverse-proxy boundary" requirement). Until now, ATOS never
+actually built that boundary: nothing anywhere establishes who a human
+actually is. This section is that missing first-party primitive --
+`atos.im`'s own account system, modeled directly on `tosnetwork/atos-aidrop`'s
+proven `tos-wallet-web` passkey implementation (same library --
+`github.com/go-webauthn/webauthn` -- same usernameless/discoverable-credential
+design, same ceremony-begin/ceremony-finish shape), not a new design from
+scratch.
+
+No passwords, no email, no username. A passkey (platform authenticator or
+security key, resident/discoverable credential) is both how an account is
+created and how it signs back in -- the browser's own passkey picker
+resolves which account is authenticating; the client submits no identifier
+at all at login time.
+
+### Registration
+
+```text
+POST /auth/passkey/register/begin
+  -> {} (no body required)
+  <- {"ceremony_id":"...", "options": <PublicKeyCredentialCreationOptions>}
+
+POST /auth/passkey/register/finish/{ceremony_id}
+  -> <PublicKeyCredentialAttestation response, from navigator.credentials.create()>
+  <- same token response shape as POST /auth/device/token's success case:
+     {"access_token":"...","token_type":"Bearer","expires_in":3600,
+      "refresh_token":"...","principal_id":"prn_...","scopes":[...]}
+```
+
+A successful `finish` call both creates the account (a fresh `prn_...`
+principal ID, minted once and stable for that account from then on) and
+attests the first passkey in one atomic ceremony -- there is no separate
+"create account" step that could exist without a working credential
+attached to it.
+
+### Login
+
+```text
+POST /auth/passkey/login/begin
+  -> {} (no body required)
+  <- {"ceremony_id":"...", "options": <PublicKeyCredentialRequestOptions>}
+
+POST /auth/passkey/login/finish/{ceremony_id}
+  -> <PublicKeyCredentialAssertion response, from navigator.credentials.get()>
+  <- same token response shape as registration's finish call
+```
+
+### Relationship to Device Authorization
+
+A passkey-authenticated session is issued through the *same* underlying
+token/scope/revocation machinery Device Authorization already uses (same
+access/refresh token format, same `principal_id` namespace, same per-device
+revocation record) -- it is a second front door onto the identical
+mechanism, not a parallel identity system. Concretely: successful passkey
+registration/login mints a token pair directly, skipping the
+grant/user-code/poll ceremony entirely, since the passkey ceremony itself
+*is* the identification step Device Authorization otherwise assumes already
+happened.
+
+Passkey-issued tokens carry a fixed scope bundle for v1 -- the full
+self-service bundle a first-party `atos.im` account needs today (ordinary
+consumer scopes plus `capabilities:write` and `open_task_proposals:write`,
+so a signed-up user can immediately publish tasks, register/manage
+capabilities, and bid as a provider without a second consent step).
+Explicit-grant-only scopes (`execution_signers:write`, `settlement:write`,
+`disputes:review`, `activation:evaluate`, admin scopes generally) are never
+included -- exactly the same restriction Device Authorization's own
+self-service path already enforces. A future version MAY narrow this to a
+smaller default plus an explicit "become a provider" upgrade step; v1
+deliberately keeps one bundle to avoid re-introducing a second
+grant/consent flow for the common case.
+
+Device Authorization itself is untouched and remains the correct mechanism
+for third-party apps/agents/MCP clients requesting *delegated*, narrower
+access from an already-authenticated human (e.g. a Codex/Claude integration
+asking a human to approve read-only access) -- passkey login is specifically
+for a human authenticating as themselves on a first-party ATOS surface, not
+a replacement for delegated authorization.
+
+### Storage and credential data
+
+Mirrors `atos-aidrop`'s schema (encrypted public key at rest, credential
+ID/AAGUID/transports/sign-count/backup-state tracked per credential,
+short-lived ceremony records keyed by `ceremony_id` holding the WebAuthn
+challenge state until `finish` consumes them or they expire). No wallet
+keys, balances, or ledger provisioning are part of this -- that is
+`atos-aidrop`'s domain, not `atos.im`'s; only the passkey/account
+primitive is shared in spirit.
+
 ## Recommended Scopes
 
 Consumer:
