@@ -2010,8 +2010,11 @@ its private key.
 
 ## 11. Phase 7 — Economy, Financial Integrity and Proof Hardening
 
-**Goal:** harden the network and the `atos.im` Managed financial control plane
-after real multi-provider/multi-gateway volume exists.
+### 11.A Phase 7A — Managed Financial Integrity
+
+**Goal:** harden the `atos.im` Managed financial control plane before its first
+production economic event. Blnk is the sole mutable financial authority from
+that first event; federation and broader proof hardening remain Phase 7B.
 
 A major cross-cutting workstream in this phase is **Financial Integrity
 Hardening**, defined normatively in [`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
@@ -2019,7 +2022,7 @@ It protects Managed balances, escrow, provider earnings, refunds, disputes and
 payout state against silent historical rewriting even if an application host
 or privileged database path is compromised.
 
-### 11.1 Reuse-first implementation rule
+#### 11.A.1 Reuse-first implementation rule
 
 Phase 7 MUST NOT start by building a new ledger, reconciliation engine, generic
 hold/refund engine, or financial journal from scratch. Two existing TOS Network
@@ -2098,7 +2101,7 @@ couple the production ATOS gateway to the airdrop application's product model.
 It is a reference implementation for integration, security and durability
 semantics, not the canonical ATOS financial API.
 
-### 11.2 Existing foundations are not the final integrity format
+#### 11.A.2 Existing foundations are not the final integrity format
 
 The existing Blnk transaction hash chain is a useful local tamper-evidence
 foundation, but it is not yet the normative ATOS Financial Commitment format.
@@ -2130,7 +2133,7 @@ ATOS-specific commitment identity that must survive independent verification
 versioned fields or in an immutable external commitment sealed by the financial
 integrity chain.
 
-### 11.3 ATOSFinancialAdapter — remaining business/financial boundary
+#### 11.A.3 ATOSFinancialAdapter — remaining business/financial boundary
 
 The primary ATOS-side Phase 7 implementation is an explicit adapter that maps
 existing ATOS economic state into Blnk without making Blnk aware of ATOS
@@ -2176,7 +2179,7 @@ state machines; it is not permission to create a parallel settlement engine.
 Blnk transactions are the financial expression of an already-authorized ATOS
 economic transition.
 
-### 11.4 Reconciliation and projection strategy
+#### 11.A.4 Reconciliation and projection strategy
 
 Reuse Blnk's generic reconciliation engine rather than building another
 matching engine. Add ATOS-specific connectors/projections for the independent
@@ -2204,7 +2207,7 @@ Projection rebuild and comparison must be deterministic. A mismatch is an
 integrity incident and may trigger financial safe mode; it must not silently
 choose whichever mutable database value is newest.
 
-### 11.5 Financial Commitment, Merkle batches, KMS/HSM and TOS anchor
+#### 11.A.5 Financial Commitment, Merkle batches, KMS/HSM and TOS anchor
 
 The main cryptographic work still missing from the reusable foundations is the
 externalized integrity layer:
@@ -2230,7 +2233,7 @@ must never be represented as satisfying `tos_verified_v1` escrow/settlement
 requirements. Verified and Native transactions retain their own stronger
 per-transaction proof/economic guarantees.
 
-### 11.6 Infrastructure hardening still required
+#### 11.A.6 Infrastructure hardening still required
 
 Blnk's existing `pg_dump` disk/S3 backup support is a useful baseline but does
 not by itself satisfy the Phase 7 recovery threat model. Production hardening
@@ -2251,7 +2254,7 @@ Reuse the operational/security patterns and documents already present in
 `atos-aidrop` where applicable instead of drafting equivalent controls from
 scratch.
 
-### 11.7 Phase 7 implementation order for coding agents
+#### 11.A.7 Phase 7A implementation order for coding agents
 
 Unless a discovered correctness dependency requires otherwise, implement the
 financial-integrity work in this order:
@@ -2276,7 +2279,7 @@ to Blnk or after merely anchoring a local database hash. The acceptance target
 is independent reconstruction and verification across the entire chain of
 evidence.
 
-### 11.8 Financial-integrity acceptance gate
+#### 11.A.8 Financial-integrity acceptance gate
 
 At minimum prove all of the following against real infrastructure where
 applicable:
@@ -2301,7 +2304,10 @@ detected by reconciliation/signature/TOS-anchor verification, and recovery from
 independently retained evidence is tested. The detailed acceptance matrix is in
 [`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
 
-Other Phase 7 hardening work includes:
+### 11.B Phase 7B — Federated Economy and Proof Hardening
+
+Phase 7B is a separate later work package and is not part of the Phase 7A
+completion gate. It includes:
 
 - dispute resolver profiles and public resolver policy;
 - federated/multi-resolver arbitration;

@@ -264,7 +264,7 @@ changed version, or gateway/network substitution.
 Normative bytes and digests are in
 `schemas/managed-financial-integrity-v1-vectors.json`.
 
-## 7. Deterministic Merkle batch V1
+## 7. Deterministic Merkle batch V2
 
 Finalized commitment leaves are strictly ordered by contiguous financial
 sequence. A batch contains 1..4096 leaves and does not overlap another batch.
@@ -273,14 +273,34 @@ The leaf hash is `SHA256(0x00 || commitment_digest_bytes)`. The internal node is
 left and right at every level. A one-leaf root is its leaf hash.
 
 The batch manifest is canonical CBOR with domain
-`tos.atos.financial.batch.v1` and fields:
+`tos.atos.financial.batch.v2` and fields:
 
 ```text
 version, canonicalization, gateway_id, network_id, batch_sequence,
 batch_id, first_sequence, last_sequence, commitment_count,
 previous_batch_id, previous_merkle_root, merkle_root,
-commitment_digests, created_unix_millis
+commitment_digests, ledger_evidence_digest, created_unix_millis
 ```
+
+`ledger_evidence_digest` uses domain
+`tos.atos.financial.blnk-evidence.v1` and binds the exact contiguous Blnk V2
+transaction-chain segment containing the batch transactions: chain key,
+first/last chain sequence, previous hash, head hash, genesis hash, every sealed
+transaction field, and every stored chain link. Every row in that segment MUST
+map one-to-one to a commitment in the batch. A missing, duplicate, reordered,
+or additional row is an integrity failure. Before producing the segment, ATOS
+MUST also verify the complete current Blnk chain head and reject a non-zero
+unchained count as an uncertain snapshot. The dedicated production Blnk
+database MUST NOT contain an uncommitted ATOS financial namespace.
+The first batch segment starts at Blnk chain sequence 1 with the genesis hash.
+Every later segment starts at the prior retained segment's last sequence plus
+one and uses its head hash as `previous_hash`; the independent verifier takes
+that prior sequence/head as explicit trusted input. This closes the cut between
+two batches and makes an inserted transaction between batches detectable.
+ATOS may allocate commitment intents concurrently, but it MUST NOT submit a
+higher sequence to Blnk until every lower sequence is finalized. The ordering
+gate is PostgreSQL-backed and replica-safe; it does not depend on an in-process
+mutex. Recovery processes pending intents in sequence order.
 
 `batch_id` is `fbat_` plus lowercase SHA-256 of the canonical CBOR batch
 identity containing every field above except `batch_id` and
@@ -291,14 +311,15 @@ are append-only.
 ## 8. External signature and immutable retention
 
 The signed payload is the canonical batch manifest bytes under domain
-`tos.atos.financial.batch-signature.v1`. A signature envelope binds:
+`tos.atos.financial.batch-signature.v2`. A signature envelope binds:
 
 ```text
 version, batch_id, manifest_digest, signing_digest, gateway_id, network_id,
 signing_key_id, signing_algorithm, signature, public_key, signed_unix_millis
 ```
 
-Supported V1 verification algorithms are `ed25519` and
+The envelope version is `atos_financial_batch_signature_v2`; the retained
+bundle version is `atos_financial_evidence_bundle_v2`. Supported verification algorithms are `ed25519` and
 `ecdsa_p256_sha256`. Production signing is through a KMS/HSM/Vault boundary;
 the normal ATOS/Blnk host receives Sign/Verify/PublicKey capability only and
 never private key bytes. `(batch_id, manifest_digest)` is the stable signing
@@ -332,7 +353,7 @@ The HTTP WORM boundary is authenticated independently of the batch signature.
 Every `PUT` and lost-response recovery `HEAD` carries
 `X-ATOS-Retention-Timestamp`, `X-Content-SHA256`, and
 `X-ATOS-Retention-Signature`. The signature is lowercase hex HMAC-SHA-256 over
-the exact UTF-8 bytes `timestamp + "\\n" + method + "\\n" + escaped_path +
+the exact UTF-8 bytes `timestamp + "\\n" + method + "\\n" + request_target +
 "\\n" + content_digest`, rendered with the prefix `hmac-sha256=`. The shared
 transport key is at least 32 bytes, is never commitment evidence, and is
 delivered through the deployment secret store. The receiver rejects stale
@@ -340,6 +361,11 @@ timestamps and recomputes the body digest. ATOS MUST authenticate a `HEAD`
 after every successful, conflicting, or uncertain `PUT`, and MUST NOT mark the
 batch retained unless the response binds the expected digest to a non-empty
 immutable object-version identity.
+`request_target` is the escaped path plus `?` and the canonical raw query when
+present; an exact-version verifier lookup therefore cannot substitute a
+different version ID without invalidating authentication. An independent
+verifier MUST resolve that exact version, require `COMPLIANCE` mode, verify the
+content digest, and require that its retain-until time remains in the future.
 
 ## 9. Managed Financial Ledger Anchor V1
 
@@ -370,6 +396,11 @@ finalized reference for an exact retry. Changed semantics under the same
 Resolution returns network, reference, finalized status, observed finalized
 checkpoint, and the exact stored payload digest. Wrong/unfinalized/reorganized
 network observations fail closed.
+`ResolveManagedFinancialAnchor` MUST re-observe a cached finalized reference
+through the configured live TOS authority and reject reorganization, changed
+binding, wrong network, or a finality checkpoint older than the published
+checkpoint. Reading the tos-protocol local cache alone is not finality
+verification.
 
 This anchor proves only the integrity of Managed aggregate history. It MUST NOT
 change a Quote/Job trust mode, populate `tos_verified_v1` escrow/settlement
@@ -402,6 +433,10 @@ with the same identity and input converges; changed input under that identity
 conflicts. Blnk persists engine progress/status for crash recovery. This engine
 cross-check supplements, and never replaces, exact `precise_amount`, balance,
 commitment-chain, projection, signature, retention, and anchor verification.
+The supplementary generic Blnk reconciliation accepts only amounts whose
+atomic integer is at most `2^53-1`; larger exact amounts remain valid ledger
+amounts but MUST NOT enter the float64 reconciliation engine. The Blnk chain
+and `precise_amount` checks remain authoritative.
 
 Any conservation, sealed-history, signature, retained-manifest, anchor, or
 payout mismatch enters `financial_safe_mode`. In safe mode, public balance and
@@ -411,6 +446,24 @@ settlement, refund, reversal, dispute release, and payout mutations fail with
 remain available. Exit requires a complete successful verification through the
 latest required anchor and an audited break-glass recovery identity; it is not
 an ordinary runtime endpoint.
+An existing pending intent in safe mode may be looked up and marked finalized
+only when the exact transaction is already present and semantically valid in
+Blnk. Neither the request path nor the reconciler may submit a previously
+absent Blnk transaction while safe mode is active. Signer/retention/anchor
+unavailability enters safe mode after the configured maximum anchor lag;
+semantic substitution or idempotency conflict enters immediately.
+Pending-intent recovery may run frequently, but the deterministic full-history
+audit runs on a separately configured interval (five minutes by default),
+under the durable reconciler lease and the PostgreSQL advisory-lock snapshot
+boundary. Only a successful full audit advances the durable verified cursor.
+
+ATOS daily autonomous-spend allowance is business policy state, not a second
+financial balance. With Blnk enabled it is consumed atomically with a durable
+`policy_pending` Job checkpoint before the stable reserve call, and retries do
+not consume it twice. Reservation release, unused settlement refund, escrow
+release, and principal dispute refund restore policy allowance atomically with
+their terminal business checkpoint without modifying the ATOS balance
+projection.
 
 ## 11. Independent verifier
 

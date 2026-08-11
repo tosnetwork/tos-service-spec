@@ -43,5 +43,34 @@
       "digest": "sha256:6358a74c3fe5ed5ed6e7a4e204b2833b6f121056b177c8b3c416345aeca18020",
       "one_leaf_merkle_root": "sha256:5a3e794d34f0333eb5df7b4e727b54f30ad8daef357ae357b298935e9687b2e8"
     }
+  ],
+  "batch_vectors": [
+    {
+      "name": "two_commitment_blnk_bound_batch_v2",
+      "batch_domain": "tos.atos.financial.batch.v2",
+      "ledger_evidence_domain": "tos.atos.financial.blnk-evidence.v1",
+      "manifest": {
+        "version": "atos_financial_batch_v2",
+        "canonicalization": "rfc8949_core_deterministic_cbor",
+        "gateway_id": "gateway.example",
+        "network_id": "tos-localnet-1",
+        "batch_sequence": 1,
+        "batch_id": "fbat_e361e6609904daa5d6d87070aec4177bd4749ea853776a8defd02932c986f8ea",
+        "first_sequence": 1,
+        "last_sequence": 2,
+        "commitment_count": 2,
+        "previous_batch_id": "",
+        "previous_merkle_root": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "merkle_root": "sha256:2c29ccd1d38ceff9b41a2b2803153c205150737938356971d904712d25fdbdea",
+        "commitment_digests": [
+          "sha256:6ea1c0fc0388c7cf35cc367409f252cb44773a5d7883a62bfc5d7dc8c9b90ec8",
+          "sha256:79f3cded5698c97ec268a8b8e96ab33f8609fa6b4ec4775b9a3dfeae7365c526"
+        ],
+        "ledger_evidence_digest": "sha256:c6f58af2a54db748c52639fc104f49ad3ce742bd67c83a7eb8093041cdd72d25",
+        "created_unix_millis": 1786420800000
+      },
+      "manifest_cbor_base64": "r2d2ZXJzaW9ud2F0b3NfZmluYW5jaWFsX2JhdGNoX3YyaGJhdGNoX2lkeEVmYmF0X2UzNjFlNjYwOTkwNGRhYTVkNmQ4NzA3MGFlYzQxNzdiZDQ3NDllYTg1Mzc3NmE4ZGVmZDAyOTMyYzk4NmY4ZWFqZ2F0ZXdheV9pZG9nYXRld2F5LmV4YW1wbGVqbmV0d29ya19pZG50b3MtbG9jYWxuZXQtMWttZXJrbGVfcm9vdHhHc2hhMjU2OjJjMjljY2QxZDM4Y2VmZjliNDFhMmIyODAzMTUzYzIwNTE1MDczNzkzODM1Njk3MWQ5MDQ3MTJkMjVmZGJkZWFtbGFzdF9zZXF1ZW5jZQJuYmF0Y2hfc2VxdWVuY2UBbmZpcnN0X3NlcXVlbmNlAXBjYW5vbmljYWxpemF0aW9ueB9yZmM4OTQ5X2NvcmVfZGV0ZXJtaW5pc3RpY19jYm9ycGNvbW1pdG1lbnRfY291bnQCcXByZXZpb3VzX2JhdGNoX2lkYHJjb21taXRtZW50X2RpZ2VzdHOCeEdzaGEyNTY6NmVhMWMwZmMwMzg4YzdjZjM1Y2MzNjc0MDlmMjUyY2I0NDc3M2E1ZDc4ODNhNjJiZmM1ZDdkYzhjOWI5MGVjOHhHc2hhMjU2Ojc5ZjNjZGVkNTY5OGM5N2VjMjY4YThiOGU5NmFiMzNmODYwOWZhNmI0ZWM0Nzc1YjlhM2RmZWFlNzM2NWM1MjZzY3JlYXRlZF91bml4X21pbGxpcxsAAAGf7voqAHRwcmV2aW91c19tZXJrbGVfcm9vdHhHc2hhMjU2OjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDB2bGVkZ2VyX2V2aWRlbmNlX2RpZ2VzdHhHc2hhMjU2OmM2ZjU4YWYyYTU0ZGI3NDhjNTI2MzlmYzEwNGY0OWFkM2NlNzQyYmQ2N2M4M2E3ZWI4MDkzMDQxY2RkNzJkMjU=",
+      "manifest_digest": "sha256:a770f7d672a25bde06deb21faa0662bff17ff1ab003d17fff545d7e97c92b376"
+    }
   ]
 }
