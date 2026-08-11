@@ -1812,6 +1812,23 @@ Complete:
 All components for one Verified transaction must agree on the same network,
 provider, Capability version, Quote and signer authorization.
 
+#### Phase 4B-1 — Verified Quote Commitment
+
+Activate the existing `TrustService.CommitQuote` / `GetQuoteCommitment`
+authority in the single ATOS Quote lifecycle. A Quote resolving to Verified
+MUST NOT be returned as usable, accepted, escrowed or executed until its exact
+`atos_verified_quote_commitment_v1` value has a matching finalized authority
+commitment. ATOS persists a durable operation/checkpoint for recovery and
+multi-replica convergence, but that record is only a projection; TOS remains
+canonical.
+
+The frozen schema, deterministic encoding, domain separator, validation,
+idempotency/recovery rules and public projection are normative in
+`docs/VERIFIED_QUOTE_COMMITMENT_V1.md`, `proto/atos/tos/v1/trust.proto`,
+`docs/TOS_RPC.md` §12 and `docs/API.md` §3. This subsection remains unmarked
+until the real ATOS API path passes adversarial tests against fresh PostgreSQL
+and a real `tos-protocol` server.
+
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
 Define one canonical `tos_verified_v1` proof package sufficient for an

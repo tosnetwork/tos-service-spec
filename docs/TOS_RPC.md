@@ -378,9 +378,30 @@ Anchors immutable manifest/version/ownership facts. This is not a search API. Em
 
 Creates or exact-replays a Quote commitment for Verified/Native mode.
 
+For Phase 4B-1 Verified Quotes the normative value is
+`atos_verified_quote_commitment_v1`, encoded and hashed as specified by
+`VERIFIED_QUOTE_COMMITMENT_V1.md`. `context.idempotency_key` MUST equal
+`quote_id`. The configured authority network MUST equal `network_id`, and
+`domain` MUST identify the committing gateway deployment. `trust_mode` is
+exactly `VERIFIED` and `proof_profile` is exactly `TOS_VERIFIED_V1`; `AUTO`
+is not representable here.
+
+Before mutation, the service MUST freshly resolve and validate the provider
+identity, exact Capability ownership/version/manifest, and the exact live
+execution-signer authorization. Caller-supplied references are assertions to
+compare with authoritative state, never selectors. An exact replay returns
+the original commitment. Reuse of `quote_id` or the same idempotency identity
+with different canonical semantics returns `IDEMPOTENCY_CONFLICT` /
+`QUOTE_MISMATCH`.
+
 ### `GetQuoteCommitment`
 
 Read-only resolution for recovery/audit.
+
+This is the mandatory recovery operation after a timeout or lost response.
+The caller compares the returned canonical value, digest, network and
+finality before retrying `CommitQuote`; absence is the only outcome that
+permits another mutation attempt.
 
 ### Execution signer authorization
 

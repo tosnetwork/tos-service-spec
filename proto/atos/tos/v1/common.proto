@@ -45,6 +45,8 @@ message Digest {
 message NetworkReference {
   string network = 1; // e.g. tos-mainnet / tos-testnet
   string reference = 2; // opaque tx / event / commitment / proof reference
+  bool finalized = 3;
+  uint64 finalized_checkpoint = 4;
 }
 
 message Money {
