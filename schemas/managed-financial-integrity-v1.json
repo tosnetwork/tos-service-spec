@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atos.im/schemas/managed-financial-integrity-v1.json",
+  "title": "ATOS Managed Financial Integrity V1",
+  "$defs": {
+    "digest": {"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+    "atomicAmount": {"type":"string","pattern":"^(0|[1-9][0-9]*)$"},
+    "identities": {
+      "type":"object","additionalProperties":false,
+      "required":["principal_id","provider_id","job_id","quote_id","capability_id","capability_version","billing_snapshot_id","execution_receipt_id","settlement_id","provider_earning_id","dispute_id","payout_id"],
+      "properties": {
+        "principal_id":{"type":"string"},"provider_id":{"type":"string"},
+        "job_id":{"type":"string"},"quote_id":{"type":"string"},
+        "capability_id":{"type":"string"},"capability_version":{"type":"string"},
+        "billing_snapshot_id":{"type":"string"},"execution_receipt_id":{"type":"string"},
+        "settlement_id":{"type":"string"},"provider_earning_id":{"type":"string"},
+        "dispute_id":{"type":"string"},"payout_id":{"type":"string"}
+      }
+    },
+    "posting": {
+      "type":"object","additionalProperties":false,
+      "required":["entry_index","account_code","account_owner_id","direction","atomic_amount"],
+      "properties": {
+        "entry_index":{"type":"integer","minimum":0,"maximum":31},
+        "account_code":{"enum":["principal_available","principal_reserved","managed_escrow","provider_payable","provider_disputed","gateway_fee_revenue","gateway_refund_liability","payout_clearing","payout_disbursed","gateway_credit_issuance"]},
+        "account_owner_id":{"type":"string","minLength":1,"maxLength":512},
+        "direction":{"enum":["debit","credit"]},
+        "atomic_amount":{"$ref":"#/$defs/atomicAmount"}
+      }
+    },
+    "commitment": {
+      "type":"object","additionalProperties":false,
+      "required":["version","canonicalization","gateway_id","network_id","sequence","previous_commitment","event_id","event_type","idempotency_identity","occurred_unix_millis","ledger_reference","ledger_transaction_ids","asset","atomic_amount","identities","postings","reverses_event_id"],
+      "properties": {
+        "version":{"const":"atos_financial_commitment_v1"},
+        "canonicalization":{"const":"rfc8949_core_deterministic_cbor"},
+        "gateway_id":{"type":"string","minLength":1,"maxLength":253},
+        "network_id":{"type":"string","minLength":1,"maxLength":128},
+        "sequence":{"type":"integer","minimum":1},
+        "previous_commitment":{"$ref":"#/$defs/digest"},
+        "event_id":{"type":"string","minLength":1,"maxLength":128},
+        "event_type":{"enum":["account_genesis","reserve","reservation_release","escrow_fund","escrow_release","settlement_provider","settlement_fee","settlement_refund","partial_refund","full_refund","gateway_refund_fund","gateway_refund_pay","compensating_reversal","dispute_hold","dispute_release","payout_intent","payout_success","payout_failure","manual_adjustment"]},
+        "idempotency_identity":{"type":"string","minLength":1,"maxLength":512},
+        "occurred_unix_millis":{"type":"integer","minimum":1},
+        "ledger_reference":{"type":"string","minLength":1,"maxLength":512},
+        "ledger_transaction_ids":{"type":"array","minItems":1,"maxItems":32,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":128}},
+        "asset":{"type":"string","pattern":"^[A-Z][A-Z0-9]{1,15}$"},
+        "atomic_amount":{"$ref":"#/$defs/atomicAmount"},
+        "identities":{"$ref":"#/$defs/identities"},
+        "postings":{"type":"array","minItems":2,"maxItems":32,"items":{"$ref":"#/$defs/posting"}},
+        "reverses_event_id":{"type":"string","maxLength":128}
+      }
+    }
+  }
+}

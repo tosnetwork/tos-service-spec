@@ -238,6 +238,89 @@ or it may execute against a TOS Edge/provider while retaining managed ATOS accou
 
 A Managed call MUST NOT be presented as `tos_verified_v1` merely because its provider happens to run `tos-ai` or `tos-protocol`.
 
+### 9.1 Managed Financial Ledger Anchor V1
+
+Phase 7A adds one purpose-specific service. It is an integrity boundary, not a
+Managed escrow or settlement backend:
+
+```protobuf
+service FinancialIntegrityService {
+  rpc PublishManagedFinancialAnchor(PublishManagedFinancialAnchorRequest)
+      returns (PublishManagedFinancialAnchorResponse);
+  rpc ResolveManagedFinancialAnchor(ResolveManagedFinancialAnchorRequest)
+      returns (ResolveManagedFinancialAnchorResponse);
+}
+
+message ManagedFinancialAnchorInput {
+  string version = 1;                 // atos_managed_financial_anchor_v1
+  string anchor_id = 2;
+  string batch_id = 3;
+  uint64 batch_sequence = 4;
+  uint64 first_sequence = 5;
+  uint64 last_sequence = 6;
+  uint32 commitment_count = 7;
+  string previous_anchor_id = 8;
+  Digest previous_merkle_root = 9;
+  Digest merkle_root = 10;
+  Digest manifest_digest = 11;
+  Digest signature_digest = 12;
+  string signing_key_id = 13;
+  string canonicalization = 14;
+  string gateway_id = 15;
+  string network_id = 16;
+}
+
+message PublishManagedFinancialAnchorRequest {
+  RequestContext context = 1;
+  ManagedFinancialAnchorInput anchor = 2;
+}
+
+message PublishManagedFinancialAnchorResponse {
+  ManagedFinancialAnchorInput anchor = 1;
+  Digest payload_digest = 2;
+  NetworkReference anchor_ref = 3;
+  bool finalized = 4;
+  uint64 finalized_checkpoint = 5;
+}
+
+message ResolveManagedFinancialAnchorRequest {
+  RequestContext context = 1;
+  string anchor_id = 2;
+  string network_id = 3;
+}
+
+message ResolveManagedFinancialAnchorResponse {
+  ManagedFinancialAnchorInput anchor = 1;
+  Digest payload_digest = 2;
+  NetworkReference anchor_ref = 3;
+  bool finalized = 4;
+  uint64 finalized_checkpoint = 5;
+}
+```
+
+The canonical payload and stable `anchor_id` are defined by
+`MANAGED_FINANCIAL_INTEGRITY_V1.md`. `RequestContext.request_id` and
+`trace_id` are transport fields and MUST NOT enter semantic identity.
+`context.idempotency_key` MUST equal `anchor.anchor_id` on publish.
+
+`tos-protocol` durably records the exact anchor and payload digest before
+calling its existing chain `Authority`. It commits with kind
+`managed-financial-ledger-root`, object ID `anchor_id`, and the canonical
+payload digest. An exact retry returns the original reference. Reuse of
+`anchor_id` with changed payload is `ALREADY_EXISTS` /
+`IDEMPOTENCY_CONFLICT`. Resolve is read-only and never republishes.
+
+The chain-backed Authority's existing ActionPublisher and independent quorum
+observation are reused. A successful response requires the configured network,
+an exact action receipt, `confirmed && finalized && !reorganized`, and a
+current finalized checkpoint. The local development Authority may exercise
+contract serialization but MUST report a non-finalized/local reference and
+cannot satisfy the Phase 7A anchor acceptance test.
+
+No field from this service may populate Verified Quote, escrow, Receipt, or
+settlement proof state. Public UI/API descriptions call it a Managed financial
+history integrity anchor, never a Verified Job.
+
 ## 10. Identity Service
 
 ### `ResolveAgentIdentity`
