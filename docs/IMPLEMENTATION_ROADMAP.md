@@ -1658,64 +1658,6 @@ Complete:
 - network/domain binding that prevents mixing references from different TOS networks;
 - activation policy that only marks a Capability Verified when every required ownership/manifest checkpoint is current.
 
-#### 8.1.1 Phase 4A-W — Wallet-controlled Agent authentication and principal binding
-
-**Goal:** let a headless Agent create and control its own TOS wallet locally,
-prove control of that wallet to `atos.im`, and receive a scoped gateway session
-without a human Passkey ceremony or gateway custody of the private key.
-
-This is an additional authentication path, not a replacement for Passkey or
-Device Authorization and not, by itself, a claim that a transaction is
-Verified or Native. Wallet authentication proves control of a key; the Quote's
-trust mode and every identity/ownership/proof/settlement checkpoint remain
-separate decisions.
-
-Before implementation, freeze a normative wallet-authentication contract in
-`docs/AUTH.md` and the public API schemas. It must define at least:
-
-- canonical challenge encoding and signature algorithm/version;
-- gateway domain/audience and TOS network/genesis/chain binding;
-- wallet address/public key, one-time nonce, purpose, issued-at and expiry;
-- requested scopes and the principal/wallet binding intent;
-- durable single-use challenge consumption, replay handling and rate limits;
-- new-principal creation versus binding to an existing principal;
-- proof required before attaching a wallet to an existing account, so a valid
-  signature for one wallet can never take over another principal;
-- key rotation, wallet removal, loss/recovery and session revocation semantics;
-- stable error and idempotency behavior across retries;
-- explicit separation from transaction, token-transfer, approval and escrow
-  signatures, so a login signature cannot be replayed as an economic action.
-
-Implement:
-
-- wallet challenge begin/finish endpoints that issue the existing ATOS
-  access/refresh-token format and enforce the same call-time scopes;
-- a durable one-to-one or explicitly versioned many-key binding between a
-  gateway principal and its TOS Agent Identity/wallet credentials;
-- SDK helpers suitable for unattended Agents to generate and retain keys
-  locally, sign the canonical challenge and rotate credentials;
-- least-privilege defaults: wallet authentication never grants admin,
-  activation, signer-management, settlement or dispute-review scopes merely
-  because the caller controls a TOS wallet;
-- audit events for bind, authenticate, rotate, revoke and failed takeover;
-- production key-handling guidance: the Agent/wallet owns the private key;
-  `atos.im`, Capability metadata, Agent Cards, logs and A2A extensions never
-  receive it.
-
-Economic policy is deliberately independent. Creating a new wallet-authenticated
-principal MUST NOT implicitly promise a promotional balance, sponsored gas,
-credit line, KYC status or Sybil resistance. Those are explicit gateway policy
-and compliance decisions.
-
-**Acceptance:** an unattended Agent generates a fresh TOS wallet locally,
-authenticates to `atos.im` by a domain- and network-bound signature, receives a
-least-privilege session, calls REST/MCP/A2A through that same principal, rotates
-or revokes the wallet safely, and cannot replay a challenge, cross a TOS network,
-change requested scopes after signing, attach to another principal, or reinterpret
-the login signature as an economic transaction. Tests cover concurrent finish,
-lost responses, multi-replica challenge consumption and account-binding races on
-real PostgreSQL.
-
 ### 8.2 Phase 4B — Live signer authorization and Verified transaction path
 
 Complete:
@@ -1788,6 +1730,28 @@ as Managed.
 **Goal:** activate `trust_mode=native` and remove `atos.im` as canonical
 namespace/trust authority for Native supply.
 
+Native wallet access is not another `atos.im` registration method. It is a
+wallet-controlled, non-custodial security context for an ATOS-compatible
+gateway. The Agent owns its TOS key and global identity; the gateway verifies
+authority, serves or relays protocol operations, and may add replaceable search,
+risk, policy, simulation and fee-sponsorship services.
+
+The product distinction is normative:
+
+```text
+Gateway Account Context
+= Passkey / Device Authorization / service account
+= gateway-local principal_id, policy and Managed services
+
+Wallet-Native Context
+= TOS wallet signature + globally resolvable TOS Agent Identity
+= no required gateway account, principal binding, custody or Managed balance
+```
+
+A wallet may separately choose to bind to a gateway account for proprietary
+Managed features, but that is an explicit opt-in gateway product outside the
+canonical Native identity path. Native access MUST work without that binding.
+
 Before implementation, freeze these normative primitives in `atos-spec`:
 
 - final global Agent and Capability identifier scheme;
@@ -1802,6 +1766,174 @@ Before implementation, freeze these normative primitives in `atos-spec`:
 
 Do not let the existing provisional URI or local database key accidentally
 become the permanent federation identifier merely because code already uses it.
+
+### 9.1 Phase 5A — Wallet-Native stateless gateway authorization
+
+**Goal:** a headless Agent generates and controls a TOS wallet locally, proves
+current authority to `atos.im` or another compatible gateway, and uses
+REST/MCP/A2A without creating a persistent gateway account or exposing its root
+private key.
+
+#### 9.1.1 Canonical wallet authorization proof
+
+Freeze a domain-separated `atos_wallet_authorization_v1` (name provisional
+until the contract is normative) containing at least:
+
+```text
+format/signature version
+TOS network_id + genesis/chain domain
+gateway audience/origin
+global Agent ID + wallet address/public key
+ephemeral session public key
+exact requested scopes and optional resource constraints
+issued_at + expires_at
+one-time nonce + authorization_id
+purpose = gateway_session
+```
+
+The signed bytes and canonicalization test vectors must be identical across
+SDKs and gateways. Verification MUST establish that the signing key is
+currently authorized for the claimed TOS Agent Identity according to finalized
+TOS state, including rotation, revocation, recovery and delegation rules.
+
+The `gateway_session` signature domain MUST be disjoint from identity
+registration, token transfer, allowance/approval, Quote acceptance, escrow,
+Capability ownership, execution and settlement domains. No valid login proof
+may be reinterpreted as an economic or ownership action.
+
+#### 9.1.2 Short-lived proof-of-possession session
+
+After successful wallet proof, a gateway MAY issue a short-lived session token,
+but the Native default is not the existing long-lived bearer/refresh-token
+account model. The session must:
+
+- use the global TOS Agent Identity as subject, not require a local
+  `principal_id`;
+- be audience-, network-, scope-, expiry- and session-public-key-bound;
+- require proof of possession of the ephemeral session key on every request,
+  binding method, authority/path, body digest, timestamp and request nonce;
+- default to minutes, not days, and require a new wallet proof rather than an
+  indefinitely renewable refresh token;
+- grant no admin, activation, reviewer, signer-management, custody or economic
+  authority merely because the wallet is valid;
+- support deterministic expiry and fail closed after root/session-key
+  revocation or network/domain mismatch.
+
+The wallet root key establishes and rotates sessions; it should not sign every
+HTTP call. SDKs must support memory-only session keys and stronger local custody
+such as HSM/TEE/policy-controlled signers for autonomous Agents.
+
+#### 9.1.3 Minimum-state and privacy boundary
+
+“Stateless gateway” means no persistent wallet account or custodial wallet
+state. It does not prohibit bounded operational security state.
+
+A Native gateway MUST NOT require or retain:
+
+- wallet private keys, seed phrases or signing credentials;
+- a persistent wallet-to-`principal_id` binding;
+- a gateway-custodied wallet balance or automatically provisioned Managed
+  account/credit;
+- wallet secrets in logs, Capability metadata, Agent Cards, Artifacts or A2A
+  extensions;
+- a proprietary account row as the authority for Native identity, ownership,
+  balance, reputation, proof or settlement.
+
+A gateway MAY retain only policy-bounded operational data such as:
+
+- TTL-bounded challenge/replay hashes and session revocation state;
+- abuse/rate-limit state;
+- minimized security/audit logs under a declared retention policy;
+- caches and indexes that are explicitly non-canonical and rebuildable from
+  TOS events;
+- proprietary search/risk projections that are never presented as canonical
+  Native facts.
+
+Replay protection must work across replicas and restarts. If one-time challenge
+consumption uses durable storage, store the minimum opaque hash/expiry needed;
+that does not create a wallet account. A design claiming literally zero state
+must prove equivalent replay safety and revocation behavior before adoption.
+
+#### 9.1.4 Verifiable reads and freshness
+
+Native responses derived from TOS state must identify what was actually
+observed. Where applicable expose normalized:
+
+```text
+network_id
+block height/hash or finalized checkpoint
+finality status
+observed_at
+proof/reference
+indexer lag/freshness
+resolver/source identity
+```
+
+Clients must be able to request a minimum finality/freshness policy. The gateway
+must fail closed or return an explicit stale/degraded result when RPC endpoints,
+indexers or quorum sources disagree beyond policy. Reorg handling, cache
+invalidation, multi-endpoint quorum and proof verification require normative
+tests.
+
+Canonical facts and replaceable projections remain separate:
+
+```text
+TOS Network              = identity, ownership, commitments, escrow, proof, settlement
+rebuildable indexer       = queryable projections of canonical events
+gateway                   = search, ranking, routing, simulation, risk/policy, sponsorship
+authorized off-chain data = private inputs, proposals and bulk Artifacts
+```
+
+“Read from chain” MUST NOT be used as justification to publish private or bulk
+payloads on-chain.
+
+#### 9.1.5 Economic and ownership intent authorization
+
+A gateway session authorizes API access; it does not authorize spending or
+ownership changes. Each economic/ownership operation must carry its own
+domain-separated Agent/wallet authorization bound to all material terms,
+including as applicable:
+
+- network and Agent/wallet;
+- operation type and stable nonce/sequence/idempotency identity;
+- immutable Quote/terms commitment;
+- provider, Capability ID and version;
+- asset, exact/maximum amount, fee and sponsorship terms;
+- escrow, deadline, trust mode and proof profile;
+- intended relayer/gateway constraints where required.
+
+A gateway may validate, simulate, relay, sponsor fees and monitor confirmation.
+It may not reprice, change the provider/Capability, weaken trust, enlarge
+authority or substitute its own semantic signature. A sponsored transaction is
+still authorized by the Agent; gas sponsorship is not spending consent.
+
+Economic retries follow §3.3: a timeout or lost response reuses the same signed
+intent and idempotency identity, queries canonical outcome and never guesses
+whether the TOS action occurred.
+
+#### 9.1.6 Phase 5A acceptance
+
+Prove with two gateway implementations/instances and a real TOS localnet:
+
+1. an unattended Agent creates and retains a fresh wallet locally;
+2. it establishes a short-lived PoP session without creating a gateway
+   principal/account or disclosing the root private key;
+3. it reads identity/Capability/escrow/receipt/settlement state with explicit
+   checkpoint, finality and freshness metadata;
+4. it signs a separate bounded Quote/escrow/invocation intent and either relays
+   it through the gateway or submits it through another compatible path;
+5. replay, scope mutation, body/path substitution, cross-audience use,
+   cross-network use, expired session, revoked/rotated key, stale index and
+   duplicate economic submission all fail or converge safely;
+6. Gateway A can disappear and the same Agent can establish a new session at
+   Gateway B without exporting a gateway secret, re-registering its canonical
+   identity or giving Gateway B custody of its wallet.
+
+Tests must include concurrent challenge/session use, lost responses,
+multi-replica replay protection, chain reorg/finality behavior and malicious
+gateway attempts to mutate signed economic terms.
+
+### 9.2 Phase 5B — Native registry, resolver and decentralized discovery
 
 Implement:
 
@@ -1828,8 +1960,8 @@ TOS Network            = canonical identity/registry/trust/proof/economic state
 
 No `atos.im` bearer token, local `principal_id`, account row or private API may be
 required to establish or verify the canonical Native identity. A compatible
-gateway may create a local session/alias after verifying the wallet signature,
-but that alias is convenience state and is never the federation identity.
+gateway may create the short-lived PoP context defined in §9.1 or an explicitly
+opted-in local account alias, but neither is the federation identity.
 
 Search ranking remains off-chain and competitive.
 
@@ -1851,8 +1983,9 @@ Ship:
 
 - normative gateway feature/mode advertisement;
 - a conformance profile for wallet-signature authentication/session bootstrap,
-  including domain separation, scope binding, replay protection and explicit
-  declaration of supported TOS networks;
+  including the §9.1 authorization proof, PoP request binding, domain separation,
+  scope/resource binding, replay protection and explicit declaration of
+  supported TOS networks/finality/freshness policy;
 - gateway conformance suite;
 - open reference gateway components;
 - cross-gateway Native resolution and `tos_native_v1` interoperability tests;
