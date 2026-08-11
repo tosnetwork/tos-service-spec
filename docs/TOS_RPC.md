@@ -384,7 +384,9 @@ For Phase 4B-1 Verified Quotes the normative value is
 `quote_id`. The configured authority network MUST equal `network_id`, and
 `domain` MUST identify the committing gateway deployment. `trust_mode` is
 exactly `VERIFIED` and `proof_profile` is exactly `TOS_VERIFIED_V1`; `AUTO`
-is not representable here.
+is not representable here. `canonicalization` MUST equal
+`rfc8949_core_deterministic_cbor`. Implementations MUST reject protobuf
+unknown fields recursively before conversion to the normative field model.
 
 Before mutation, the service MUST freshly resolve and validate the provider
 identity, exact Capability ownership/version/manifest, and the exact live
@@ -399,9 +401,18 @@ with different canonical semantics returns `IDEMPOTENCY_CONFLICT` /
 Read-only resolution for recovery/audit.
 
 This is the mandatory recovery operation after a timeout or lost response.
+For Verified Quotes the caller supplies `expected_quote` and, once known,
+`expected_commitment_ref`. The server independently recomputes the semantic
+digest and freshly resolves that exact Quote/digest/reference using the live
+canonical authority. Process-local persistence is only a cache: it MUST NOT
+make a Quote found or finalized by itself. This lookup must therefore work on
+a different stateless `tos-protocol` replica and MUST fail closed when live
+resolution is unavailable, changes network/reference, is non-final, reports
+a zero or regressed finalized checkpoint, or returns inconsistent facts.
+
 The caller compares the returned canonical value, digest, network and
-finality before retrying `CommitQuote`; absence is the only outcome that
-permits another mutation attempt.
+finality before retrying `CommitQuote`; authoritative absence is the only
+outcome that permits another mutation attempt.
 
 ### Execution signer authorization
 

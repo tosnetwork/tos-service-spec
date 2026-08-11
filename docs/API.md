@@ -320,6 +320,13 @@ cross-provider certification visibility.
 - `POST /quotes`
 - `GET /quotes/{quote_id}`
 
+`POST` requires `Idempotency-Key`, scoped to the authenticated principal.
+ATOS durably binds that key to one generated Quote ID and immutable snapshot
+before calling the TOS authority. Exact retries, including retries received by
+another ATOS replica after a lost authority response or crash, resume that
+same Quote identity. Reusing the key with different request semantics returns
+`idempotency_conflict`.
+
 Example request:
 
 ```json
