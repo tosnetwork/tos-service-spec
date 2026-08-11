@@ -1483,60 +1483,103 @@ MCP entry point                                   done -- wired in atos
                                                     (mcp.Server.OpenTasks),
                                                     8 tools frozen in
                                                     docs/MCP.md §6A/§8
+A2A entry point                                   done -- openTasks/*
+                                                    implemented in
+                                                    internal/a2a/open_task.go,
+                                                    wired into a2a.Server,
+                                                    contract frozen in
+                                                    docs/A2A.md's "Open Task
+                                                    Marketplace Extension"
+                                                    and Invariants 9-12
 
-atos.im/tasks (browse/search)                     NOT STARTED -- no such
-atos.im/tasks/new (human publish form)             page or web app exists
-atos.im/tasks/{task_id} (detail/proposals/winner)  anywhere in this
-                                                    workspace; this is net-new
-                                                    product work, not a
-                                                    documentation gap
+atos.im/tasks (browse/search)                     done -- atos/web
+atos.im/tasks/new (human publish form)             (React/Vite/TS), merged
+atos.im/tasks/{task_id} (detail/proposals/winner)  atos PR #16. Requester
+                                                    side only: browse,
+                                                    publish, view proposals,
+                                                    accept a winner, track
+                                                    the resulting Quote/Job.
+                                                    Independently reviewed
+                                                    twice with real fixes
+                                                    applied each round (a
+                                                    Job.proof_status type
+                                                    mismatch that crashed
+                                                    React once a task was
+                                                    accepted; a UTC-vs-local
+                                                    timezone bug in the
+                                                    expires_at form's
+                                                    minimum bound; missing
+                                                    Quote-tracking; dishonest
+                                                    "N opportunities
+                                                    available" copy against
+                                                    the 100-task hard cap --
+                                                    see git log for the
+                                                    fix commits).
 
-A2A publication mapping                           contract frozen, atos
-                                                    implementation NOT
-                                                    STARTED -- atos's
-                                                    internal/a2a/server.go
-                                                    still implements only
-                                                    message/send, tasks/get,
-                                                    tasks/cancel against
-                                                    JobService; a2a.Server
-                                                    still has no OpenTasks
-                                                    field or dispatch case
-                                                    for any OpenTask-shaped
-                                                    operation. The
-                                                    openTasks/* method
-                                                    namespace (publish,
-                                                    search, get, cancel,
-                                                    proposals/submit|list|
-                                                    withdraw|accept) is now
-                                                    frozen in docs/A2A.md's
-                                                    "Open Task Marketplace
-                                                    Extension" section and
-                                                    Invariants 9-12.
+Provider proposal submission/withdrawal web UI    NOT STARTED -- a
+                                                    deliberate scope
+                                                    decision for the initial
+                                                    web MVP, not an
+                                                    oversight: the web
+                                                    product's brief scoped
+                                                    it to the requester
+                                                    side only (matching
+                                                    §7.3.1's "AI Agent ->
+                                                    REST/MCP/A2A" framing
+                                                    for the provider side).
+                                                    Whether a human-facing
+                                                    provider bidding page
+                                                    belongs on atos.im is a
+                                                    product decision, not a
+                                                    bug to silently fix --
+                                                    it also needs a
+                                                    capability-selection UX
+                                                    that doesn't exist yet
+                                                    (a provider must name a
+                                                    capability_id they
+                                                    already own).
+
+Production deployment wiring                      NOT STARTED -- no build
+                                                    pipeline, static hosting,
+                                                    reverse proxy, or
+                                                    same-origin /v1 and
+                                                    /activate proxying
+                                                    exists outside the repo
+                                                    itself. atos/web's own
+                                                    README documents this as
+                                                    an explicit external
+                                                    dependency (the human
+                                                    login flow relies on a
+                                                    trusted reverse-proxy
+                                                    boundary in front of
+                                                    /activate that doesn't
+                                                    exist anywhere in this
+                                                    repo) rather than
+                                                    pretending to solve it.
 ```
 
-REST and MCP already let an Agent complete the full publish -> propose ->
-accept flow programmatically today, with no web UI involved -- confirmed by
-reading `cmd/api/main.go`'s wiring, not inferred from the backend being
-done. The two genuinely missing pieces are the web product (`atos.im/tasks`
-and its two sub-pages) and the A2A implementation (its contract is now
-frozen; `atos` has not yet implemented it). All three consume the
-already-frozen contract in `docs/API.md` §5A / `docs/MCP.md` §6A / `docs/A2A.md` --
-none should invent a second task model, a second idempotency scheme, or
-bypass the ownership/redaction rules already specified there (task `input`
-and full proposal detail stay owner/winning-provider-only; every other
-viewer gets the
-redacted `Public()` shape).
+REST, MCP and A2A now all let an Agent complete the full publish -> propose
+-> accept flow programmatically -- confirmed by reading `cmd/api/main.go`'s
+wiring for all three, not inferred from the backend being done. The
+requester-side web product also exists and has been through two independent
+review rounds with real fixes applied. What remains is a provider-side web
+bidding flow (a genuine product-scope decision, not a bug) and the
+production deployment plumbing (infrastructure, not application code) --
+neither is addressable by further changes to `atos`/`atos-spec` alone.
 
 The A2A mapping was a protocol-design task, not just a wiring task like
 REST/MCP turned out to be -- A2A's `message/send`/`tasks/get`/`tasks/cancel`
 triad had no existing shape for "browse open demand" or "submit a
-proposal." Per this document's own §3.1 rule, that design is now frozen
-(`docs/A2A.md`'s "Open Task Marketplace Extension" section, before any
-`atos` implementation): a disjoint `openTasks/*` JSON-RPC method namespace
-that never reuses or extends the `tasks/*`/Task-Message model reserved for
-Job-mapped Tasks (Invariant 1), with `open_tasks:read`/`write`/
-`open_task_proposals:write` scopes identical to the REST/MCP surface. `atos`
-implementation of this namespace has not started.
+proposal." Per this document's own §3.1 rule, that design was frozen
+(`docs/A2A.md`'s "Open Task Marketplace Extension" section) before the
+`atos` implementation landed: a disjoint `openTasks/*` JSON-RPC method
+namespace that never reuses or extends the `tasks/*`/Task-Message model
+reserved for Job-mapped Tasks (Invariant 1), with `open_tasks:read`/`write`/
+`open_task_proposals:write` scopes identical to the REST/MCP surface.
+`atos` implementation of this namespace is complete, tested (full
+publish -> propose -> accept lifecycle through a real quote -> escrow ->
+tos-ai execute -> tos-core verify/settle pipeline, plus scope-rejection
+cases) and merged.
 
 ### 7.4 Phase 3 overall success criterion
 
