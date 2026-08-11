@@ -420,6 +420,14 @@ malformed/mismatched response is resolver unavailability. Publisher readiness
 MUST advertise the resolve endpoint, journal version, typed-not-found and
 intent-before-publish capabilities; clients MUST reject legacy health
 responses that do not negotiate this contract.
+The durable journal MUST be explicitly enrolled once with a pinned identity;
+normal service startup MUST NOT create missing state and MUST reject a missing
+or identity-mismatched journal. The publisher MUST independently recompute the
+Action ID from the configured network, service address/ID, commitment kind,
+object ID/digest and operator-fixed payer/payee/amount policy before invoking
+key custody. The production backend MUST negotiate recover-by-Action-ID and
+search-before-broadcast behavior and prove the exact payer wallet/RPC binding
+at readiness.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live

@@ -1775,14 +1775,11 @@ gap; listed here only so it isn't mistaken for an oversight):
   (`tosctl agent wallet create/fund`, `tosctl agent account deploy`) --
   confirmed present during this phase's investigation, correcting a prior,
   now-stale note in this same section claiming no deployment tooling
-  existed. What's still missing is a generic (non-TaskEscrow-specific)
-  `chain.ActionPublisher` sidecar: `pkg/localrpc/chain_action.go` defines
-  the client (`ChainActionPublisherClient`) and wire protocol
-  (`POST /v1/chain/action`, `GET /healthz`) but no `cmd/` binary serves that
-  protocol yet -- `taskescrowpublisher.TosctlBackend`
-  (`pkg/taskescrowpublisher/tosctl.go`) is the closest template (shells out
-  to `tosctl` using a wallet-profile-name-only credential map) but is
-  TaskEscrow-action-specific, not reusable as-is.
+  existed. Phase 4B-1 subsequently added the generic
+  `tos-chain-action-publisher`, its explicitly enrolled durable journal,
+  spending-policy-bound Action verification and concrete recovering tosctl
+  backend. Deployment against the selected production validator quorum and
+  Vault/HSM policy remains §8.4 work.
 - A brand-new `AgentIdentity` still cannot be created/verified via
   signature proof through any *self-service* production path --
   `SeedIdentity` is deliberately kept as an out-of-band operator/bootstrap
