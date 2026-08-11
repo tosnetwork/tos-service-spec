@@ -520,17 +520,18 @@ reads, a wildcard-`capability_version` allowlist lookup bug, quoted
 `capability_version` field missing from `GetProviderStatusRequest` that
 silently under-specified every remote health/certification probe.
 
-**Known gap (not a placement-rule violation, but worth flagging so it isn't
-mistaken for wired-up):** `HealthService`/`CertificationService` in `atos`
-gained an optional remote-probing path (`WithRemoteProber`, consuming the
-same `ThirdPartyExecutionService` boundary as Job execution — see §7.1.3
-below) as part of this work, but neither service is constructed anywhere in
-`cmd/api/main.go`, and there is no HTTP or MCP surface that calls
-`CheckCapability`/`Open` at all. Both services — including the new remote
-path — currently exist with full unit-test coverage but zero production call
-sites, a gap that predates this placement work. Wiring an actual entry point
-is separate follow-up work; inventing one solely to close this note would be
-scope creep beyond what the placement rule itself requires.
+**Resolved:** `HealthService`/`CertificationService` in `atos` gained an
+optional remote-probing path (`WithRemoteProber`, consuming the same
+`ThirdPartyExecutionService` boundary as Job execution — see §7.1.3 below) as
+part of this work. At the time this note was first written, neither service
+had a real production call site. That gap has since been closed on both
+sides: `HealthService.CheckCapability` runs via `GET /capabilities/{id}`'s
+readiness projection (`GetCapabilityWithReadiness`) and via
+`health.RunReconciler`'s periodic sweep, both wired in `cmd/api/main.go`;
+`CertificationService.Open` gained its own entry point in `atos@ad2dbf4`
+(`POST /v1/capabilities/{id}/certification` and the matching MCP tools,
+gated by new `certifications:read`/`write` scopes) — see §7.1.3's "Known
+gap" note below for the detail on why that one lagged behind.
 
 Adapter request/result binding must include enough immutable identity to reject
 substitution, at least conceptually:
@@ -663,10 +664,23 @@ concurrent/restarted certification converges, stale results do not certify a
 new Capability version, and health/certification alone never activate
 Verified or Native.
 
-**Known gap:** `atos`'s `HealthService`/`CertificationService` (including the
+**Resolved:** `atos`'s `HealthService`/`CertificationService` (including the
 optional remote-probing path added alongside §7.1.1's execution-plane
-placement work) have zero production call sites — see §7.1.1's own "Known
-gap" note above for the full explanation.
+placement work) had zero production call sites for a period spanning Phase
+3A/3B. `HealthService` was closed out first, reachable via `GET
+/capabilities/{id}`'s readiness projection and `health.RunReconciler`'s
+periodic sweep. `CertificationService.Open` — the sandbox certification
+workflow itself — was the last piece still unreachable: fully implemented
+with full test coverage since Phase 3A, but no REST route, no MCP tool, and
+no reconciler ever called it, discovered as a genuine gap during a Phase
+3B/3C completeness audit rather than by any review of new work. Closed in
+`atos-spec@54a406f` (spec: `docs/API.md` §2.3, `docs/MCP.md`) and
+`atos@ad2dbf4` (implementation: `POST`/`GET
+/v1/capabilities/{id}/certification`, `atos_open_certification`/
+`atos_get_certification_status` MCP tools, new `certifications:read`/`write`
+scopes mirroring `execution_signers:read`/`write`'s provider-role,
+ownership-checked pattern). See §7.1.1's "Resolved" note above for
+`HealthService`'s side of this.
 
 #### 7.1.4 3A-M — Provider/Admin MCP tools
 
@@ -735,7 +749,7 @@ immutable binding/version semantics           ✅
 input/output schema validation                ✅
 provider health checks                        ✅
 per-mode availability projection              ✅
-sandbox certification workflow                ✅
+sandbox certification workflow                ✅ [1]
 atos_provider_jobs                            ✅
 atos_deliver_job                              ✅
 atos_request_settlement                       ✅
@@ -751,6 +765,13 @@ The cross-repository acceptance test must demonstrate a third-party Managed
 Capability using a real provider adapter path from ATOS orchestration through
 the execution boundary and back into the existing Receipt/settlement pipeline,
 without bypassing Quote, receipt verification, billing or dispute semantics.
+
+[1] This checkmark reflects `CertificationService.Open`'s logic and test
+coverage, which were genuinely complete since Phase 3A. It was only later,
+during a Phase 3B/3C completeness audit, that the entry point itself was
+found unreachable in any real deployment (no REST route, no MCP tool, no
+reconciler) — closed in `atos-spec@54a406f`/`atos@ad2dbf4`; see §7.1.3's
+"Resolved" note above.
 
 ### 7.2 Phase 3B — Provider Trust Readiness
 
