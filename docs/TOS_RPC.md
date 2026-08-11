@@ -407,6 +407,11 @@ digest and freshly resolves that exact `(kind, quote_id, digest)` tuple using
 the live canonical authority. When the reference is unknown after a lost
 response, the resolver MUST perform tuple discovery and return either the
 finalized canonical reference or explicit authoritative not-found.
+For the chain-backed Authority, tuple discovery resolves the deterministic
+Action ID through the publisher's durable read-only receipt journal and then
+independently re-observes the returned exact transaction through the quorum
+chain adapter. Receipt-journal unavailability is not not-found and fails
+closed; discovery never calls the mutation/publish endpoint.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
