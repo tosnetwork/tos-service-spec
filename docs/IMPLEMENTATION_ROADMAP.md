@@ -1652,9 +1652,11 @@ is incomplete.
 
 ✅ **Status: complete against this phase's frozen scope** (all five bullets
 below), verified live end to end against real Postgres 16 and a real running
-`tos-protocol` server process. (`agent/phase4a-production-identity-ownership`
-on `atos-spec`/`tos-protocol`; `agent/phase4a-implementation-brief` on `atos`,
-`atos` PR [#18](https://github.com/tosnetwork/atos/pull/18), still Draft.)
+`tos-protocol` server process. Merged to `main` in all three repositories:
+`atos` PR [#18](https://github.com/tosnetwork/atos/pull/18) (merge commit
+`0ab63c2`), `tos-protocol`'s `agent/phase4a-production-identity-ownership`
+(merge commit `68cd484`), and `atos-spec`'s branch of the same name -- all
+three feature branches deleted post-merge.
 
 Scope correction: an earlier revision of this section listed "full on-chain
 verification with `-authority chain` against a deployed Agent Account" as a
@@ -1781,9 +1783,6 @@ gap; listed here only so it isn't mistaken for an oversight):
   (`pkg/taskescrowpublisher/tosctl.go`) is the closest template (shells out
   to `tosctl` using a wallet-profile-name-only credential map) but is
   TaskEscrow-action-specific, not reusable as-is.
-- **`go.mod` local `replace` directive** in `atos` pointing at a sibling
-  worktree path for `tos-protocol` -- must be removed once the
-  `tos-protocol` branch merges to its own `main`.
 - A brand-new `AgentIdentity` still cannot be created/verified via
   signature proof through any *self-service* production path --
   `SeedIdentity` is deliberately kept as an out-of-band operator/bootstrap
