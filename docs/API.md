@@ -594,6 +594,95 @@ Provider operations MUST preserve the Job's Quote-bound concrete trust mode and 
 
 Mode certification/activation use the dedicated provider/admin execution-signer endpoints defined in §2.1 (Phase 3B); ordinary Capability metadata PATCH cannot bypass ownership, manifest, signer-authorization, proof/settlement, or Native-resolution checks.
 
+## 9A. Identity Binding Endpoints (Phase 4A)
+
+Admin only (`identity_bindings:write` for the mutations, `identity_bindings:read`
+for status), explicit-grant-only like `activation:evaluate` -- never a
+default consumer or provider scope, and never obtainable through the
+passkey/Device Authorization self-service bundle (`docs/AUTH.md`'s "Human
+Account Authentication" section explicitly excludes it). These are
+gateway-operator actions establishing which TOS Agent Identity a
+`principal_id` (gateway account or provider) is bound to
+(`docs/IMPLEMENTATION_ROADMAP.md` §8.1, `docs/TOS_RPC.md` §10's
+`CreatePrincipalBinding`/`RevokePrincipalBinding`) -- never self-service:
+a principal cannot bind itself to an arbitrary claimed TOS identity merely
+by being authenticated.
+
+- `POST /v1/identity-bindings/{principal_id}/bind`
+- `POST /v1/identity-bindings/{principal_id}/revoke`
+- `GET /v1/identity-bindings/{principal_id}`
+
+`POST .../bind` and `POST .../revoke` require `Idempotency-Key` (§1's
+universal convention), scoped by the calling admin's own identity, exactly
+like §2.2's activation-evaluation endpoint -- never by `principal_id`, since
+two different admins independently reusing the identical key string must
+not collide.
+
+`POST .../bind` request:
+
+```json
+{"agent_id":"agt_..."}
+```
+
+`agent_id` MUST already independently resolve through
+`IdentityService.ResolveAgentIdentity` -- this endpoint (and the
+`CreatePrincipalBinding` RPC underneath it) never creates a new TOS Agent
+Identity from nothing; creating one is a separate out-of-band
+operator/bootstrap action in Phase 4A. Rebinding a principal that already
+has a DIFFERENT current `agent_id` is rejected (`ALREADY_BOUND`) --
+`POST .../revoke` must run first.
+
+Response (200, both the newly-created and idempotent-replay case):
+
+```json
+{
+  "principal_id":"prn_...",
+  "agent_id":"agt_...",
+  "network":"tos-devnet",
+  "binding_ref":"tos:...",
+  "created":true
+}
+```
+
+`POST .../revoke` request:
+
+```json
+{"reason_code":"operator_requested"}
+```
+
+Response -- `revoked:false` is a normal outcome (nothing was bound), never
+an error, mirroring the execution-signer revoke convention:
+
+```json
+{"revoked":true,"revocation_ref":"tos:..."}
+```
+
+`GET /v1/identity-bindings/{principal_id}` returns the current binding
+status without mutating anything:
+
+```json
+{
+  "principal_id":"prn_...",
+  "bound":true,
+  "agent_id":"agt_...",
+  "network":"tos-devnet",
+  "binding_ref":"tos:...",
+  "status":"active"
+}
+```
+
+or, for a never-bound or revoked principal:
+
+```json
+{"principal_id":"prn_...","bound":false,"status":"revoked","revocation_reason_code":"operator_requested"}
+```
+
+`status` is one of `unspecified|active|revoked`, mirroring
+`PrincipalBindingStatus` (`docs/TOS_RPC.md` §10) exactly -- distinguishing
+"never bound" (`unspecified`) from "was bound, now revoked" (`revoked`) for
+operator audit/UX, even though both states deny Phase 4A activation
+identically.
+
 ## 10. Public/Metadata Endpoints
 
 - `GET /taxonomy`
