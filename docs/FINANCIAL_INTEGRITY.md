@@ -4,6 +4,13 @@
 **Applies to:** ATOS Managed financial state, provider earnings, payouts, refunds, disputes, and the integrity boundary between `atos.im` and TOS Network  
 **Roadmap phase:** Phase 7 — Economy and Proof Hardening
 
+The frozen Phase 7A interoperability contract is
+[`MANAGED_FINANCIAL_INTEGRITY_V1.md`](MANAGED_FINANCIAL_INTEGRITY_V1.md).
+Where this planning document uses illustrative language, that V1 document is
+normative for Chart of Accounts, Adapter semantics, canonical commitments,
+Merkle batches, signatures, retention, TOS anchors, reconciliation, safe mode,
+and independent verification.
+
 > ATOS financial correctness must not depend on trusting one mutable PostgreSQL
 > database, one application server, one database administrator, or one cloud
 > account. PostgreSQL remains the operational database for Managed Mode, but

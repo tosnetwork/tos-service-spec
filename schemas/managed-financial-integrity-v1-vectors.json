@@ -1,0 +1,76 @@
+{
+  "version": "atos_managed_financial_integrity_vectors_v1",
+  "commitment_domain": "tos.atos.financial.commitment.v1",
+  "vectors": [
+    {
+      "name": "reserve_125_usd",
+      "value": {
+        "version": "atos_financial_commitment_v1",
+        "canonicalization": "rfc8949_core_deterministic_cbor",
+        "gateway_id": "gateway.example",
+        "network_id": "tos-localnet-1",
+        "sequence": 1,
+        "previous_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "event_id": "fevt_01",
+        "event_type": "reserve",
+        "idempotency_identity": "gateway.example:job:job_01:reserve:v1",
+        "occurred_unix_millis": 1786420800000,
+        "ledger_reference": "atos-fevt-fevt_01",
+        "ledger_transaction_ids": ["txn_01"],
+        "asset": "USD",
+        "atomic_amount": "125",
+        "identities": {
+          "principal_id": "principal_01",
+          "provider_id": "provider_01",
+          "job_id": "job_01",
+          "quote_id": "quote_01",
+          "capability_id": "capability_01",
+          "capability_version": "1.0.0",
+          "billing_snapshot_id": "",
+          "execution_receipt_id": "",
+          "settlement_id": "",
+          "provider_earning_id": "",
+          "dispute_id": "",
+          "payout_id": ""
+        },
+        "postings": [
+          {"entry_index":0,"account_code":"principal_available","account_owner_id":"principal_01","direction":"debit","atomic_amount":"125"},
+          {"entry_index":1,"account_code":"principal_reserved","account_owner_id":"principal_01","direction":"credit","atomic_amount":"125"}
+        ],
+        "reverses_event_id": ""
+      },
+      "canonical_cbor_hex": "b1656173736574635553446776657273696f6e781c61746f735f66696e616e6369616c5f636f6d6d69746d656e745f7631686576656e745f696467666576745f303168706f7374696e677382a569646972656374696f6e6564656269746b656e7472795f696e646578006c6163636f756e745f636f6465737072696e636970616c5f617661696c61626c656d61746f6d69635f616d6f756e7463313235706163636f756e745f6f776e65725f69646c7072696e636970616c5f3031a569646972656374696f6e666372656469746b656e7472795f696e646578016c6163636f756e745f636f6465727072696e636970616c5f72657365727665646d61746f6d69635f616d6f756e7463313235706163636f756e745f6f776e65725f69646c7072696e636970616c5f30316873657175656e6365016a6576656e745f7479706567726573657276656a676174657761795f69646f676174657761792e6578616d706c656a6964656e746974696573ac666a6f625f6964666a6f625f30316871756f74655f69646871756f74655f3031697061796f75745f6964606a646973707574655f6964606b70726f76696465725f69646b70726f76696465725f30316c7072696e636970616c5f69646c7072696e636970616c5f30316d6361706162696c6974795f69646d6361706162696c6974795f30316d736574746c656d656e745f696460726361706162696c6974795f76657273696f6e65312e302e307362696c6c696e675f736e617073686f745f6964607370726f76696465725f6561726e696e675f69646074657865637574696f6e5f726563656970745f6964606a6e6574776f726b5f69646e746f732d6c6f63616c6e65742d316d61746f6d69635f616d6f756e74633132357063616e6f6e6963616c697a6174696f6e781f726663383934395f636f72655f64657465726d696e69737469635f63626f72706c65646765725f7265666572656e63657161746f732d666576742d666576745f30317172657665727365735f6576656e745f6964607370726576696f75735f636f6d6d69746d656e7478477368613235363a30303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030746964656d706f74656e63795f6964656e746974797825676174657761792e6578616d706c653a6a6f623a6a6f625f30313a726573657276653a7631746f636375727265645f756e69785f6d696c6c69731b0000019feefa2a00766c65646765725f7472616e73616374696f6e5f696473816674786e5f3031",
+      "digest": "sha256:6358a74c3fe5ed5ed6e7a4e204b2833b6f121056b177c8b3c416345aeca18020",
+      "one_leaf_merkle_root": "sha256:5a3e794d34f0333eb5df7b4e727b54f30ad8daef357ae357b298935e9687b2e8"
+    }
+  ],
+  "batch_vectors": [
+    {
+      "name": "two_commitment_blnk_bound_batch_v2",
+      "batch_domain": "tos.atos.financial.batch.v2",
+      "ledger_evidence_domain": "tos.atos.financial.blnk-evidence.v1",
+      "manifest": {
+        "version": "atos_financial_batch_v2",
+        "canonicalization": "rfc8949_core_deterministic_cbor",
+        "gateway_id": "gateway.example",
+        "network_id": "tos-localnet-1",
+        "batch_sequence": 1,
+        "batch_id": "fbat_0ebac55bb30866d2a5326ef36f21aac90c3b9060928af43862cdc72bb79e4d7b",
+        "first_sequence": 1,
+        "last_sequence": 2,
+        "commitment_count": 2,
+        "previous_batch_id": "",
+        "previous_merkle_root": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "merkle_root": "sha256:2c29ccd1d38ceff9b41a2b2803153c205150737938356971d904712d25fdbdea",
+        "commitment_digests": [
+          "sha256:6ea1c0fc0388c7cf35cc367409f252cb44773a5d7883a62bfc5d7dc8c9b90ec8",
+          "sha256:79f3cded5698c97ec268a8b8e96ab33f8609fa6b4ec4775b9a3dfeae7365c526"
+        ],
+        "ledger_evidence_digest": "sha256:2338c7c6a18bc546ad577e1cab94352d6217e9a3a9e1652d9d4567a1ad195514",
+        "created_unix_millis": 1786420800000
+      },
+      "manifest_cbor_base64": "r2d2ZXJzaW9ud2F0b3NfZmluYW5jaWFsX2JhdGNoX3YyaGJhdGNoX2lkeEVmYmF0XzBlYmFjNTViYjMwODY2ZDJhNTMyNmVmMzZmMjFhYWM5MGMzYjkwNjA5MjhhZjQzODYyY2RjNzJiYjc5ZTRkN2JqZ2F0ZXdheV9pZG9nYXRld2F5LmV4YW1wbGVqbmV0d29ya19pZG50b3MtbG9jYWxuZXQtMWttZXJrbGVfcm9vdHhHc2hhMjU2OjJjMjljY2QxZDM4Y2VmZjliNDFhMmIyODAzMTUzYzIwNTE1MDczNzkzODM1Njk3MWQ5MDQ3MTJkMjVmZGJkZWFtbGFzdF9zZXF1ZW5jZQJuYmF0Y2hfc2VxdWVuY2UBbmZpcnN0X3NlcXVlbmNlAXBjYW5vbmljYWxpemF0aW9ueB9yZmM4OTQ5X2NvcmVfZGV0ZXJtaW5pc3RpY19jYm9ycGNvbW1pdG1lbnRfY291bnQCcXByZXZpb3VzX2JhdGNoX2lkYHJjb21taXRtZW50X2RpZ2VzdHOCeEdzaGEyNTY6NmVhMWMwZmMwMzg4YzdjZjM1Y2MzNjc0MDlmMjUyY2I0NDc3M2E1ZDc4ODNhNjJiZmM1ZDdkYzhjOWI5MGVjOHhHc2hhMjU2Ojc5ZjNjZGVkNTY5OGM5N2VjMjY4YThiOGU5NmFiMzNmODYwOWZhNmI0ZWM0Nzc1YjlhM2RmZWFlNzM2NWM1MjZzY3JlYXRlZF91bml4X21pbGxpcxsAAAGf7voqAHRwcmV2aW91c19tZXJrbGVfcm9vdHhHc2hhMjU2OjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDB2bGVkZ2VyX2V2aWRlbmNlX2RpZ2VzdHhHc2hhMjU2OjIzMzhjN2M2YTE4YmM1NDZhZDU3N2UxY2FiOTQzNTJkNjIxN2U5YTNhOWUxNjUyZDlkNDU2N2ExYWQxOTU1MTQ=",
+      "manifest_digest": "sha256:1e3984bf5c3c54608e486202be5a21d3c826123d39f7fca72cd7e300385af3b0"
+    }
+  ]
+}
