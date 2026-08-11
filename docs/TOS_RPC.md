@@ -434,6 +434,10 @@ authoritative absence: once an intent may have been broadcast, failure to find
 it within the available window MUST fail closed and MUST NOT trigger another
 send. Safe automatic recovery requires complete pagination to a pre-broadcast
 cursor or an authoritative Action-ID index.
+Compatibility fields MUST be interpreted identically on both sides. In
+particular, a legacy single `url` and modern `urls` list are merged, trimmed
+and deduplicated before comparison; an implementation MUST NOT ignore either
+field when both are present.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
