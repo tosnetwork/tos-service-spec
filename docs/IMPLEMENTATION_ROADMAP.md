@@ -1,6 +1,6 @@
 # ATOS Implementation Roadmap v0.2
 
-**Revision:** 2026-08-10  
+**Revision:** 2026-08-11
 **Role:** canonical implementation-order and acceptance-gate document for ATOS v0.2.
 
 > ✅ marks below indicate deliverables independently re-verified against the
@@ -1658,6 +1658,64 @@ Complete:
 - network/domain binding that prevents mixing references from different TOS networks;
 - activation policy that only marks a Capability Verified when every required ownership/manifest checkpoint is current.
 
+#### 8.1.1 Phase 4A-W — Wallet-controlled Agent authentication and principal binding
+
+**Goal:** let a headless Agent create and control its own TOS wallet locally,
+prove control of that wallet to `atos.im`, and receive a scoped gateway session
+without a human Passkey ceremony or gateway custody of the private key.
+
+This is an additional authentication path, not a replacement for Passkey or
+Device Authorization and not, by itself, a claim that a transaction is
+Verified or Native. Wallet authentication proves control of a key; the Quote's
+trust mode and every identity/ownership/proof/settlement checkpoint remain
+separate decisions.
+
+Before implementation, freeze a normative wallet-authentication contract in
+`docs/AUTH.md` and the public API schemas. It must define at least:
+
+- canonical challenge encoding and signature algorithm/version;
+- gateway domain/audience and TOS network/genesis/chain binding;
+- wallet address/public key, one-time nonce, purpose, issued-at and expiry;
+- requested scopes and the principal/wallet binding intent;
+- durable single-use challenge consumption, replay handling and rate limits;
+- new-principal creation versus binding to an existing principal;
+- proof required before attaching a wallet to an existing account, so a valid
+  signature for one wallet can never take over another principal;
+- key rotation, wallet removal, loss/recovery and session revocation semantics;
+- stable error and idempotency behavior across retries;
+- explicit separation from transaction, token-transfer, approval and escrow
+  signatures, so a login signature cannot be replayed as an economic action.
+
+Implement:
+
+- wallet challenge begin/finish endpoints that issue the existing ATOS
+  access/refresh-token format and enforce the same call-time scopes;
+- a durable one-to-one or explicitly versioned many-key binding between a
+  gateway principal and its TOS Agent Identity/wallet credentials;
+- SDK helpers suitable for unattended Agents to generate and retain keys
+  locally, sign the canonical challenge and rotate credentials;
+- least-privilege defaults: wallet authentication never grants admin,
+  activation, signer-management, settlement or dispute-review scopes merely
+  because the caller controls a TOS wallet;
+- audit events for bind, authenticate, rotate, revoke and failed takeover;
+- production key-handling guidance: the Agent/wallet owns the private key;
+  `atos.im`, Capability metadata, Agent Cards, logs and A2A extensions never
+  receive it.
+
+Economic policy is deliberately independent. Creating a new wallet-authenticated
+principal MUST NOT implicitly promise a promotional balance, sponsored gas,
+credit line, KYC status or Sybil resistance. Those are explicit gateway policy
+and compliance decisions.
+
+**Acceptance:** an unattended Agent generates a fresh TOS wallet locally,
+authenticates to `atos.im` by a domain- and network-bound signature, receives a
+least-privilege session, calls REST/MCP/A2A through that same principal, rotates
+or revokes the wallet safely, and cannot replay a challenge, cross a TOS network,
+change requested scopes after signing, attach to another principal, or reinterpret
+the login signature as an economic transaction. Tests cover concurrent finish,
+lost responses, multi-replica challenge consumption and account-binding races on
+real PostgreSQL.
+
 ### 8.2 Phase 4B — Live signer authorization and Verified transaction path
 
 Complete:
@@ -1733,6 +1791,9 @@ namespace/trust authority for Native supply.
 Before implementation, freeze these normative primitives in `atos-spec`:
 
 - final global Agent and Capability identifier scheme;
+- wallet-key-to-global-Agent-Identity derivation/binding and rotation scheme;
+- canonical Agent registration/update/revocation events, including recovery and
+  delegation without making one gateway database authoritative;
 - registry/ownership event format and domain separation;
 - globally resolvable manifest format;
 - indexer ingestion/rebuild protocol;
@@ -1744,6 +1805,10 @@ become the permanent federation identifier merely because code already uses it.
 
 Implement:
 
+- wallet-controlled Native Agent bootstrap: an Agent can create its key locally
+  and register/rotate/revoke its global TOS Agent Identity through any compatible
+  submission path; a gateway may sponsor fees but cannot become the identity or
+  key custodian;
 - TOS-backed Capability registry/ownership events;
 - independent reference indexer;
 - deterministic index rebuild from canonical events;
@@ -1753,11 +1818,27 @@ Implement:
 - cross-gateway receipt/proof verification;
 - complete portable `tos_native_v1` proofs.
 
+The Native path MUST distinguish three replaceable roles:
+
+```text
+Agent wallet/key       = signs identity and authorized protocol intents
+Gateway/resolver       = UX, policy, discovery, routing and optional fee sponsorship
+TOS Network            = canonical identity/registry/trust/proof/economic state
+```
+
+No `atos.im` bearer token, local `principal_id`, account row or private API may be
+required to establish or verify the canonical Native identity. A compatible
+gateway may create a local session/alias after verifying the wallet signature,
+but that alias is convenience state and is never the federation identity.
+
 Search ranking remains off-chain and competitive.
 
 **Success criterion:** a Capability anchored through one compatible path can be
 resolved, quoted, invoked, verified and settled through another compatible
-gateway/resolver without querying the `atos.im` canonical database.
+gateway/resolver without querying the `atos.im` canonical database. The end-to-end
+test starts with an Agent-generated wallet and global identity, uses Gateway A to
+register or publish, then uses Gateway B to resolve, quote, invoke, verify and
+settle after Gateway A and `atos.im` are unavailable.
 
 ---
 
@@ -1769,6 +1850,9 @@ point.
 Ship:
 
 - normative gateway feature/mode advertisement;
+- a conformance profile for wallet-signature authentication/session bootstrap,
+  including domain separation, scope binding, replay protection and explicit
+  declaration of supported TOS networks;
 - gateway conformance suite;
 - open reference gateway components;
 - cross-gateway Native resolution and `tos_native_v1` interoperability tests;
@@ -1784,7 +1868,10 @@ mode/profile names.
 
 **Success criterion:** loss of `atos.im` prevents access to its Managed service
 but does not prevent a compatible client/gateway from resolving, invoking,
-verifying and settling Native ATOS capabilities.
+verifying and settling Native ATOS capabilities. A wallet-controlled Agent can
+move from one compatible gateway to another without exporting a gateway secret,
+re-registering its canonical identity, or trusting the replacement gateway with
+its private key.
 
 ---
 
