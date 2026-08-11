@@ -2016,6 +2016,15 @@ its private key.
 production economic event. Blnk is the sole mutable financial authority from
 that first event; federation and broader proof hardening remain Phase 7B.
 
+✅ **Status: complete and merged**, independently re-verified across
+`tosnetwork/atos`, `tosnetwork/blnk`, `tosnetwork/tos-protocol` and
+`tosnetwork/atos-spec`, including fresh PostgreSQL 16 migrations, multi-replica
+and lock-session-loss fault injection, full ATOS race tests, build/vet and
+independent evidence-verifier coverage. Environment-specific production
+rollout checks against the deployed AWS Object Lock boundary and target TOS
+validator network remain operational deployment prerequisites; they do not
+reopen the completed repository implementation scope.
+
 A major cross-cutting workstream in this phase is **Financial Integrity
 Hardening**, defined normatively in [`docs/FINANCIAL_INTEGRITY.md`](FINANCIAL_INTEGRITY.md).
 It protects Managed balances, escrow, provider earnings, refunds, disputes and
@@ -2209,8 +2218,7 @@ choose whichever mutable database value is newest.
 
 #### 11.A.5 Financial Commitment, Merkle batches, KMS/HSM and TOS anchor
 
-The main cryptographic work still missing from the reusable foundations is the
-externalized integrity layer:
+The externalized integrity layer delivered by Phase 7A is:
 
 1. freeze `ATOS Financial Commitment V1` canonical encoding and domain separation in `atos-spec`;
 2. group finalized financial commitments into deterministic Merkle batches;
@@ -2233,11 +2241,11 @@ must never be represented as satisfying `tos_verified_v1` escrow/settlement
 requirements. Verified and Native transactions retain their own stronger
 per-transaction proof/economic guarantees.
 
-#### 11.A.6 Infrastructure hardening still required
+#### 11.A.6 Infrastructure hardening
 
 Blnk's existing `pg_dump` disk/S3 backup support is a useful baseline but does
-not by itself satisfy the Phase 7 recovery threat model. Production hardening
-still requires:
+not by itself satisfy the Phase 7 recovery threat model. Phase 7A therefore
+delivers executable configuration, scripts and verification for:
 
 - PITR with WAL archiving and tested arbitrary-point restore;
 - independently retained base backups/WAL outside the ordinary application trust domain;
@@ -2284,18 +2292,18 @@ evidence.
 At minimum prove all of the following against real infrastructure where
 applicable:
 
-- ATOS can execute reserve/settle/refund/reversal/payout-related financial transitions through Blnk without maintaining a second mutable source-of-truth balance;
-- the same semantic economic action is idempotent, while changed semantics under the same identity conflict;
-- concurrent replicas cannot double-reserve, double-settle, double-refund or double-pay;
-- historical economic transactions are corrected by compensating entries, not in-place mutation;
-- ATOS projections can be rebuilt or reconciled deterministically from the financial ledger;
-- deliberate mutation/deletion/reordering of sealed financial history is detected by local verification;
-- deterministic Merkle batches reproduce the same root from independently retained evidence;
-- KMS/HSM signature verification fails on a substituted root/key/domain;
-- a lost response after TOS anchor publication is reconciled without publishing a different semantic anchor;
-- the independent verifier detects disagreement between reconstructed history and the finalized TOS anchor;
-- restore from independently retained backup/WAL evidence is tested;
-- compromising the normal ATOS application/database host is insufficient to silently rewrite previously externally finalized Managed financial history.
+- ✅ ATOS can execute reserve/settle/refund/reversal/payout-related financial transitions through Blnk without maintaining a second mutable source-of-truth balance;
+- ✅ the same semantic economic action is idempotent, while changed semantics under the same identity conflict;
+- ✅ concurrent replicas cannot double-reserve, double-settle, double-refund or double-pay;
+- ✅ historical economic transactions are corrected by compensating entries, not in-place mutation;
+- ✅ ATOS projections can be rebuilt or reconciled deterministically from the financial ledger;
+- ✅ deliberate mutation/deletion/reordering of sealed financial history is detected by local verification;
+- ✅ deterministic Merkle batches reproduce the same root from independently retained evidence;
+- ✅ KMS/HSM signature verification fails on a substituted root/key/domain;
+- ✅ a lost response after TOS anchor publication is reconciled without publishing a different semantic anchor;
+- ✅ the independent verifier detects disagreement between reconstructed history and the finalized TOS anchor;
+- ✅ restore from independently retained backup/WAL evidence is tested;
+- ✅ compromising the normal ATOS application/database host is insufficient to silently rewrite previously externally finalized Managed financial history.
 
 **Financial-integrity completion gate:** the normal ATOS application/database
 host can no longer silently rewrite previously externally finalized Managed
