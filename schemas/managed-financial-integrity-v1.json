@@ -47,16 +47,18 @@
         "asset":{"type":"string","pattern":"^[A-Z][A-Z0-9]{1,15}$"},
         "atomic_amount":{"$ref":"#/$defs/atomicAmount"},
         "identities":{"$ref":"#/$defs/identities"},
-        "postings":{"type":"array","minItems":2,"maxItems":32,"items":{"$ref":"#/$defs/posting"}},
+        "postings":{"type":"array","minItems":2,"maxItems":2,"items":{"$ref":"#/$defs/posting"}},
         "reverses_event_id":{"type":"string","maxLength":128}
       }
     },
     "blnkChainTransaction": {
       "type":"object","additionalProperties":false,
-      "required":["transaction_id","source","destination","reference","precise_amount","currency","description","status","created_at"],
+      "required":["transaction_id","source","destination","source_indicator","destination_indicator","reference","precise_amount","currency","description","status","created_at"],
       "properties": {
         "transaction_id":{"type":"string","minLength":1},"source":{"type":"string","minLength":1},
-        "destination":{"type":"string","minLength":1},"reference":{"type":"string","minLength":1},
+        "destination":{"type":"string","minLength":1},
+        "source_indicator":{"type":"string","minLength":1},"destination_indicator":{"type":"string","minLength":1},
+        "reference":{"type":"string","minLength":1},
         "precise_amount":{"type":"integer","minimum":0},"currency":{"type":"string"},
         "description":{"type":"string"},"status":{"const":"APPLIED"},"created_at":{"type":"string","format":"date-time"}
       }
@@ -66,7 +68,7 @@
       "required":["transaction","ledger_amount","chain_version","chain_sequence","chain_previous_hash","chain_hash"],
       "properties": {
         "transaction":{"$ref":"#/$defs/blnkChainTransaction"},"ledger_amount":{"type":"string"},
-        "chain_version":{"const":2},"chain_sequence":{"type":"integer","minimum":1},
+        "chain_version":{"const":3},"chain_sequence":{"type":"integer","minimum":1},
         "chain_previous_hash":{"type":"string","pattern":"^[0-9a-f]{64}$"},
         "chain_hash":{"type":"string","pattern":"^[0-9a-f]{64}$"}
       }

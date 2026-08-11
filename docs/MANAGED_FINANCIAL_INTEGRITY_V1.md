@@ -222,6 +222,12 @@ retention object keys.
 ```
 
 `postings` are ordered by contiguous `entry_index` starting at zero.
+For the current one-transfer-per-commitment contract there are exactly two:
+entry zero is the debit/source and entry one is the credit/destination. Both
+the online auditor and independent verifier MUST derive the two Blnk account
+indicators from the signed `(gateway_id, network_id, account_code,
+account_owner_id, asset)` postings and require exact source and destination
+matches; a valid ledger hash chain alone is insufficient.
 `ledger_transaction_ids` are lexicographically sorted. ATOS derives each ID
 from the stable idempotency identity and supplies it through Blnk's bounded
 caller-assigned `transaction_id` contract, so the durable intent can bind the
@@ -283,14 +289,20 @@ commitment_digests, ledger_evidence_digest, created_unix_millis
 ```
 
 `ledger_evidence_digest` uses domain
-`tos.atos.financial.blnk-evidence.v1` and binds the exact contiguous Blnk V2
-transaction-chain segment containing the batch transactions: chain key,
+`tos.atos.financial.blnk-evidence.v1` and binds the exact contiguous Blnk V3
+transaction-chain segment containing the batch transactions. V3 uses domain
+`blnk.transaction-chain.v3` and seals both immutable balance IDs and the source
+and destination indicators resolved by Blnk at chaining time. The segment
+contains: chain key,
 first/last chain sequence, previous hash, head hash, genesis hash, every sealed
 transaction field, and every stored chain link. Every row in that segment MUST
 map one-to-one to a commitment in the batch. A missing, duplicate, reordered,
 or additional row is an integrity failure. Before producing the segment, ATOS
 MUST also verify the complete current Blnk chain head and reject a non-zero
-unchained count as an uncertain snapshot. The dedicated production Blnk
+unchained count as an uncertain snapshot. Blnk MUST return the chain bookmark
+and complete unchained count from one PostgreSQL statement snapshot (or a
+single repeatable-read transaction); independently sampled values are not a
+valid completeness boundary. The dedicated production Blnk
 database MUST NOT contain an uncommitted ATOS financial namespace.
 The first batch segment starts at Blnk chain sequence 1 with the genesis hash.
 Every later segment starts at the prior retained segment's last sequence plus
@@ -360,12 +372,18 @@ delivered through the deployment secret store. The receiver rejects stale
 timestamps and recomputes the body digest. ATOS MUST authenticate a `HEAD`
 after every successful, conflicting, or uncertain `PUT`, and MUST NOT mark the
 batch retained unless the response binds the expected digest to a non-empty
-immutable object-version identity.
+immutable object-version identity. Before either a batch evidence object or an
+anchor receipt advances the production state machine, that exact version MUST
+also resolve as `COMPLIANCE` locked with `retain-until` no earlier than the
+pre-`PUT` time plus the deployment-configured minimum retention duration. A
+version ID or content digest without this proof is not retention and fails
+closed.
 `request_target` is the escaped path plus `?` and the canonical raw query when
 present; an exact-version verifier lookup therefore cannot substitute a
 different version ID without invalidating authentication. An independent
 verifier MUST resolve that exact version, require `COMPLIANCE` mode, verify the
-content digest, and require that its retain-until time remains in the future.
+content digest, and require that its retain-until time is no earlier than the
+verification time plus the verifier-configured minimum retention duration.
 
 ## 9. Managed Financial Ledger Anchor V1
 
