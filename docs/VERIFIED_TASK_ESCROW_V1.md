@@ -118,6 +118,16 @@ network/genesis, endpoint set, wallet, contract/service policy, code hashes,
 action encoding and send/recovery backend capabilities. Missing or replaced
 enrolled state fails closed. Mutable path check/use is forbidden.
 
+Before key custody is invoked, the publisher independently recomputes the
+`task-action-<sha256>` identity from the complete stable action and enforces an
+operator-enrolled policy containing allowed creator, Agent and verifier
+addresses, allowed TaskEscrow policy/code hashes, and maximum budget/funding
+nanoTOS. The tosctl configuration is read once into an unlinked immutable
+descriptor; send and recovery must use the same single effective endpoint and
+the same pinned genesis root/file hashes. Legacy `chain_rpc.url` and modern
+`chain_rpc.urls` are merged, trimmed and deduplicated; contradictory or keyed
+effective endpoint configurations fail startup.
+
 ## Release
 
 Cancellation, rejection and expiry persist a release intent before mutation.
