@@ -1251,12 +1251,18 @@ authority.
 **Goal:** add demand-side open tasks without creating a weaker parallel
 commercial contract.
 
-✅ **Status: complete and merged.** `atos` PR [#13](https://github.com/tosnetwork/atos/pull/13)
-(branch `agent/phase3c-open-task-marketplace`, merged `1a98aeb`) went
-through five independent post-hoc review rounds before merge, each finding
-real, verified issues that were fixed and re-verified rather than
-deferred -- per this document's own verification standard, this mark
-reflects that full history, not a single clean pass.
+✅ **Status: complete and merged** for the backend/protocol scope this section
+defines (data model, state machine, publish/propose/accept/cancel,
+concurrent-winner safety, crash recovery, and the handoff into the existing
+Quote/Job/Receipt/settlement pipeline) -- `atos` PR
+[#13](https://github.com/tosnetwork/atos/pull/13) (branch
+`agent/phase3c-open-task-marketplace`, merged `1a98aeb`) went through five
+independent post-hoc review rounds before merge, each finding real, verified
+issues that were fixed and re-verified rather than deferred -- per this
+document's own verification standard, this mark reflects that full history,
+not a single clean pass. **This mark does NOT cover the product-facing
+surface** (a web marketplace UI, or an A2A publication mapping) -- see
+§7.3.2 below for that separately-tracked, still-incomplete scope.
 
 **Round 1** (manual review): 3 P0 + 3 P1 + 1 P2 found and fixed --
 `OpenAcceptanceOperation` and Cancel locked different advisory-lock keys
@@ -1451,6 +1457,74 @@ Rules:
 independent PostgreSQL-backed service instances yield exactly one accepted
 proposal and one bound Job; restart at every accept/bind checkpoint converges
 without double-binding or permanent limbo.
+
+### 7.3.2 Phase 3C-P — Open Task Product Surface
+
+**This is a distinct, separately-tracked scope from §7.3's backend
+completion above.** §7.3.1 defined the intended product responsibility
+(`atos.im/tasks` web marketplace + Agent REST/MCP/A2A publication); this
+section is the accountability checklist for actually building it, verified
+against the real repository state rather than assumed from the backend
+being done.
+
+```text
+OpenTask data model / state machine              done (§7.3)
+publish / propose / accept / cancel               done (§7.3)
+concurrent-unique-winner / crash recovery         done (§7.3)
+Quote / Job / Receipt / settlement handoff        done (§7.3)
+
+REST entry point                                  done -- wired in atos
+                                                    cmd/api/main.go
+                                                    (httpapi.Server.OpenTasks),
+                                                    contract frozen in
+                                                    docs/API.md §5A
+MCP entry point                                   done -- wired in atos
+                                                    cmd/api/main.go
+                                                    (mcp.Server.OpenTasks),
+                                                    8 tools frozen in
+                                                    docs/MCP.md §6A/§8
+
+atos.im/tasks (browse/search)                     NOT STARTED -- no such
+atos.im/tasks/new (human publish form)             page or web app exists
+atos.im/tasks/{task_id} (detail/proposals/winner)  anywhere in this
+                                                    workspace; this is net-new
+                                                    product work, not a
+                                                    documentation gap
+
+A2A publication mapping                           NOT STARTED -- atos's
+                                                    internal/a2a/server.go
+                                                    implements only
+                                                    message/send, tasks/get,
+                                                    tasks/cancel against
+                                                    JobService; a2a.Server has
+                                                    no OpenTasks field and no
+                                                    dispatch case for any
+                                                    OpenTask-shaped operation.
+                                                    An A2A contract for
+                                                    publish/discover/propose
+                                                    MUST be frozen here first
+                                                    (§3.1's spec-first gate)
+                                                    before atos implements it
+                                                    -- not yet designed.
+```
+
+REST and MCP already let an Agent complete the full publish -> propose ->
+accept flow programmatically today, with no web UI involved -- confirmed by
+reading `cmd/api/main.go`'s wiring, not inferred from the backend being
+done. The two genuinely missing pieces are the web product (`atos.im/tasks`
+and its two sub-pages) and the A2A mapping. Both consume the already-frozen
+contract in `docs/API.md` §5A / `docs/MCP.md` §6A -- neither should invent a
+second task model, a second idempotency scheme, or bypass the ownership/
+redaction rules already specified there (task `input` and full proposal
+detail stay owner/winning-provider-only; every other viewer gets the
+redacted `Public()` shape).
+
+The A2A mapping is a protocol-design task, not just a wiring task like REST/
+MCP turned out to be -- A2A's `message/send`/`tasks/get`/`tasks/cancel`
+triad has no existing shape for "browse open demand" or "submit a
+proposal," so this needs its own normative section here (method names,
+request/response shapes, how a proposal maps onto A2A's Task/Message
+model) before any `atos` implementation, per this document's own §3.1 rule.
 
 ### 7.4 Phase 3 overall success criterion
 
