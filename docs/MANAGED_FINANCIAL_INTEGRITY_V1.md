@@ -288,8 +288,8 @@ The signed payload is the canonical batch manifest bytes under domain
 `tos.atos.financial.batch-signature.v1`. A signature envelope binds:
 
 ```text
-version, batch_id, manifest_digest, gateway_id, network_id,
-signing_key_id, signing_algorithm, signature, signed_unix_millis
+version, batch_id, manifest_digest, signing_digest, gateway_id, network_id,
+signing_key_id, signing_algorithm, signature, public_key, signed_unix_millis
 ```
 
 Supported V1 verification algorithms are `ed25519` and
@@ -297,8 +297,10 @@ Supported V1 verification algorithms are `ed25519` and
 the normal ATOS/Blnk host receives Sign/Verify/PublicKey capability only and
 never private key bytes. `(batch_id, manifest_digest)` is the stable signing
 identity. A substituted digest under the same batch is a conflict. Key
-rotation changes `signing_key_id`; historical public keys and validity windows
-remain retained and verifiable.
+rotation atomically changes `signing_key_id` and the deployment-pinned
+`ATOS_FINANCIAL_SIGNING_PUBLIC_KEY`; online sealing rejects a signer response
+whose public key differs before retention or anchoring. Historical public keys
+and validity windows remain retained and independently verifiable.
 
 The exact manifest bytes, signature envelope, public-key evidence, and ledger
 evidence are written to an independently administered append-only object key:
