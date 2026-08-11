@@ -25,6 +25,7 @@ For boolean `proof_requirements`, `true` means required; `false`/omitted means n
 
 - `GET /capabilities?q=...`
 - `GET /capabilities/{capability_id}`
+- `GET /capabilities/mine` — capabilities owned by the authenticated provider (`capabilities:write`, matching MCP's `atos_list_my_capabilities`'s scope choice -- listing what you can manage is a provider-management operation, not a generic read). Response: `{"capabilities":[...]}`, mirroring `GET /open-tasks`'s `{"open_tasks":[...]}` wrapper convention (§5A).
 - `POST /capabilities` — provider create/request mode support
 - `PATCH /capabilities/{capability_id}` — provider metadata/request update
 - `POST /capabilities/{capability_id}/pause`
