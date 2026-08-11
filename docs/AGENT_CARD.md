@@ -42,6 +42,12 @@ The primary path follows the current A2A well-known Agent Card convention.
       "name": "Capability Invocation",
       "description": "Quote and invoke capabilities with selectable trust and settlement guarantees.",
       "tags": ["invoke", "commerce", "agents", "verification"]
+    },
+    {
+      "id": "open-task-marketplace",
+      "name": "Open Task Marketplace",
+      "description": "Publish demand-side tasks without a known capability_id, discover open tasks, submit or accept proposals. See docs/A2A.md's Open Task Marketplace Extension for the openTasks/* method namespace.",
+      "tags": ["marketplace", "open-task", "discovery", "commerce", "agents"]
     }
   ],
   "extensions": {

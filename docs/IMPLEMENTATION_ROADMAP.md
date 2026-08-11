@@ -1491,40 +1491,52 @@ atos.im/tasks/{task_id} (detail/proposals/winner)  anywhere in this
                                                     product work, not a
                                                     documentation gap
 
-A2A publication mapping                           NOT STARTED -- atos's
+A2A publication mapping                           contract frozen, atos
+                                                    implementation NOT
+                                                    STARTED -- atos's
                                                     internal/a2a/server.go
-                                                    implements only
+                                                    still implements only
                                                     message/send, tasks/get,
                                                     tasks/cancel against
-                                                    JobService; a2a.Server has
-                                                    no OpenTasks field and no
-                                                    dispatch case for any
-                                                    OpenTask-shaped operation.
-                                                    An A2A contract for
-                                                    publish/discover/propose
-                                                    MUST be frozen here first
-                                                    (§3.1's spec-first gate)
-                                                    before atos implements it
-                                                    -- not yet designed.
+                                                    JobService; a2a.Server
+                                                    still has no OpenTasks
+                                                    field or dispatch case
+                                                    for any OpenTask-shaped
+                                                    operation. The
+                                                    openTasks/* method
+                                                    namespace (publish,
+                                                    search, get, cancel,
+                                                    proposals/submit|list|
+                                                    withdraw|accept) is now
+                                                    frozen in docs/A2A.md's
+                                                    "Open Task Marketplace
+                                                    Extension" section and
+                                                    Invariants 9-12.
 ```
 
 REST and MCP already let an Agent complete the full publish -> propose ->
 accept flow programmatically today, with no web UI involved -- confirmed by
 reading `cmd/api/main.go`'s wiring, not inferred from the backend being
 done. The two genuinely missing pieces are the web product (`atos.im/tasks`
-and its two sub-pages) and the A2A mapping. Both consume the already-frozen
-contract in `docs/API.md` §5A / `docs/MCP.md` §6A -- neither should invent a
-second task model, a second idempotency scheme, or bypass the ownership/
-redaction rules already specified there (task `input` and full proposal
-detail stay owner/winning-provider-only; every other viewer gets the
+and its two sub-pages) and the A2A implementation (its contract is now
+frozen; `atos` has not yet implemented it). All three consume the
+already-frozen contract in `docs/API.md` §5A / `docs/MCP.md` §6A / `docs/A2A.md` --
+none should invent a second task model, a second idempotency scheme, or
+bypass the ownership/redaction rules already specified there (task `input`
+and full proposal detail stay owner/winning-provider-only; every other
+viewer gets the
 redacted `Public()` shape).
 
-The A2A mapping is a protocol-design task, not just a wiring task like REST/
-MCP turned out to be -- A2A's `message/send`/`tasks/get`/`tasks/cancel`
-triad has no existing shape for "browse open demand" or "submit a
-proposal," so this needs its own normative section here (method names,
-request/response shapes, how a proposal maps onto A2A's Task/Message
-model) before any `atos` implementation, per this document's own §3.1 rule.
+The A2A mapping was a protocol-design task, not just a wiring task like
+REST/MCP turned out to be -- A2A's `message/send`/`tasks/get`/`tasks/cancel`
+triad had no existing shape for "browse open demand" or "submit a
+proposal." Per this document's own §3.1 rule, that design is now frozen
+(`docs/A2A.md`'s "Open Task Marketplace Extension" section, before any
+`atos` implementation): a disjoint `openTasks/*` JSON-RPC method namespace
+that never reuses or extends the `tasks/*`/Task-Message model reserved for
+Job-mapped Tasks (Invariant 1), with `open_tasks:read`/`write`/
+`open_task_proposals:write` scopes identical to the REST/MCP surface. `atos`
+implementation of this namespace has not started.
 
 ### 7.4 Phase 3 overall success criterion
 
