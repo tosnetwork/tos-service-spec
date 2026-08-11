@@ -1678,6 +1678,19 @@ HTTP/ConnectRPC, not mocked):
 - `IdentityService.CreatePrincipalBinding`/`RevokePrincipalBinding`
   (`proto/atos/tos/v1/identity.proto`, `docs/TOS_RPC.md` §10, `docs/API.md`
   §9A). `tos-protocol` commit `7012369`.
+- **Network/domain binding that prevents mixing references from different
+  TOS networks** (the original §8.1 bullet this replaces a vaguer
+  restatement of): `CreatePrincipalBinding` rejects binding to an
+  `AgentIdentity` whose own `identity_ref.network` does not match this
+  server's configured network, reusing `verifiedTOSController` -- the
+  exact same check already used for capability-ownership/economic
+  actions (`pkg/atosrpc/economic.go`, `pkg/atosrpc/capability.go`) --
+  rather than inventing a parallel one. Closes a real gap found during
+  this phase's own review: the binding's own `binding_ref` is always
+  freshly committed on the server's own network by construction (so
+  checking it against `core.Network()` at evaluation time is tautological
+  and was never real protection), and nothing previously checked the
+  bound `AgentIdentity`'s own network before this fix.
 - `atos`'s durable identity-binding journal/reconciler
   (`internal/service/identity_binding.go`, migration
   `014_phase4a_identity_binding.sql`), mirroring the proven Phase 3B

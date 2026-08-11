@@ -469,6 +469,8 @@ CommitExecutionReceipt
 CommitProofOfServiceEvidence
 SubmitJob
 CancelJob
+CreatePrincipalBinding
+RevokePrincipalBinding
 ```
 
 Rules:

@@ -612,11 +612,17 @@ by being authenticated.
 - `POST /v1/identity-bindings/{principal_id}/revoke`
 - `GET /v1/identity-bindings/{principal_id}`
 
-`POST .../bind` and `POST .../revoke` require `Idempotency-Key` (§1's
-universal convention), scoped by the calling admin's own identity, exactly
-like §2.2's activation-evaluation endpoint -- never by `principal_id`, since
-two different admins independently reusing the identical key string must
-not collide.
+`POST .../bind` and `POST .../revoke` require `Idempotency-Key` (same
+convention as every other financial/trust mutation in this document, §1).
+Unlike §2.2's activation-evaluation endpoint, this key is scoped by the
+target `principal_id` in the URL path, not the calling admin's own
+identity -- matching `CreatePrincipalBinding`/`RevokePrincipalBinding`'s own
+frozen idempotency tuple `(principal_id, agent_id, idempotency_key)`
+(`proto/atos/tos/v1/identity.proto`). Two different admins independently
+reusing the identical key string for the SAME `principal_id` therefore does
+collide (by design: the operation is about that principal's binding, not
+about who happened to call it); reusing the same key for two DIFFERENT
+`principal_id`s does not collide.
 
 `POST .../bind` request:
 
@@ -629,8 +635,16 @@ not collide.
 `CreatePrincipalBinding` RPC underneath it) never creates a new TOS Agent
 Identity from nothing; creating one is a separate out-of-band
 operator/bootstrap action in Phase 4A. Rebinding a principal that already
-has a DIFFERENT current `agent_id` is rejected (`ALREADY_BOUND`) --
-`POST .../revoke` must run first.
+has a DIFFERENT current `agent_id` is rejected as `idempotency_conflict`
+(the underlying `CreatePrincipalBinding` RPC's `ALREADY_EXISTS` maps to
+this same stable code every other conflicting-request case in this
+document uses -- there is no separate `ALREADY_BOUND` code) --
+`POST .../revoke` must run first. Resubmitting the SAME `agent_id` the
+principal is already bound to -- even under a brand-new `Idempotency-Key`
+-- is a harmless no-op success (`created:false`, the original `binding_ref`
+unchanged), not an error and not a fresh commitment: this is deliberately
+more permissive than the RPC's own key-reuse rule, since it's not
+replaying a key against a different fact, just re-stating the current one.
 
 Response (200, both the newly-created and idempotent-replay case):
 
@@ -651,10 +665,14 @@ Response (200, both the newly-created and idempotent-replay case):
 ```
 
 Response -- `revoked:false` is a normal outcome (nothing was bound), never
-an error, mirroring the execution-signer revoke convention:
+an error. Unlike §2.1's execution-signer revoke (a multi-step
+authorize-then-revoke cutover that exposes a durable checkpoint enum),
+Bind/Revoke are each one atomic RPC call, so a simple boolean plus the
+resulting `NetworkReference` is sufficient -- `network`/`revocation_ref`
+are empty when `revoked:false`, since there is no revocation to reference:
 
 ```json
-{"revoked":true,"revocation_ref":"tos:..."}
+{"revoked":true,"network":"tos-devnet","revocation_ref":"tos:..."}
 ```
 
 `GET /v1/identity-bindings/{principal_id}` returns the current binding
