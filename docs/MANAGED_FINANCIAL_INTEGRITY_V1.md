@@ -399,15 +399,22 @@ deployment deadline and MUST NOT redefine or extend the persisted checkpoint.
 
 The complete batch create, sign, retain, and anchor state machine MUST be
 serialized across ATOS replicas by a PostgreSQL session advisory lock. A
-contender acquires the lock before reading pending batch state and therefore
-reloads any progress made by the previous holder. The lock is held through
-external side effects and their durable outcomes, and PostgreSQL automatically
-releases it if the holder crashes or loses its session. Ordinary replica
-contention is not an idempotency conflict and MUST NOT enter financial safe
-mode. Because the lock-owning session remains dedicated while repository
-updates continue, the ATOS PostgreSQL pool MUST provide at least two
-connections; startup/runtime validation MUST reject an undersized sealing
-pool instead of deadlocking it.
+contender uses non-blocking lock attempts, releases its pool connection after
+each unsuccessful attempt, and backs off before retrying; waiting sealers MUST
+NOT retain pool connections or starve the lock holder. The contender acquires
+the lock before reading pending batch state and therefore reloads any progress
+made by the previous holder.
+
+The lock-owning connection MUST also be the exclusive database execution path
+for every sealing read, transaction, state transition, and checkpoint through
+the durable anchor outcome. If that session is terminated while an external
+call is in flight, the old worker may resolve the stable external identity but
+cannot persist through another pooled connection; its next durable operation
+fails and the new lock holder recovers from committed state. Anchor state and
+the chain checkpoint commit in one transaction. PostgreSQL releases the lock
+if the holder crashes or loses its session. Ordinary replica contention or a
+fenced stale worker is not an idempotency conflict and MUST NOT immediately
+enter financial safe mode.
 
 ## 9. Managed Financial Ledger Anchor V1
 
