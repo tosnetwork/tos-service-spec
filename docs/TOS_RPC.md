@@ -378,9 +378,82 @@ Anchors immutable manifest/version/ownership facts. This is not a search API. Em
 
 Creates or exact-replays a Quote commitment for Verified/Native mode.
 
+For Phase 4B-1 Verified Quotes the normative value is
+`atos_verified_quote_commitment_v1`, encoded and hashed as specified by
+`VERIFIED_QUOTE_COMMITMENT_V1.md`. `context.idempotency_key` MUST equal
+`quote_id`. The configured authority network MUST equal `network_id`, and
+`domain` MUST identify the committing gateway deployment. `trust_mode` is
+exactly `VERIFIED` and `proof_profile` is exactly `TOS_VERIFIED_V1`; `AUTO`
+is not representable here. `canonicalization` MUST equal
+`rfc8949_core_deterministic_cbor`. Implementations MUST reject protobuf
+unknown fields recursively before conversion to the normative field model.
+
+Before mutation, the service MUST freshly resolve and validate the provider
+identity, exact Capability ownership/version/manifest, and the exact live
+execution-signer authorization. Caller-supplied references are assertions to
+compare with authoritative state, never selectors. An exact replay returns
+the original commitment. Reuse of `quote_id` or the same idempotency identity
+with different canonical semantics returns `IDEMPOTENCY_CONFLICT` /
+`QUOTE_MISMATCH`.
+
 ### `GetQuoteCommitment`
 
 Read-only resolution for recovery/audit.
+
+This is the mandatory recovery operation after a timeout or lost response.
+For Verified Quotes the caller supplies `expected_quote` and, when known,
+`expected_commitment_ref`. The server independently recomputes the semantic
+digest and freshly resolves that exact `(kind, quote_id, digest)` tuple using
+the live canonical authority. When the reference is unknown after a lost
+response, the resolver MUST perform tuple discovery and return either the
+finalized canonical reference or explicit authoritative not-found.
+For the chain-backed Authority, tuple discovery resolves the deterministic
+Action ID through the publisher's durable read-only receipt journal and then
+independently re-observes the returned exact transaction through the quorum
+chain adapter. Receipt-journal unavailability is not not-found and fails
+closed; discovery never calls the mutation/publish endpoint.
+The publisher MUST persist an intent before broadcasting. A pending or
+uncertain intent MUST NOT be reported as absent. Authoritative absence is a
+versioned `action_not_found` response bound to the requested Action ID from the
+durable journal; a generic HTTP 404, unsupported route, proxy fallback or
+malformed/mismatched response is resolver unavailability. Publisher readiness
+MUST advertise the resolve endpoint, journal version, typed-not-found and
+intent-before-publish capabilities; clients MUST reject legacy health
+responses that do not negotiate this contract.
+The durable journal MUST be explicitly enrolled once with a pinned identity;
+normal service startup MUST NOT create missing state and MUST reject a missing
+or identity-mismatched journal. The publisher MUST independently recompute the
+Action ID from the configured network, service address/ID, commitment kind,
+object ID/digest and operator-fixed payer/payee/amount policy before invoking
+key custody. The production backend MUST negotiate recover-by-Action-ID and
+search-before-broadcast behavior and prove the exact payer wallet/RPC binding
+at readiness.
+The send and recovery clients MUST use the same pinned endpoint set and verify
+the configured network's genesis identity. A bounded history lookup is not
+authoritative absence: once an intent may have been broadcast, failure to find
+it within the available window MUST fail closed and MUST NOT trigger another
+send. Safe automatic recovery requires complete pagination to a pre-broadcast
+cursor or an authoritative Action-ID index.
+Compatibility fields MUST be interpreted identically on both sides. In
+particular, a legacy single `url` and modern `urls` list are merged, trimmed
+and deduplicated before comparison; an implementation MUST NOT ignore either
+field when both are present.
+The validated sender configuration MUST remain immutable for the publisher
+lifetime. Merely comparing a pathname at startup or immediately before spawn
+is insufficient because the child may reopen changed contents. A sender MAY
+use an unlinked, inherited file-descriptor snapshot with an explicit format
+(not a synthetic `/proc` pathname whose extension or availability varies by
+platform); otherwise it MUST provide
+an equivalent mechanism that removes the check/use race.
+Process-local persistence is only a cache: it MUST NOT
+make a Quote found or finalized by itself. This lookup must therefore work on
+a different stateless `tos-protocol` replica and MUST fail closed when live
+resolution is unavailable, changes network/reference, is non-final, reports
+a zero or regressed finalized checkpoint, or returns inconsistent facts.
+
+The caller compares the returned canonical value, digest, network and
+finality before retrying `CommitQuote`; authoritative absence is the only
+outcome that permits another mutation attempt.
 
 ### Execution signer authorization
 

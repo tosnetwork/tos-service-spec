@@ -320,6 +320,13 @@ cross-provider certification visibility.
 - `POST /quotes`
 - `GET /quotes/{quote_id}`
 
+`POST` requires `Idempotency-Key`, scoped to the authenticated principal.
+ATOS durably binds that key to one generated Quote ID and immutable snapshot
+before calling the TOS authority. Exact retries, including retries received by
+another ATOS replica after a lost authority response or crash, resume that
+same Quote identity. Reusing the key with different request semantics returns
+`idempotency_conflict`.
+
 Example request:
 
 ```json
@@ -356,11 +363,25 @@ Example Verified response:
   "proof":{"execution_receipt":true,"settlement_proof":true},
   "expires_at":"...",
   "terms_hash":"sha256:...",
-  "dispute_policy_hash":"sha256:..."
+  "dispute_policy_hash":"sha256:...",
+  "commitment":{
+    "state":"committed",
+    "network":"tos-mainnet",
+    "reference":"tos:...",
+    "digest":"sha256:...",
+    "finalized":true,
+    "finalized_checkpoint":123
+  }
 }
 ```
 
 The returned concrete `trust_mode` and proof profile are immutable for that Quote.
+For `trust_mode=verified`, `state` MUST be `committed` with a matching,
+finalized canonical TOS commitment before `POST /quotes` succeeds or the Quote
+is usable by acceptance, escrow or execution. Pending/reconciling operation
+state is internal and may be returned only by an authenticated recovery/admin
+surface; it is never a usable Quote. Managed Quotes omit `commitment`, and a
+failed Verified commitment is never rewritten as Managed.
 
 ## 4. Invocation Endpoints
 

@@ -1775,14 +1775,11 @@ gap; listed here only so it isn't mistaken for an oversight):
   (`tosctl agent wallet create/fund`, `tosctl agent account deploy`) --
   confirmed present during this phase's investigation, correcting a prior,
   now-stale note in this same section claiming no deployment tooling
-  existed. What's still missing is a generic (non-TaskEscrow-specific)
-  `chain.ActionPublisher` sidecar: `pkg/localrpc/chain_action.go` defines
-  the client (`ChainActionPublisherClient`) and wire protocol
-  (`POST /v1/chain/action`, `GET /healthz`) but no `cmd/` binary serves that
-  protocol yet -- `taskescrowpublisher.TosctlBackend`
-  (`pkg/taskescrowpublisher/tosctl.go`) is the closest template (shells out
-  to `tosctl` using a wallet-profile-name-only credential map) but is
-  TaskEscrow-action-specific, not reusable as-is.
+  existed. Phase 4B-1 subsequently added the generic
+  `tos-chain-action-publisher`, its explicitly enrolled durable journal,
+  spending-policy-bound Action verification and concrete recovering tosctl
+  backend. Deployment against the selected production validator quorum and
+  Vault/HSM policy remains §8.4 work.
 - A brand-new `AgentIdentity` still cannot be created/verified via
   signature proof through any *self-service* production path --
   `SeedIdentity` is deliberately kept as an out-of-band operator/bootstrap
@@ -1811,6 +1808,29 @@ Complete:
 
 All components for one Verified transaction must agree on the same network,
 provider, Capability version, Quote and signer authorization.
+
+#### Phase 4B-1 — Verified Quote Commitment
+
+Activate the existing `TrustService.CommitQuote` / `GetQuoteCommitment`
+authority in the single ATOS Quote lifecycle. A Quote resolving to Verified
+MUST NOT be returned as usable, accepted, escrowed or executed until its exact
+`atos_verified_quote_commitment_v1` value has a matching finalized authority
+commitment. ATOS persists a durable operation/checkpoint for recovery and
+multi-replica convergence, but that record is only a projection; TOS remains
+canonical.
+
+The frozen schema, deterministic encoding, domain separator, validation,
+idempotency/recovery rules and public projection are normative in
+`docs/VERIFIED_QUOTE_COMMITMENT_V1.md`, `proto/atos/tos/v1/trust.proto`,
+`docs/TOS_RPC.md` §12 and `docs/API.md` §3. This subsection remains unmarked
+until the real ATOS API path passes adversarial tests against fresh PostgreSQL
+and a real `tos-protocol` server.
+
+The chain-backed recovery boundary includes a production publisher service,
+not only an Authority client: it MUST durably journal intent before broadcast,
+provide versioned tuple resolution and typed Action-ID-bound absence, and
+negotiate those capabilities at readiness. Generic HTTP absence never
+authorizes mutation replay.
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
