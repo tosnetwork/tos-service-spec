@@ -35,6 +35,11 @@ amount, infer an exchange rate, truncate, round, or use floating point.
 The settlement backend is exactly `tos`, settlement asset exactly `TOS`, and
 the funding model is the immutable value committed by the Quote.
 
+For ATOS-issued v1 Quotes, the gateway fee is exactly
+`floor(subtotal_nanoTOS * 50 / 1000)` (5 percent), and `total_max` is the exact
+integer sum of subtotal and that fee. This single floor operation occurs in
+nanoTOS; no floating-point rate or later decimal rounding is permitted.
+
 ## Canonical terms and digest
 
 `VerifiedEscrowTerms` in `settlement.proto` is mandatory. Version is
