@@ -438,6 +438,11 @@ Compatibility fields MUST be interpreted identically on both sides. In
 particular, a legacy single `url` and modern `urls` list are merged, trimmed
 and deduplicated before comparison; an implementation MUST NOT ignore either
 field when both are present.
+The validated sender configuration MUST remain immutable for the publisher
+lifetime. Merely comparing a pathname at startup or immediately before spawn
+is insufficient because the child may reopen changed contents. A sender MAY
+use an unlinked, inherited file-descriptor snapshot; otherwise it MUST provide
+an equivalent mechanism that removes the check/use race.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
