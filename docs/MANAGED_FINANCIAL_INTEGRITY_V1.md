@@ -183,6 +183,12 @@ items, duplicate keys, non-string keys, or unknown fields. Implementations
 MUST decode and re-encode to the identical bytes before accepting retained
 evidence.
 
+`gateway_id` and `network_id` are public domain identifiers, not free-form
+metadata. They respectively contain 1..253 and 1..128 ASCII characters and
+match `^[A-Za-z0-9][A-Za-z0-9._-]*$`. This prevents path ambiguity, control
+characters, or confidential deployment data from entering commitments and
+retention object keys.
+
 ```json
 {
   "version":"atos_financial_commitment_v1",
@@ -301,6 +307,11 @@ rotation atomically changes `signing_key_id` and the deployment-pinned
 `ATOS_FINANCIAL_SIGNING_PUBLIC_KEY`; online sealing rejects a signer response
 whose public key differs before retention or anchoring. Historical public keys
 and validity windows remain retained and independently verifiable.
+The HTTPS signer request is authenticated with a deployment-secret bearer
+credential of at least 32 characters (or an equivalently reviewed mTLS service
+identity). That credential is never logged, committed, retained in evidence,
+or included in canonical commitment/signature inputs. Public-key pinning and
+response verification remain mandatory even after transport authentication.
 
 The exact manifest bytes, signature envelope, public-key evidence, and ledger
 evidence are written to an independently administered append-only object key:
@@ -310,9 +321,25 @@ atos-financial/v1/<gateway_id>/<network_id>/<batch_sequence>-<batch_id>.json
 ```
 
 Production storage MUST enforce bucket versioning plus Object Lock compliance
-mode (or a reviewed equivalent WORM control). A successful ordinary overwrite
-or delete is a failed deployment check. Database state alone never marks a
-batch independently retained.
+mode (or a reviewed equivalent WORM control). Create-only writes must reject an
+existing key, and deletion of the exact retained object version must fail.
+Object stores such as S3 may allow a new version or delete marker; this is not
+destruction only if the recorded locked version remains independently
+addressable and byte-identical. Database state alone never marks a batch
+independently retained.
+
+The HTTP WORM boundary is authenticated independently of the batch signature.
+Every `PUT` and lost-response recovery `HEAD` carries
+`X-ATOS-Retention-Timestamp`, `X-Content-SHA256`, and
+`X-ATOS-Retention-Signature`. The signature is lowercase hex HMAC-SHA-256 over
+the exact UTF-8 bytes `timestamp + "\\n" + method + "\\n" + escaped_path +
+"\\n" + content_digest`, rendered with the prefix `hmac-sha256=`. The shared
+transport key is at least 32 bytes, is never commitment evidence, and is
+delivered through the deployment secret store. The receiver rejects stale
+timestamps and recomputes the body digest. ATOS MUST authenticate a `HEAD`
+after every successful, conflicting, or uncertain `PUT`, and MUST NOT mark the
+batch retained unless the response binds the expected digest to a non-empty
+immutable object-version identity.
 
 ## 9. Managed Financial Ledger Anchor V1
 

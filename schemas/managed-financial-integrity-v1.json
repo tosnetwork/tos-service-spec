@@ -34,8 +34,8 @@
       "properties": {
         "version":{"const":"atos_financial_commitment_v1"},
         "canonicalization":{"const":"rfc8949_core_deterministic_cbor"},
-        "gateway_id":{"type":"string","minLength":1,"maxLength":253},
-        "network_id":{"type":"string","minLength":1,"maxLength":128},
+        "gateway_id":{"type":"string","minLength":1,"maxLength":253,"pattern":"^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+        "network_id":{"type":"string","minLength":1,"maxLength":128,"pattern":"^[A-Za-z0-9][A-Za-z0-9._-]*$"},
         "sequence":{"type":"integer","minimum":1},
         "previous_commitment":{"$ref":"#/$defs/digest"},
         "event_id":{"type":"string","minLength":1,"maxLength":128},
