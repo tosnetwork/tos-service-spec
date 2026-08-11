@@ -464,7 +464,9 @@ once a proposal is accepted; it is never re-derived from a proposal or from
 the accept request.
 
 Example public listing entry (`GET /open-tasks`, no `?mine=true`) — `input`
-and other owner-only detail are never included here, unlike the owner's own
+is the only field stripped for this view (never owner-only detail in
+general: `title`/`description`/`requested_trust_mode`/`proof_requirements`/
+`constraints.max_total` are all public), unlike the owner's own
 `GET /open-tasks/{task_id}` view:
 
 ```json
@@ -472,6 +474,9 @@ and other owner-only detail are never included here, unlike the owner's own
   "id": "task_...",
   "principal_id": "agt_...",
   "title": "Summarize Q3 filings",
+  "description": "...",
+  "requested_trust_mode": "managed",
+  "constraints": {"max_total": {"amount": "5.00", "currency": "USD"}},
   "status": "open",
   "expires_at": "2026-09-01T00:00:00Z",
   "created_at": "..."
