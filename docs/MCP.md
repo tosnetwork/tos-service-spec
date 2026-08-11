@@ -129,6 +129,9 @@ Examples:
 | `atos_evaluate_activation` | `activation:evaluate` -- deliberately no ownership/provider-role visibility precondition; this is an activation-authority-side tool, not a provider one |
 | `atos_open_certification` | `certifications:write` + provider role |
 | `atos_get_certification_status` | `certifications:read` + provider role |
+| `atos_publish_open_task`, `atos_cancel_open_task`, `atos_accept_open_task_proposal` | `open_tasks:write` -- default consumer scope, the task-owner side |
+| `atos_search_open_tasks`, `atos_get_open_task`, `atos_list_open_task_proposals` | `open_tasks:read` -- default consumer scope |
+| `atos_apply_to_open_task`, `atos_withdraw_open_task_proposal` | `open_task_proposals:write` + provider role -- deliberately NOT implied by `open_tasks:write`, mirroring `provider_jobs:deliver`'s pattern: applying to fulfill someone else's task is a distinct trust-side-effect class from managing one's own tasks |
 
 Target-object ownership is always checked on `tools/call`, even if a coarse ownership condition was already used to hide/show the tool.
 
@@ -448,6 +451,45 @@ Download response:
 
 `upload_id` and `artifact_id` are identifiers, never bearer credentials.
 
+## 6A. Open Task (Marketplace) Tools
+
+Phase 3C's demand-side marketplace (`docs/IMPLEMENTATION_ROADMAP.md` §7.3,
+`docs/API.md` §5A). These are the task-owner side, using the same
+`open_tasks:read`/`write` default consumer scopes as `atos_create_job`/
+`atos_cancel_job` -- publishing a task and accepting a proposal are ordinary
+consumer actions, not a distinct role. The provider side
+(`atos_apply_to_open_task`/`atos_withdraw_open_task_proposal`) is listed in
+§8, since applying to fulfill someone else's task is a distinct
+trust-side-effect class requiring `open_task_proposals:write` + provider
+role.
+
+- `atos_publish_open_task` — `open_tasks:write`. Publishes a new OpenTask.
+  `expires_at` is required (an OpenTask MUST NOT be publishable with no
+  expiry) and `idempotency_key` is required. An Agent MUST NOT need to know
+  a `capability_id` before publishing demand -- it publishes goal, budget,
+  deadline, inputs and trust requirements; discovery/matching and Provider
+  proposals resolve suitable Capability/provider candidates afterward.
+- `atos_search_open_tasks` — `open_tasks:read`. Browses currently open
+  tasks. Only publicly safe fields are returned; task `input` and other
+  owner-only detail are never included here.
+- `atos_get_open_task` — `open_tasks:read`. Full `input` is only visible to
+  the task's own owner or, once accepted, the winning provider; every other
+  caller receives the redacted public view.
+- `atos_cancel_open_task` — `open_tasks:write`; owner only. Refused once a
+  proposal has already been accepted -- an accepted winner is never
+  silently discarded by a cancel.
+- `atos_list_open_task_proposals` — `open_tasks:read`. The task owner sees
+  every proposal in full; a provider sees their own proposal in full and
+  every other proposal redacted; anyone else sees only redacted proposals.
+- `atos_accept_open_task_proposal` — `open_tasks:write`; owner only.
+  Durably claims a winning proposal and drives the existing Quote/Job
+  creation pipeline forward (`docs/API.md` §5A's `acceptance.checkpoint`
+  sequence), using the task owner as principal and the winning proposal's
+  Capability/version -- never a caller-supplied price, trust mode or
+  Capability override. Idempotent: retrying with the same
+  `idempotency_key` resumes the same acceptance rather than creating a
+  second Quote/Job.
+
 ## 7. Capability-Management Tools
 
 These are not ordinary consumer tools.
@@ -499,6 +541,8 @@ Implemented:
 - `atos_evaluate_activation` — **`activation:evaluate`** (new scope; explicit-grant-only like `disputes:review`/`execution_signers:write`, never a default consumer scope). The entry point for `docs/IMPLEMENTATION_ROADMAP.md` §7.2.1's `ActivationAuthority.Evaluate` — deliberately **not** capability-owner-scoped, unlike every other tool in this section: it is an activation-authority-side operation, not a provider one, so a caller only needs `activation:evaluate`, never ownership of the target Capability. Takes `{capability_id, mode, idempotency_key}` (`mode` is `verified` or `native`; Managed has no `ActivationAuthority` concept). `idempotency_key`'s namespace is the calling admin's own identity (not `capability_id`) — a retry with the same key and identical `capability_id`/`mode` replays the original decision without re-consulting the authority; reused against a different `capability_id`/`mode` is `idempotency_conflict`. `mode_support[mode].status` must currently be `pending` or `suspended`, else the call is rejected as a validation error before the authority is ever consulted. A `granted:false` result is a normal (`isError:false`) outcome, not an error — see the endpoint's own doc comment in `docs/API.md` §2.2: production has no `ActivationAuthority` implementation that ever returns `granted:true` until Phase 4 supplies a real one, so this tool's production behavior today is a deterministic, informative no-op that exists to give Phase 4 an entry point without needing new API surface later. Merged in `tosnetwork/atos#14`.
 - `atos_open_certification` — **`certifications:write`** (new scope pair, mirroring `execution_signers:read`/`write`'s naming convention rather than overloading `capabilities:write`, since certifying a binding is a distinct trust-side effect class from ordinary Capability metadata). Unlike `atos_evaluate_activation`, this **is** a provider-role tool: a provider proves their own capability's binding actually works, so ownership of `capability_id` is required. Takes `{capability_id, transport, idempotency_key}`. Opens (or, on a replay, recovers) one sandbox certification attempt at the Capability's current version, running the probe synchronously (health, then a deeper transport-specific check where the adapter supports it, per `docs/IMPLEMENTATION_ROADMAP.md` §7.1.3) and returning the completed result. A `failed` status is a normal outcome, not an error. This is the CertificationService.Open entry point §7.1.3's own success criterion always assumed existed; before this it had zero callers anywhere.
 - `atos_get_certification_status` — **`certifications:read`**; returns the certification history for a Capability owned by the authenticated provider, newest first. Read-only, no mutation.
+- `atos_apply_to_open_task` — **`open_task_proposals:write`** (deliberately separate from `open_tasks:write`, mirroring `provider_jobs:deliver`'s explicit-grant-only pattern -- see §6A). Submits a proposal to fulfill someone else's OpenTask, as the calling provider. `capability_version` is never caller-supplied; it is frozen from the Capability's current version at propose time. Any `proposed_price` is a non-authoritative hint only -- the real price is always computed by the existing Quote pricing rules at acceptance time, bounded by the task's own `constraints.max_total`.
+- `atos_withdraw_open_task_proposal` — **`open_task_proposals:write`**. Withdraws the calling provider's own proposal. Refused once that proposal has already been accepted as the task's winner.
 
 Provider/admin settlement operations MUST preserve Quote/Job concrete trust mode and proof profile.
 
