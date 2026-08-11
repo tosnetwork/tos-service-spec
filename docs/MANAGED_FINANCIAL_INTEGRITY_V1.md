@@ -372,18 +372,30 @@ delivered through the deployment secret store. The receiver rejects stale
 timestamps and recomputes the body digest. ATOS MUST authenticate a `HEAD`
 after every successful, conflicting, or uncertain `PUT`, and MUST NOT mark the
 batch retained unless the response binds the expected digest to a non-empty
-immutable object-version identity. Before either a batch evidence object or an
-anchor receipt advances the production state machine, that exact version MUST
-also resolve as `COMPLIANCE` locked with `retain-until` no earlier than the
-pre-`PUT` time plus the deployment-configured minimum retention duration. A
-version ID or content digest without this proof is not retention and fails
-closed.
+immutable object-version identity. Before the first external `PUT`, ATOS MUST
+durably allocate exactly one `required_retain_until` checkpoint as the current
+time plus the deployment-configured minimum retention duration. Every retry
+for that object MUST reuse the same checkpoint; it MUST NOT extend the required
+deadline from retry time. Batch evidence and its anchor receipt have separate
+checkpoints because each is an independent external write. Before either
+object advances the production state machine, its exact version MUST resolve
+as `COMPLIANCE` locked, still unexpired, and with `retain-until` no earlier than
+that object's persisted checkpoint. A version ID or content digest without
+this proof is not retention and fails closed.
 `request_target` is the escaped path plus `?` and the canonical raw query when
 present; an exact-version verifier lookup therefore cannot substitute a
-different version ID without invalidating authentication. An independent
-verifier MUST resolve that exact version, require `COMPLIANCE` mode, verify the
-content digest, and require that its retain-until time is no earlier than the
-verification time plus the verifier-configured minimum retention duration.
+different version ID without invalidating authentication. A transport error,
+timeout, or temporary `5xx` is an availability failure and is subject to the
+configured maximum sealing lag; it is not an integrity incident by itself. An
+authenticated missing exact version or a digest, version, lock-mode, or
+retention-proof mismatch is an integrity conflict and fails closed
+immediately.
+
+An independent verifier MUST resolve the exact version, require `COMPLIANCE`
+mode, verify the content digest, and require that the lock is unexpired at
+verification time. A caller MAY separately require a minimum *remaining*
+retention duration. That optional current policy is distinct from the original
+deployment deadline and MUST NOT redefine or extend the persisted checkpoint.
 
 ## 9. Managed Financial Ledger Anchor V1
 
