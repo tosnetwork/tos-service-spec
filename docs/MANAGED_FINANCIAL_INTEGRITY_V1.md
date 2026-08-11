@@ -397,6 +397,18 @@ verification time. A caller MAY separately require a minimum *remaining*
 retention duration. That optional current policy is distinct from the original
 deployment deadline and MUST NOT redefine or extend the persisted checkpoint.
 
+The complete batch create, sign, retain, and anchor state machine MUST be
+serialized across ATOS replicas by a PostgreSQL session advisory lock. A
+contender acquires the lock before reading pending batch state and therefore
+reloads any progress made by the previous holder. The lock is held through
+external side effects and their durable outcomes, and PostgreSQL automatically
+releases it if the holder crashes or loses its session. Ordinary replica
+contention is not an idempotency conflict and MUST NOT enter financial safe
+mode. Because the lock-owning session remains dedicated while repository
+updates continue, the ATOS PostgreSQL pool MUST provide at least two
+connections; startup/runtime validation MUST reject an undersized sealing
+pool instead of deadlocking it.
+
 ## 9. Managed Financial Ledger Anchor V1
 
 The anchor payload uses canonical CBOR domain
