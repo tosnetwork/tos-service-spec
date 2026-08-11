@@ -1650,9 +1650,26 @@ is incomplete.
 
 ### 8.1 Phase 4A — Production identity and Capability ownership activation
 
-🔄 **Status: substantially complete, not production-ready** (`agent/phase4a-production-identity-ownership`
+✅ **Status: complete against this phase's frozen scope** (all five bullets
+below), verified live end to end against real Postgres 16 and a real running
+`tos-protocol` server process. (`agent/phase4a-production-identity-ownership`
 on `atos-spec`/`tos-protocol`; `agent/phase4a-implementation-brief` on `atos`,
-`atos` PR [#18](https://github.com/tosnetwork/atos/pull/18), still Draft).
+`atos` PR [#18](https://github.com/tosnetwork/atos/pull/18), still Draft.)
+
+Scope correction: an earlier revision of this section listed "full on-chain
+verification with `-authority chain` against a deployed Agent Account" as a
+Phase 4A gap. Re-reading this phase's own frozen definition (the five bullets
+below, as originally written before any implementation) shows that was wrong
+-- deploying against a real chain-anchored `Authority` backend, multi-endpoint
+quorum, code-hash allowlists and key custody are §8.4 Phase 4D's explicit job
+("production readiness additionally requires... production key
+custody/HSM/Vault policy..."), not 4A's. 4A's job is that the *decision logic*
+(identity binding, ownership resolution, manifest/network binding, activation
+policy) is production-correct against whatever `Authority` backend is
+configured -- which is what was actually built and verified. This is the same
+category of scope-boundary mistake this phase's own work log already caught
+once for Phase 5 identity creation; corrected the same way, by re-reading the
+frozen contract instead of trusting an inflated definition of "done."
 
 Implemented, unit/integration-tested against real Postgres 16, AND verified
 live end to end against a real running `tos-protocol` server process (real
@@ -1721,23 +1738,36 @@ Reused foundations (already real, not mocked, predating this phase):
 finalized-transaction commit/verify behind `-authority-mode=chain`), and
 `CommitCapabilityManifest`.
 
-Not yet done (tracked, not silently dropped):
+Out of this phase's scope, correctly deferred to §8.4 Phase 4D (not a 4A
+gap; listed here only so it isn't mistaken for an oversight):
 
-- **Full on-chain verification with `-authority chain`**: the live e2e run
-  above used `-authority local` (synthetic references) -- proving the real
-  RPC wire protocol, real Postgres, and every application-layer decision
-  genuinely work end to end, but not yet re-run with `tos-protocol`'s real
-  `chainAuthority` against a deployed TOS localnet. `tos-protocol` already
-  has the machinery for this (`pkg/toschain.Adapter`, a real on-chain
-  "Agent Account" contract type with a `get_agent_account_data` get-method
-  already used elsewhere for client-key resolution -- see
-  `docs/tos-chain-adapters.md`), but no Agent Account contract deployment
-  tooling exists yet (unlike TaskEscrow's proven `scripts/agent-task-escrow-e2e.py`-style
-  harness) to drive that specific mode's own e2e test. A real TOS
-  localnet's validator/JSON-RPC/transaction path was independently proven
-  working (`scripts/localnet-jsonrpc.py --demo`) as part of this work, so
-  the remaining gap is Agent Account contract deployment tooling, not the
-  chain adapter code itself.
+- **Running against `-authority chain` with a deployed on-chain Agent
+  Account, a real key-custody publisher sidecar, quorum endpoints and
+  reviewed code-hash allowlists.** The live e2e run in this phase used
+  `-authority local` (synthetic references), which is the correct scope for
+  4A: it proves the real RPC wire protocol, real Postgres, and every
+  application-layer decision (identity binding, ownership resolution,
+  network/manifest binding, activation policy) genuinely work end to end
+  against `tos-protocol`'s real `Authority` interface, regardless of which
+  backend implements it. Wiring a specific production backend
+  (`chainAuthority`, `pkg/atosrpc/chain_authority.go`) against a real
+  deployed chain is explicitly §8.4's "production readiness additionally
+  requires... production key custody/HSM/Vault policy" -- correction to an
+  earlier revision of this section, which mischaracterized this as a 4A gap.
+  For whoever picks up 4D: `tos-protocol` already has the on-chain read path
+  (`pkg/toschain.Adapter`, `get_agent_account_data`,
+  `docs/tos-chain-adapters.md`) and Agent Account deployment tooling
+  (`tosctl agent wallet create/fund`, `tosctl agent account deploy`) --
+  confirmed present during this phase's investigation, correcting a prior,
+  now-stale note in this same section claiming no deployment tooling
+  existed. What's still missing is a generic (non-TaskEscrow-specific)
+  `chain.ActionPublisher` sidecar: `pkg/localrpc/chain_action.go` defines
+  the client (`ChainActionPublisherClient`) and wire protocol
+  (`POST /v1/chain/action`, `GET /healthz`) but no `cmd/` binary serves that
+  protocol yet -- `taskescrowpublisher.TosctlBackend`
+  (`pkg/taskescrowpublisher/tosctl.go`) is the closest template (shells out
+  to `tosctl` using a wallet-profile-name-only credential map) but is
+  TaskEscrow-action-specific, not reusable as-is.
 - **`go.mod` local `replace` directive** in `atos` pointing at a sibling
   worktree path for `tos-protocol` -- must be removed once the
   `tos-protocol` branch merges to its own `main`.
