@@ -1650,93 +1650,110 @@ is incomplete.
 
 ### 8.1 Phase 4A — Production identity and Capability ownership activation
 
-🔄 **Status: in progress** (`agent/phase4a-production-identity-ownership` on
-`atos-spec`/`tos-protocol`; `agent/phase4a-implementation-brief` on `atos`,
+🔄 **Status: substantially complete, not production-ready** (`agent/phase4a-production-identity-ownership`
+on `atos-spec`/`tos-protocol`; `agent/phase4a-implementation-brief` on `atos`,
 `atos` PR [#18](https://github.com/tosnetwork/atos/pull/18), still Draft).
 
-Implemented and unit/integration-tested (real Postgres 16, mock-`toscore.Core`
-negative matrix; NOT yet exercised against a real `tos-protocol` server or a
-real TOS localnet -- see "Not yet done" below):
+Implemented, unit/integration-tested against real Postgres 16, AND verified
+live end to end against a real running `tos-protocol` server process (real
+HTTP/ConnectRPC, not mocked):
 
 - `IdentityService.CreatePrincipalBinding`/`RevokePrincipalBinding`
   (`proto/atos/tos/v1/identity.proto`, `docs/TOS_RPC.md` §10, `docs/API.md`
-  §9A) -- closes the gap this phase found: `IdentityService` previously
-  exposed only read-only resolution RPCs, with no network-reachable way for
-  `atos` to establish a binding at all. `tos-protocol` commit `7012369`.
+  §9A). `tos-protocol` commit `7012369`.
 - `atos`'s durable identity-binding journal/reconciler
   (`internal/service/identity_binding.go`, migration
   `014_phase4a_identity_binding.sql`), mirroring the proven Phase 3B
-  execution-signer-operation checkpoint pattern, simplified for a
-  single-step remote call.
-- `atos`'s production `TOSBackedActivationAuthority`
-  (`internal/service/tos_backed_activation_authority.go`): grants
-  `verified` only when provider identity binding, network match, capability
+  execution-signer-operation checkpoint pattern.
+- `atos`'s production `TOSBackedActivationAuthority`: grants `verified`
+  only when provider identity binding, network match, capability
   ownership, anchored manifest/version, and live execution-signer
-  authorization are ALL re-verified fresh on every call -- never from a
-  locally cached fact. `native` is always denied (Phase 4A does not
-  implement Native's gateway-independence guarantees).
-- Capability manifest/ownership anchoring wired into `atos` registration
-  (`CapabilityService.WithManifestAnchor`, opt-in, called from `Register`)
-  -- `CommitCapabilityManifest` now actually gets called for a capability
-  requesting any non-Managed mode, not only exercised from a test.
-- `identity_bindings:read`/`write` admin-only REST surface
-  (`POST/GET /v1/identity-bindings/{principal_id}/...`).
-- `ATOS_TOS_NETWORK` config: `TOSBackedActivationAuthority` is only wired
-  in `cmd/api/main.go` when the RPC backend is selected AND this is set;
-  otherwise `FailClosedActivationAuthority` remains wired, matching Phase
-  3B's own "never fake it just to make the interface non-trivial" default.
+  authorization are ALL re-verified fresh on every call. `native` is
+  always denied.
+- Capability manifest/ownership anchoring wired into both `Register` and
+  `Update` (`CapabilityService.WithManifestAnchor`); a version-bumping
+  `Update` now re-anchors the new version while leaving the old version's
+  anchor independently valid. The public `ownership` projection
+  (`docs/CAPABILITIES.md` §1) is kept in sync with the anchor.
+- `identity_bindings:read`/`write` admin-only REST **and MCP** surface
+  (`POST/GET /v1/identity-bindings/{principal_id}/...`;
+  `atos_bind_identity`/`atos_revoke_identity`/`atos_identity_binding_status`).
+- **Post-activation suspension sweep**
+  (`internal/service/identity_evidence_reconciler.go`): a periodic sweep
+  (mirrors `HealthService`'s reconciler shape) re-runs
+  `TOSBackedActivationAuthority.Evaluate` for every active-`verified`
+  Capability and suspends any that no longer pass, recording the
+  authority's own reason code -- closes the "revoked identity after
+  activation goes unnoticed" gap this section previously tracked.
+- `ATOS_TOS_NETWORK` config, now actually wired into the real RPC client
+  construction in `cmd/api/main.go` (see below).
+- `tos-atos-rpc -identity-seed-file`: makes the pre-existing
+  `Server.SeedIdentity` bootstrap path (deliberately not a network RPC --
+  see below) actually reachable by a real operator process, with a
+  content-stable re-seed-on-restart guarantee.
+
+**Real end-to-end verification, run live** (not merely unit-tested): a real
+`tos-protocol` server (`cmd/tos-atos-rpc`, built from source) and a real
+`atos` server (`ATOS_TOS_BACKEND=rpc`) were started as independent
+processes against a freshly migrated Postgres 16 instance, and the complete
+brief-required acceptance path was driven by hand over real HTTP:
+register capability (requesting verified) → `ownership.status` anchored
+with the correct network → bind provider identity via a real
+`CreatePrincipalBinding` RPC → authorize execution signer → open sandbox
+certification (readiness evidence) → `EvaluateActivation(verified)` →
+`granted:true`, `status:active`, `supported_trust_modes` includes
+`verified`. The negative path was verified the same way: revoking the
+identity via a real RPC and re-evaluating a second capability correctly
+returned `granted:false, reason_code:PROVIDER_IDENTITY_REVOKED`.
+
+This live run caught two real bugs invisible to every mock-based test:
+`cmd/api/main.go` never actually passed the configured network into the
+real RPC client (`tosprotocol.Client.Network()` always returned `""`
+against a real deployment, which would have made `TOSBackedActivationAuthority`
+fail closed unconditionally in any real production setup regardless of
+configuration), and the capability's own public `ownership` field was
+never updated after a successful anchor (only the separate commitment
+table was). Both fixed and re-verified live.
 
 Reused foundations (already real, not mocked, predating this phase):
-`atos`'s CAS-based `ActivationAuthority`/`EvaluateActivation` seam
-(`internal/service/capability.go`), `tos-protocol`'s `chainAuthority`
-(`pkg/atosrpc/chain_authority.go`, real finalized-transaction commit/verify,
-already wired behind `-authority-mode=chain`), and `CommitCapabilityManifest`
-(real, idempotent, predates this phase).
+`atos`'s CAS-based `ActivationAuthority`/`EvaluateActivation` seam,
+`tos-protocol`'s `chainAuthority` (`pkg/atosrpc/chain_authority.go`, real
+finalized-transaction commit/verify behind `-authority-mode=chain`), and
+`CommitCapabilityManifest`.
 
 Not yet done (tracked, not silently dropped):
 
-- **Real end-to-end verification**: everything above is proven against
-  `toscore.Core`'s mock (extended with real anchoring/binding/network
-  simulation this phase) and real Postgres, but NOT against a real running
-  `tos-protocol` server or a real TOS localnet. The brief's required
-  acceptance path (create/resolve identity -> bind -> anchor manifest ->
-  authorize signer -> evaluate -> active, plus the full negative matrix)
-  has not been re-run end-to-end through the real RPC boundary.
-- **Suspension on stale/revoked evidence AFTER activation**: nothing
-  currently re-checks an already-`active` Verified capability's identity/
-  ownership/network/signer currency periodically. `TOSBackedActivationAuthority`
-  is only consulted at explicit `EvaluateActivation` time (admin-triggered),
-  not swept like `HealthService`/`CertificationService`. A provider whose
-  identity binding is revoked AFTER activation stays `active` until an
-  admin explicitly re-evaluates -- this is a real, open gap, not a
-  by-design choice. Needs: a `store.Capabilities` enumeration by
-  active-mode (doesn't exist yet), a periodic sweep mirroring
-  `HealthService.RunReconciler`, and a mode-direct `SuspendMode` helper
-  (today's `SuspendModeIfActive` is transport-scoped, not a fit as-is).
-- **`Update`'s manifest re-anchoring**: a capability `Update` that changes
-  terms bumps to a new version but does not anchor the new version's
-  manifest (only `Register` is wired) -- safe (the new version correctly
-  fails `VerifyCapabilityOwnership` and stays unable to activate Verified)
-  but incomplete: a provider has no way yet to re-anchor after a version
-  bump without a brand-new capability.
-- **MCP tools** for the identity-binding surface (REST only so far).
+- **Full on-chain verification with `-authority chain`**: the live e2e run
+  above used `-authority local` (synthetic references) -- proving the real
+  RPC wire protocol, real Postgres, and every application-layer decision
+  genuinely work end to end, but not yet re-run with `tos-protocol`'s real
+  `chainAuthority` against a deployed TOS localnet. `tos-protocol` already
+  has the machinery for this (`pkg/toschain.Adapter`, a real on-chain
+  "Agent Account" contract type with a `get_agent_account_data` get-method
+  already used elsewhere for client-key resolution -- see
+  `docs/tos-chain-adapters.md`), but no Agent Account contract deployment
+  tooling exists yet (unlike TaskEscrow's proven `scripts/agent-task-escrow-e2e.py`-style
+  harness) to drive that specific mode's own e2e test. A real TOS
+  localnet's validator/JSON-RPC/transaction path was independently proven
+  working (`scripts/localnet-jsonrpc.py --demo`) as part of this work, so
+  the remaining gap is Agent Account contract deployment tooling, not the
+  chain adapter code itself.
 - **`go.mod` local `replace` directive** in `atos` pointing at a sibling
   worktree path for `tos-protocol` -- must be removed once the
   `tos-protocol` branch merges to its own `main`.
 - A brand-new `AgentIdentity` still cannot be created/verified via
-  signature proof through any production path -- `SeedIdentity` (the only
-  identity-creation code path in `tos-protocol`) has zero non-test callers,
-  and `pkg/identity.Envelope` (a working, tested, domain-separated
-  Ed25519 signed-envelope primitive already used throughout
-  `pkg/authorization`) is not wired into identity establishment at all.
-  Every test in this phase seeds identities directly
-  (`SeedAgentIdentity`/`SeedIdentity`), which is explicitly documented as
-  an out-of-band operator/bootstrap action for Phase 4A (full self-service,
-  wallet-signature-proved identity creation is Phase 5's deliverable) --
-  but this means Phase 4A's "TOS-backed" identity guarantee currently rests
-  on trusting whoever calls the (production-unreachable-by-design)
-  `SeedIdentity` bootstrap path, not on any cryptographic proof of key
-  control verified by this phase's own code.
+  signature proof through any *self-service* production path --
+  `SeedIdentity` is deliberately kept as an out-of-band operator/bootstrap
+  mechanism, not a network RPC (`identity.proto`'s own frozen comment:
+  full self-service, wallet-proved Agent Identity creation is Phase 5
+  Wallet-Native's deliverable, not this phase's). The `-identity-seed-file`
+  flag above makes that bootstrap mechanism practically usable by a real
+  operator process for the first time, but establishing a NEW identity
+  still requires an operator who has independently verified the Agent's
+  TOS controller key through some out-of-band process -- this is Phase
+  4A's correct, deliberate scope boundary, not an oversight (initially
+  mischaracterized as "the biggest gap" earlier in this phase's own work
+  log; corrected after re-reading the already-frozen contract).
 
 ### 8.2 Phase 4B — Live signer authorization and Verified transaction path
 
