@@ -428,6 +428,12 @@ object ID/digest and operator-fixed payer/payee/amount policy before invoking
 key custody. The production backend MUST negotiate recover-by-Action-ID and
 search-before-broadcast behavior and prove the exact payer wallet/RPC binding
 at readiness.
+The send and recovery clients MUST use the same pinned endpoint set and verify
+the configured network's genesis identity. A bounded history lookup is not
+authoritative absence: once an intent may have been broadcast, failure to find
+it within the available window MUST fail closed and MUST NOT trigger another
+send. Safe automatic recovery requires complete pagination to a pre-broadcast
+cursor or an authoritative Action-ID index.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
