@@ -1387,12 +1387,12 @@ MCP  -> atos_publish_open_task, atos_search_open_tasks, atos_get_open_task,
 A2A  -> equivalent OpenTask publication/discovery/proposal mapping
 ```
 
-Exact route/tool contracts (request/response shapes, scopes) remain owned by
-`docs/API.md`, `docs/MCP.md` and the A2A contract, not this section -- this
-Roadmap section defines the product responsibility those contracts serve,
-never a second naming of them. An Agent MUST NOT need to know a Capability ID
-before publishing demand. It may publish the goal, budget, deadline, inputs
-and trust requirements first; ATOS discovery/matching and Provider proposals
+Exact route/tool contracts (request/response shapes, scopes) are frozen in
+`docs/API.md` §5A and `docs/MCP.md` §6A/§8, not this section -- this Roadmap
+section defines the product responsibility those contracts serve, never a
+second naming of them. An Agent MUST NOT need to know a Capability ID before
+publishing demand. It may publish the goal, budget, deadline, inputs and
+trust requirements first; ATOS discovery/matching and Provider proposals
 resolve suitable Capability/provider candidates afterward.
 
 This creates an intentional two-sided product model:

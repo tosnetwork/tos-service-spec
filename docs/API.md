@@ -402,6 +402,134 @@ Example:
 
 Cancellation/refund follows the existing Job mode. A Verified/Native Job cannot move its economic state to a Managed ledger merely because cancellation occurs.
 
+## 5A. Open Task (Marketplace) Endpoints
+
+Phase 3C's demand-side marketplace (`docs/IMPLEMENTATION_ROADMAP.md` §7.3): a
+requester publishes an OpenTask describing the outcome/work it wants, without
+needing to know a `capability_id` in advance; Providers discover it and
+submit proposals; the requester accepts exactly one proposal, which durably
+drives the existing Quote/Job pipeline forward using the requester as
+principal and the winning proposal's Capability/version. An OpenTask is never
+a parallel commercial contract -- pricing, trust mode and proof requirements
+are always resolved by the same `QuoteService.Create` path an ordinary direct
+Quote request uses; a proposal's own `proposed_price` is a non-authoritative
+hint only.
+
+- `POST /open-tasks` — publish (`open_tasks:write`)
+- `GET /open-tasks` — browse public open tasks, or `?mine=true` for the
+  caller's own tasks in any status (`open_tasks:read`)
+- `GET /open-tasks/{task_id}` (`open_tasks:read`)
+- `POST /open-tasks/{task_id}/cancel` — owner only (`open_tasks:write`)
+- `POST /open-tasks/{task_id}/proposals` — submit a proposal, provider side
+  (`open_task_proposals:write`)
+- `GET /open-tasks/{task_id}/proposals` (`open_tasks:read`)
+- `POST /open-tasks/{task_id}/proposals/{proposal_id}/withdraw` — provider
+  withdraws their own proposal (`open_task_proposals:write`)
+- `POST /open-tasks/{task_id}/proposals/{proposal_id}/accept` — owner accepts
+  a winner (`open_tasks:write`)
+
+`open_task_proposals:write` (the provider side: submitting or withdrawing a
+proposal against someone else's OpenTask) is deliberately a separate,
+explicit-grant-only scope from `open_tasks:write` (the owner side: publish,
+cancel, accept) -- mirroring `provider_jobs:deliver`'s pattern of never
+letting an ordinary consumer scope imply the ability to act as a provider.
+`open_tasks:read`/`write` ARE default consumer scopes (publishing a task and
+accepting a proposal for one's own task are ordinary consumer actions, the
+same as creating or cancelling a Job); `open_task_proposals:write` is not.
+
+Publish, propose and accept require an idempotency key, but as a JSON body
+field (`idempotency_key`) rather than the `Idempotency-Key` header used
+elsewhere in this document (§1's "or an equivalent body field" convention;
+see the request examples below). Withdraw and cancel act on an already
+durable record and require no idempotency key of their own.
+
+Example publish request:
+
+```json
+{
+  "title": "Summarize Q3 filings",
+  "description": "...",
+  "input": {"document_url": "..."},
+  "requested_trust_mode": "managed",
+  "proof_requirements": {"network_verifiable_receipt": false},
+  "constraints": {"max_total": {"amount": "5.00", "currency": "USD"}},
+  "expires_at": "2026-09-01T00:00:00Z",
+  "idempotency_key": "task-publish-..."
+}
+```
+
+`expires_at` is required — an OpenTask MUST NOT be publishable with no
+expiry. `input` is the durable payload the eventual Job will use verbatim
+once a proposal is accepted; it is never re-derived from a proposal or from
+the accept request.
+
+Example public listing entry (`GET /open-tasks`, no `?mine=true`) — `input`
+and other owner-only detail are never included here, unlike the owner's own
+`GET /open-tasks/{task_id}` view:
+
+```json
+{
+  "id": "task_...",
+  "principal_id": "agt_...",
+  "title": "Summarize Q3 filings",
+  "status": "open",
+  "expires_at": "2026-09-01T00:00:00Z",
+  "created_at": "..."
+}
+```
+
+`status` is one of `open|accepted|fulfilled|cancelled|expired`. `accepted` is
+deliberately not terminal: it means a winning proposal has been durably
+claimed and the Quote/Job binding sequence is in flight, or — if that
+sequence hits a definitive (non-ambiguous) failure — the task reopens to
+`open` rather than being stranded.
+
+Example propose request:
+
+```json
+{
+  "capability_id": "cap_...",
+  "message": "...",
+  "proposed_price": {"amount": "4.50", "currency": "USD"},
+  "idempotency_key": "task-propose-..."
+}
+```
+
+`capability_version` is never caller-supplied — the proposal freezes the
+Capability's current version at propose time. `proposed_price` is a
+non-authoritative hint only; `accept` always re-derives the real price
+through `QuoteService.Create`'s own pricing rules, bounded by the task's own
+`constraints.max_total`, exactly as an ordinary direct Quote request would
+be.
+
+Example accept response:
+
+```json
+{
+  "open_task": {"id": "task_...", "status": "accepted", "accepted_proposal_id": "prop_..."},
+  "acceptance": {
+    "id": "acceptop_...",
+    "task_id": "task_...",
+    "proposal_id": "prop_...",
+    "checkpoint": "completed",
+    "quote_id": "q_...",
+    "job_id": "job_..."
+  }
+}
+```
+
+`acceptance.checkpoint` is one of
+`intent_persisted|winner_claimed|quote_binding_pending|quote_bound|
+job_binding_pending|job_bound|completed|failed|reconciling` — the durable
+winner-selection → Quote → Job binding sequence's own checkpoint, mirroring
+the execution-signer rotation checkpoint's role in §2.1. Accept is
+idempotent: retrying with the same `idempotency_key` resumes the same
+`AcceptanceOperation` rather than creating a second Quote/Job.  `open_task`
+reaches terminal `status:"fulfilled"` only once `checkpoint` reaches
+`completed`; a `checkpoint:"failed"` outcome reopens `open_task` back to
+`status:"open"` with `accepted_proposal_id` cleared, never leaving it
+permanently `accepted` with no path forward.
+
 ## 6. Artifact Endpoints
 
 Optional — see `docs/ARTIFACTS.md`.
