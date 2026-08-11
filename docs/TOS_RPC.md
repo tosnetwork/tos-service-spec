@@ -248,6 +248,31 @@ Read-only resolution of a globally meaningful Agent/provider identity.
 
 Maps an ATOS `principal_id` to a TOS identity when such a server-side binding exists. This enables ordinary ATOS users to receive TOS-backed guarantees without owning or exposing wallet keys.
 
+### `CreatePrincipalBinding` / `RevokePrincipalBinding` (Phase 4A)
+
+Durable, idempotent binding mutations, added for `docs/IMPLEMENTATION_ROADMAP.md`
+§8.1's production identity binding. `CreatePrincipalBinding` never creates an
+`AgentIdentity` from nothing -- `agent_id` must already independently resolve
+through `ResolveAgentIdentity` before the binding is anchored, so a caller can
+never conjure ownership of an identity merely by naming it. Creating a new
+`AgentIdentity` itself remains an out-of-band operator/bootstrap action in
+Phase 4A; full self-service, wallet-signature-proved identity creation and
+rotation is Phase 5 Wallet-Native's deliverable, not this phase's.
+
+These are gateway-operator actions, authorized one layer above this RPC (at
+ATOS's own REST/MCP boundary, through an explicit-grant-only scope never in
+the passkey/Device-Authorization self-service default bundle -- the same
+admin-scope discipline already applied to `activation:evaluate`), not
+ordinary end-user self-service. `context.caller_id` identifies the operating
+ATOS backend, not the human/agent the binding is being created for.
+
+A revoked binding does not retroactively invalidate facts anchored while it
+was active; it only stops future resolution from treating the principal as
+currently bound. Every dependent Phase 4A decision (ownership resolution,
+`ActivationAuthority.Evaluate`) MUST re-resolve the binding fresh rather than
+caching "was bound," and MUST fail closed / suspend, never silently
+downgrade, when a previously-bound identity is no longer active.
+
 No method returns wallet seed phrases, private keys or key-derivation data.
 
 ## 11. Capability Service

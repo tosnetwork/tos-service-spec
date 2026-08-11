@@ -1650,6 +1650,15 @@ is incomplete.
 
 ### 8.1 Phase 4A — Production identity and Capability ownership activation
 
+🔄 **Status: in progress** (`agent/phase4a-production-identity-ownership` across
+`atos-spec`/`atos`/`tos-protocol`). `IdentityService.CreatePrincipalBinding`/
+`RevokePrincipalBinding` (`proto/atos/tos/v1/identity.proto`,
+`docs/TOS_RPC.md` §10) are now frozen to close the gap this phase found:
+`tos-protocol`'s `IdentityService` previously exposed only read-only
+resolution RPCs, with no network-reachable way for `atos` to establish a
+binding at all (`SeedIdentity`/`BindPrincipal` existed only as Go-internal
+methods, never over RPC).
+
 Complete:
 
 - production Agent/principal identity binding;
@@ -1657,6 +1666,15 @@ Complete:
 - manifest/version anchoring on the same configured TOS network;
 - network/domain binding that prevents mixing references from different TOS networks;
 - activation policy that only marks a Capability Verified when every required ownership/manifest checkpoint is current.
+
+Reused foundations (already real, not mocked, predating this phase):
+`atos`'s CAS-based `ActivationAuthority`/`EvaluateActivation` seam
+(`internal/service/capability.go`), `tos-protocol`'s `chainAuthority`
+(`pkg/atosrpc/chain_authority.go`, real finalized-transaction commit/verify,
+already wired behind `--authority-mode=chain` but never exercised
+end-to-end from `atos`), and `CommitCapabilityManifest` (real, idempotent,
+already correct, but never called from `atos`'s capability registration
+path today).
 
 ### 8.2 Phase 4B — Live signer authorization and Verified transaction path
 
