@@ -52,13 +52,31 @@ change its digest. V1 digests use SHA-256 only.
 ```text
 package
   version, canonicalization, network_id, gateway_domain
-  principal_id, requester_agent_id, provider_id
+  principal_id, requester_agent_id, requester_identity_ref, requester_identity
+  provider_id, provider_agent_id, provider_identity_ref, provider_identity
   capability, quote, escrow, outcome
   signer_authorization (conditional), receipt (conditional)
   proof_of_service (conditional)
 
 capability
-  capability_id, capability_version, manifest_digest, ownership_ref
+  capability_id, capability_version, manifest_digest
+  ownership_digest, ownership_ref
+
+`ownership_digest` is the exact authority commitment digest for the frozen
+Capability ownership tuple and is distinct from the nested manifest content
+digest. Fresh-replica lookup uses `(capability_id@version, ownership_digest,
+ownership_ref)`; substituting the manifest digest is invalid.
+
+requester_identity / provider_identity
+  agent_id, canonical_uri, controllers (exactly one canonical TOS address)
+  assurance (non-empty and not self_asserted), identity_ref
+
+The binding reference and Agent identity reference are distinct canonical
+facts. Both are live-resolved. The identity tuple supplies the creator/agent
+controller addresses to TaskEscrow observation only as equality assertions.
+This permits a fresh protocol replica with an empty local bbolt file to verify
+the complete contract tuple; neither the package nor a local projection may
+select a different controller.
 
 quote
   quote_id, commitment_digest, commitment_ref, terms_digest
@@ -149,6 +167,26 @@ A verifier MUST:
 
 Verification time is observation metadata only and cannot be caller-selected
 to make an invalid signer valid.
+
+Every field repeated outside canonical Quote, reservation or Receipt bytes is
+an equality assertion. The verifier compares requester Agent identity, all
+three monetary values, every deadline, service Quote reference, signer IDs and
+algorithm, and both Receipt timestamps. It also requires
+`subtotal_atomic + fees_atomic = total_max_atomic = reserved_atomic`.
+`started_unix_millis` and `completed_unix_millis` are part of the signed
+Receipt commitment; neither is presentation metadata.
+
+A requester release is exactly zero charge and a full refund of the reserved
+amount. A dispute package carries the canonical resolution CBOR and a distinct
+finalized `dispute-resolution` commitment reference. That commitment binds the
+dispute and reservation identities, reviewer, outcome, allocation and frozen
+resolution time. The TaskEscrow terminal reference remains separately bound to
+the actual contract transition.
+
+Signer revocation has a canonical `revoked_unix_millis`. It invalidates an
+execution only when the revocation was effective at or before Receipt
+completion; a later rotation or revocation must not invalidate historical
+proofs. Legacy revoked records without an effective time fail closed.
 
 `quote.canonical_cbor` and `escrow.canonical_cbor` are respectively the exact
 Phase 4B-1 Quote and Phase 4B-2 reservation values. The verifier recomputes

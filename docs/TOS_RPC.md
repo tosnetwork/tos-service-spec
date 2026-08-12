@@ -347,7 +347,11 @@ history integrity anchor, never a Verified Job.
 
 ### `ResolveAgentIdentity`
 
-Read-only resolution of a globally meaningful Agent/provider identity.
+Read-only resolution of a globally meaningful Agent/provider identity. For
+portable verification, a caller supplies the complete expected identity tuple
+and expected finalized identity reference. A replica with no local identity
+row recomputes the immutable commitment and resolves it from canonical TOS
+authority; the expected controller is an equality assertion, never a selector.
 
 ### `ResolvePrincipalBinding`
 
@@ -499,6 +503,12 @@ Execution signer authorization
 Signed Execution Receipt
 ```
 
+Revocation records carry an immutable `revoked_unix_millis`. Resolution is as
+of `at_unix_millis`: a revocation effective at or before Receipt completion
+rejects the proof, while a later revocation does not retroactively invalidate
+historical execution. A missing effective time on a revoked legacy record
+fails closed.
+
 The signer may be a provider key, Edge runtime, `tos-ai` worker/runtime identity, enterprise delegate or audited adapter. The signer authorization MUST be scoped to provider/capability and SHOULD bind version and validity interval.
 
 ## 13. Settlement Service
@@ -566,6 +576,14 @@ Read-only recovery and audit calls.
 `GetEscrow` accepts the full expected tuple and optional known reference. A
 missing reference invokes deterministic tuple/action discovery; it never
 weakens live finality validation.
+
+Portable verification additionally supplies canonical requester/provider TOS
+controller addresses derived from separately resolved identity commitments.
+`GetEscrow` compares them to the TaskEscrow creator/agent tuple. This permits
+empty-bbolt replica recovery without making caller fields an authority.
+Provider-settlement and dispute-resolution recovery likewise require the
+complete signed Receipt, charge, resolution tuple and distinct resolution
+commitment reference before returning a terminal observation.
 
 For a released escrow, portable-proof observation additionally supplies
 `expected_terminal_ref`, `expected_release_digest`, and
