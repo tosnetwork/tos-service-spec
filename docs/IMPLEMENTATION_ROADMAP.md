@@ -1798,18 +1798,26 @@ gap; listed here only so it isn't mistaken for an oversight):
 
 Complete:
 
-- live execution-signer authorization resolution/rotation/revocation;
-- Quote commitment;
-- enforceable TaskEscrow create/release/settle on production-shaped infrastructure;
-- signed Execution Receipt verification;
-- receipt/settlement proof references;
-- reconciliation after lost responses/restarts;
-- no fallback to Managed under the original Quote.
+- ✅ live execution-signer authorization resolution/rotation/revocation;
+- ✅ Quote commitment;
+- ✅ enforceable TaskEscrow create/release/settle on production-shaped infrastructure;
+- ✅ signed Execution Receipt verification;
+- ✅ receipt/settlement proof references;
+- ✅ reconciliation after lost responses/restarts;
+- ✅ no fallback to Managed under the original Quote.
 
 All components for one Verified transaction must agree on the same network,
 provider, Capability version, Quote and signer authorization.
 
 #### Phase 4B-1 — Verified Quote Commitment
+
+✅ **Status: core implementation complete and merged.** The frozen Quote
+commitment is active in the single ATOS Quote lifecycle. Adversarial tests have
+passed through the real ATOS API, fresh PostgreSQL and real `tos-protocol` RPC
+boundaries, including deterministic encoding, exact replay/conflict,
+lost-response/no-reference recovery, multi-replica convergence, live finality
+revalidation and downstream rejection of an uncommitted or mismatched Verified
+Quote.
 
 Activate the existing `TrustService.CommitQuote` / `GetQuoteCommitment`
 authority in the single ATOS Quote lifecycle. A Quote resolving to Verified
@@ -1822,9 +1830,7 @@ canonical.
 The frozen schema, deterministic encoding, domain separator, validation,
 idempotency/recovery rules and public projection are normative in
 `docs/VERIFIED_QUOTE_COMMITMENT_V1.md`, `proto/atos/tos/v1/trust.proto`,
-`docs/TOS_RPC.md` §12 and `docs/API.md` §3. This subsection remains unmarked
-until the real ATOS API path passes adversarial tests against fresh PostgreSQL
-and a real `tos-protocol` server.
+`docs/TOS_RPC.md` §12 and `docs/API.md` §3.
 
 The chain-backed recovery boundary includes a production publisher service,
 not only an Authority client: it MUST durably journal intent before broadcast,
@@ -1832,7 +1838,24 @@ provide versioned tuple resolution and typed Action-ID-bound absence, and
 negotiate those capabilities at readiness. Generic HTTP absence never
 authorizes mutation replay.
 
+Acceptance accounting:
+
+- ✅ normative commitment schema, canonical encoding and fixed vectors;
+- ✅ durable operation/projection recovery and terminal-state monotonicity;
+- ✅ real ATOS API + fresh PostgreSQL + real `tos-protocol` integration;
+- ✅ concurrent-replica, lost-response, tuple recovery and replay-conflict tests;
+- ✅ production publisher journal/readiness, typed absence and live-finality gates;
+- ⬜ unified Phase 4 full-stack external-client-to-independent-verifier run (§8.4);
+- ⬜ production multi-validator/quorum and production Vault/HSM deployment (§8.4).
+
 #### Phase 4B-2 — Verified TaskEscrow Reservation and Release
+
+✅ **Status: core implementation complete and merged.** A finalized Verified
+Quote is now bound to an independently observed, finalized TaskEscrow before
+execution. Reservation, release and the currently implemented settlement
+projection use durable recovery identities/checkpoints, publisher
+journal-before-broadcast, strict enrollment/readiness, live canonical
+observation and fail-closed separation from Managed accounting.
 
 Connect the exact finalized Phase 4B-1 Quote commitment to an independently
 observed, finalized and economically funded TOS TaskEscrow before provider
@@ -1843,11 +1866,30 @@ publisher, live quorum observation on every replay, and no Managed fallback.
 The normative schema, monetary model, canonical encoding, deterministic IDs,
 typed-absence rules, enrollment/readiness contract and release semantics are
 frozen in `docs/VERIFIED_TASK_ESCROW_V1.md` and
-`proto/atos/tos/v1/settlement.proto`. This subsection remains unmarked until
-crash recovery, no-reference recovery, multi-replica convergence, canonical
-finality and double-mutation prevention pass through the real API/RPC,
-PostgreSQL and publisher boundaries. Multi-validator production acceptance
-remains a Phase 4D gate.
+`proto/atos/tos/v1/settlement.proto`.
+
+Acceptance accounting:
+
+- ✅ exact atomic TOS monetary model and immutable reservation/release identities;
+- ✅ crash/lost-response recovery, terminal-state fencing and no-reference lookup;
+- ✅ multi-replica convergence and double-reserve/double-release prevention;
+- ✅ real ATOS/API, PostgreSQL, `tos-protocol`, Unix-socket publisher and
+  persistent-journal boundaries;
+- ✅ real TOS localnet TaskEscrow deploy/reserve/settle/release with
+  independently observed transaction references;
+- ✅ versioned tosctl CLI capability contract, complete StateInit probe
+  validation and exact code-hash allowlist binding before enrollment;
+- ✅ malformed capability/StateInit/address, policy mismatch and failed
+  readiness leave no journal;
+- ⬜ one unified multi-process Phase 4 transaction spanning external ATOS
+  client, execution signer/Receipt and independent proof verifier (§8.4);
+- ⬜ production multi-validator/quorum topology, production Vault/HSM custody,
+  operations and disaster recovery (§8.4).
+
+The checked items establish the Phase 4B-2 code and production-shaped boundary
+requirements. The unchecked items are deliberately retained as Phase 4D
+system/deployment acceptance gates; they do not reopen the completed 4B-1 or
+4B-2 implementation scope.
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
