@@ -67,7 +67,7 @@ quote
 escrow
   escrow_id, job_id, contract_ref, contract_code_hash
   reservation_digest, reservation_ref, reserved_atomic
-  escrow_deadline_unix_nanos, funding_model="task_escrow_v1"
+  escrow_deadline_unix_nanos, funding_model
 
 signer_authorization
   authorization_id, execution_signer_id, authorization_ref
@@ -79,6 +79,7 @@ receipt
   input_commitment, output_commitment, usage_commitment
   started_unix_nanos, completed_unix_nanos
   charged_atomic, signature_algorithm="ed25519", signature (64 raw bytes)
+  canonical_cbor (the exact `tos.atos.execution-receipt.v2` signed value)
 
 outcome
   kind, outcome_ref, charged_atomic, refunded_atomic
@@ -96,12 +97,17 @@ fields only for dispute resolution. `charged_atomic + refunded_atomic` equals
 `reserved_atomic`. TaskEscrow v1 requires zero Quote fees. A provider
 settlement may charge zero and refund the full reserve.
 
-The Receipt signing value is the receipt tuple without `receipt_digest`,
-`receipt_ref`, or `signature`, plus `network_id`, `gateway_domain`, the three
-party identities, Capability tuple, `quote_id`, `escrow_id`, and `job_id`. It
-uses domain `tos.atos.execution-receipt.v2`; Ed25519 signs the 32 raw bytes of
-that SHA-256 digest. This replaces deterministic protobuf as the normative
-Receipt signature representation. Protobuf is transport only.
+`funding_model` is the exact Phase 4B-2 value committed in
+`VerifiedEscrowTerms` (for example `gateway_sponsored`); it is never inferred
+or rewritten as the name of the TaskEscrow contract version.
+
+`receipt.canonical_cbor` is the explicit field-level Execution Receipt DTO
+defined by `tos.atos.execution-receipt.v2`. `receipt_digest` is its domain
+digest and Ed25519 signs the 32 raw digest bytes. The package repeats selected
+receipt tuple fields so verifiers can compare them to the signed DTO and the
+surrounding Quote/escrow without accepting an opaque blob. This replaces
+deterministic protobuf as the normative Receipt signature representation;
+protobuf is transport only.
 
 ## 4. Verification algorithm
 

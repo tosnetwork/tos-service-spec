@@ -7,6 +7,13 @@
 > are unavailable/error, not authoritative absence. See
 > `VERIFIED_PROOF_PACKAGE_V1.md`.
 
+`ProofService.ResolveExecutionReceipt` is the Phase 4C read-only receipt
+resolver. It recomputes the field-level CBOR Receipt digest, resolves the exact
+`(verified-receipt, receipt_id, digest, expected_reference)` tuple against the
+live authority, and returns only a nonzero finalized checkpoint. It never
+calls `Commit` or a publisher; typed not-found remains distinct from authority
+unavailability.
+
 **Status:** Draft implementation contract  
 **Branch:** `architecture-v0.2`  
 **Related:** `ARCHITECTURE_V0.2.md`, `PROOF_PROFILES.md`, `SETTLEMENT.md`
