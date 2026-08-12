@@ -336,6 +336,20 @@ It MUST be side-effect-free with respect to balances/escrow state. It MAY read i
 
 `SettleJob` is the operation that changes settlement state and MUST NOT run against a receipt that has not satisfied the selected proof profile.
 
+For `trust_mode=verified`, the finalized TOS TaskEscrow transition is the
+only mutable financial authority. ATOS MUST NOT mirror the provider payout,
+gateway fee or principal refund into a Managed/Blnk escrow, balance or spend
+policy. Managed financial legs apply only to `trust_mode=managed`.
+
+A successful Verified `SettleJob` response MUST bind the exact settlement,
+escrow, Quote, Job and verified execution Receipt identities; exact charged
+amount and asset; and a refund such that `charged + refunded == reserved` in
+integer atomic TOS. Its settlement reference MUST carry the configured
+network, `finalized=true` and a non-zero, non-regressing independently
+observed checkpoint. The returned escrow MUST be the same canonical
+TaskEscrow in the settled state. ATOS MUST validate this complete response
+before persisting a settled projection or marking proof status settled.
+
 ## 10. Execution Receipt
 
 The Execution Receipt is both a billing input and an ATOS trust primitive.

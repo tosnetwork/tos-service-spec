@@ -183,6 +183,21 @@ cancelled, expired or rejected state and exact refund transition. Settled
 escrows cannot release; released escrows cannot execute or return to reserved.
 Ambiguous outcomes remain reconciling and never fall back to Managed.
 
+## Successful settlement boundary
+
+Successful provider settlement is outside the reservation/release delivery
+scope of Phase 4B-2, but any existing shared Job lifecycle path MUST preserve
+the Phase 4B-2 authority boundary. A Verified TaskEscrow payout/refund MUST
+never be duplicated in the Managed/Blnk ledger or applied to Managed account
+balances or policy allowances.
+
+Before a Verified Job may be projected as settled, the gateway MUST validate
+the exact settlement/escrow/Quote/Job/execution-Receipt tuple, settled escrow
+state, configured network, exact TOS charge, refund and reserve conservation,
+and a live independently observed non-zero, non-regressing finalized
+checkpoint. Local cache, publisher output, a transition reference alone, or
+an HTTP success response is insufficient.
+
 The sweeper orders operations by `updated_at, escrow_id`, uses a durable cursor
 or keyset pagination, bounded batches and bounded backoff, and cannot allow old
 rows beyond one fixed `LIMIT` to starve indefinitely.

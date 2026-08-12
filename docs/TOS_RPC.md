@@ -502,6 +502,19 @@ a frozen reason. It is idempotent but never treats local state or an untyped
 
 The server MUST re-verify the referenced receipt and proof profile. A caller cannot force settlement by supplying `verified=true`.
 
+For Verified settlement, the server MUST independently observe the canonical
+TaskEscrow settled state and return a `settlement_ref` with the configured
+network, `finalized=true` and a non-zero finalized checkpoint. The response
+MUST reproduce the exact escrow/Quote/Job/Receipt tuple and preserve atomic
+money conservation: requested charge equals `charged`, all amounts use TOS,
+and `charged + refunded == reserved`. A transition string or publisher
+receipt without this observation is not settlement proof.
+
+The ATOS gateway MUST compare every returned tuple and monetary field before
+writing its projection. A Verified response MUST never invoke the Managed
+ledger adapter or credit a Managed balance/policy; TOS TaskEscrow is the sole
+financial authority for that Job.
+
 ### `GetEscrow` / `GetSettlement`
 
 Read-only recovery and audit calls.
