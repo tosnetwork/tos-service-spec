@@ -175,6 +175,16 @@ publisher opens and revalidates the enrolled inode and digest for every call,
 then executes that inherited descriptor through Linux `/proc/self/fd`; it MUST
 NOT execute the previously validated pathname.
 
+One-time journal initialization MUST run the enrolled backend's bounded
+readiness check before creating or writing journal state. The check validates
+the pinned RPC/genesis identity, configured wallets and required tosctl CLI
+surface using the exact executable and configuration included in enrollment.
+Failure leaves no journal file and therefore cannot permanently bind an
+incompatible backend digest. Chain/genesis readiness and wallet-custody
+identity resolution are separate checks: wallet resolution uses tosctl's
+explicit offline listing mode and MUST NOT perform per-wallet balance or state
+queries whose latency is unrelated to custody readiness.
+
 ## Release
 
 Cancellation, rejection and expiry persist a release intent before mutation.
