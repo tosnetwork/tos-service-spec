@@ -1,5 +1,12 @@
 # ATOS REST API v1 — Protocol Semantics v0.2
 
+> Phase 4C adds `POST` and `GET
+> /v1/receipts/{receipt_id}/proof-package`. Creation is owner-authorized,
+> idempotent and returns only a completed `tos_verified_v1` package or a
+> normalized reconciling error. Managed/Native receipts fail with
+> `PROOF_PROFILE_UNAVAILABLE`. MCP and A2A call the same ReceiptService and
+> cannot bypass live canonical observation or privacy filtering.
+
 Base URL:
 
 `https://api.atos.im/v1`

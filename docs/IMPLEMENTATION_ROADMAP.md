@@ -1893,6 +1893,19 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
+🚧 **Status: implementation in progress on
+`agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
+projections are not a portable proof. Phase 4C freezes and implements the
+`tos_verified_v1` package, durable multi-replica proof projection and a
+database-independent read-only verifier in
+`docs/VERIFIED_PROOF_PACKAGE_V1.md`.
+
+Acceptance requires fixed positive/negative vectors, byte-identical
+multi-replica generation, crash recovery at every projection checkpoint, live
+quorum re-observation, signer verification at execution time, REST/MCP/A2A
+parity, fresh PostgreSQL and real process-boundary tests. Production
+multi-validator/HSM deployment remains the Phase 4D gate.
+
 Define one canonical `tos_verified_v1` proof package sufficient for an
 independent verifier to establish at least:
 

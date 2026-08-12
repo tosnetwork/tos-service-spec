@@ -1,5 +1,12 @@
 # ATOS ↔ TOS RPC / Protobuf Interface v0.2
 
+> Phase 4C verification is strictly read-only. Its observer resolves finalized
+> identity, ownership, Quote, TaskEscrow, Receipt, outcome and Proof-of-Service
+> tuples; it exposes no mutation or publisher method. Cache miss, generic 404,
+> malformed response, unsupported route, journal loss and transport failure
+> are unavailable/error, not authoritative absence. See
+> `VERIFIED_PROOF_PACKAGE_V1.md`.
+
 **Status:** Draft implementation contract  
 **Branch:** `architecture-v0.2`  
 **Related:** `ARCHITECTURE_V0.2.md`, `PROOF_PROFILES.md`, `SETTLEMENT.md`

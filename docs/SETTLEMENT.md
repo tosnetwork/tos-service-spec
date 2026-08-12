@@ -1,5 +1,11 @@
 # ATOS Settlement Model v0.2
 
+> A `tos_verified_v1` package preserves the original TaskEscrow contract and
+> reservation references separately from settlement/release/dispute transaction
+> references. Every terminal outcome binds the original Quote and reservation
+> and proves exact integer-atomic conservation. Package production and
+> verification are read-only and never initiate an economic transition.
+
 ## 1. Principle
 
 **Clients buy capabilities. They should not be forced to become blockchain users.**

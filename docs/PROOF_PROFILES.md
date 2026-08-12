@@ -1,5 +1,12 @@
 # ATOS Proof Profiles v0.2
 
+> Phase 4C addition: a completed `tos_verified_v1` transaction is portable
+> only through the canonical package in `VERIFIED_PROOF_PACKAGE_V1.md`.
+> Local proof-status flags and deterministic protobuf bytes are not canonical
+> evidence. Independent verification requires read-only live resolution of
+> identity, ownership, Quote, TaskEscrow, Receipt, outcome and Proof-of-Service
+> references.
+
 ## 1. Purpose
 
 A trust-mode label is useful only if independent implementations agree on what it guarantees.
