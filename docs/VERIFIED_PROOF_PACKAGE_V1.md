@@ -70,6 +70,11 @@ escrow
   reservation_digest, reservation_ref, reserved_atomic
   escrow_deadline_unix_nanos, funding_model, canonical_cbor
 
+`contract_code_hash` uses the canonical lower-case
+`tvm-cell-sha256:<64 lowercase hexadecimal digits>` representation. It is a
+TVM code-cell identity and MUST NOT be rewritten as a generic `sha256:`
+content digest.
+
 signer_authorization
   authorization_id, execution_signer_id, authorization_ref
   signature_algorithm="ed25519", signer_public_key (32 raw bytes)
@@ -89,7 +94,7 @@ outcome
 
 proof_of_service
   evidence_id, evidence_digest, evidence_ref
-  content_digest, retrieval_ref (optional)
+  content_digest, canonical_cbor, retrieval_ref (optional)
 ```
 
 `kind` is `provider_settlement`, `requester_release`, or
@@ -147,9 +152,47 @@ their domain digests locally and compares every repeated tuple field.
 Proof-of-Service resolution is a live canonical tuple lookup; an ATOS or
 protocol-local evidence row is not authority.
 
+`proof_of_service.canonical_cbor` is the RFC 8949 deterministic encoding of
+the complete authority tuple under domain separator
+`tos.atos.proof-of-service.v1`. `evidence_digest` is the domain-separated
+SHA-256 digest of that exact value. `content_digest` is the nested evidence
+content digest; it is not interchangeable with the authority digest. The
+tuple binds evidence and Receipt IDs, provider, Capability ID/version,
+result, latency, exact settlement atomic amount and asset, dispute fields,
+UTC Unix-millisecond observation time and optional AIPoW attribution.
+Language-native JSON and deterministic protobuf are transport formats and
+MUST NOT replace these canonical bytes.
+
+Normative minimal Proof-of-Service vector:
+
+```text
+evidence_id = pos_receipt-1
+receipt_id = receipt-1
+provider_id = provider-1
+capability_id = capability-1
+capability_version = 1.2.3
+result = EXECUTION_RESULT_SUCCESS
+latency_millis = 42
+settlement_volume = { asset: TOS, atomic_amount: 700 }
+content_digest = sha256:1111111111111111111111111111111111111111111111111111111111111111
+observed_unix_millis = 1800000000123
+evidence_digest = sha256:039eb30e9a6af1d33a8cc49f4b6c2dc5446572da1fa59d7e33d2af87eba4cb64
+```
+
+The reference CLI's `--protocol-url` observer uses only public read-only
+tos-protocol RPCs. Those RPCs live-resolve principal bindings, Capability
+ownership, Quote/Receipt/PoS commitments, and TaskEscrow reservation and
+terminal state. The observer has no ATOS database or mutation/publisher
+dependency.
+
 The outcome reference is the independently observed transaction that produced
 the current terminal TaskEscrow state. It is distinct from the immutable
 contract reference and cannot be supplied solely from an ATOS Receipt row.
+For `requester_release`, live observation is bound to the package's release
+digest and reason, and resolves the deterministic terminal ActionID without a
+mutation. Verification of reservation/contract references against an already
+released contract performs the same release-tuple assertion; a terminal local
+projection is never sufficient.
 
 ## 5. Privacy
 

@@ -6,6 +6,10 @@
 > malformed response, unsupported route, journal loss and transport failure
 > are unavailable/error, not authoritative absence. See
 > `VERIFIED_PROOF_PACKAGE_V1.md`.
+> For Verified reads, principal binding, Capability ownership and execution
+> signer records are tuple projections only; the server re-resolves their
+> exact authority digest/reference and requires a nonzero live checkpoint
+> before returning evidence to the independent verifier.
 
 `ProofService.ResolveExecutionReceipt` is the Phase 4C read-only receipt
 resolver. It recomputes the field-level CBOR Receipt digest, resolves the exact
@@ -558,6 +562,15 @@ Read-only recovery and audit calls.
 `GetEscrow` accepts the full expected tuple and optional known reference. A
 missing reference invokes deterministic tuple/action discovery; it never
 weakens live finality validation.
+
+For a released escrow, portable-proof observation additionally supplies
+`expected_terminal_ref`, `expected_release_digest`, and
+`expected_release_reason_code`. The service reconstructs the exact cancel,
+timeout, or reject ActionID, resolves it read-only from the enrolled publisher
+journal, and independently observes that chain transition. Generic absence,
+typed journal absence, pending state, or transport failure is unavailable and
+MUST NOT call `Publish`. The returned immutable contract reference remains
+separate from the terminal release transaction reference.
 
 State-changing settlement methods require idempotency.
 

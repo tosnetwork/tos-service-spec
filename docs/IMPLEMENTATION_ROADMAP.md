@@ -1906,6 +1906,27 @@ quorum re-observation, signer verification at execution time, REST/MCP/A2A
 parity, fresh PostgreSQL and real process-boundary tests. Production
 multi-validator/HSM deployment remains the Phase 4D gate.
 
+Current implementation/acceptance ledger (2026-08-12):
+
+- ✅ frozen deterministic CBOR package, domain separation, positive/negative
+  vectors, exact atomic money and structured verifier failures;
+- ✅ durable monotonic ATOS proof operation with REST, MCP and A2A parity;
+- ✅ database-independent verifier library and `tos-verified-proof` CLI;
+- ✅ live read-only protocol observation of identity, ownership, Quote,
+  reservation, signer, Receipt, Proof-of-Service and terminal outcome;
+- ✅ real three-validator localnet provider-settlement and requester-release
+  paths return `VALID`; replay is byte-identical and network/unavailable/tamper
+  adversarial cases fail closed;
+- ✅ fresh PostgreSQL migrations and full Go race/vet/build suites;
+- ⬜ Verified dispute mutation/projection is not supplied by the current ATOS
+  dispute state machine (which remains Managed-only); Phase 4C verifies the
+  frozen dispute outcome but cannot manufacture this missing upstream fact;
+- ⬜ unified process-kill matrix at every proof checkpoint and production
+  quorum/HSM deployment remain acceptance gates. The latter is Phase 4D.
+
+Therefore Phase 4C remains **in progress**; passing the implemented outcomes
+does not waive the unchecked gates.
+
 Define one canonical `tos_verified_v1` proof package sufficient for an
 independent verifier to establish at least:
 

@@ -6,6 +6,11 @@
 > normalized reconciling error. Managed/Native receipts fail with
 > `PROOF_PROFILE_UNAVAILABLE`. MCP and A2A call the same ReceiptService and
 > cannot bypass live canonical observation or privacy filtering.
+> The returned `canonical_cbor_base64` is directly consumable by
+> `tos-verified-proof --network <network> --domain <domain> --protocol-url
+> <read-only-rpc> --protocol-token-file <file> verify package.cbor`. The CLI
+> has no ATOS database access and its protocol observer exposes no mutation or
+> publisher operation.
 
 Base URL:
 
