@@ -183,7 +183,17 @@ Failure leaves no journal file and therefore cannot permanently bind an
 incompatible backend digest. Chain/genesis readiness and wallet-custody
 identity resolution are separate checks: wallet resolution uses tosctl's
 explicit offline listing mode and MUST NOT perform per-wallet balance or state
-queries whose latency is unrelated to custody readiness.
+queries whose latency is unrelated to custody readiness. The CLI contract is
+`tosctl.task-escrow-cli.v1` with action encoding
+`tos.task-escrow.action.v1`. Readiness MUST strictly decode the capability
+response and require `agent task build-state`, `agent task create` and
+`agent task send`, their complete protocol-used flag sets, and the supported
+lifecycle operation set. It MUST also execute a deterministic, side-effect-free
+`build-state` probe with exact nanoTOS and digest inputs and validate the
+returned address, code hash, policy hash and permission hash. Capability
+absence, unknown schema versions, missing flags/operations, malformed output
+or a failed probe MUST leave the journal unenrolled. `create` and `send` MUST
+never be invoked as readiness probes because they are economic mutations.
 
 ## Release
 
