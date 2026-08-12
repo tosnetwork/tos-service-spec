@@ -510,6 +510,18 @@ money conservation: requested charge equals `charged`, all amounts use TOS,
 and `charged + refunded == reserved`. A transition string or publisher
 receipt without this observation is not settlement proof.
 
+Verified `SettleJobRequest` additionally carries `expected_terms`,
+`expected_escrow_ref`, and `expected_reservation_digest`. All three are
+mandatory together. Before any settlement mutation, the server performs the
+same live tuple recovery as `GetEscrow`, requires the canonical escrow to be
+reserved, and verifies that its local projection matches the canonical Quote
+commitment, reservation digest, contract reference and code hash. Local
+bbolt/cache state never selects the payout contract by itself.
+
+TaskEscrow V1 cannot pay a separate gateway recipient. Consequently Verified
+Quote `fees` MUST be exactly zero and `total_max == subtotal`; non-zero fees
+are rejected at both Quote commitment and escrow-term validation.
+
 The ATOS gateway MUST compare every returned tuple and monetary field before
 writing its projection. A Verified response MUST never invoke the Managed
 ledger adapter or credit a Managed balance/policy; TOS TaskEscrow is the sole

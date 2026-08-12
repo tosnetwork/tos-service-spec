@@ -24,8 +24,9 @@ An executable `tos_verified_v1` Quote MUST price and commit its maximum in
 native TOS with `asset_decimals=9`. `VerifiedEscrowTerms.reserve.asset` is
 `TOS`; `atomic_amount` is the exact unsigned base-10 nanoTOS integer and MUST
 equal the Quote maximum converted using exactly nine decimal places. The value
-MUST be positive and no greater than `uint64`. Subtotal plus fees MUST equal
-the maximum under the same exact decimal arithmetic.
+MUST be positive and no greater than `uint64`. TaskEscrow V1 requires fees to
+be zero and subtotal to equal the maximum under the same exact decimal
+arithmetic.
 
 Client/display currencies are not settlement amounts. A USD or other display
 price without a separately committed exchange-rate contract is not eligible
@@ -197,6 +198,17 @@ state, configured network, exact TOS charge, refund and reserve conservation,
 and a live independently observed non-zero, non-regressing finalized
 checkpoint. Local cache, publisher output, a transition reference alone, or
 an HTTP success response is insufficient.
+
+Before invoking settlement, the request MUST bind the complete frozen
+`VerifiedEscrowTerms`, reservation digest and finalized escrow reference. The
+authority MUST re-resolve this tuple through canonical TOS observation and
+compare the local projection's Quote commitment digest/reference,
+reservation digest, TaskEscrow contract reference and allowed code hash. A
+mismatch fails before any transaction is published.
+
+TaskEscrow V1 does not implement an independently observable gateway payout.
+Verified Quotes using it therefore require atomic `fees = 0`; the provider
+payout may never include a fee represented as payable to the gateway.
 
 The sweeper orders operations by `updated_at, escrow_id`, uses a durable cursor
 or keyset pagination, bounded batches and bounded backoff, and cannot allow old

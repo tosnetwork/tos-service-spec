@@ -341,6 +341,13 @@ only mutable financial authority. ATOS MUST NOT mirror the provider payout,
 gateway fee or principal refund into a Managed/Blnk escrow, balance or spend
 policy. Managed financial legs apply only to `trust_mode=managed`.
 
+TaskEscrow V1 has only provider and requester payout legs; it has no canonical
+gateway-fee recipient. Therefore a Verified Quote using TaskEscrow V1 MUST
+freeze `fees = 0`, and `total_max` MUST equal `subtotal`. A gateway MUST reject
+a non-zero Verified fee at Quote commitment and escrow construction. A future
+contract version may enable fees only after its three-party payout tuple and
+independent observation rules are separately frozen.
+
 A successful Verified `SettleJob` response MUST bind the exact settlement,
 escrow, Quote, Job and verified execution Receipt identities; exact charged
 amount and asset; and a refund such that `charged + refunded == reserved` in
@@ -349,6 +356,12 @@ network, `finalized=true` and a non-zero, non-regressing independently
 observed checkpoint. The returned escrow MUST be the same canonical
 TaskEscrow in the settled state. ATOS MUST validate this complete response
 before persisting a settled projection or marking proof status settled.
+
+Before mutation, `SettleJob` MUST carry the same full `expected_terms`,
+`expected_reservation_digest`, and `expected_escrow_ref` assertions used by
+release. The authority MUST resolve that tuple live and compare it to its
+local projection before selecting a contract address. Missing, stale,
+regressed or mismatched canonical state fails closed before publication.
 
 ## 10. Execution Receipt
 

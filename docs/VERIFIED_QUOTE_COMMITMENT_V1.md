@@ -21,7 +21,9 @@ configured network. `trust_mode` is `TRUST_MODE_VERIFIED` and `proof_profile`
 is `PROOF_PROFILE_TOS_VERIFIED_V1`. All timestamps are UTC Unix milliseconds.
 Amounts are canonical non-negative base-10 decimal strings at exactly
 `asset_decimals` fractional digits; subtotal and fees use the same asset as
-`total_max`, and `subtotal + fees = total_max`.
+`total_max`. TaskEscrow V1 requires `fees = 0` and
+`subtotal = total_max`; a later non-zero fee requires a separately frozen
+contract version with an independently observed gateway payout.
 
 ## Canonical encoding and digest
 
