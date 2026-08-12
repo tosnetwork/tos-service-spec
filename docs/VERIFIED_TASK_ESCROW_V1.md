@@ -206,6 +206,12 @@ compare the local projection's Quote commitment digest/reference,
 reservation digest, TaskEscrow contract reference and allowed code hash. A
 mismatch fails before any transaction is published.
 
+A dispute commitment is a lowercase `sha256:<64 hex>` digest and MUST NOT be
+the all-zero digest. The driver, local RPC boundary, enrolled publisher and
+TaskEscrow contract all reject the all-zero value. Because this rule changes
+contract code, operators MUST enroll and allowlist the resulting new
+TaskEscrow code hash before accepting new Verified reservations.
+
 TaskEscrow V1 does not implement an independently observable gateway payout.
 Verified Quotes using it therefore require atomic `fees = 0`; the provider
 payout may never include a fee represented as payable to the gateway.
@@ -216,7 +222,9 @@ The settle action remains valid and MUST independently observe provider payout
 zero, requester refund of the complete reserve, terminal settled state and
 zero remaining contract budget/balance. Exact replay and recovery after chain
 success but before the protocol settlement projection MUST not broadcast a
-second action.
+second action. Once canonical state is terminal, ordinary-settlement and
+dispute-resolution recovery are resolve-only: typed journal absence is an
+inconsistency and MUST fail closed; it never authorizes another mutation.
 
 The sweeper orders operations by `updated_at, escrow_id`, uses a durable cursor
 or keyset pagination, bounded batches and bounded backoff, and cannot allow old
