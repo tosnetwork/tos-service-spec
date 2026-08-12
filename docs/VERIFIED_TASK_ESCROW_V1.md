@@ -68,13 +68,23 @@ escrow_id = "esc_" + hex(sha256("tos.atos.verified-task-escrow-id.v1\x00" ||
 reservation_action_id = sha256("tos.task-escrow.action.v1\x00" ||
                                 "reserve\x00" || escrow_id || "\x00" ||
                                 reservation_digest)
-release_action_id = sha256("tos.task-escrow.action.v1\x00" ||
-                            "release\x00" || escrow_id || "\x00" ||
-                            release_digest)
+release_action_id = "task-action-" +
+                    hex(sha256("tos.task-escrow.release-action.v1\x00" ||
+                               escrow_id || "\x00" || release_digest || "\x00"))
 ```
 
 The same Quote cannot fund two Jobs. Reuse of a Quote, Job, escrow ID or action
 identity with changed semantics is `IDEMPOTENCY_CONFLICT`.
+
+All three pre-settlement refund actions (`cancel`, `timeout`, `reject`) carry
+the frozen `release_digest` in the publisher action envelope. The contract
+body continues to contain the contract-defined opcode/query ID, while the
+publisher Action ID is the formula above; a journal receipt for one reason
+cannot be replayed as evidence for another reason.
+
+All committed millisecond deadlines MUST be exactly second-aligned
+(`value % 1000 == 0`) before conversion to the TaskEscrow contract's integer
+seconds. Non-aligned values are invalid; rounding or truncation is forbidden.
 
 The normative fixture in `tos-protocol/pkg/escrowcommitment` has:
 
@@ -122,6 +132,12 @@ startup requires explicit journal enrollment and pins journal identity/schema,
 network/genesis, endpoint set, wallet, contract/service policy, code hashes,
 action encoding and send/recovery backend capabilities. Missing or replaced
 enrolled state fails closed. Mutable path check/use is forbidden.
+
+The enrollment produces a versioned `journal_binding` digest over those
+immutable values. `tos-protocol` configuration pins both `journal_identity`
+and `journal_binding`; readiness and every typed `action_not_found` response
+carry both values. A same-network socket backed by any other journal is not an
+authoritative absence source.
 
 Before key custody is invoked, the publisher independently recomputes the
 `task-action-<sha256>` identity from the complete stable action and enforces an

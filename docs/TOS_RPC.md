@@ -428,6 +428,9 @@ object ID/digest and operator-fixed payer/payee/amount policy before invoking
 key custody. The production backend MUST negotiate recover-by-Action-ID and
 search-before-broadcast behavior and prove the exact payer wallet/RPC binding
 at readiness.
+The client MUST also pin the versioned journal enrollment digest. Health and
+typed not-found responses MUST echo the exact expected journal identity and
+binding; network equality alone is insufficient.
 The send and recovery clients MUST use the same pinned endpoint set and verify
 the configured network's genesis identity. A bounded history lookup is not
 authoritative absence: once an intent may have been broadcast, failure to find
