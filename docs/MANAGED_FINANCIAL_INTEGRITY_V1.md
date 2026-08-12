@@ -298,7 +298,11 @@ first/last chain sequence, previous hash, head hash, genesis hash, every sealed
 transaction field, and every stored chain link. Every row in that segment MUST
 map one-to-one to a commitment in the batch. A missing, duplicate, reordered,
 or additional row is an integrity failure. Before producing the segment, ATOS
-MUST also verify the complete current Blnk chain head and reject a non-zero
+MUST encode every transaction creation instant as a signed UTC Unix nanosecond
+integer in the evidence digest wire model. A language-native date/time object,
+local timezone offset, or formatted timestamp is not a digest input; equivalent
+instants MUST therefore produce identical evidence bytes in every timezone.
+ATOS MUST also verify the complete current Blnk chain head and reject a non-zero
 unchained count as an uncertain snapshot. Blnk MUST return the chain bookmark
 and complete unchained count from one PostgreSQL statement snapshot (or a
 single repeatable-read transaction); independently sampled values are not a

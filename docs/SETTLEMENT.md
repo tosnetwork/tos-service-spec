@@ -233,6 +233,11 @@ If a Native client uses a gateway-local fiat balance, that fiat account remains 
 
 ## 8. Reservation / Escrow Model
 
+Verified TaskEscrow reservation and pre-settlement release are normatively
+defined in `VERIFIED_TASK_ESCROW_V1.md`. In particular, Phase 4B-2 uses exact
+nanoTOS committed by a TOS-priced Quote; a display/client currency is never
+implicitly converted to native TOS.
+
 Paid, financially committing work SHOULD reserve the maximum authorized amount before provider execution unless the Quote explicitly defines another safe settlement model.
 
 Free capabilities do not require an escrow.

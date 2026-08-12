@@ -18,6 +18,10 @@ Base URL:
 - Invocation/Job creation inherits trust mode from the Quote; callers cannot override it.
 - Verified uses `tos_verified_v1`; Native uses `tos_native_v1` or stronger compatible profiles.
 - Verified/Native operations MUST NOT silently downgrade to Managed.
+- A Verified Job is executable only when its public escrow projection reports
+  `reserved`, the exact Quote commitment and TaskEscrow references, finalized
+  network/checkpoint, and `operation_checkpoint=completed`. Callers cannot
+  supply these fields as authority selectors.
 
 For boolean `proof_requirements`, `true` means required; `false`/omitted means not required, not forbidden.
 

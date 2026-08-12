@@ -428,6 +428,9 @@ object ID/digest and operator-fixed payer/payee/amount policy before invoking
 key custody. The production backend MUST negotiate recover-by-Action-ID and
 search-before-broadcast behavior and prove the exact payer wallet/RPC binding
 at readiness.
+The client MUST also pin the versioned journal enrollment digest. Health and
+typed not-found responses MUST echo the exact expected journal identity and
+binding; network equality alone is insufficient.
 The send and recovery clients MUST use the same pinned endpoint set and verify
 the configured network's genesis identity. A bounded history lookup is not
 authoritative absence: once an intent may have been broadcast, failure to find
@@ -445,6 +448,11 @@ use an unlinked, inherited file-descriptor snapshot with an explicit format
 (not a synthetic `/proc` pathname whose extension or availability varies by
 platform); otherwise it MUST provide
 an equivalent mechanism that removes the check/use race.
+The production tosctl TaskEscrow publisher selects the inherited-descriptor
+mechanism and is explicitly Linux-only. It MUST run as an unprivileged account
+and accept only an executable and parent path owned by root and not writable by
+group or world. Unsupported platforms and service-owned executables fail
+startup.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live
@@ -477,9 +485,18 @@ The signer may be a provider key, Edge runtime, `tos-ai` worker/runtime identity
 
 Creates an economically enforceable reservation for the Quote. A Merkle root of a private ATOS ledger is not equivalent to TOS-backed escrow.
 
+For Verified, `verified_terms` is mandatory and is validated against a live
+finalized Phase 4B-1 commitment. The response is usable only after independent
+canonical TaskEscrow observation with a non-zero checkpoint. The deterministic
+schema and recovery rules are defined by `VERIFIED_TASK_ESCROW_V1.md`.
+
 ### `ReleaseEscrow`
 
 Releases unused or canceled reservations under the original Quote semantics.
+
+Verified release requires the original terms, reservation digest/reference and
+a frozen reason. It is idempotent but never treats local state or an untyped
+404 as proof that a mutation may be replayed.
 
 ### `SettleJob`
 
@@ -488,6 +505,10 @@ The server MUST re-verify the referenced receipt and proof profile. A caller can
 ### `GetEscrow` / `GetSettlement`
 
 Read-only recovery and audit calls.
+
+`GetEscrow` accepts the full expected tuple and optional known reference. A
+missing reference invokes deterministic tuple/action discovery; it never
+weakens live finality validation.
 
 State-changing settlement methods require idempotency.
 
