@@ -14,6 +14,10 @@ live authority, and returns only a nonzero finalized checkpoint. It never
 calls `Commit` or a publisher; typed not-found remains distinct from authority
 unavailability.
 
+`ProofService.ResolveProofOfServiceEvidence` provides the same live, read-only
+tuple resolution for Proof-of-Service evidence. Local cache absence is not
+canonical absence and the method never commits or publishes evidence.
+
 **Status:** Draft implementation contract  
 **Branch:** `architecture-v0.2`  
 **Related:** `ARCHITECTURE_V0.2.md`, `PROOF_PROFILES.md`, `SETTLEMENT.md`

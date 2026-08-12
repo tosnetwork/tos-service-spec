@@ -63,12 +63,12 @@ quote
   subtotal_atomic, fees_atomic, total_max_atomic
   acceptance_deadline_unix_nanos, quote_expiry_unix_nanos
   execution_deadline_unix_nanos, underlying_service_quote_ref
-  dispute_policy_digest
+  dispute_policy_digest, canonical_cbor
 
 escrow
   escrow_id, job_id, contract_ref, contract_code_hash
   reservation_digest, reservation_ref, reserved_atomic
-  escrow_deadline_unix_nanos, funding_model
+  escrow_deadline_unix_nanos, funding_model, canonical_cbor
 
 signer_authorization
   authorization_id, execution_signer_id, authorization_ref
@@ -140,6 +140,12 @@ A verifier MUST:
 
 Verification time is observation metadata only and cannot be caller-selected
 to make an invalid signer valid.
+
+`quote.canonical_cbor` and `escrow.canonical_cbor` are respectively the exact
+Phase 4B-1 Quote and Phase 4B-2 reservation values. The verifier recomputes
+their domain digests locally and compares every repeated tuple field.
+Proof-of-Service resolution is a live canonical tuple lookup; an ATOS or
+protocol-local evidence row is not authority.
 
 ## 5. Privacy
 
