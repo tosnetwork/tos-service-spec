@@ -1893,7 +1893,7 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
-🚧 **Status: implementation in progress on
+✅ **Status: implementation and local acceptance complete on
 `agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
 projections are not a portable proof. Phase 4C freezes and implements the
 `tos_verified_v1` package, durable multi-replica proof projection and a
@@ -1922,11 +1922,16 @@ Current implementation/acceptance ledger (2026-08-12):
   window are frozen by `VERIFIED_DISPUTE_V1.md`; the real three-validator
   localnet completed open, principal resolution, crash recovery, portable
   package generation, and independent verification returning `VALID`;
-- ⬜ unified process-kill matrix at every proof checkpoint and production
-  quorum/HSM deployment remain acceptance gates. The latter is Phase 4D.
+- ✅ unified real-process kill/restart matrix at every proof checkpoint,
+  including lost response, PostgreSQL outage, live-authority outage,
+  independent ATOS/tos-protocol replica takeover and byte-identical replay;
+  the commands, failure boundaries and externally observed assertions are
+  recorded in `docs/PHASE4C_KILL_RESTART_ACCEPTANCE.md`;
+- ⬜ production quorum/HSM deployment remains a Phase 4D acceptance gate.
 
-Therefore Phase 4C remains **in progress**; passing the implemented outcomes
-does not waive the unchecked gates.
+Therefore Phase 4C is **implementation-complete and locally accepted**.
+Production quorum/HSM deployment is intentionally not claimed and remains the
+separate Phase 4D gate.
 
 Define one canonical `tos_verified_v1` proof package sufficient for an
 independent verifier to establish at least:

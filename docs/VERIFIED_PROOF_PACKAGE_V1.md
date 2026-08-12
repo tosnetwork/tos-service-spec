@@ -43,7 +43,11 @@ embedded in the canonical value.
 
 Every field is required unless marked optional. References are exact objects
 `{network, reference, finalized_checkpoint}`. Checkpoints are nonzero and may
-not regress. V1 digests use SHA-256 only.
+not regress. The first successfully observed package freezes those checkpoint
+values and its canonical bytes permanently. On replay, a verifier or producer
+must re-observe the same reference at a checkpoint greater than or equal to the
+frozen value; a later, higher chain head does not create a second package or
+change its digest. V1 digests use SHA-256 only.
 
 ```text
 package
