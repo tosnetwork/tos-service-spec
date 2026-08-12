@@ -448,6 +448,11 @@ use an unlinked, inherited file-descriptor snapshot with an explicit format
 (not a synthetic `/proc` pathname whose extension or availability varies by
 platform); otherwise it MUST provide
 an equivalent mechanism that removes the check/use race.
+The production tosctl TaskEscrow publisher selects the inherited-descriptor
+mechanism and is explicitly Linux-only. It MUST run as an unprivileged account
+and accept only an executable and parent path owned by root and not writable by
+group or world. Unsupported platforms and service-owned executables fail
+startup.
 Process-local persistence is only a cache: it MUST NOT
 make a Quote found or finalized by itself. This lookup must therefore work on
 a different stateless `tos-protocol` replica and MUST fail closed when live

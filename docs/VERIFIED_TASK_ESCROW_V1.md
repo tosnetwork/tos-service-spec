@@ -166,6 +166,14 @@ the same pinned genesis root/file hashes. Legacy `chain_rpc.url` and modern
 `chain_rpc.urls` are merged, trimmed and deduplicated; contradictory or keyed
 effective endpoint configurations fail startup.
 
+The production tosctl-backed TaskEscrow publisher is Linux-only. Startup MUST
+reject Darwin and every other unsupported platform. Its enrolled executable
+MUST be owned by root, reached only through root-owned directories that are not
+group- or world-writable, and executed by an unprivileged service account. The
+publisher opens and revalidates the enrolled inode and digest for every call,
+then executes that inherited descriptor through Linux `/proc/self/fd`; it MUST
+NOT execute the previously validated pathname.
+
 ## Release
 
 Cancellation, rejection and expiry persist a release intent before mutation.
