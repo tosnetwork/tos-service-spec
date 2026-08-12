@@ -210,6 +210,14 @@ TaskEscrow V1 does not implement an independently observable gateway payout.
 Verified Quotes using it therefore require atomic `fees = 0`; the provider
 payout may never include a fee represented as payable to the gateway.
 
+The provider payout MAY be zero after deterministic metered/per-unit billing,
+including when sub-nanoTOS usage truncates to zero under the frozen arithmetic.
+The settle action remains valid and MUST independently observe provider payout
+zero, requester refund of the complete reserve, terminal settled state and
+zero remaining contract budget/balance. Exact replay and recovery after chain
+success but before the protocol settlement projection MUST not broadcast a
+second action.
+
 The sweeper orders operations by `updated_at, escrow_id`, uses a durable cursor
 or keyset pagination, bounded batches and bounded backoff, and cannot allow old
 rows beyond one fixed `LIMIT` to starve indefinitely.

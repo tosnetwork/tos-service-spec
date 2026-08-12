@@ -522,6 +522,12 @@ TaskEscrow V1 cannot pay a separate gateway recipient. Consequently Verified
 Quote `fees` MUST be exactly zero and `total_max == subtotal`; non-zero fees
 are rejected at both Quote commitment and escrow-term validation.
 
+`requested_charge.atomic_amount` MAY be zero. A zero charge is a successful
+settlement, not a release failure: the canonical settle transition pays zero
+to the provider and refunds the full reserve to the requester. Implementations
+MUST NOT strand such a Job in settlement-pending or replace it with a Managed
+refund.
+
 The ATOS gateway MUST compare every returned tuple and monetary field before
 writing its projection. A Verified response MUST never invoke the Managed
 ledger adapter or credit a Managed balance/policy; TOS TaskEscrow is the sole

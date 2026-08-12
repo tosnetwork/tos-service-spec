@@ -357,6 +357,13 @@ observed checkpoint. The returned escrow MUST be the same canonical
 TaskEscrow in the settled state. ATOS MUST validate this complete response
 before persisting a settled projection or marking proof status settled.
 
+`actual_charge` and the provider payout MAY be zero for a successful
+metered/per-unit Job. TaskEscrow V1 natively permits `payout=0`; in that case
+the provider receives zero, the requester receives the complete reserved
+budget, and the independently observed contract state is still `settled`
+with zero budget/balance. Zero-charge settlement uses the same deterministic
+action identity, finality checks and crash-safe replay as non-zero settlement.
+
 Before mutation, `SettleJob` MUST carry the same full `expected_terms`,
 `expected_reservation_digest`, and `expected_escrow_ref` assertions used by
 release. The authority MUST resolve that tuple live and compare it to its
