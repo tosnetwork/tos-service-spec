@@ -49,8 +49,9 @@ not regress. V1 digests use SHA-256 only.
 package
   version, canonicalization, network_id, gateway_domain
   principal_id, requester_agent_id, provider_id
-  capability, quote, escrow, signer_authorization, receipt
-  outcome, proof_of_service
+  capability, quote, escrow, outcome
+  signer_authorization (conditional), receipt (conditional)
+  proof_of_service (conditional)
 
 capability
   capability_id, capability_version, manifest_digest, ownership_ref
@@ -96,6 +97,13 @@ proof_of_service
 fields only for dispute resolution. `charged_atomic + refunded_atomic` equals
 `reserved_atomic`. TaskEscrow v1 requires zero Quote fees. A provider
 settlement may charge zero and refund the full reserve.
+
+`signer_authorization`, `receipt`, and `proof_of_service` are mandatory for
+provider settlement and dispute resolution. A requester release before
+execution MUST omit all three: inventing execution evidence for a task that
+did not run is forbidden. Such a release has zero charge and refunds the full
+reservation. A release after execution is not representable as
+`requester_release`; it requires the applicable dispute outcome.
 
 `funding_model` is the exact Phase 4B-2 value committed in
 `VerifiedEscrowTerms` (for example `gateway_sponsored`); it is never inferred
