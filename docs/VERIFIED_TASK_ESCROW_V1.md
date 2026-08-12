@@ -192,7 +192,11 @@ lifecycle operation set. It MUST also execute a deterministic, side-effect-free
 `build-state` probe with exact nanoTOS and digest inputs and validate the
 returned address, code hash, policy hash and permission hash. Capability
 absence, unknown schema versions, missing flags/operations, malformed output
-or a failed probe MUST leave the journal unenrolled. `create` and `send` MUST
+or a failed probe MUST leave the journal unenrolled. The normalized probe code
+hash MUST be a valid `tvm-cell-sha256` digest and MUST exactly match an entry
+in the `allowedCodeHashes` policy being permanently enrolled; a contract build
+and policy mismatch MUST leave no journal file. The identical comparison is
+repeated during normal publisher readiness. `create` and `send` MUST
 never be invoked as readiness probes because they are economic mutations.
 
 ## Release
