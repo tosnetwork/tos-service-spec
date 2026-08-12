@@ -65,13 +65,24 @@ Deterministic identities are:
 escrow_id = "esc_" + hex(sha256("tos.atos.verified-task-escrow-id.v1\x00" ||
                                  network || "\x00" || domain || "\x00" ||
                                  quote_id || "\x00" || job_id))[0:32]
-reservation_action_id = sha256("tos.task-escrow.action.v1\x00" ||
-                                "reserve\x00" || escrow_id || "\x00" ||
-                                reservation_digest)
+reservation_action_digest = sha256("TOS-PROTOCOL-CBOR\x00" ||
+                                   uint16be(len("tos.task-escrow.action.v1")) ||
+                                   "tos.task-escrow.action.v1" ||
+                                   cbor(stable_reservation_action))
+reservation_action_id = "task-action-" + hex(reservation_action_digest)
 release_action_id = "task-action-" +
                     hex(sha256("tos.task-escrow.release-action.v1\x00" ||
                                escrow_id || "\x00" || release_digest || "\x00"))
 ```
+
+`stable_reservation_action` is the complete JSON-model action converted to
+Core Deterministic CBOR under the repository `codec.Digest` rules. Its fields
+are `version`, `network`, `kind` (`deploy`), `escrow_id`, `creator`, `agent`,
+optional `verifier`, `budget_nano_tos`, `funding_nano_tos`, `deadline_unix`,
+`review_period`, `policy_hash`, and `permission_hash`; the permission hash is
+the exact `reservation_digest`. Optional empty fields are omitted exactly as
+declared by `StableTaskEscrowAction`. No reduced `(kind, escrow_id, digest)`
+formula is conformant.
 
 The same Quote cannot fund two Jobs. Reuse of a Quote, Job, escrow ID or action
 identity with changed semantics is `IDEMPOTENCY_CONFLICT`.
@@ -92,10 +103,16 @@ The normative fixture in `tos-protocol/pkg/escrowcommitment` has:
 escrow_id = esc_07dc7a9bb743b890a44312c5d6d85a8a
 reservation_digest = sha256:271b8392229e741f86cbd9366f4fd35c09ce22b4a6a92f96bb7cdc68932149b5
 canonical_cbor_length = 1384
+reservation_action_id = task-action-34d28e46c2cecfd5af6875aaeec9620edfc095f4dc81b57782cd37cffba16aee
+release_digest(CANCELED) = sha256:8a38d8920a287d1d2401285f814abb4c409a3bd866ab3a330e74df9ba1a16b1a
+release_action_id = task-action-762de1e789d3f797f6bff0e6abff99d3cae158c924c7626297dd97eeefdfbc47
+release_query_id = 8076693888132313379
+release_expected_body_hash = tvm-cell-sha256:2a8ece876e9cfa1ef9bd9062b6c5ecbbee07bbea1ac8283fba8e5639522c80d8
 ```
 
-The checked-in test constructs every field and fails on any canonical encoding
-or digest change; independent implementations use the same fixture values.
+The checked-in tests in `pkg/escrowcommitment` and `pkg/economic` construct
+every field and fail on any canonical encoding, digest, Action ID, query ID,
+or body-hash change; independent implementations use the same fixture values.
 
 ## Authority and live validation
 
