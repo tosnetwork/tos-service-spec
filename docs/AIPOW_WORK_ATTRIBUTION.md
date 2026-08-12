@@ -1,16 +1,16 @@
-# PoIW Work Attribution and the Capability-Class Vocabulary
+# AIPoW Work Attribution and the Capability-Class Vocabulary
 
-Status: v0 draft. Normative for the `PoiwWorkAttribution` message and the
+Status: v0 draft. Normative for the `AipowWorkAttribution` message and the
 capability-class vocabulary; the scoring rules that consume these fields
-are owned by the PoIW methodology (the `poiw-scorer` repository's
+are owned by the AIPoW methodology (the `aipow-scorer` repository's
 `docs/methodology.md`), not by this document.
 
 ## Purpose
 
-Proof of Intelligent Work (PoIW) scores settled, evidence-graded work.
+Artificial Intelligence Proof of Work (AIPoW) scores settled, evidence-graded work.
 Until now the scorer applied an interim mapping (the settled amount as
 both valuation and price cap, a single default capability class, evidence
-inferred from attestor keying). `PoiwWorkAttribution` puts the
+inferred from attestor keying). `AipowWorkAttribution` puts the
 scoring-relevant facts inside the signed receipt itself, so no consumer
 ever infers them:
 
@@ -18,7 +18,7 @@ ever infers them:
   normalized billing unit, how much — per the vocabulary below;
 - `rate_card_version`: which vocabulary/rate-card revision normalization
   followed;
-- `evidence_level`: the PoIW evidence ladder (Declared earns zero by
+- `evidence_level`: the AIPoW evidence ladder (Declared earns zero by
   methodology rule; issuers state the strongest level they can
   substantiate, verifiers may downgrade, never upgrade);
 - `earner_identity_commitment` / `payer_identity_commitment`: sha256
@@ -33,10 +33,10 @@ what backs the claim, and the receipt signature says who claims it.
 
 ## Placement
 
-- `ExecutionReceiptEnvelope.poiw` (field 25): part of the signed receipt
+- `ExecutionReceiptEnvelope.aipow` (field 25): part of the signed receipt
   content when present; omitted from the canonical encoding when absent,
   so pre-existing receipts keep their signatures and digests unchanged.
-- `ProofOfServiceEvidenceInput.poiw` (field 13): mirrored from the
+- `ProofOfServiceEvidenceInput.aipow` (field 13): mirrored from the
   underlying receipt so evidence streams are scoreable without
   re-fetching every receipt. On any disagreement the receipt governs.
 
@@ -59,7 +59,7 @@ never approximated under a specific class.
 | `default` | `settled-nanotos` | the settled amount in nanoTOS — the interim fallback; under this class `work_units` equals the settled amount and carries no independent measurement |
 
 Adding a class, changing a unit, or changing a normalization rule is a
-new `rate_card_version` and follows the PoIW methodology's governance
+new `rate_card_version` and follows the AIPoW methodology's governance
 process (advance publication; scorers reject unknown versions rather
 than guess).
 
@@ -68,7 +68,7 @@ than guess).
 - Example digests or worked vectors added to this document later must be
   generated from a passing run of the reference implementation, never
   hand-computed (see this repo's CLAUDE.md, lesson 1).
-- A receipt whose `poiw.capability_class` is not in the vocabulary for
+- A receipt whose `aipow.capability_class` is not in the vocabulary for
   the stated `rate_card_version`, whose `unit` mismatches the class, or
   whose commitments are not 32-byte sha256 digests is malformed: verifiers
   reject it rather than repair it, and scorers treat it as a hard error,
