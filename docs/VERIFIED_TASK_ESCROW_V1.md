@@ -190,7 +190,11 @@ response and require `agent task build-state`, `agent task create` and
 `agent task send`, their complete protocol-used flag sets, and the supported
 lifecycle operation set. It MUST also execute a deterministic, side-effect-free
 `build-state` probe with exact nanoTOS and digest inputs and validate the
-returned address, code hash, policy hash and permission hash. Capability
+returned contract address with the canonical raw-address parser. The returned
+creator, assigned Agent, verifier, exact atomic budget, deadline, review
+period, workchain, policy hash, permission hash, StateInit and code/data hashes
+MUST equal the probe tuple. Enrollment and deploy MUST reuse the same response
+validator so readiness cannot accept output that the first deploy rejects. Capability
 absence, unknown schema versions, missing flags/operations, malformed output
 or a failed probe MUST leave the journal unenrolled. The normalized probe code
 hash MUST be a valid `tvm-cell-sha256` digest and MUST exactly match an entry
