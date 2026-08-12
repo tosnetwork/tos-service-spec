@@ -801,3 +801,17 @@ Important error codes:
 5. Provider `requested_trust_modes` does not equal public active `supported_trust_modes`.
 6. Verified uses `tos_verified_v1`; Native uses `tos_native_v1` or stronger compatible profiles.
 7. Verified/Native failure returns an error or requires re-quote; it never silently falls back to Managed.
+
+## 13. Verified dispute projection
+
+The existing dispute REST, MCP and A2A surfaces retain their authentication
+and ownership rules. For a Verified Job they expose only normalized fields:
+`escrow_id`, Receipt/dispute/resolution digests, canonical references, non-zero
+finality checkpoints, review status, outcome and economic recovery checkpoint.
+Opening is accepted only while the live TaskEscrow is in its finalized result
+review window. Resolution is accepted only from the exact canonically disputed
+escrow. Private evidence remains an Artifact authorization concern; public
+responses carry content digests rather than evidence bytes or mutable URLs.
+
+Verified dispute failure never invokes Managed/Blnk holds, credits, earnings or
+refunds and never falls back to Managed settlement.

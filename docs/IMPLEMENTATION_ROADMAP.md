@@ -1918,9 +1918,10 @@ Current implementation/acceptance ledger (2026-08-12):
   paths return `VALID`; replay is byte-identical and network/unavailable/tamper
   adversarial cases fail closed;
 - ✅ fresh PostgreSQL migrations and full Go race/vet/build suites;
-- ⬜ Verified dispute mutation/projection is not supplied by the current ATOS
-  dispute state machine (which remains Managed-only); Phase 4C verifies the
-  frozen dispute outcome but cannot manufacture this missing upstream fact;
+- ✅ Verified dispute mutation/projection and the economically real review
+  window are frozen by `VERIFIED_DISPUTE_V1.md`; the real three-validator
+  localnet completed open, principal resolution, crash recovery, portable
+  package generation, and independent verification returning `VALID`;
 - ⬜ unified process-kill matrix at every proof checkpoint and production
   quorum/HSM deployment remain acceptance gates. The latter is Phase 4D.
 

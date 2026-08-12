@@ -503,6 +503,10 @@ The signer may be a provider key, Edge runtime, `tos-ai` worker/runtime identity
 
 ## 13. Settlement Service
 
+Verified result review and dispute RPCs are governed by
+`VERIFIED_DISPUTE_V1.md`. They extend the existing SettlementService and
+TaskEscrow driver; they are not a parallel settlement authority.
+
 ### `CreateEscrow`
 
 Creates an economically enforceable reservation for the Quote. A Merkle root of a private ATOS ledger is not equivalent to TOS-backed escrow.
