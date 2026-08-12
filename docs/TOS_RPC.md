@@ -353,9 +353,22 @@ and expected finalized identity reference. A replica with no local identity
 row recomputes the immutable commitment and resolves it from canonical TOS
 authority; the expected controller is an equality assertion, never a selector.
 
+The recoverable identity commitment is deterministic CBOR under
+`tos.atos.agent-identity.v2` over exactly `agent_id`, `canonical_uri`, the
+ordered `controllers` array and `assurance`. Mutable `identity_ref`, update
+time and `public_attributes` are deliberately excluded: they are projection or
+privacy-bearing metadata and cannot be required to verify a portable package.
+
 ### `ResolvePrincipalBinding`
 
 Maps an ATOS `principal_id` to a TOS identity when such a server-side binding exists. This enables ordinary ATOS users to receive TOS-backed guarantees without owning or exposing wallet keys.
+
+The recoverable binding commitment is deterministic CBOR under
+`tos.atos.principal-binding.v2` over exactly `principal_id` and `agent_id`.
+Transport request IDs, trace IDs, deadlines, caller IDs and idempotency keys
+MUST NOT enter this digest. Consequently an empty replica can reconstruct the
+same deterministic ActionID from the proof tuple and perform read-only live
+observation without possessing the original mutation request.
 
 ### `CreatePrincipalBinding` / `RevokePrincipalBinding` (Phase 4A)
 

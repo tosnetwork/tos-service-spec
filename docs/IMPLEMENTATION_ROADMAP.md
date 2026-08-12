@@ -1893,7 +1893,7 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
-🚧 **Status: remediation and renewed acceptance in progress on
+✅ **Status: implementation-complete and locally accepted on
 `agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
 projections are not a portable proof. Phase 4C freezes and implements the
 `tos_verified_v1` package, durable multi-replica proof projection and a
@@ -1927,13 +1927,15 @@ Current implementation/acceptance ledger (2026-08-12):
   independent ATOS/tos-protocol replica takeover and byte-identical replay;
   the commands, failure boundaries and externally observed assertions are
   recorded in `docs/PHASE4C_KILL_RESTART_ACCEPTANCE.md`;
+- ✅ identity and principal-binding anchors use privacy-safe deterministic CBOR
+  business tuples, allowing a genuinely empty tos-protocol bbolt replica with
+  no identity seed to reconstruct the exact ActionIDs and live-verify a package;
 - ⬜ production quorum/HSM deployment remains a Phase 4D acceptance gate.
 
-The previous local process matrix remains useful evidence, but completion is
-withdrawn until the field-level adversarial vectors, time-qualified signer
-revocation, independently committed dispute outcome and genuinely empty
-protocol-replica recovery pass the renewed matrix. Production quorum/HSM
-deployment remains the separate Phase 4D gate.
+The renewed field-level adversarial vectors, time-qualified signer revocation,
+independently committed dispute outcome and genuinely empty protocol-replica
+recovery have passed. Production quorum/HSM deployment remains the separate
+Phase 4D gate and is not implied by this local completion status.
 
 Define one canonical `tos_verified_v1` proof package sufficient for an
 independent verifier to establish at least:

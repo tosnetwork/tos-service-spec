@@ -78,6 +78,13 @@ This permits a fresh protocol replica with an empty local bbolt file to verify
 the complete contract tuple; neither the package nor a local projection may
 select a different controller.
 
+Identity live resolution recomputes `tos.atos.agent-identity.v2` from exactly
+the four identity fields above. Principal-binding live resolution recomputes
+`tos.atos.principal-binding.v2` from `principal_id` and `agent_id`. Both use
+the RFC 8949 digest construction in §2. Mutable timestamps/references,
+`public_attributes` and RPC transport/idempotency context are forbidden from
+these commitment inputs. This is the normative empty-replica recovery identity.
+
 quote
   quote_id, commitment_digest, commitment_ref, terms_digest
   trust_mode="verified", proof_profile="tos_verified_v1"

@@ -65,6 +65,32 @@ Finality checkpoints in that package were nonzero and independently observed.
 The exact numeric checkpoints are not normative because the localnet continued
 to finalize blocks during the matrix.
 
+## Genuinely empty protocol-replica acceptance
+
+The final remaining local gate was rerun after upgrading identity and
+principal-binding anchors to the deterministic v2 tuples documented in
+`TOS_RPC.md`. A third production `tos-atos-rpc` process was started with a new
+bbolt file and **without** `-identity-seed-file`. It shared no process cache or
+local protocol projection with the producer. The standalone verifier resolved
+every identity, binding, ownership, Quote, escrow and release reference through
+the three-validator canonical authority and returned:
+
+```text
+VALID
+package_id: proof_a9f21f0f999adfa85a6a39064ba919f5
+package_digest: sha256:a9f21f0f999adfa85a6a39064ba919f5fbd940ea0cfa3fab7ad9dd19266e3818
+quote_id: q_c8d484fc-a025-4f97-94dc-f33d9aefa6d0
+job_id: job_f8d6ebd5-d0b6-49d6-b1ce-e775bb0d6a19
+escrow_id: esc_f1de0cd4a8705256096f8669bc7a9930
+outcome: requester_release
+```
+
+The empty replica was stopped and reconstructed against the same still-empty
+local projection, then returned `VALID` again with the identical package
+digest. No identity seed, database copy, publisher mutation or cached finality
+result was used. This closes the genuine empty-replica recovery item; loss of
+the live authority still remains a fail-closed `AUTHORITY_UNAVAILABLE` result.
+
 ## Scope boundary
 
 This closes the Phase 4C local real-process checkpoint gate. It does not claim
