@@ -302,6 +302,25 @@ MUST encode every transaction creation instant as a signed UTC Unix nanosecond
 integer in the evidence digest wire model. A language-native date/time object,
 local timezone offset, or formatted timestamp is not a digest input; equivalent
 instants MUST therefore produce identical evidence bytes in every timezone.
+The versioned evidence JSON data model is exactly:
+
+```text
+version = "atos_ledger_evidence_v1"
+state = {chain_key, first_sequence, last_sequence, previous_hash, head_hash,
+         genesis_hash, unchained_transactions}
+transactions[] = {
+  transaction: {transaction_id, source, destination, source_indicator,
+                destination_indicator, reference, precise_amount, currency,
+                description, status, created_unix_nanos},
+  ledger_amount, chain_version, chain_sequence, chain_previous_hash, chain_hash
+}
+```
+
+All names and casing above are normative. Integers are JSON integers; amounts
+are exact decimal strings. The equivalent JSON model is encoded as RFC 8949
+Core Deterministic CBOR before applying the domain-separated digest. The full
+input, canonical CBOR and digest vector are frozen in
+`schemas/managed-financial-integrity-v1-vectors.json`.
 ATOS MUST also verify the complete current Blnk chain head and reject a non-zero
 unchained count as an uncertain snapshot. Blnk MUST return the chain bookmark
 and complete unchained count from one PostgreSQL statement snapshot (or a
