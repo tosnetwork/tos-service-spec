@@ -147,6 +147,10 @@ their domain digests locally and compares every repeated tuple field.
 Proof-of-Service resolution is a live canonical tuple lookup; an ATOS or
 protocol-local evidence row is not authority.
 
+The outcome reference is the independently observed transaction that produced
+the current terminal TaskEscrow state. It is distinct from the immutable
+contract reference and cannot be supplied solely from an ATOS Receipt row.
+
 ## 5. Privacy
 
 Packages contain commitments, not private task inputs/outputs, proposals,
