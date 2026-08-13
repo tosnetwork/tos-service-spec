@@ -259,6 +259,6 @@ every message.
 The Native Registry and direct resolution establish the identity and Capability
 foundation. Accepted Quote transactions, escrow, execution receipts, disputes,
 settlement, decentralized discovery, and cross-gateway invocation advance
-through the acceptance gates in `ROADMAP2.md`. Product code must not present a
+through the acceptance gates in `ROADMAP.md`. Product code must not present a
 future commerce flow as canonical before its TOS contracts and conformance tests
 are complete.

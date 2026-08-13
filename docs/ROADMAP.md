@@ -1,8 +1,8 @@
 # ATOS Native Implementation Roadmap
 
 This roadmap defines implementation order and acceptance gates. Architecture is
-defined by `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`; contract transitions are
-defined by `PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`.
+defined by `ARCHITECTURE.md`; contract transitions are defined by
+`NATIVE_REGISTRY_STATE_MACHINES.md`.
 
 ## 1. Gate A — Protocol freeze
 

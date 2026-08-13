@@ -1,88 +1,176 @@
-# ATOS Component Architecture
+# ATOS Native Architecture
 
-This document maps the Native protocol to software components. The normative
-authority model is defined in `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`.
+**Normative authority:** product and system architecture
 
-## Components
+**Protocol:** `atos_native_v1`
 
-### TOS Network
+## 1. Product definition
 
-TOS validators execute registry and commerce contracts, order transactions,
-and finalize typed state. Contract code and state hashes are externally
-verifiable.
+ATOS is an open protocol for locating and transacting with agents over TOS.
+Users may choose any conforming gateway or interact with TOS directly. The
+protocol has one authority model and one canonical state path.
 
-### `tos-protocol`
+The product consists of:
 
-The protocol service contains no independent business authority. It:
+- deterministic on-chain Agent and Capability identities;
+- immutable Capability version commitments;
+- independently reproducible discovery projections;
+- gateway-generated Quote Proposals;
+- finalized Accepted Quote commitments;
+- provider execution bound to an authorized signer and endpoint;
+- escrow, receipt, dispute, and settlement commitments; and
+- open gateway interoperability.
 
-- constructs canonical TVM cells;
-- derives object IDs, addresses, and commitments;
-- validates client-side signatures and bounds;
-- pays transport fees and relays signed cells;
-- queries multiple chain endpoints;
-- verifies quorum and finality; and
-- decodes typed state and produces derived projections.
+## 2. Canonical authority
 
-Transaction keys used only to pay relay fees must remain in a restricted
-publisher or wallet process. They do not authorize object semantics.
+Finalized TOS state is the sole canonical authority for:
 
-### `atos`
+- Agent controller policy, delegations, recovery, and revocation;
+- Capability ownership, immutable versions, and revocation;
+- Accepted Quote terms and selected execution authority;
+- escrow and settlement state;
+- receipt and dispute commitments; and
+- protocol version and network domain.
 
-The reference gateway authenticates transport clients, applies rate limits,
-and proxies Native submission and resolution. Future gateway components add
-discovery, proposal construction, and orchestration over the same authority
-boundary.
+No service database, search index, cache, proposal, log, or portable encoding
+can create a protocol fact. Such data is useful only when it can be checked
+against finalized TOS state.
 
-### `tos-ai` and providers
+## 3. Architectural planes
 
-Workers execute Quote-bound jobs. A worker receives the minimum necessary
-input, selected Capability version, endpoint binding, deadline, and receipt
-context. It does not receive controller or buyer wallet keys.
+### TOS authority plane
 
-## Deployment topology
+TOS contracts validate signatures and state transitions. Each Native Registry
+object has a deterministic account containing typed TVM state. Commerce
+contracts hold Accepted Quote, escrow, receipt, dispute, and settlement facts.
+
+### Protocol plane
+
+`tos-protocol` implements canonical cell construction, identifier derivation,
+signature verification, transaction relaying, quorum reads, finalized-state
+resolution, and deterministic projections. It does not replace contract
+validation.
+
+### Gateway plane
+
+A gateway provides authentication, rate limiting, discovery, proposal
+construction, routing, transaction transport, and user experience. Multiple
+gateways may independently serve the same canonical state.
+
+### Execution plane
+
+Providers and workers execute the version and input bound by an Accepted Quote.
+They return content-addressed artifacts and signed receipt commitments. Bulk
+bytes remain outside consensus.
+
+## 4. Legal information flow
 
 ```text
-wallet/client
-  | authenticated Connect request
-  v
-ATOS gateway
-  | Native RPC
-  v
-tos-protocol relayer/resolver
-  | signed TVM message / quorum reads
-  v
-TOS Network
+TOS finalized state
+  -> independent resolver/indexer
+  -> gateway discovery and derived views
+  -> client-side verification
 
-Accepted Quote -> provider router -> worker -> signed receipt -> TOS settlement
+client canonical action + signatures
+  -> arbitrary relayer
+  -> TOS contract validation
+  -> finalized typed state
+
+gateway Quote Proposal
+  -> client validation and acceptance
+  -> TOS commitment transaction
+  -> finalized Accepted Quote
+  -> bound execution and settlement
 ```
 
-The gateway, relayer, provider router, and worker may be operated by different
-parties. No pair is required to share a database.
+The arrows never reverse authority. A cache cannot update TOS, a proposal
+cannot authorize execution, and a relay response cannot prove finality.
 
-## Availability and caching
+## 5. Registry representation
 
-Resolvers may cache only data labeled with network, finalized checkpoint,
-account, logical time, transaction hash, code hash, and state hash. A cache hit
-must satisfy the caller's finality and expected-state requirements. Negative
-results are checkpoint-scoped and short-lived.
+Typed TVM state is the sole Native Registry representation used by consensus.
+The off-chain protocol may derive deterministic CBOR or JSON for interchange,
+but derivation always starts from authenticated typed TVM state. A projection is
+never supplied to the contract as an intended next state and is never hashed
+into transition authorization as an alternate state representation.
 
-Discovery indexes consume finalized state and handle reorgs before publication.
-They expose chain-derived fields separately from local health or ranking data.
+The registry deploys one deterministic account per Agent or Capability. It
+does not deploy an auxiliary contract for each action.
 
-## Observability
+## 6. Gateway neutrality
 
-Logs and traces may contain request IDs, action hashes, object IDs, chain
-references, state hashes, latency, and typed errors. They must not contain
-private keys, signatures before submission, raw confidential inputs, bearer
-tokens, or unredacted output artifacts.
+A conforming gateway must be replaceable without changing identity or
+commercial semantics. Therefore:
 
-Readiness requires every dependency needed for safe semantics: authentication,
-relayer, quorum resolver, network match, known code hash, and finality source.
-Liveness alone never implies readiness.
+- controller keys are not held by gateways;
+- object IDs do not include a gateway identity;
+- Capability versions do not depend on a gateway database;
+- proposal IDs are local convenience identifiers;
+- Accepted Quote commitments exclude proposal-local identity;
+- signed actions are valid through any conforming relayer;
+- resolution is reproducible without the submitting gateway; and
+- gateway policy cannot weaken contract authorization.
 
-## Scaling
+Gateway authentication protects transport resources. It does not authorize an
+on-chain state transition; contract signatures do that.
 
-Gateway replicas are stateless with respect to canonical protocol facts.
-Relayers may scale independently and submit the same idempotent action.
-Resolvers and indexers scale through checkpointed caches. Workers scale by
-Capability and resource class after Accepted Quote binding.
+## 7. Discovery
+
+Discovery indexes finalized Agent and Capability state plus manifest
+content addressed by immutable digest. Indexes may add ranking, availability,
+latency, price estimates, and local policy annotations. Those additions are
+non-canonical and must be distinguishable from chain-derived fields.
+
+Clients must be able to verify:
+
+- the network and finalized checkpoint;
+- the deterministic object ID and account address;
+- the contract code and state hashes;
+- Capability ownership and version commitment; and
+- the manifest bytes matching the selected digest.
+
+## 8. Commerce
+
+A Quote Proposal is discovery output. It may describe a Capability version,
+provider, manifest, endpoint binding, maximum price, expiry, escrow terms,
+dispute policy, and execution signer. It has no authority before acceptance.
+
+Acceptance creates a deterministic commitment and submits it to TOS. Only the
+finalized TOS commitment is an Accepted Quote. Execution, escrow, receipt, and
+settlement must reference that commitment and may not substitute its bound
+version, endpoint, signer, price, asset, or policy.
+
+## 9. Data placement
+
+Place only stable commitments and transition state on-chain. Keep prompts,
+inputs, outputs, logs, model traces, and large evidence off-chain. Bind off-chain
+content using immutable digests and disclose it only to authorized parties.
+
+Portable verification packages may aggregate finalized chain references,
+proofs, manifests, artifacts, and receipts. They are evidence containers, not
+an additional authority layer.
+
+## 10. Failure model
+
+Clients and gateways fail closed when:
+
+- the TOS network domain differs;
+- endpoints disagree below quorum;
+- finality cannot be established;
+- the registry code hash is unknown;
+- deterministic address reconstruction fails;
+- typed state is malformed;
+- an action predecessor or sequence is stale;
+- signatures or thresholds fail;
+- an object or selected version is revoked; or
+- Quote-bound execution terms cannot be reproduced.
+
+Availability failure never permits semantic fallback.
+
+## 11. Completion criterion
+
+The architecture is complete when two independently operated gateways can
+discover the same finalized Capability, produce interoperable proposals, relay
+the same client-signed action, verify the same Accepted Quote, route execution,
+verify its receipt, and complete settlement without sharing a private database
+or trusted control service.

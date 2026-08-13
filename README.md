@@ -42,9 +42,9 @@ are caches or projections only.
 
 Read these documents completely and in this order:
 
-1. [`docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`](docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md)
-2. [`docs/PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`](docs/PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md)
-3. [`docs/ROADMAP2.md`](docs/ROADMAP2.md)
+1. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+2. [`docs/NATIVE_REGISTRY_STATE_MACHINES.md`](docs/NATIVE_REGISTRY_STATE_MACHINES.md)
+3. [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
 The first defines product and system architecture. The second defines the
 Agent and Capability state machines. The third defines implementation order

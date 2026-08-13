@@ -4,9 +4,9 @@
 
 Before changing schemas or protocol behavior, read completely:
 
-1. `docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`
-2. `docs/PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`
-3. `docs/ROADMAP2.md`
+1. `docs/ARCHITECTURE.md`
+2. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
+3. `docs/ROADMAP.md`
 
 The architecture document controls system boundaries. The state-machine
 document controls Agent and Capability transitions. The roadmap controls only
