@@ -99,6 +99,14 @@ accepted execution strictly before it, and reported the historical principal
 binding as revoked rather than synthesizing `ACTIVE`. This proves that an old
 anchor's existence is not confused with current authorization.
 
+After the permanent-tombstone rule was added, a newly built protocol process
+with another fresh bbolt file was connected to the same three-validator chain.
+It attempted to recreate the already revoked real tuple
+`(phase4c-revoked-principal-20260813, requester-localnet)`. The production
+ConnectRPC path returned HTTP 409 with `BINDING_TUPLE_REVOKED` before Commit;
+the in-process lifecycle matrix additionally proves both direct A→revoke→A
+and A→revoke→B→revoke→A reuse are rejected.
+
 Finally, two separately configured ATOS OS processes used the shared fresh
 PostgreSQL database, separate authentication state, and independent protocol
 connections; one protocol connection used the empty-bbolt replica. Real REST
