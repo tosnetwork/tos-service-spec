@@ -17,7 +17,7 @@ Each version commits to a content-addressed manifest. A manifest should include:
 - input and output schema digests;
 - execution endpoint commitments;
 - authorized execution signer requirements;
-- pricing and supported asset declarations;
+- pricing and supported TOS-network asset declarations;
 - privacy, retention, and resource limits; and
 - artifact retrieval metadata.
 

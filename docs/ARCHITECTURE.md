@@ -163,9 +163,10 @@ settlement must reference that commitment and may not substitute its bound
 version, endpoint, signer, price, asset, or policy.
 
 The initial commerce profile covers machine-checkable software work and narrow
-objective release or refund rules. TOS pays network execution and protocol
-security costs. A supported stable-value asset may denominate and settle the
-provider service. The Accepted Quote fixes both economic roles explicitly.
+objective release or refund rules. Native TOS pays network execution and
+protocol security costs. A supported stablecoin issued on TOS Network may
+denominate and settle the provider service through TOS contracts. The Accepted
+Quote fixes both economic roles explicitly.
 
 ## 10. Data placement
 
@@ -201,5 +202,5 @@ discover the same finalized Capability, produce interoperable proposals, relay
 the same client-signed action, verify the same Accepted Quote, route execution,
 verify its receipt, and complete settlement without sharing a private database
 or trusted control service. The first product gate applies this criterion to a
-software-work Capability with a real stable-value-asset payment and providers
+software-work Capability with a real TOS-network stablecoin payment and providers
 and buyers outside the core development team.

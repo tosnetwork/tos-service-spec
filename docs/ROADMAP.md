@@ -66,7 +66,7 @@ Deliver:
 - immutable software-work Capability manifest profile;
 - deterministic Accepted Quote commitment, vector, and TOS transaction;
 - exact endpoint and execution-signer binding;
-- stable-value-asset escrow with bounded TOS network fees;
+- TOS-network stablecoin escrow with bounded native TOS network fees;
 - isolated compilation, deterministic test, static-analysis, dependency-scan,
   or reproducible-build execution;
 - canonical Receipt binding input, toolchain, result, artifacts, usage, and
@@ -127,7 +127,7 @@ Deliver:
 - production key custody, wallet recovery, and bounded spending policy;
 - endpoint diversity and finality incident procedures;
 - load, storage, denial-of-service, and fee-budget evidence;
-- stable-value-asset accounting and operator compliance controls;
+- TOS-network stablecoin accounting and operator compliance controls;
 - monitoring for code, state, quorum, finality, and economic divergence;
 - reproducible releases and signed deployment artifacts; and
 - operator runbooks for degraded and emergency states.
@@ -161,5 +161,5 @@ must reuse the existing authority objects.
 3. Deploy the frozen Registry code to a public TOS testnet.
 4. Implement wallet-native action signing and finalized lifecycle tests.
 5. Freeze the software-work manifest and Accepted Quote commitment.
-6. Implement stable-value-asset escrow, Receipt, release, and refund.
+6. Implement TOS-network stablecoin escrow, Receipt, release, and refund.
 7. Complete one independently resolvable paid software-work transaction.

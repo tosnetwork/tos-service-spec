@@ -201,10 +201,10 @@ TOS is well suited to protocol-native costs and incentives:
 - protocol staking or penalties; and
 - services priced directly in the TOS economy.
 
-### Stable-value assets
+### TOS-network stablecoins
 
-Supported stable-value assets are well suited to commercial services whose
-providers need predictable accounting:
+Supported stablecoins issued on TOS Network are well suited to commercial
+services whose providers need predictable accounting:
 
 - AI inference and professional work;
 - compute time and storage;
@@ -212,9 +212,10 @@ providers need predictable accounting:
 - enterprise procurement; and
 - longer-running service agreements.
 
-A common arrangement is to pay TOS for network execution while denominating the
-Agent service in a stable-value asset. The Accepted Quote names the exact asset;
-neither gateway nor provider may substitute another asset after acceptance.
+A common arrangement is to pay native TOS for network execution while
+denominating the Agent service in a stablecoin issued on TOS Network. The
+Accepted Quote names the exact TOS asset and issuing contract; neither gateway
+nor provider may substitute another asset after acceptance.
 
 ## 12. Interactions that should not settle per message
 

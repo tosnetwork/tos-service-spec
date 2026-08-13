@@ -36,7 +36,7 @@ The surrounding market validates the category:
 - Visa's Trusted Agent Protocol addresses merchant recognition and safe Agent
   commerce. See the
   [Visa announcement](https://corporate.visa.com/en/sites/visa-perspectives/newsroom/visa-unveils-trusted-agent-protocol-for-ai-commerce.html).
-- x402 demonstrates demand for programmatic stable-value-asset payments and has
+- x402 demonstrates demand for programmatic stablecoin payments and has
   developed a substantial payment, cloud, and developer ecosystem. Its public
   site reports live transaction, volume, buyer, and seller metrics. See
   [x402](https://x402.org/) and its
@@ -47,6 +47,10 @@ The surrounding market validates the category:
 
 These signals validate Agent commerce, but they also mean ATOS enters an active
 standards market rather than an empty category.
+
+References to stablecoins in external market signals describe those external
+systems. They do not expand the ATOS asset model beyond stablecoins issued on
+TOS Network.
 
 ## 3. Strategic position
 
@@ -142,7 +146,7 @@ availability, usability, risk management, and operations.
 - reliable routing and low-latency relaying;
 - hosted resolver and indexer APIs;
 - wallet, budget, approval, and organizational policy tools;
-- stable-value-asset checkout and accounting exports;
+- TOS-network stablecoin checkout and accounting exports;
 - risk, abuse, and compliance controls; and
 - operational support and service-level commitments.
 
@@ -168,7 +172,7 @@ making identity or transaction history portable only through itself.
 
 ## 8. Asset strategy
 
-Use TOS and stable-value assets for different jobs.
+Use native TOS and stablecoins issued on TOS Network for different jobs.
 
 ### TOS
 
@@ -178,7 +182,7 @@ Use TOS and stable-value assets for different jobs.
 - protocol staking, penalties, and incentives where required; and
 - services voluntarily priced in the TOS economy.
 
-### Stable-value assets
+### TOS-network stablecoins
 
 - software work;
 - data and API access;
@@ -186,9 +190,16 @@ Use TOS and stable-value assets for different jobs.
 - enterprise procurement; and
 - longer-running commercial agreements.
 
-A practical transaction may use TOS for network costs while denominating the
-provider service in a stable-value asset. The Accepted Quote fixes the exact
-asset and amount bounds. Asset substitution after acceptance is forbidden.
+A practical transaction uses native TOS for network costs while denominating
+the provider service in a stablecoin issued on TOS Network. Both assets settle
+through finalized TOS contracts. The Accepted Quote fixes the exact stablecoin
+contract and amount bounds. Asset substitution after acceptance is forbidden.
+
+An external-chain token, custodial balance, bridged claim on another network,
+or gateway database balance is not a settlement asset under the initial ATOS
+protocol. Supporting a new stablecoin requires its TOS contract identity,
+issuer identity, decimals, and operational status to be independently
+resolvable from finalized TOS state.
 
 The business must not depend on token price appreciation as its primary revenue
 model.
@@ -220,7 +231,7 @@ should build compounding advantages in:
 5. cross-gateway conformance;
 6. reliable TOS finality and low transaction cost;
 7. provider deployment and Receipt tooling;
-8. enterprise stable-value-asset and accounting integration; and
+8. enterprise TOS-network stablecoin and accounting integration; and
 9. developer onboarding measured in minutes, not weeks.
 
 The strongest network effect is a market where providers earn recurring revenue
@@ -264,7 +275,7 @@ requirements, not optional polish.
 
 ### Regulatory and accounting burden
 
-Stable-value-asset custody, conversion, sanctions controls, taxation, and
+TOS-network stablecoin custody, conversion, sanctions controls, taxation, and
 enterprise accounting vary by operator and jurisdiction. Protocol neutrality
 does not remove operator obligations.
 
@@ -295,7 +306,7 @@ Do not prioritize:
 ### Priority 1 — Complete Native commerce
 
 - Accepted Quote contract and transaction;
-- stable-value-asset escrow;
+- TOS-network stablecoin escrow;
 - one bound software-work execution flow;
 - canonical execution Receipt;
 - release and refund;
@@ -335,7 +346,7 @@ The following are product evidence targets, not protocol constants:
 - at least 3 independently operated providers;
 - at least 2 independently operated gateways;
 - recurring transactions from buyers outside the core development team;
-- real stable-value-asset settlement on a public TOS network;
+- real TOS-network stablecoin settlement on a public TOS network;
 - successful Quote-to-settlement completion through different gateways;
 - documented provider earnings and buyer repeat usage;
 - measured completion, refund, dispute, latency, and fee rates; and

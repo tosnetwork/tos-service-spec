@@ -3,10 +3,11 @@
 ## Delivery scope
 
 This document defines the target economic model. The first implementation is
-limited to machine-checkable software work, one supported stable-value asset,
-TOS network fees, objective release or refund, and narrowly bounded dispute
-evidence. Additional assets, subjective work, generalized arbitration, and
-high-frequency payment channels require later roadmap gates.
+limited to machine-checkable software work, one supported stablecoin issued on
+TOS Network, native TOS network fees, objective release or refund, and narrowly
+bounded dispute evidence. Additional TOS-network assets, subjective work,
+generalized arbitration, and high-frequency payment channels require later
+roadmap gates.
 
 ## Quote Proposal
 
@@ -48,6 +49,14 @@ base-10 text:
 
 No sign, decimal point, exponent, whitespace, locale formatting, or leading
 zero is allowed. Arithmetic uses checked integers with asset-specific bounds.
+
+The `asset` identifier names an asset contract on the same TOS network as the
+Accepted Quote. Resolution verifies the contract address, code identity,
+issuer-defined asset identity, decimals, and active status from finalized TOS
+state. A ticker such as `USD` or `USDT` is display metadata and is never a
+canonical asset identifier. Gateways cannot represent an off-chain balance,
+bridged claim on another network, or private ledger entry as settlement under
+this specification.
 
 ## Escrow
 
@@ -116,11 +125,10 @@ are outside scope.
 
 ## Asset roles
 
-TOS pays contract execution, Registry operations, relaying, and protocol
-security costs. The provider service is denominated in the exact asset selected
-by the Accepted Quote; the initial commercial target is one supported
-stable-value asset. Wallets and accounting views must show service payment and
-TOS fees separately.
+Native TOS pays contract execution, Registry operations, relaying, and protocol
+security costs. The provider service is denominated in the exact TOS-network
+stablecoin selected by the Accepted Quote. Wallets and accounting views must
+show stablecoin service payment and native TOS fees separately.
 
 ## Invariants
 

@@ -62,7 +62,7 @@ refine these rules but cannot contradict them.
 
 - [Decentralized Agent-to-Agent Use Cases](docs/A2A_USE_CASES.md) explains the
   interaction lifecycle, suitable paid-agent applications, the roles of TOS
-  and stable-value assets, and when to batch many off-chain messages into one
+  and TOS-network stablecoins, and when to batch many off-chain messages into one
   settlement.
 - [Product and Commercial Strategy](docs/PRODUCT_STRATEGY.md) defines market
   positioning, the initial software-work wedge, revenue paths, development
@@ -92,6 +92,17 @@ refine these rules but cannot contradict them.
 8. Bulk request and result bytes remain off-chain; immutable digests bind them.
 9. Implementations fail closed on network, code-hash, state-hash, signature,
    sequence, predecessor, quorum, or finality mismatch.
+
+## Asset model
+
+Native TOS pays TOS Network fees and protocol execution costs. Commercial
+services may be denominated in supported stablecoins issued on TOS Network.
+Those stablecoins settle through TOS contracts on the same network as the
+Accepted Quote. External-chain tokens, bridged claims on another network,
+custodial balances, and gateway ledger entries are outside the protocol.
+
+An Accepted Quote identifies the exact TOS asset contract and atomic amount;
+a ticker symbol is display metadata and is never sufficient asset identity.
 
 ## Repository ownership
 

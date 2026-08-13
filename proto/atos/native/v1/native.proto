@@ -198,7 +198,11 @@ message ResolveNativeStateResponse {
 }
 
 message MoneyV1 {
+  // Canonical TOS-network asset contract identity, never a display ticker.
+  // The commercial profile initially permits a supported stablecoin issued on
+  // the same TOS network as the Accepted Quote.
   string asset = 1;
+  // Unsigned canonical base-10 atomic units: 0 or [1-9][0-9]*.
   string atomic_amount = 2;
 }
 

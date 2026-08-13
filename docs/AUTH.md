@@ -62,11 +62,11 @@ The software-work commercial API must separate permission to search, request a
 proposal, dispatch work, retrieve artifacts, and request relay from permission
 to sign or spend. Gateway scopes never authorize a TOS payment.
 
-Wallet policy must independently constrain network, assets, maximum amounts,
+Wallet policy must independently constrain network, TOS asset contracts, maximum amounts,
 counterparties, Capability IDs or classes, expiry, and transaction frequency.
-Stable-value-asset allowance and TOS fee budget are displayed separately. Quote
-acceptance and any exceptional refund or dispute action require semantic wallet
-confirmation appropriate to those bounds.
+TOS-network stablecoin allowance and native TOS fee budget are displayed
+separately. Quote acceptance and any exceptional refund or dispute action
+require semantic wallet confirmation appropriate to those bounds.
 
 Custodial checkout, conversion, and compliance are optional operator services.
 They cannot change canonical Quote or settlement semantics.
