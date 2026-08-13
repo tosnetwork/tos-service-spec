@@ -11,6 +11,7 @@ def head(m,n):
     if n<=0xffffffff:return bytes([(m<<5)|26])+struct.pack(">I",n)
     return bytes([(m<<5)|27])+struct.pack(">Q",n)
 def cbor(v):
+    if isinstance(v,bool):return b"\xf5" if v else b"\xf4"
     if isinstance(v,str):b=v.encode();return head(3,len(b))+b
     if isinstance(v,int) and v>=0:return head(0,v)
     if isinstance(v,list):return head(4,len(v))+b"".join(cbor(x) for x in v)
@@ -35,6 +36,7 @@ def take(data,pos):
         out={}
         for _ in range(n):k,pos=take(data,pos);v,pos=take(data,pos);assert k not in out;out[k]=v
         return out,pos
+    if major==7 and ai in (20,21):return ai==21,pos
     raise ValueError("unsupported CBOR type")
 def canonical_decode(data):
     value,pos=take(data,0)
@@ -46,15 +48,15 @@ def b64u(raw):return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 def unb64u(value):return base64.urlsafe_b64decode(value+"="*((4-len(value)%4)%4))
 def field(out,raw):out.extend(struct.pack(">H",len(raw)));out.extend(raw)
 
-pub=bytes.fromhex("79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664")
-policy={"threshold":1,"recovery_threshold":1,"controllers":[{"key_id":"controller-1","algorithm":"ed25519","public_key_base64url":b64u(pub),"weight":1,"purposes":["agent_control","capability_control","recovery"]}],"recovery_key_ids":["controller-1"],"recovery_timelock_seconds":86400}
+policy=canonical_decode(unb64u(P["controller_policy_cbor_base64url"]));pub=unb64u(policy["controllers"][0]["public_key_base64url"])
 assert digest(V["domains"]["controller_policy"],policy)==P["controller_policy_digest"]
 agent={"version":"tos_native_registry_v1","network":P["network"],"object_nonce_base64url":P["agent_nonce_base64url"],"initial_controller_policy_digest":P["controller_policy_digest"]};agent_id="agent_"+digest(V["domains"]["agent_id"],agent)[7:];assert agent_id==P["agent_id"]
 cap={"version":"tos_native_registry_v1","network":P["network"],"owner_agent_id":agent_id,"object_nonce_base64url":P["capability_nonce_base64url"]};cap_id="cap_"+digest(V["domains"]["capability_id"],cap)[7:];assert cap_id==P["capability_id"]
 payload=canonical_decode(unb64u(P["payload_cbor_base64url"]));assert digest("tos.native.registry-payload.register-capability.v1",payload)==P["payload_digest"]
 action={"version":"tos_native_registry_v1","kind":"register_capability","network":P["network"],"agent_id":agent_id,"capability_id":cap_id,"capability_version":"1.2.3","generation":1,"sequence":1,"previous_state_digest":"","policy_digest":P["controller_policy_digest"],"payload_digest":P["payload_digest"],"payload_cbor_base64url":P["payload_cbor_base64url"],"nonce_base64url":"cHFyc3R1dnd4eXp7fH1-f4CBgoOEhYaHiImKi4yNjo8"}
 action_bytes=cbor(action);assert base64.b64encode(action_bytes).decode()==P["registry_action_cbor_base64"];assert digest(V["domains"]["registry_action"],action)==P["registry_action_digest"]
-event={"version":"tos_native_registry_v1","kind":"register_capability","network":P["network"],"action_digest":P["registry_action_digest"],"agent_id":agent_id,"capability_id":cap_id,"capability_version":"1.2.3","generation":1,"sequence":1,"previous_state_digest":"","state_digest":"sha256:"+"55"*32};assert digest(V["domains"]["registry_event"],event)==P["registry_event_digest"]
+state={"version":"tos_native_registry_v1","network":P["network"],"object_kind":"capability","agent_id":"","capability_id":cap_id,"generation":1,"sequence":1,"predecessor_state_digest":"","last_action_digest":P["registry_action_digest"],"current_policy_digest":"","current_policy_cbor_base64url":"","owner_agent_id":agent_id,"capability_bootstrap_owner_agent_id":agent_id,"capability_nonce_base64url":P["capability_nonce_base64url"],"capability_versions":[{"version":"1.2.3","payload_digest":P["payload_digest"],"revoked":False}],"delegation_action_digests":[],"pending_recovery":{"initiation_action_digest":"","new_policy_digest":"","new_policy_cbor_base64url":"","execute_after_unix_seconds":0},"tombstoned":False,"agent_nonce_base64url":"","agent_bootstrap_policy_digest":""};assert digest(V["domains"]["registry_state"],state)==P["registry_state_digest"]
+event={"version":"tos_native_registry_v1","kind":"register_capability","network":P["network"],"action_digest":P["registry_action_digest"],"agent_id":agent_id,"capability_id":cap_id,"capability_version":"1.2.3","generation":1,"sequence":1,"previous_state_digest":"","state_digest":P["registry_state_digest"]};assert digest(V["domains"]["registry_event"],event)==P["registry_event_digest"]
 assert digest(V["domains"]["event_observation"],P["event_observation"])==P["event_observation_digest"]
 signature=P["signature"]
 def verify_signature(value):
@@ -87,6 +89,21 @@ def validate_observation(value):
     ref=value["reference"]
     if not ref.get("transaction_hash") or value.get("finalized_checkpoint",0)==0:return error("NATIVE_FINALITY_UNAVAILABLE","event_observation")
     return "",""
+def validate_action(value):
+    try:decoded=canonical_decode(unb64u(value["payload_cbor_base64url"]))
+    except Exception:return error("NATIVE_CANONICAL_ENCODING","payload_digest")
+    if value["kind"]=="register_capability":
+        bootstrap={"version":"tos_native_registry_v1","network":value["network"],"owner_agent_id":decoded["version"]["owner_agent_id"],"object_nonce_base64url":decoded["object_nonce_base64url"]}
+        if value["capability_id"]!="cap_"+digest(V["domains"]["capability_id"],bootstrap)[7:]:return error("NATIVE_INVALID_IDENTIFIER","capability_id")
+    return "",""
+def validate_reference(value):
+    if value["account"].split(":",1)[0]!=str(value["workchain"]):return error("NATIVE_CANONICAL_ENCODING","reference.workchain")
+    return "",""
+def validate_capability_payload(value):
+    locations=value["version"]["manifest"]["locations"]
+    if any(not x or any(ord(c)<0x21 or ord(c)>0x7e for c in x) for x in locations):return error("NATIVE_CANONICAL_ENCODING","payload.register_capability")
+    if set(value["version"]["quote_signer_key_ids"])&set(value["version"]["receipt_signer_key_ids"]):return error("NATIVE_CANONICAL_ENCODING","payload.register_capability")
+    return "",""
 def execute(vector):
     fixture=vector["fixture"];op=vector["operation"]
     if fixture=="signature":
@@ -106,10 +123,17 @@ def execute(vector):
         document={"observation":observation};patch(document,op);return validate_observation(document["observation"])
     if fixture=="action":
         changed=copy.deepcopy(action);patch({"action":changed},op)
-        try:canonical_decode(unb64u(changed["payload_cbor_base64url"]))
-        except Exception:return error("NATIVE_CANONICAL_ENCODING","payload_digest")
+        return validate_action(changed)
     if fixture=="network":
         changed=copy.deepcopy(P["network"]);patch({"network":changed},op);return error("NATIVE_INVALID_NETWORK","network") if not re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?",changed["network_id"]) else ("","")
+    if fixture=="authorization_context":
+        document={"expected_policy_digest":P["controller_policy_digest"]};patch(document,op);return error("NATIVE_POLICY_UNAUTHORIZED","current_controller_policy") if document["expected_policy_digest"]!=P["controller_policy_digest"] else ("","")
+    if fixture=="event_state":
+        changed=copy.deepcopy(event);patch({"event":changed},op);return error("NATIVE_CROSS_DOMAIN_REPLAY","registry_event.state_tuple") if changed["state_digest"]!=digest(V["domains"]["registry_state"],state) else ("","")
+    if fixture=="reference":
+        changed=copy.deepcopy(P["event_observation"]["reference"]);patch({"reference":changed},op);return validate_reference(changed)
+    if fixture=="capability_payload":
+        changed=copy.deepcopy(payload);patch({"payload":changed},op);return validate_capability_payload(changed)
     return "",""
 for vector in V["negative"]:
     actual=execute(vector);expected=(vector["expected_code"],vector["expected_field"])

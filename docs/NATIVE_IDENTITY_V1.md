@@ -9,9 +9,11 @@ policy. It is not a wallet address and does not change when keys rotate. A
 gateway may relay an unchanged signed action but has no implicit controller,
 recovery, ownership or spending authority.
 
-The initial policy digest participates in Agent-ID derivation. Every later
+The initial policy digest participates in Agent-ID derivation. Registration and
+every policy-changing action carry both the digest and exact canonical policy
+bytes so a fresh verifier does not need an `atos.im` policy table. Every later
 policy is linked by a finalized registry event. Current authority is the latest
-valid finalized event after deterministic reorg handling, not a gateway cache.
+valid finalized state after deterministic reorg handling, not a gateway cache.
 
 ## 2. Controller policy
 
@@ -63,7 +65,8 @@ revoke_agent
 Recovery is two-step. `initiate_recovery` records the proposed policy digest
 and `execute_after_unix_seconds`; it is authorized using `recovery_threshold`.
 `recover_agent` names the exact finalized initiation action and canonical TOS
-transaction reference. The initiation time is the finalized TOS block time and
+transaction reference, and that initiation state must be the recovery's direct
+predecessor. The initiation time is the finalized TOS block time and
 execute-after equals that time plus the old policy's timelock. Gateway clocks
 and transaction submission time are not authority.
 
@@ -74,10 +77,20 @@ on-chain `state_digest`, not a later finality wrapper.
 Skipped, duplicate, forked or stale predecessors fail closed.
 
 Delegation payloads bind delegate key, purposes, resources, validity interval,
-maximum chain checkpoint staleness and revocation identity. They cannot broaden
-the delegator's authority. Recovery binds the old generation, new policy,
+maximum chain checkpoint staleness and canonical action identity. They cannot
+broaden the delegator's authority, and are valid only while the referenced key
+and purposes remain in the current policy. Recovery and permanent revocation
+invalidate prior-generation delegations. Recovery binds the old generation, new policy,
 recovery authorization and timelock. Permanent revocation produces a tombstone;
 no later action can revive that Agent ID.
+
+Every authorization call binds three equal values before signatures are
+evaluated: the policy digest in the signed action, the digest recomputed from
+the supplied canonical policy bytes, and the current policy digest independently
+resolved from the predecessor state. Supplying a self-consistent attacker
+policy is not authorization. Recovery uses the old policy embedded in the
+canonical predecessor state; callers cannot substitute a different timelock or
+recovery set.
 
 ## 4. Finalized ordering
 

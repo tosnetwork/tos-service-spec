@@ -31,15 +31,15 @@ Kinds and required authorization are:
 
 | Kind | Required purpose and threshold | Typed payload |
 |---|---|---|
-| `register_agent` | new policy `agent_control`, normal threshold | object nonce, initial policy digest |
-| `update_agent_policy` | current `agent_control`, normal threshold | new policy digest |
+| `register_agent` | new policy `agent_control`, normal threshold | object nonce, initial policy digest and canonical policy bytes |
+| `update_agent_policy` | current `agent_control`, normal threshold | new policy digest and canonical policy bytes |
 | `delegate_agent` | current `delegation`, normal threshold | delegate key, purposes/resources, checkpoint validity/staleness |
-| `initiate_recovery` | current recovery keys, recovery threshold | new policy digest, execute-after TOS time |
+| `initiate_recovery` | current recovery keys, recovery threshold | new policy digest/bytes, execute-after TOS time |
 | `recover_agent` | same recovery set and finalized initiation | new policy, initiation action/reference, execute-after |
 | `revoke_agent` | current `agent_control`, normal threshold | scope and reason |
-| `register_capability` | current owner `capability_control`, normal threshold | CapabilityVersionPayload |
+| `register_capability` | current owner `capability_control`, normal threshold | bootstrap nonce and CapabilityVersionPayload |
 | `update_capability` | current owner `capability_control`, normal threshold | new immutable version payload |
-| `transfer_capability` | current owner and new owner each `capability_control` | both Agent IDs and new-owner policy digest |
+| `transfer_capability` | current owner and new owner each `capability_control` | both Agent IDs and new-owner policy digest/bytes |
 | `revoke_capability` | current owner `capability_control`, normal threshold | lineage/version scope and reason |
 
 Signature arrays are strict key-ID order with no duplicates. Every signature
@@ -47,6 +47,12 @@ binds its version, algorithm, key ID and complete action. Weight is counted once
 per unique key ID and unique public key. Unknown keys/purposes fail closed. A
 transfer is valid only when independently verified signature sets from the
 current-owner policy and the committed new-owner policy both satisfy threshold.
+For every non-bootstrap action, the caller also supplies the independently
+resolved policy digest that was canonical at the action predecessor. The
+action's `policy_digest`, the supplied policy bytes and that resolved digest
+MUST all be equal before any signature weight is counted. Registration binds
+the new policy in the Agent ID and action payload. A payload-provided policy is
+never sufficient evidence that it was the canonical current policy.
 
 ## 3. Typed payloads
 
@@ -66,6 +72,18 @@ Locations are availability hints, never authority. Phase 5C applies URL/SSRF
 policy and accepts bytes only when size and digest match. Endpoint references
 are sorted by `(transport, endpoint_digest, recipient_key_id)` and bind endpoint
 semantics without placing credentials or private workload data on-chain.
+Every Quote/Receipt signer ID MUST name a key in the canonical owner policy and
+that key MUST carry the corresponding `quote` or `receipt` purpose. The two
+sets are individually sorted and mutually disjoint. Locations, resources and
+other protocol strings described as ASCII contain printable bytes `0x21..0x7e`
+only; Unicode, whitespace and control-character aliases are invalid.
+
+`register_capability` repeats the 32-byte Capability bootstrap nonce alongside
+the first version payload. A verifier recomputes `capability_id` from the
+network, bootstrap owner and nonce. Later transfer changes current ownership,
+not that bootstrap tuple or the Capability ID. A transfer increments the
+Capability ownership generation and starts sequence 1; the next action is
+authorized by the new owner's independently resolved current policy.
 
 Delegation validity is evaluated against finalized TOS checkpoints. It is valid
 only within `[valid_from_checkpoint, valid_until_checkpoint)` and only while the
@@ -74,11 +92,44 @@ resolver observation lag does not exceed `max_staleness_checkpoints`.
 Recovery uses finalized TOS block Unix seconds. Initiation records a pending
 recovery. Execution must reference that exact finalized initiation transaction,
 use its exact proposal and execute-after value, satisfy the old policy recovery
-threshold, and occur no earlier than execute-after. Recovery increments
+threshold, and occur no earlier than execute-after. The finalized initiation
+MUST be the recovery action's immediate predecessor state; an older, parallel
+or superseded initiation cannot be used. Recovery increments
 generation and starts sequence 1; ordinary actions retain generation and use
 previous sequence plus one. Permanent Agent tombstones cannot recover.
 
-## 4. Chain event versus network observation
+## 4. Canonical registry state
+
+Domain: `tos.native.registry-state.v1`.
+
+`NativeRegistryStateV1` is the complete logical state committed by every
+event. It binds the network/object identity, generation/sequence, predecessor
+state digest, last action digest and tombstone. Agent state additionally binds
+the immutable bootstrap nonce/policy digest, the exact current controller-policy
+digest/bytes, ordered delegation action digests and exact pending-recovery
+tuple. Capability state additionally binds
+the immutable bootstrap owner/nonce, current owner and the sorted immutable
+version entries with version revocation state. Inapplicable fields MUST have
+their protobuf/JSON zero value.
+
+Both Agent and Capability IDs are recomputed from the immutable bootstrap
+fields whenever state is validated. The next state is deterministically derived from the predecessor state and the
+complete finalized action bytes. Its digest is recomputed independently and
+must equal the event's `state_digest`; an event may not supply an arbitrary
+nonzero state digest. Bootstrap IDs are recomputed, an existing version cannot
+be overwritten, transfer increments ownership generation, and a lineage or
+Agent tombstone makes every later transition fail with
+`NATIVE_PERMANENTLY_REVOKED`. Recovery clears old delegations and pending
+recovery state.
+
+Controller policies needed to replay authority are canonical CBOR embedded in
+registration, rotation, recovery-initiation and transfer-acceptance payloads.
+Their committed digest must match those bytes. A fresh resolver reads the
+complete action from the finalized transaction, validates its event and
+inclusion proof, derives the next state, and compares the emitted state digest;
+the compact event alone is not treated as the action payload.
+
+## 5. Chain event versus network observation
 
 The chain-stored event domain is `tos.native.registry-event.v1`:
 
@@ -108,7 +159,11 @@ URL—identifies and proves inclusion of the real TOS transaction. Contract code
 hash is checked against the version allowlist. A quorum/finality adapter derives
 the observation; callers cannot assert it.
 
-## 5. Index/reorg rules
+The decimal workchain prefix inside `account` MUST be the shortest canonical
+base-10 rendering of the separate signed `workchain` field. Leading zeroes,
+`-0` and a prefix/field mismatch are rejected.
+
+## 6. Index/reorg rules
 
 - order observations by canonical TOS inclusion order, never arrival time;
 - reject gaps, state predecessor mismatch, cross-network objects and conflicting
@@ -122,7 +177,7 @@ the observation; callers cannot assert it.
 - search, ranking, manifest availability and gateway caches are projections,
   never ownership authority.
 
-## 6. Stable errors and vectors
+## 7. Stable errors and vectors
 
 Stable codes include `NATIVE_SEQUENCE_CONFLICT`,
 `NATIVE_PREDECESSOR_MISMATCH`, `NATIVE_POLICY_UNAUTHORIZED`,
