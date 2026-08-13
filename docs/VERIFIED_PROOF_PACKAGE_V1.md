@@ -190,10 +190,17 @@ dispute and reservation identities, reviewer, outcome, allocation and frozen
 resolution time. The TaskEscrow terminal reference remains separately bound to
 the actual contract transition.
 
-Signer revocation has a canonical `revoked_unix_millis`. It invalidates an
-execution only when the revocation was effective at or before Receipt
-completion; a later rotation or revocation must not invalidate historical
-proofs. Legacy revoked records without an effective time fail closed.
+Signer revocation is a deterministic
+`tos.atos.execution-signer-revocation.v2` tuple keyed by authorization ID.
+The canonical `revoked_unix_millis` is the independently observed finalized
+TOS block time of that commitment. Verifiers MUST query this tuple even when
+the protocol replica has no local signer row. It invalidates an execution only
+when effective at or before Receipt completion; later rotation/revocation does
+not invalidate historical proofs. Missing canonical absence, finality or block
+time fails closed. Principal bindings follow the equivalent
+`tos.atos.principal-binding-revocation.v2` rule keyed by the exact historical
+principal/agent/binding-digest tuple; an old binding anchor alone never proves
+current ACTIVE state.
 
 `quote.canonical_cbor` and `escrow.canonical_cbor` are respectively the exact
 Phase 4B-1 Quote and Phase 4B-2 reservation values. The verifier recomputes
@@ -279,4 +286,9 @@ read-only; proof production never retries a chain mutation.
 
 Normative positive and negative vectors live in
 `test-vectors/tos_verified_v1.json` and freeze canonical CBOR, digest, signer,
-network, checkpoint and terminal-outcome mutations.
+network, checkpoint and terminal-outcome mutations. Every negative vector is
+executable: `operation` is an RFC 6901 path-bound `replace` over the decoded
+package model with a typed replacement value; `expected_code` and
+`expected_field` are the mandatory verifier result after canonical
+re-encoding. A name without an operation and expected result is not a
+conformance vector.

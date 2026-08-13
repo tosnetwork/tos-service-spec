@@ -516,11 +516,17 @@ Execution signer authorization
 Signed Execution Receipt
 ```
 
-Revocation records carry an immutable `revoked_unix_millis`. Resolution is as
-of `at_unix_millis`: a revocation effective at or before Receipt completion
+Verified revocations use deterministic RFC 8949 tuples
+`tos.atos.execution-signer-revocation.v2` and
+`tos.atos.principal-binding-revocation.v2`. Their effective
+`revoked_unix_millis` is the independently observed finalized TOS block time
+of the revocation commitment, never a gateway clock or local projection.
+Every resolver, including an empty replica, MUST resolve both the historical
+authorization/binding and its deterministic revocation tuple. Typed canonical
+absence is the only evidence that the revocation does not exist. Resolution is
+as of `at_unix_millis`: a revocation effective at or before Receipt completion
 rejects the proof, while a later revocation does not retroactively invalidate
-historical execution. A missing effective time on a revoked legacy record
-fails closed.
+historical execution. Missing finality or block time fails closed.
 
 The signer may be a provider key, Edge runtime, `tos-ai` worker/runtime identity, enterprise delegate or audited adapter. The signer authorization MUST be scoped to provider/capability and SHOULD bind version and validity interval.
 

@@ -1893,7 +1893,8 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
-✅ **Status: implementation-complete and locally accepted on
+🟡 **Status: implementation complete; renewed canonical-current-state and
+empty-replica acceptance is in progress on
 `agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
 projections are not a portable proof. Phase 4C freezes and implements the
 `tos_verified_v1` package, durable multi-replica proof projection and a
