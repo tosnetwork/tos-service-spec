@@ -2019,7 +2019,8 @@ Implementation and acceptance ledger (2026-08-13):
 
 - ✅ **4D.1 — Frozen admission contract.** Strict manifest version, deployment
   identity, trust pins, evidence signature domain and failure semantics are
-  normative; unknown/trailing fields and unsafe local paths fail closed.
+  normative; duplicate/unknown/trailing fields, unsafe identifiers and any
+  non-root-controlled production manifest path fail closed.
 - ✅ **4D.2 — Real readiness boundaries.** ATOS `/readyz` checks PostgreSQL and
   `tos-protocol`; protocol `/readyz`/`/healthz` checks live authority,
   TaskEscrow economic driver and configured Worker. `/livez` remains liveness
@@ -2027,16 +2028,20 @@ Implementation and acceptance ledger (2026-08-13):
 - ✅ **4D.3 — Topology and reviewed-code enforcement.** The gate requires two
   ATOS replicas, two protocol replicas, at least three independently operated
   chain endpoints with strict-majority quorum, explicit network/domain pins,
-  and non-empty reviewed Agent/TaskEscrow TVM code-hash allowlists. The proof's
-  TaskEscrow hash must be in the deployment allowlist.
+  distinct normalized network origins, pinned readiness response digests and
+  non-empty reviewed Agent/TaskEscrow TVM code-hash allowlists. The observer
+  must belong to a declared protocol origin and the proof's TaskEscrow hash
+  must be in the deployment allowlist.
 - ✅ **4D.4 — Production key-custody gate.** Quote, Receipt, TaskEscrow and
   chain-action purposes are separated; only HSM/KMS/Vault backends pass; live
   health must exactly bind purpose/backend/key identity; file/software custody
   is rejected.
 - ✅ **4D.5 — Operations and disaster-recovery evidence.** Monitoring signals
-  use exact Prometheus metric-name matching. Reconciliation, key ceremonies,
-  backups, restore drills and incident drills require current, read-only,
-  SHA-256-pinned and Ed25519-signed evidence.
+  use exact Prometheus metric-name matching and non-weakenable health/lag/error
+  thresholds. Reconciliation, key ceremonies, backups, restore drills and
+  incident drills require current, read-only, deployment/network/domain-bound,
+  strict-JSON, SHA-256-pinned and Ed25519-signed `passed` evidence; per-class
+  freshness ceilings cannot be relaxed by the manifest.
 - ✅ **4D.6 — Complete independent proof gate.** The completed Phase 4C
   external-client/localnet transaction and kill/restart matrix supplies the
   canonical proof; the new gate re-pins its bytes, code hash, network and
@@ -2044,7 +2049,9 @@ Implementation and acceptance ledger (2026-08-13):
 - ✅ **4D.7 — Fail-closed adversarial tests.** Tests cover unavailable quorum
   dependencies, non-diverse endpoints, redirects, insecure remote URLs,
   incorrect custody identity/backend, stale/tampered/writable evidence,
-  monitoring substring spoofing, invalid proof and reviewed-hash mismatch.
+  equivalent-origin aliases, local-relaxation escape, duplicate JSON keys,
+  signature delimiter and cross-deployment/purpose replay, monitoring
+  threshold/substring spoofing, invalid proof and reviewed-hash mismatch.
 - ✅ **4D.8 — Reproducible operator command.** `tos-phase4d-gate` uses an
   owner-only read-only observer token, has no publisher/mutation dependency,
   emits a machine-readable report and exits non-zero on any failed check.

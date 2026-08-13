@@ -23,10 +23,11 @@ external client -> Verified Quote -> finalized TaskEscrow reservation
 
 `tos-phase4d-gate` consumes a strict JSON manifest with version
 `tos_phase4d_production_gate_v1`. Unknown fields, trailing values, symlinks,
-relative paths and group/world-writable manifests are rejected.
+duplicate keys, relative paths and group/world-writable manifests are rejected.
 
 The manifest binds:
 
+- a unique deployment identity, network and gateway trust domain;
 - at least two independently addressable ATOS replicas;
 - at least two independently addressable `tos-protocol` replicas;
 - at least three TOS observation endpoints, a strict-majority quorum, and a
@@ -40,6 +41,11 @@ The manifest binds:
 
 Remote health and monitoring URLs MUST use HTTPS. Plain HTTP is accepted only
 for an explicit loopback local-acceptance run. Redirects are rejected.
+Production replicas within each tier MUST use distinct URL origins, rather than
+different paths on one host. Every readiness response is pinned by SHA-256, and
+the independent observer URL MUST share an origin with one declared protocol
+replica. The production manifest and every parent path component are
+root-owned, non-symlink and non-group/world-writable.
 
 ## 3. Readiness
 
@@ -87,12 +93,23 @@ over:
 
 ```text
 "TOS-PHASE4D-EVIDENCE-V1" || NUL
+|| deployment_id || NUL
+|| network || NUL
+|| gateway_domain || NUL
 || subject || NUL
 || sha256 || NUL
 || completed_unix_decimal || NUL
 || maximum_age_seconds_decimal || NUL
 || signer_id
 ```
+
+The evidence file itself is strict JSON `tos_phase4d_evidence_v1` and must
+repeat the same subject, deployment, network, domain and completion time with
+`result="passed"`. Arbitrary or cross-environment signed bytes do not count as
+an operational result. Maximum freshness is also capped by evidence class:
+24 hours for reconciliation, 48 hours for backup, 90 days for custody and
+restore drills, and 180 days for incident drills; a manifest may tighten but
+cannot relax these bounds.
 
 The production trust process controls which evidence signer public key is
 placed in the root-owned manifest. A stale, future-dated, writable, replaced,
@@ -107,6 +124,17 @@ duplicate samples, NaN and infinity fail closed. Operators MUST include
 readiness, reconciliation error/lag, proof reconciliation lag,
 publisher/journal failure, quorum/finality lag and settlement failure signals
 appropriate to the deployment.
+
+The gate itself freezes a non-weakenable minimum baseline:
+
+- `atos_reconciler_healthy == 1`;
+- `atos_protocol_quorum_healthy == 1`;
+- `atos_proof_reconciliation_lag_seconds <= 30`;
+- `atos_verified_unresolved_operations <= 0`;
+- `atos_settlement_failures <= 0`.
+
+The manifest may add stricter or additional signals, but cannot remove or
+weaken these five.
 
 The gate pins the proof file digest, requires its TaskEscrow code hash to occur
 in the reviewed deployment allowlist, then runs the normal independent
