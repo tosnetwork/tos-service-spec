@@ -2127,8 +2127,10 @@ The required implementation order is:
 
 Completion ledger:
 
-- ⬜ Phase 5A — Native protocol, identifier and signature freeze;
-- ⬜ Phase 5B — canonical Native Agent and Capability registry;
+- ✅ Phase 5A — Native protocol, identifier and signature freeze;
+- ✅ Phase 5B — canonical Native Agent and Capability registry (local acceptance
+  evidence: `PHASE5B_LOCAL_ACCEPTANCE.md`; production deployment remains a
+  separate operational gate);
 - ⬜ Phase 5C — independent indexer, resolver and discovery;
 - ⬜ Phase 5D — wallet authorization and short-lived PoP session;
 - ⬜ Phase 5E — Native transaction path and portable proof;
@@ -2203,6 +2205,12 @@ commitments.
 **Goal:** make finalized TOS state—not a gateway database—the canonical source
 for global Agent identity, delegation and Capability/version ownership.
 
+Phase 5B begins with the pre-deployment V1 execution-bound erratum in
+`NATIVE_CAPABILITY_REGISTRY_V1.md` §2.1. It preserves Phase 5A domains, IDs and
+digest algorithms while making every canonical action and accumulated state
+representable under finite TOS message/account limits. These limits are
+consensus semantics and are tested at their exact boundaries.
+
 Implement:
 
 - wallet-controlled Agent bootstrap through any compatible submission path;
@@ -2256,6 +2264,11 @@ only the bounded signed action.
   registry explicitly grants both disjoint purposes;
 - gateway shutdown or database deletion does not remove canonical identity or
   ownership.
+
+The reference implementation passed this matrix on the real three-validator
+localnet recorded in `PHASE5B_LOCAL_ACCEPTANCE.md`. This is implementation and
+local acceptance, not a claim that a production network, HSM deployment or
+operator runbook has been certified.
 
 ### 9.3 Phase 5C — Independent indexer, resolver and decentralized discovery
 

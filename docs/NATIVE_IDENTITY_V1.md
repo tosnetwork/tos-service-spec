@@ -34,6 +34,11 @@ recovery_key_ids[]          sorted unique subset of controller key IDs
 recovery_timelock_seconds   uint64
 ```
 
+Canonical ControllerPolicy CBOR is limited to 12288 bytes and each controller
+has at most 16 purposes. Delegations contain at most 16 purposes and 32
+resources. The complete action/payload and accumulated-state limits are frozen
+in `NATIVE_CAPABILITY_REGISTRY_V1.md` §2.1.
+
 The normal threshold cannot exceed total controller weight. The recovery
 threshold cannot exceed the total weight of `recovery_key_ids`; every recovery
 key carries the `recovery` purpose. The same public-key bytes MUST NOT occur
@@ -66,8 +71,10 @@ Recovery is two-step. `initiate_recovery` records the proposed policy digest
 and `execute_after_unix_seconds`; it is authorized using `recovery_threshold`.
 `recover_agent` names the exact finalized initiation action and canonical TOS
 transaction reference, and that initiation state must be the recovery's direct
-predecessor. The initiation time is the finalized TOS block time and
-execute-after equals that time plus the old policy's timelock. Gateway clocks
+predecessor. The initiation time is the finalized TOS block time. The offline
+signer chooses the exact `execute_after_unix_seconds` committed by both actions
+and states; the Registry contract requires it to be greater than or equal to
+the actual initiation block time plus the old policy's timelock. Gateway clocks
 and transaction submission time are not authority.
 
 `generation` changes only when recovery executes. Ordinary actions keep the
@@ -79,8 +86,9 @@ Skipped, duplicate, forked or stale predecessors fail closed.
 Delegation payloads bind delegate key, purposes, resources, validity interval,
 maximum chain checkpoint staleness and canonical action identity. They cannot
 broaden the delegator's authority, and are valid only while the referenced key
-and purposes remain in the current policy. Recovery and permanent revocation
-invalidate prior-generation delegations. Recovery binds the old generation, new policy,
+and purposes remain in the current policy. Recovery, controller-policy rotation
+and permanent revocation invalidate prior-policy or prior-generation
+delegations. Recovery binds the old generation, new policy,
 recovery authorization and timelock. Permanent revocation produces a tombstone;
 no later action can revive that Agent ID.
 

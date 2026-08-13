@@ -949,3 +949,22 @@ TOS Network owns:
 ```
 
 This is the intended implementation interpretation of ATOS Architecture v0.2.
+
+## 26. Native Registry Service (Phase 5B)
+
+`NativeRegistryService` exposes `SubmitNativeRegistryAction`,
+`ResolveNativeRegistryAction` and `ResolveNativeRegistryState` using the
+messages in `native_registry.proto`. The full normative authority, envelope,
+durability, typed-absence and exact-resolution contract is
+`NATIVE_REGISTRY_RPC_V1.md`.
+
+Submission accepts only an already signed bounded action. `RequestContext`
+identifies the transport operation but is not part of Native authority.
+Resolved policy/state/reference fields supplied by a caller are equality
+assertions and never selectors. Both read methods re-observe strict-majority
+finalized TOS state and replay the complete predecessor chain; neither method
+has access to a publisher mutation capability.
+
+Consensus execution framing is frozen separately in
+`NATIVE_REGISTRY_TVM_V1.md`; RPC implementations reject a missing or
+mismatched `NativeRegistryTVMExecutionV1` before publisher access.

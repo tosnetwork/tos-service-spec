@@ -2,6 +2,13 @@
 
 Status: **normative Phase 5A contract**
 
+Pre-deployment erratum (Phase 5B): V1 domains, identifiers, field meanings and
+digest algorithms are unchanged, but the executable size/count limits in
+§2.1 and §4 are normative. The original unbounded repeated fields admitted
+canonical actions larger than a TOS external message and append-only states
+that could eventually exceed account-state limits. No Native V1 registry was
+deployed before this correction.
+
 ## 1. Scope
 
 This freezes every Phase 5B authorization input: typed payloads, action-purpose
@@ -26,6 +33,38 @@ digest uses `tos.native.registry-payload.<hyphenated-kind>.v1`. Both bytes and
 digest are in the signed action; a digest without the typed bytes is invalid.
 The 32-byte nonce is stable across exact retries. Changed semantics under the
 same action identity are an idempotency conflict.
+
+### 2.1 Consensus execution limits
+
+These are semantic V1 limits and MUST be enforced before signing, publishing,
+contract execution and independent replay:
+
+```text
+canonical RegistryAction CBOR             <= 24576 bytes
+canonical typed payload CBOR               <= 16384 bytes
+canonical ControllerPolicy CBOR             <= 12288 bytes
+purposes per controller                     <= 16
+delegation purposes                         <= 16
+delegation resources                        <= 32
+manifest retrieval locations                <= 16
+Capability endpoint references              <= 32
+Quote signer key IDs                        <= 32
+Receipt signer key IDs                      <= 32
+active delegation action digests/generation <= 128
+immutable Capability versions/lineage       <= 256
+```
+
+The complete Phase 5B execution envelope, including action, authorization sets
+and framing, MUST be at most 49152 bytes before BOC encoding. Implementations
+MUST additionally prove that the resulting external message is within the
+active TOS `max_ext_msg_size`, `max_msg_bits`, `max_msg_cells` and depth limits;
+a configuration increase never relaxes these semantic limits. Oversize input
+is `NATIVE_CANONICAL_ENCODING_INVALID`, never a transport retry.
+
+The consensus-safe dual representation and signature binding are frozen in
+`NATIVE_REGISTRY_TVM_V1.md`. A relayer MUST NOT synthesize the typed TVM action
+from an already signed CBOR action: controllers sign the joint execution
+commitment before the relayer receives it.
 
 Kinds and required authorization are:
 
@@ -92,7 +131,10 @@ resolver observation lag does not exceed `max_staleness_checkpoints`.
 Recovery uses finalized TOS block Unix seconds. Initiation records a pending
 recovery. Execution must reference that exact finalized initiation transaction,
 use its exact proposal and execute-after value, satisfy the old policy recovery
-threshold, and occur no earlier than execute-after. The finalized initiation
+threshold, and occur no earlier than execute-after. The Registry contract MUST
+reject an execute-after earlier than the initiation's canonical TOS block time
+plus the old policy's recovery timelock. A later signer-selected not-before time
+is valid and remains part of the deterministic signed state. The finalized initiation
 MUST be the recovery action's immediate predecessor state; an older, parallel
 or superseded initiation cannot be used. Recovery increments
 generation and starts sequence 1; ordinary actions retain generation and use
@@ -109,8 +151,11 @@ the immutable bootstrap nonce/policy digest, the exact current controller-policy
 digest/bytes, ordered delegation action digests and exact pending-recovery
 tuple. Capability state additionally binds
 the immutable bootstrap owner/nonce, current owner and the sorted immutable
-version entries with version revocation state. Inapplicable fields MUST have
-their protobuf/JSON zero value.
+version entries with version revocation state. Repeated state fields are
+always encoded as canonical CBOR arrays; a zero-entry collection is `[]`,
+never CBOR `null`. Decoders MUST normalize language-specific nil collections
+to empty arrays before validation, hashing, TVM-state construction or public
+transport. Other inapplicable fields MUST have their protobuf/JSON zero value.
 
 Both Agent and Capability IDs are recomputed from the immutable bootstrap
 fields whenever state is validated. The next state is deterministically derived from the predecessor state and the
@@ -120,7 +165,12 @@ nonzero state digest. Bootstrap IDs are recomputed, an existing version cannot
 be overwritten, transfer increments ownership generation, and a lineage or
 Agent tombstone makes every later transition fail with
 `NATIVE_PERMANENTLY_REVOKED`. Recovery clears old delegations and pending
-recovery state.
+recovery state. Controller-policy rotation also clears every delegation action
+digest authorized by the previous policy. A generation cannot contain more
+than 128 active delegation digests. A Capability lineage cannot contain more
+than 256 immutable versions; the limit is checked before mutation. Reaching a
+frozen limit is an explicit protocol error and MUST NOT yield a partially
+updated state.
 
 Controller policies needed to replay authority are canonical CBOR embedded in
 registration, rotation, recovery-initiation and transfer-acceptance payloads.
@@ -163,6 +213,11 @@ The decimal workchain prefix inside `account` MUST be the shortest canonical
 base-10 rendering of the separate signed `workchain` field. Leading zeroes,
 `-0` and a prefix/field mismatch are rejected.
 
+The enrolled publisher persists the exact signed external wallet-message BOC
+and its SHA-256 digest before broadcast. Recovery resubmits only those
+byte-identical bytes; it never requests a second signature or constructs a
+second wallet transaction semantic.
+
 ## 6. Index/reorg rules
 
 - order observations by canonical TOS inclusion order, never arrival time;
@@ -186,5 +241,9 @@ Stable codes include `NATIVE_SEQUENCE_CONFLICT`,
 `NATIVE_FINALITY_UNAVAILABLE` and the identifier/canonicalization errors.
 
 `test-vectors/native_registry_v1.json` contains executable positive and
-field-level negative operations with exact expected code/field. Both the Go
-implementation and independent verifier execute them.
+field-level negative operations with exact expected code/field. It also freezes
+canonical payload, Action and complete next-state bytes/digests for every
+Action kind, including both Capability revocation scopes. Both the Go
+implementation and the independent Python deterministic-CBOR implementation
+execute all mutations and all transition vectors; neither generates expected
+values at test runtime.

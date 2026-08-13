@@ -138,4 +138,48 @@ def execute(vector):
 for vector in V["negative"]:
     actual=execute(vector);expected=(vector["expected_code"],vector["expected_field"])
     assert actual==expected,(vector["name"],actual,expected)
-print(f"native_registry_v1 vectors: VALID ({len(V['negative'])} negative mutations executed)")
+
+EMPTY_RECOVERY={"initiation_action_digest":"","new_policy_digest":"","new_policy_cbor_base64url":"","execute_after_unix_seconds":0}
+states={}
+kinds=set()
+for vector in V["transition_vectors"]:
+    action=vector["action"];payload=canonical_decode(unb64u(vector["payload_cbor_base64url"]));kind=action["kind"]
+    assert action["payload_cbor_base64url"]==vector["payload_cbor_base64url"]
+    assert action["payload_digest"]==vector["payload_digest"]==digest("tos.native.registry-payload."+kind.replace("_","-")+".v1",payload)
+    action_bytes=cbor(action);assert base64.b64encode(action_bytes).decode()==vector["action_cbor_base64"]
+    assert digest(V["domains"]["registry_action"],action)==vector["action_digest"]
+    expected=vector["state"]
+    assert base64.b64encode(cbor(expected)).decode()==vector["state_cbor_base64"]
+    assert digest(V["domains"]["registry_state"],expected)==vector["state_digest"]
+    previous=copy.deepcopy(states.get(vector["previous_state_digest"]))
+    if previous is None:
+        if kind=="register_agent":
+            derived={"version":action["version"],"network":action["network"],"object_kind":"agent","agent_id":action["agent_id"],"capability_id":"","generation":1,"sequence":1,"predecessor_state_digest":"","last_action_digest":vector["action_digest"],"current_policy_digest":payload["initial_policy_digest"],"current_policy_cbor_base64url":payload["initial_policy_cbor_base64url"],"owner_agent_id":"","capability_bootstrap_owner_agent_id":"","capability_nonce_base64url":"","capability_versions":[],"delegation_action_digests":[],"pending_recovery":copy.deepcopy(EMPTY_RECOVERY),"tombstoned":False,"agent_nonce_base64url":payload["object_nonce_base64url"],"agent_bootstrap_policy_digest":payload["initial_policy_digest"]}
+        elif kind=="register_capability":
+            owner=payload["version"]["owner_agent_id"]
+            derived={"version":action["version"],"network":action["network"],"object_kind":"capability","agent_id":"","capability_id":action["capability_id"],"generation":1,"sequence":1,"predecessor_state_digest":"","last_action_digest":vector["action_digest"],"current_policy_digest":"","current_policy_cbor_base64url":"","owner_agent_id":owner,"capability_bootstrap_owner_agent_id":owner,"capability_nonce_base64url":payload["object_nonce_base64url"],"capability_versions":[{"version":action["capability_version"],"payload_digest":action["payload_digest"],"revoked":False}],"delegation_action_digests":[],"pending_recovery":copy.deepcopy(EMPTY_RECOVERY),"tombstoned":False,"agent_nonce_base64url":"","agent_bootstrap_policy_digest":""}
+        else: raise AssertionError((vector["name"],"illegal bootstrap"))
+    else:
+        derived=copy.deepcopy(previous);derived["generation"]=action["generation"];derived["sequence"]=action["sequence"];derived["predecessor_state_digest"]=vector["previous_state_digest"];derived["last_action_digest"]=vector["action_digest"]
+        if kind not in ("initiate_recovery","recover_agent"):derived["pending_recovery"]=copy.deepcopy(EMPTY_RECOVERY)
+        if kind=="update_agent_policy":
+            derived["current_policy_digest"]=payload["new_policy_digest"];derived["current_policy_cbor_base64url"]=payload["new_policy_cbor_base64url"];derived["delegation_action_digests"]=[]
+        elif kind=="delegate_agent":derived["delegation_action_digests"]=sorted(derived["delegation_action_digests"]+[vector["action_digest"]])
+        elif kind=="initiate_recovery":derived["pending_recovery"]={"initiation_action_digest":vector["action_digest"],"new_policy_digest":payload["new_policy_digest"],"new_policy_cbor_base64url":payload["new_policy_cbor_base64url"],"execute_after_unix_seconds":payload["execute_after_unix_seconds"]}
+        elif kind=="recover_agent":
+            pending=previous["pending_recovery"];assert vector["observed_unix_seconds"]>=pending["execute_after_unix_seconds"]
+            derived["current_policy_digest"]=pending["new_policy_digest"];derived["current_policy_cbor_base64url"]=pending["new_policy_cbor_base64url"];derived["pending_recovery"]=copy.deepcopy(EMPTY_RECOVERY);derived["delegation_action_digests"]=[]
+        elif kind=="revoke_agent":derived["tombstoned"]=True;derived["pending_recovery"]=copy.deepcopy(EMPTY_RECOVERY);derived["delegation_action_digests"]=[]
+        elif kind=="update_capability":
+            derived["capability_versions"].append({"version":action["capability_version"],"payload_digest":action["payload_digest"],"revoked":False});derived["capability_versions"].sort(key=lambda x:x["version"])
+        elif kind=="transfer_capability":derived["owner_agent_id"]=payload["new_owner_agent_id"]
+        elif kind=="revoke_capability":
+            if payload["scope"]=="lineage":derived["tombstoned"]=True
+            else:
+                match=[x for x in derived["capability_versions"] if x["version"]==action["capability_version"]];assert len(match)==1 and not match[0]["revoked"];match[0]["revoked"]=True
+        else: raise AssertionError((vector["name"],"unsupported transition"))
+    assert derived==expected,(vector["name"],derived,expected)
+    states[vector["state_digest"]]=expected;kinds.add(kind)
+required={"register_agent","update_agent_policy","delegate_agent","initiate_recovery","recover_agent","revoke_agent","register_capability","update_capability","transfer_capability","revoke_capability"}
+assert kinds==required,(kinds,required)
+print(f"native_registry_v1 vectors: VALID ({len(V['negative'])} negative mutations, {len(V['transition_vectors'])} transitions independently executed)")
