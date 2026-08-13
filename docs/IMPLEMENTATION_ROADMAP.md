@@ -1931,9 +1931,10 @@ Current implementation/acceptance ledger (2026-08-13):
   business tuples, allowing a genuinely empty tos-protocol bbolt replica with
   no identity seed to reconstruct the exact ActionIDs and live-verify a package;
 - ✅ canonical signer and principal-binding revocations are re-resolved by an
-  empty protocol replica; exact finalized transaction time provides immutable
-  as-of semantics, so pre-revocation execution remains valid while execution at
-  or after revocation fails closed;
+  empty protocol replica; signer validity uses the later of signed Receipt
+  completion and exact finalized `verified-receipt` transaction time, so a
+  revoked/expired signer cannot backdate a newly anchored Receipt while a
+  revocation strictly after that authority-bounded time remains historical;
 - ✅ revoked v2 principal/Agent tuples are permanent canonical tombstones;
   same-Agent reuse and A→B→A reuse fail before mutation instead of being
   silently shadowed by an older revocation; independently cached stale replicas

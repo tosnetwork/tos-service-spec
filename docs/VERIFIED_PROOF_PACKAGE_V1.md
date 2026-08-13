@@ -164,16 +164,22 @@ A verifier MUST:
    provider, Capability version, Quote, Job and escrow;
 5. live-resolve identity, ownership/manifest, Quote, reservation, Receipt,
    outcome and Proof-of-Service references through the read-only observer;
-6. resolve signer authorization at Receipt completion, comparing exact key,
-   Capability version, reference and validity interval and rejecting rotation
-   or revocation effective at/before execution;
+6. live-resolve the exact finalized transaction `utime` of the
+   `verified-receipt` commitment, set the effective Receipt time to the later
+   of that authority time and the signed completion time, then resolve signer
+   authorization at that effective time, comparing exact key, Capability
+   version, reference and validity interval and rejecting rotation or
+   revocation effective at/before it;
 7. verify the Ed25519 Receipt signature locally;
 8. match terminal TaskEscrow state, charge/refund and outcome type to the
    original contract and reservation;
 9. require nonzero, sufficiently final, non-regressing checkpoints.
 
 Verification time is observation metadata only and cannot be caller-selected
-to make an invalid signer valid.
+to make an invalid signer valid. The authority Receipt time is mandatory and
+must not exceed the execution or escrow deadline. A Provider-signed completion
+time alone is never accepted as proof that the Receipt existed before a
+revocation, authorization expiry or deadline.
 
 Every field repeated outside canonical Quote, reservation or Receipt bytes is
 an equality assertion. The verifier compares requester Agent identity, all
@@ -195,10 +201,12 @@ Signer revocation is a deterministic
 The canonical `revoked_unix_millis` is the independently observed exact
 transaction `utime` of that finalized commitment, not the later observation
 high-water time. Verifiers MUST query this tuple even when
-the protocol replica has no local signer row. It invalidates an execution only
-when effective at or before Receipt completion; later rotation/revocation does
-not invalidate historical proofs. Missing canonical absence, finality or block
-time fails closed. Principal bindings follow the equivalent
+the protocol replica has no local signer row. It invalidates an execution when
+effective at or before the later of signed Receipt completion and the exact
+finalized `verified-receipt` transaction `utime`; only revocation after that
+authority-bounded time preserves the historical proof. Missing canonical
+absence, finality or either required block time fails closed. Principal
+bindings follow the equivalent
 `tos.atos.principal-binding-revocation.v2` rule keyed by the exact historical
 principal/agent/binding-digest tuple; an old binding anchor alone never proves
 current ACTIVE state.

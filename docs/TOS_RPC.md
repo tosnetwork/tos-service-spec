@@ -538,9 +538,12 @@ projection, or the observation's later chain high-water time.
 Every resolver, including an empty replica, MUST resolve both the historical
 authorization/binding and its deterministic revocation tuple. Typed canonical
 absence is the only evidence that the revocation does not exist. Resolution is
-as of `at_unix_millis`: a revocation effective at or before Receipt completion
-rejects the proof, while a later revocation does not retroactively invalidate
-historical execution. Missing finality or block time fails closed.
+as of `at_unix_millis`, which for portable proof verification MUST be the later
+of signed Receipt completion and the exact finalized transaction `utime`
+returned by `ResolveExecutionReceipt` for the `verified-receipt` commitment.
+A revocation effective at or before that authority-bounded time rejects the
+proof, while a later revocation does not retroactively invalidate historical
+execution. Missing finality or block time fails closed.
 
 The signer may be a provider key, Edge runtime, `tos-ai` worker/runtime identity, enterprise delegate or audited adapter. The signer authorization MUST be scoped to provider/capability and SHOULD bind version and validity interval.
 
