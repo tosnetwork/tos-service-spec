@@ -192,8 +192,9 @@ the actual contract transition.
 
 Signer revocation is a deterministic
 `tos.atos.execution-signer-revocation.v2` tuple keyed by authorization ID.
-The canonical `revoked_unix_millis` is the independently observed finalized
-TOS block time of that commitment. Verifiers MUST query this tuple even when
+The canonical `revoked_unix_millis` is the independently observed exact
+transaction `utime` of that finalized commitment, not the later observation
+high-water time. Verifiers MUST query this tuple even when
 the protocol replica has no local signer row. It invalidates an execution only
 when effective at or before Receipt completion; later rotation/revocation does
 not invalidate historical proofs. Missing canonical absence, finality or block

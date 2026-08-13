@@ -91,6 +91,24 @@ digest. No identity seed, database copy, publisher mutation or cached finality
 result was used. This closes the genuine empty-replica recovery item; loss of
 the live authority still remains a fail-closed `AUTHORITY_UNAVAILABLE` result.
 
+The renewed current-state matrix then committed and revoked isolated signer
+authorization and principal-binding tuples on the same real three-validator
+chain. A newly constructed empty-bbolt replica independently derived the exact
+revocation transaction `utime`. It rejected signer use at and after that time,
+accepted execution strictly before it, and reported the historical principal
+binding as revoked rather than synthesizing `ACTIVE`. This proves that an old
+anchor's existence is not confused with current authorization.
+
+Finally, two separately configured ATOS OS processes used the shared fresh
+PostgreSQL database, separate authentication state, and independent protocol
+connections; one protocol connection used the empty-bbolt replica. Real REST
+GET and POST proof-package calls returned HTTP 200 from both processes with the
+same package ID, digest and 9,028-byte canonical CBOR. Both ATOS processes and
+the empty protocol process were terminated and reconstructed before replay.
+PostgreSQL retained exactly one `completed` proof operation, and the standalone
+CLI returned `VALID` after protocol restart. No proof-generation path invoked a
+publisher or economic mutation.
+
 ## Scope boundary
 
 This closes the Phase 4C local real-process checkpoint gate. It does not claim

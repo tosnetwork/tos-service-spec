@@ -1893,8 +1893,7 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
-🟡 **Status: implementation complete; renewed canonical-current-state and
-empty-replica acceptance is in progress on
+✅ **Status: implementation complete and locally accepted on
 `agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
 projections are not a portable proof. Phase 4C freezes and implements the
 `tos_verified_v1` package, durable multi-replica proof projection and a
@@ -1907,7 +1906,7 @@ quorum re-observation, signer verification at execution time, REST/MCP/A2A
 parity, fresh PostgreSQL and real process-boundary tests. Production
 multi-validator/HSM deployment remains the Phase 4D gate.
 
-Current implementation/acceptance ledger (2026-08-12):
+Current implementation/acceptance ledger (2026-08-13):
 
 - ✅ frozen deterministic CBOR package, domain separation, positive/negative
   vectors, exact atomic money and structured verifier failures;
@@ -1931,6 +1930,14 @@ Current implementation/acceptance ledger (2026-08-12):
 - ✅ identity and principal-binding anchors use privacy-safe deterministic CBOR
   business tuples, allowing a genuinely empty tos-protocol bbolt replica with
   no identity seed to reconstruct the exact ActionIDs and live-verify a package;
+- ✅ canonical signer and principal-binding revocations are re-resolved by an
+  empty protocol replica; exact finalized transaction time provides immutable
+  as-of semantics, so pre-revocation execution remains valid while execution at
+  or after revocation fails closed;
+- ✅ two independently restarted ATOS processes, one backed by a restarted
+  empty-bbolt protocol replica, replayed the same requester-release package
+  through real REST GET and POST paths; both returned the identical 9,028-byte
+  CBOR and digest while PostgreSQL retained exactly one completed operation;
 - ⬜ production quorum/HSM deployment remains a Phase 4D acceptance gate.
 
 The renewed field-level adversarial vectors, time-qualified signer revocation,

@@ -519,8 +519,9 @@ Signed Execution Receipt
 Verified revocations use deterministic RFC 8949 tuples
 `tos.atos.execution-signer-revocation.v2` and
 `tos.atos.principal-binding-revocation.v2`. Their effective
-`revoked_unix_millis` is the independently observed finalized TOS block time
-of the revocation commitment, never a gateway clock or local projection.
+`revoked_unix_millis` is the independently observed exact transaction `utime`
+of the finalized revocation commitment, never a gateway clock, local
+projection, or the observation's later chain high-water time.
 Every resolver, including an empty replica, MUST resolve both the historical
 authorization/binding and its deterministic revocation tuple. Typed canonical
 absence is the only evidence that the revocation does not exist. Resolution is
