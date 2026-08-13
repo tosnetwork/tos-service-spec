@@ -295,6 +295,17 @@ pathname. Observer stdout/stderr, execution time and token-file input remain
 bounded. A changed or unavailable observer fails verification closed and can
 never fall back to offline acceptance.
 
+`network_id` and `gateway_domain` are verifier trust inputs, not values to
+learn from an untrusted package. Both the library and CLI MUST require explicit,
+non-empty expected network/domain pins before `VALID` is possible. The CLI MUST
+reject ambiguous simultaneous observer configurations. Its default RPC observer
+MUST use HTTPS for every non-loopback endpoint, reject URL userinfo, and accept
+plaintext HTTP only for explicit localhost/loopback development. Bearer-token
+files MUST be regular non-symlink files owned by the unprivileged verifier
+account with no group/world permissions. External observer JSON is exactly one
+strict response value; unknown fields, a second value or trailing junk fail
+closed.
+
 Normative positive and negative vectors live in
 `test-vectors/tos_verified_v1.json` and freeze canonical CBOR, digest, signer,
 network, checkpoint and terminal-outcome mutations. Every negative vector is

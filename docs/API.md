@@ -11,6 +11,10 @@
 > <read-only-rpc> --protocol-token-file <file> verify package.cbor`. The CLI
 > has no ATOS database access and its protocol observer exposes no mutation or
 > publisher operation.
+> `--network` and `--domain` are mandatory verifier-side trust pins; the CLI
+> never infers them from the package. Non-loopback `--protocol-url` values must
+> use HTTPS, and the token file must be service-owned mode `0600` (or stricter),
+> regular and non-symlink.
 > Deployments selecting `--observer-command` instead MUST also provide
 > `--observer-command-sha256 sha256:<hex>` and install that command as a
 > root-owned, non-writable executable under root-owned, non-writable path

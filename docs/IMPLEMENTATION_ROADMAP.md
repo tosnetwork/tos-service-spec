@@ -1944,6 +1944,10 @@ Current implementation/acceptance ledger (2026-08-13):
   observer command by root-owned path plus SHA-256, revalidating it per call and
   executing the verified descriptor on Linux so pathname substitution cannot
   forge live authority evidence;
+- ✅ verifier network/domain pins are mandatory in both library and CLI;
+  non-loopback RPC observation cannot downgrade below HTTPS, bearer-token files
+  are private regular files, and external observer JSON rejects unknown or
+  trailing values;
 - ✅ two independently restarted ATOS processes, one backed by a restarted
   empty-bbolt protocol replica, replayed the same requester-release package
   through real REST GET and POST paths; both returned the identical 9,028-byte
