@@ -4,99 +4,132 @@ Status: **normative Phase 5A contract**
 
 ## 1. Scope
 
-This document freezes the common action/event envelope and Capability lineage
-semantics consumed by Phase 5B. It does not implement registry mutation,
-indexing, wallet sessions or Native economics.
+This freezes every Phase 5B authorization input: typed payloads, action-purpose
+mapping, multisignature rules, state transitions, chain events and independently
+verified TOS observations. Phase 5B implements these semantics but MUST NOT
+invent or weaken them.
 
 ## 2. Registry action
 
-Domain: `tos.native.registry-action.v1`.
-
-The canonical V1 value contains every field, including empty inapplicable
-fields:
+Domain: `tos.native.registry-action.v1`. Every field is present:
 
 ```text
-version                    "tos_native_registry_v1"
-kind                       frozen action enum
-network                    NetworkDomain
-agent_id                   canonical controlling Agent
-capability_id              canonical Capability ID or empty for Agent action
-capability_version         exact SemVer when the action targets a version
-generation                 uint64, nonzero
-sequence                   uint64, nonzero within generation
-previous_event_digest      empty for sequence 1, required otherwise
-policy_digest              controller/ownership policy digest
-payload_digest             digest of the kind-specific canonical payload
-nonce_base64url            canonical 32-byte raw base64url
+version = "tos_native_registry_v1"; kind; NetworkDomain
+agent_id; capability_id; capability_version
+generation; sequence; previous_state_digest
+policy_digest; payload_digest; payload_cbor_base64url
+nonce_base64url
 ```
 
-Kinds are `register_agent`, `update_agent_policy`, `delegate_agent`,
-`recover_agent`, `revoke_agent`, `register_capability`, `update_capability`,
-`transfer_capability` and `revoke_capability`. Unknown kinds fail closed.
+Payload bytes are canonical CBOR, encoded as canonical raw base64url. Their
+digest uses `tos.native.registry-payload.<hyphenated-kind>.v1`. Both bytes and
+digest are in the signed action; a digest without the typed bytes is invalid.
+The 32-byte nonce is stable across exact retries. Changed semantics under the
+same action identity are an idempotency conflict.
 
-The nonce is stable across exact retries. Reusing the same semantic operation
-identity with changed fields is an idempotency conflict. Sequence and previous
-event establish an append-only chain; local insertion order is irrelevant.
+Kinds and required authorization are:
 
-## 3. Capability payload semantics
+| Kind | Required purpose and threshold | Typed payload |
+|---|---|---|
+| `register_agent` | new policy `agent_control`, normal threshold | object nonce, initial policy digest |
+| `update_agent_policy` | current `agent_control`, normal threshold | new policy digest |
+| `delegate_agent` | current `delegation`, normal threshold | delegate key, purposes/resources, checkpoint validity/staleness |
+| `initiate_recovery` | current recovery keys, recovery threshold | new policy digest, execute-after TOS time |
+| `recover_agent` | same recovery set and finalized initiation | new policy, initiation action/reference, execute-after |
+| `revoke_agent` | current `agent_control`, normal threshold | scope and reason |
+| `register_capability` | current owner `capability_control`, normal threshold | CapabilityVersionPayload |
+| `update_capability` | current owner `capability_control`, normal threshold | new immutable version payload |
+| `transfer_capability` | current owner and new owner each `capability_control` | both Agent IDs and new-owner policy digest |
+| `revoke_capability` | current owner `capability_control`, normal threshold | lineage/version scope and reason |
 
-The kind-specific payload schemas frozen before Phase 5B implementation bind:
+Signature arrays are strict key-ID order with no duplicates. Every signature
+binds its version, algorithm, key ID and complete action. Weight is counted once
+per unique key ID and unique public key. Unknown keys/purposes fail closed. A
+transfer is valid only when independently verified signature sets from the
+current-owner policy and the committed new-owner policy both satisfy threshold.
 
-- immutable Capability ID and exact version;
-- current owner Agent and ownership generation;
-- immutable manifest digest and content-addressed retrieval reference;
-- bounded endpoint references and provider-authorized recipient/encryption key;
-- purpose-separated Quote and Receipt signer references;
-- validity interval and predecessor;
-- transfer target/acceptance for ownership transfer;
-- revocation or version-supersession reason.
+## 3. Typed payloads
 
-Private inputs, outputs, proposals and bulk manifest bytes remain off-chain.
-Retrieval references are locations, never authority; fetched bytes must match
-the committed content digest.
+The protobuf messages in `native_registry.proto` and their same-named JSON/CBOR
+fields are normative. Unknown fields are rejected recursively.
 
-Transfer changes the owner, not the Capability ID or immutable historical
-versions. An update cannot mutate an old version. Revocation is permanent for
-the targeted lineage/version according to its payload and event order.
-
-## 4. Registry event
-
-Domain: `tos.native.registry-event.v1`.
+`CapabilityVersionPayload` binds owner Agent, manifest reference, endpoint
+commitments, recipient-key IDs, disjoint Quote/Receipt signer IDs, and nonzero
+finalized-checkpoint validity interval. The manifest reference contains:
 
 ```text
-version, kind, network
-action_digest
+digest; media_type = application/vnd.atos.native-capability+json
+size_bytes = 1..1048576; sorted unique retrieval locations
+```
+
+Locations are availability hints, never authority. Phase 5C applies URL/SSRF
+policy and accepts bytes only when size and digest match. Endpoint references
+are sorted by `(transport, endpoint_digest, recipient_key_id)` and bind endpoint
+semantics without placing credentials or private workload data on-chain.
+
+Delegation validity is evaluated against finalized TOS checkpoints. It is valid
+only within `[valid_from_checkpoint, valid_until_checkpoint)` and only while the
+resolver observation lag does not exceed `max_staleness_checkpoints`.
+
+Recovery uses finalized TOS block Unix seconds. Initiation records a pending
+recovery. Execution must reference that exact finalized initiation transaction,
+use its exact proposal and execute-after value, satisfy the old policy recovery
+threshold, and occur no earlier than execute-after. Recovery increments
+generation and starts sequence 1; ordinary actions retain generation and use
+previous sequence plus one. Permanent Agent tombstones cannot recover.
+
+## 4. Chain event versus network observation
+
+The chain-stored event domain is `tos.native.registry-event.v1`:
+
+```text
+version, kind, network, action_digest
 agent_id, capability_id, capability_version
-generation, sequence, previous_event_digest
-finalized_checkpoint, transaction_index, event_index
+generation, sequence, previous_state_digest, state_digest
 ```
 
-The event repeats the action identity and ordering tuple so an indexer can
-validate rather than trust transport metadata. `finalized_checkpoint` is
-nonzero. The event digest is recomputed from canonical CBOR. Block timestamp,
-RPC URL, gateway ID and local database cursor are not semantic event fields.
+It contains only values the registry contract can compute/store. An action
+predecessor is the prior contract `state_digest`, never a digest containing
+future transaction coordinates.
 
-## 5. Indexer contract boundary
+The separate observation domain is `tos.native.event-observation.v1` and binds:
 
-Phase 5C will freeze ingestion, cursor and rebuild APIs. Phase 5A freezes these
-minimum invariants now:
+```text
+event_digest; network/genesis
+workchain; account; logical_time; transaction_hash; event_index
+contract_code_hash
+finalized_checkpoint; finalized root/file hashes
+finalized block Unix seconds; inclusion_proof_digest
+```
 
-- order by canonical finalized position, never arrival time;
-- reject gaps, predecessor mismatch, cross-network objects and duplicate
-  logical positions with different digests;
+All hashes are nonzero canonical digests and checkpoint/logical time are
+nonzero. This tuple—not a shard-local transaction index, gateway row or RPC
+URL—identifies and proves inclusion of the real TOS transaction. Contract code
+hash is checked against the version allowlist. A quorum/finality adapter derives
+the observation; callers cannot assert it.
+
+## 5. Index/reorg rules
+
+- order observations by canonical TOS inclusion order, never arrival time;
+- reject gaps, state predecessor mismatch, cross-network objects and conflicting
+  events at one logical state transition;
 - exact replay is harmless;
-- retain enough finalized history to evaluate authority at a historical
-  transaction/Receipt boundary;
-- rollback above a reorg boundary and deterministically replay;
-- never present search ranking or manifest availability as ownership authority.
+- retain historical state and observations needed to verify authority at an
+  execution/Receipt boundary;
+- roll back observations/state above a reorg boundary and replay finalized
+  canonical history;
+- a checkpoint regression or unavailable quorum fails closed;
+- search, ranking, manifest availability and gateway caches are projections,
+  never ownership authority.
 
 ## 6. Stable errors and vectors
 
-Implementations expose stable classifications including
-`NATIVE_SEQUENCE_CONFLICT`, `NATIVE_PREDECESSOR_MISMATCH`,
-`NATIVE_POLICY_UNAUTHORIZED`, `NATIVE_PURPOSE_UNAUTHORIZED`,
+Stable codes include `NATIVE_SEQUENCE_CONFLICT`,
+`NATIVE_PREDECESSOR_MISMATCH`, `NATIVE_POLICY_UNAUTHORIZED`,
+`NATIVE_PURPOSE_UNAUTHORIZED`, `NATIVE_RECOVERY_TIMELOCK_PENDING`,
 `NATIVE_PERMANENTLY_REVOKED`, `NATIVE_STALE_AUTHORITY`,
-`NATIVE_FINALITY_UNAVAILABLE` and the identifier/canonicalization errors from
-`NATIVE_IDENTIFIERS_V1.md`.
+`NATIVE_FINALITY_UNAVAILABLE` and the identifier/canonicalization errors.
 
-The shared normative vectors are `test-vectors/native_registry_v1.json`.
+`test-vectors/native_registry_v1.json` contains executable positive and
+field-level negative operations with exact expected code/field. Both the Go
+implementation and independent verifier execute them.

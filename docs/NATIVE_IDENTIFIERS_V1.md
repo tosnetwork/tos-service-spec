@@ -13,12 +13,19 @@ All strings in this contract are exact ASCII. Implementations MUST reject
 Unicode lookalikes, leading/trailing whitespace, case aliases, percent escapes,
 path normalization, default-network inference and unknown critical versions.
 
+`key_id` is 1..128 ASCII bytes matching
+`[A-Za-z0-9][A-Za-z0-9._:-]{0,127}`. A purpose is 1..64 lower-case ASCII
+bytes matching `[a-z][a-z0-9_]{0,63}`. Ordered sets are strictly
+lexicographically sorted by UTF-8 bytes with no duplicates unless a field says
+otherwise. These rules are normative, not Go implementation details.
+
 ## 2. Network domain
 
 Every identifier bootstrap value includes this exact tuple:
 
 ```text
-network_id        ASCII lower-case [a-z0-9.-], 1..63 bytes
+network_id        1..63 ASCII bytes matching
+                  [a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?
 genesis_root_hash "sha256:" + 64 lower-case hexadecimal digits, not all zero
 genesis_file_hash "sha256:" + 64 lower-case hexadecimal digits, not all zero
 ```

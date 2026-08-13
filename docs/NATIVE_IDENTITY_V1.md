@@ -21,6 +21,7 @@ The canonical policy fields are:
 
 ```text
 threshold                   uint32, nonzero
+recovery_threshold          uint32, nonzero
 controllers[]               1..64, sorted strictly by key_id
   key_id                    ASCII stable key identifier
   algorithm                 "ed25519" in V1
@@ -31,7 +32,11 @@ recovery_key_ids[]          sorted unique subset of controller key IDs
 recovery_timelock_seconds   uint64
 ```
 
-The threshold cannot exceed total controller weight. V1 semantic action
+The normal threshold cannot exceed total controller weight. The recovery
+threshold cannot exceed the total weight of `recovery_key_ids`; every recovery
+key carries the `recovery` purpose. The same public-key bytes MUST NOT occur
+under two key IDs, so one physical key can never contribute weight twice.
+V1 semantic action
 signatures use Ed25519. TOS transaction authorization may use the TOS-native
 Schnorr transaction scheme; that outer transaction signature is not a
 substitute for this purpose-bounded semantic signature.
@@ -50,13 +55,22 @@ Identity actions use the registry action format in
 register_agent
 update_agent_policy
 delegate_agent
+initiate_recovery
 recover_agent
 revoke_agent
 ```
 
-`generation` changes only on recovery to a newly authorized control policy.
-`sequence` is monotonic within a generation. Sequence 1 has no previous-event
-digest; every later action names the immediately preceding finalized event.
+Recovery is two-step. `initiate_recovery` records the proposed policy digest
+and `execute_after_unix_seconds`; it is authorized using `recovery_threshold`.
+`recover_agent` names the exact finalized initiation action and canonical TOS
+transaction reference. The initiation time is the finalized TOS block time and
+execute-after equals that time plus the old policy's timelock. Gateway clocks
+and transaction submission time are not authority.
+
+`generation` changes only when recovery executes. Ordinary actions keep the
+generation and increment sequence. Recovery increments generation exactly once
+and starts sequence 1. Every non-bootstrap action binds the immediately prior
+on-chain `state_digest`, not a later finality wrapper.
 Skipped, duplicate, forked or stale predecessors fail closed.
 
 Delegation payloads bind delegate key, purposes, resources, validity interval,
@@ -67,13 +81,16 @@ no later action can revive that Agent ID.
 
 ## 4. Finalized ordering
 
-Canonical event order is the tuple:
+Canonical observation order is the tuple:
 
 ```text
-(finalized_checkpoint, transaction_index, event_index)
+(finalized_checkpoint, workchain, account, logical_time,
+ transaction_hash, event_index)
 ```
 
-All values are unsigned integers and the checkpoint is nonzero. A later
+The account, logical time and transaction hash are the canonical TOS
+transaction identity. The observation additionally binds contract code hash,
+masterchain root/file hashes and inclusion-proof digest. A later
 rotation/revocation affects authority only at its canonical event position.
 Earlier legitimate history remains verifiable. Two conflicting events at the
 same logical sequence are an integrity conflict until canonical finality
@@ -91,12 +108,16 @@ Registry action canonical bytes are hashed with SHA-256 and signed over:
 "TOS-NATIVE-SEMANTIC-SIGNATURE" || 0x00 ||
 uint16_be(len("tos.native.semantic-signature.v1")) ||
 "tos.native.semantic-signature.v1" ||
+uint16_be(len("tos_native_registry_v1")) ||
+"tos_native_registry_v1" ||
+uint16_be(len("ed25519")) || "ed25519" ||
+uint16_be(len(key_id)) || key_id ||
 uint16_be(len("tos.native.registry-action.v1")) ||
 "tos.native.registry-action.v1" ||
 SHA-256(canonical_registry_action_cbor)
 ```
 
-The signature record binds exact algorithm and key ID. Signature threshold and
+Version, algorithm and key ID are therefore signed fields. Signature threshold and
 purpose are evaluated against the policy valid at the action's predecessor.
 Signatures cannot be replayed as wallet sessions, transfers, Quotes,
 invocations, Receipts, disputes or settlements because those later contracts
