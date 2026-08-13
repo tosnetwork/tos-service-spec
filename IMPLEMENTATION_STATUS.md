@@ -49,8 +49,8 @@ tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d
 
 ## Local validation
 
-- `atos-spec` JSON vectors and adversarial registry vectors.
-- `tos-protocol` complete Go test suite.
+- `atos-spec` canonical Agent-registration vector structure.
+- `tos-protocol` complete Go and Native adversarial test suite.
 - `atos` complete Go test suite using the local protocol workspace.
 - FunC compilation and Fift export.
 - Exported contract code hash equals the frozen registration vector.

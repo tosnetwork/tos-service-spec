@@ -93,5 +93,18 @@ contradict them.
 | `atos` | Reference Native gateway and transport authentication |
 | `tos-ai` | Execution workers and result production |
 
+## Repository layout
+
+```text
+docs/                                      Native architecture and protocol rules
+proto/atos/native/v1/native.proto          sole normative wire schema
+test-vectors/atos-native-v1-agent-registration.json
+                                           frozen canonical registration vector
+```
+
+Do not add a second object schema beside the Native protobuf contract. New
+canonical encodings belong in the Native schema and must include reproducible
+vectors. Product-specific discovery views remain derived interfaces.
+
 This repository describes a greenfield protocol. There is no deployed earlier
 ATOS protocol whose behavior must be preserved.

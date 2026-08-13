@@ -4,8 +4,7 @@ package atos.native.v1;
 
 option go_package = "github.com/tosnetwork/atos-spec/proto/atos/native/v1;atosnativev1";
 
-// ATOS Native is one protocol. There is deliberately no trust-mode or
-// selectable proof-profile field in this package.
+// ATOS Native defines one canonical authority and execution protocol.
 
 message RequestContext {
   string request_id = 1;
