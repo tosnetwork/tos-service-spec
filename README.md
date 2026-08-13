@@ -5,6 +5,12 @@
 **Product:** ATOS (`atos.im`)  
 **Network:** TOS Network
 
+> **Legacy v0.2 scope:** This document describes the implemented three-mode
+> compatibility protocol. It is frozen for historical behavior and migration,
+> not the target for new work. The Native-only target is defined by
+> `docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`,
+> `docs/PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`, and `docs/ROADMAP2.md`.
+
 > **ATOS is an open protocol for discovering, invoking, coordinating, verifying, and settling capabilities across the Agent Internet.**
 >
 > **atos.im is the canonical reference gateway and managed service.**

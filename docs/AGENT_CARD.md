@@ -1,5 +1,9 @@
 # ATOS Agent Card v0.2
 
+> **Legacy v0.2 advertisement:** The three-mode fields below describe current
+> compatibility behavior. A Native-only gateway advertises protocol version
+> and concrete features, not selectable trust modes. See `ROADMAP2.md`.
+
 ## Standard Location
 
 Primary:

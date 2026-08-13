@@ -1,5 +1,10 @@
 # ATOS Proof Profiles v0.2
 
+> **Legacy v0.2 proof taxonomy:** Selectable Verified/Native profiles remain
+> documented only to verify historical records. In the Native-only target,
+> `atos_native_v1` fixes its required proof schema; clients do not negotiate a
+> trust mode or proof profile. See `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`.
+
 > Phase 4C addition: a completed `tos_verified_v1` transaction is portable
 > only through the canonical package in `VERIFIED_PROOF_PACKAGE_V1.md`.
 > Local proof-status flags and deterministic protobuf bytes are not canonical

@@ -1,5 +1,11 @@
 # Verified Quote Commitment V1
 
+> **Legacy component:** This commitment remains valid for existing Verified
+> records and supplies hardened implementation machinery for Native Accepted
+> Quotes. It is not a separate target mode. New canonical purchases use the
+> Accepted Quote model defined by `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and
+> `ROADMAP2.md`.
+
 ## Contract
 
 `atos_verified_quote_commitment_v1` is the immutable authority value required

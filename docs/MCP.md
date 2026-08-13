@@ -1,5 +1,10 @@
 # ATOS MCP Specification v0.2
 
+> **Legacy v0.2 transport contract:** The trust-mode parameters below describe
+> the currently implemented compatibility API. The Native-only target removes
+> those parameters as specified by `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and
+> `ROADMAP2.md`. Do not add new mode branches to this contract.
+
 ## 1. Transport
 
 Preferred production endpoint:

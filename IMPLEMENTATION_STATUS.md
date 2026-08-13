@@ -4,6 +4,11 @@
 **Canonical roadmap:** [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md)  
 **Canonical architecture:** [`docs/ARCHITECTURE_V0.2.md`](docs/ARCHITECTURE_V0.2.md)
 
+> **Legacy implementation baseline:** Status below measures the existing v0.2
+> three-mode implementation. For new work, the target architecture and roadmap
+> are `docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and `docs/ROADMAP2.md`.
+> Existing completion percentages do not set Native-only implementation order.
+
 ## 1. Purpose
 
 This document records the current cross-repository implementation status of

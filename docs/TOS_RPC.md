@@ -1,5 +1,10 @@
 # ATOS ↔ TOS RPC / Protobuf Interface v0.2
 
+> **Legacy v0.2 RPC contract:** Existing services and wire fields remain valid
+> for compatibility and historical verification. The Native-only target uses
+> a clean `atos.native.v1` schema without trust-mode selection, as specified by
+> `ROADMAP2.md`. New Native work must not expand the v0.2 mode matrix.
+
 > Phase 4C verification is strictly read-only. Its observer resolves finalized
 > identity, ownership, Quote, TaskEscrow, Receipt, outcome and Proof-of-Service
 > tuples; it exposes no mutation or publisher method. Cache miss, generic 404,

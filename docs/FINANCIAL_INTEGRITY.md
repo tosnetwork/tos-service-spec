@@ -1,5 +1,10 @@
 # ATOS Financial Integrity Hardening
 
+> **Legacy hosted-finance scope:** Managed ledger rules remain required for
+> historical and separately labelled hosted operations. They are not canonical
+> Native settlement. Native economic authority is finalized Accepted Quote, Escrow,
+> Receipt, and settlement state as defined by `ROADMAP2.md`.
+
 **Status:** Planned cross-cutting hardening specification  
 **Applies to:** ATOS Managed financial state, provider earnings, payouts, refunds, disputes, and the integrity boundary between `atos.im` and TOS Network  
 **Roadmap phase:** Phase 7 — Economy and Proof Hardening

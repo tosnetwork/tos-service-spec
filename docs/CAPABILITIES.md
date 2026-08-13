@@ -1,5 +1,10 @@
 # ATOS Capability Model v0.2
 
+> **Legacy v0.2 model:** Trust-mode fields in this document remain defined for
+> existing records and compatibility APIs only. New Native objects use the
+> single-authority model in `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and the
+> implementation sequence in `ROADMAP2.md`.
+
 ## 1. Canonical Capability
 
 A **Capability** is the smallest unit of supply that can be discovered, quoted and invoked.

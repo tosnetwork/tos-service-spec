@@ -1,5 +1,9 @@
 # ATOS A2A Profile v0.2
 
+> **Legacy v0.2 profile:** Mode-specific fields in this document are retained
+> for compatibility. The Native-only A2A target carries Quote Proposals and
+> on-chain Accepted Quote references under `atos_native_v1`; see `ROADMAP2.md`.
+
 ## Purpose
 
 Use A2A for stateful agent-to-agent collaboration. MCP remains the preferred client/tool surface for Codex-like hosts; A2A is the provider/inter-agent interoperability surface.

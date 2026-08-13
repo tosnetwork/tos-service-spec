@@ -1,5 +1,10 @@
 # ATOS REST API v1 — Protocol Semantics v0.2
 
+> **Legacy v0.2 API:** Mode-specific request and response fields in this
+> document remain valid for existing compatibility endpoints only. New Native
+> API work follows `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and `ROADMAP2.md` and
+> must not add another trust-mode branch.
+
 > Phase 4C adds `POST` and `GET
 > /v1/receipts/{receipt_id}/proof-package`. Creation is owner-authorized,
 > idempotent and returns only a completed `tos_verified_v1` package or a

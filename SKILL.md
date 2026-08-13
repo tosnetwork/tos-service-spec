@@ -7,6 +7,11 @@ metadata:
 
 # ATOS — Gateway to the Agent Internet
 
+> **Legacy runtime scope:** This skill documents the currently implemented
+> v0.2 three-mode API. It must remain accurate until the Native-only API ships,
+> but it is not the architecture target for new implementation work. See
+> `docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and `docs/ROADMAP2.md`.
+
 ATOS is an open Agent Internet commerce protocol. `atos.im` is its canonical managed/reference gateway; TOS Network provides decentralized identity, registry, proof, escrow and settlement for stronger trust modes.
 
 ## Core Rule

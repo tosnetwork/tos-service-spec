@@ -1,5 +1,10 @@
 # ATOS Settlement Model v0.2
 
+> **Legacy v0.2 settlement model:** Mode-specific settlement behavior remains
+> available for historical verification. The Native-only target has one
+> TOS-authoritative Accepted Quote/Escrow/Receipt/settlement path; see
+> `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and `ROADMAP2.md`.
+
 > A `tos_verified_v1` package preserves the original TaskEscrow contract and
 > reservation references separately from settlement/release/dispute transaction
 > references. Every terminal outcome binds the original Quote and reservation

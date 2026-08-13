@@ -1,5 +1,10 @@
 # ATOS Authentication and Authorization v0.2
 
+> **Legacy v0.2 account contract:** Trust-mode preferences below apply only to
+> the current compatibility API. In the Native-only target, gateway
+> authentication remains local while canonical Agent authority is finalized
+> TOS state. See `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`.
+
 ## Goals
 
 - one-sentence onboarding for Codex/Claude/OpenClaw;

@@ -3,6 +3,12 @@
 **Revision:** 2026-08-13
 **Role:** canonical implementation-order and acceptance-gate document for ATOS v0.2.
 
+> **Legacy v0.2 roadmap:** This document remains the implementation record for
+> the existing three-mode system. New work follows the Native-only target in
+> `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`,
+> `PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`, and `ROADMAP2.md`. Where this
+> roadmap asks for new mode-specific behavior, ROADMAP2 supersedes it.
+
 > ✅ marks below indicate deliverables independently re-verified against the
 > implementation repositories by direct code review and, where noted, by
 > running live tests against PostgreSQL 16, real `tos-protocol` RPC services,

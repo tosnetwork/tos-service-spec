@@ -5,6 +5,11 @@
 **Product:** ATOS (`atos.im`)  
 **Network:** TOS Network
 
+> **Legacy v0.2 architecture:** This document remains normative only for
+> historical and compatibility behavior of the three-mode API. New protocol
+> work follows `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`,
+> `PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`, and `ROADMAP2.md`.
+
 > **ATOS is an open protocol for discovering, invoking, coordinating, verifying, and settling capabilities across the Agent Internet.**
 >
 > **atos.im is the canonical reference gateway and managed service.**
