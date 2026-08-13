@@ -69,3 +69,8 @@ tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d
 
 Changing contract code requires a new frozen code identity, vectors, security
 review, and explicit protocol deployment decision.
+
+The reproducible release is defined by
+`tos/crypto/smartcont/atos-native-registry-v1.release.json`. The canonical
+source is `tos/crypto/smartcont/native-registry-code.fc`; there is no parallel
+legacy or `v2` Registry source.

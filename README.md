@@ -31,7 +31,8 @@ are caches or projections only.
 The Registry objects and relay/resolve service are implemented. Accepted Quote
 commitment construction exists, while its TOS transaction, escrow, execution
 Receipt, and settlement remain the next commercial delivery gate. See
-`IMPLEMENTATION_STATUS.md` for evidence-backed status.
+`docs/ROADMAP.md` for evidence-backed status, implementation order, and
+acceptance gates.
 
 ## System boundaries
 
@@ -75,6 +76,8 @@ refine these rules but cannot contradict them.
 - Identity policy: [`docs/NATIVE_IDENTITY_V1.md`](docs/NATIVE_IDENTITY_V1.md)
 - TVM representation: [`docs/NATIVE_REGISTRY_TVM_V1.md`](docs/NATIVE_REGISTRY_TVM_V1.md)
 - Submission and resolution: [`docs/NATIVE_REGISTRY_RPC_V1.md`](docs/NATIVE_REGISTRY_RPC_V1.md)
+- Security review: [`docs/NATIVE_REGISTRY_SECURITY_REVIEW.md`](docs/NATIVE_REGISTRY_SECURITY_REVIEW.md)
+- Public testnet gate: [`docs/NATIVE_REGISTRY_PUBLIC_TESTNET_GATE.md`](docs/NATIVE_REGISTRY_PUBLIC_TESTNET_GATE.md)
 - Quotes and settlement: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
@@ -118,9 +121,10 @@ a ticker symbol is display metadata and is never sufficient asset identity.
 
 ```text
 docs/                                      Native architecture and protocol rules
+deployments/                               public-network deployment evidence
 proto/atos/native/v1/native.proto          sole normative wire schema
-test-vectors/atos-native-v1-agent-registration.json
-                                           frozen canonical registration vector
+test-vectors/atos-native-v1-registry.json   frozen Agent and Capability vectors,
+                                           addresses, and negative mutations
 ```
 
 Do not add a second object schema beside the Native protobuf contract. New

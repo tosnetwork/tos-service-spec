@@ -1,0 +1,37 @@
+{
+  "schema": "atos.native.registry.deployment.v1",
+  "status": "template-not-evidence",
+  "protocol": "atos_native_v1",
+  "network": {
+    "network_id": "REQUIRED",
+    "genesis_root_hash": "sha256:REQUIRED",
+    "genesis_file_hash": "sha256:REQUIRED"
+  },
+  "registry_workchain": 0,
+  "release": {
+    "source_commit": "REQUIRED",
+    "code_hash": "tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d",
+    "boc_sha256": "sha256:09f08082798e4637eee982812c41001e8062805298790f8d1d596e4dbc40bb27",
+    "boc_bytes": 2685
+  },
+  "endpoints": [
+    {"url": "REQUIRED", "operator": "REQUIRED"},
+    {"url": "REQUIRED", "operator": "REQUIRED"},
+    {"url": "REQUIRED", "operator": "REQUIRED"}
+  ],
+  "quorum": 2,
+  "deployed_at": "REQUIRED",
+  "first_agent": {
+    "object_id": "REQUIRED",
+    "account": "REQUIRED",
+    "registration_action_hash": "sha256:REQUIRED",
+    "state_hash": "tvm-cell-sha256:REQUIRED",
+    "transaction_hash": "sha256:REQUIRED",
+    "logical_time": 0,
+    "finalized_checkpoint": 0
+  },
+  "explorer_url": "REQUIRED",
+  "typed_state_checker_url": "REQUIRED",
+  "independent_audit": "REQUIRED",
+  "lifecycle_evidence": "REQUIRED"
+}

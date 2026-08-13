@@ -68,3 +68,12 @@ work but do not alter on-chain semantics.
 - Never accept caller-supplied action-result or next-state cells.
 - Avoid automatic paid resubmission after ambiguous errors; resolve first.
 - Return stable typed errors without leaking private configuration.
+
+## Stable errors
+
+Validation errors use `NativeErrorV1` Connect error details. Numeric values
+`2200` through `2213` exactly match the Native Registry TVM exit-code family.
+Clients branch on the enum value or stable identifier and must not parse the
+human diagnostic. The frozen negative corpus in
+`test-vectors/atos-native-v1-registry.json` pins representative preflight
+results across two implementations.
