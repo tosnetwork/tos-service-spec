@@ -1936,7 +1936,8 @@ Current implementation/acceptance ledger (2026-08-13):
   or after revocation fails closed;
 - ✅ revoked v2 principal/Agent tuples are permanent canonical tombstones;
   same-Agent reuse and A→B→A reuse fail before mutation instead of being
-  silently shadowed by an older revocation;
+  silently shadowed by an older revocation; independently cached stale replicas
+  also live-resolve the tombstone before returning a fresh-key same-tuple no-op;
 - ✅ every normative negative vector is applied as an RFC 6901 mutation and
   must produce its exact frozen verifier code and field;
 - ✅ two independently restarted ATOS processes, one backed by a restarted

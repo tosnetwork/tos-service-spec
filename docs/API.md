@@ -682,6 +682,10 @@ principal is already bound to -- even under a brand-new `Idempotency-Key`
 unchanged), not an error and not a fresh commitment: this is deliberately
 more permissive than the RPC's own key-reuse rule, since it's not
 replaying a key against a different fact, just re-stating the current one.
+That no-op is allowed only while live canonical resolution still proves the
+tuple has never been revoked. A stale replica that retains a local ACTIVE row
+MUST still return `idempotency_conflict`/`BINDING_TUPLE_REVOKED` after canonical
+revocation; local cache state cannot revive the permanent tombstone.
 
 Response (200, both the newly-created and idempotent-replay case):
 

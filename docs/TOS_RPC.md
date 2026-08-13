@@ -373,7 +373,11 @@ observation without possessing the original mutation request.
 Binding v2 intentionally has no mutable generation field. Therefore a
 canonically revoked `(principal_id, agent_id)` tuple is a permanent tombstone
 and MUST NOT be created again. `CreatePrincipalBinding` MUST live-resolve the
-deterministic revocation tuple before committing and return
+deterministic revocation tuple before committing or returning a same-tuple
+no-op under a fresh idempotency key. This applies even when the serving replica
+still has a stale local ACTIVE projection. Exact replay of an already-recorded
+idempotency key remains the immutable historical response; callers use
+`ResolvePrincipalBinding` for current state. A fresh-key create MUST return
 `BINDING_TUPLE_REVOKED` when it exists. Rotation to a previously unused Agent
 tuple remains allowed. Deployments that need tuple reuse require a future
 generation-bound commitment version; deleting a local revocation projection
