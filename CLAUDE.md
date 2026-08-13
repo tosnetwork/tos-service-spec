@@ -1,42 +1,60 @@
-# Testing Lessons Shared Across the TOS Repos
+# ATOS Specification Contributor Rules
 
-This file tracks recurring bug classes found in the implementation
-repositories (`atos`, `tos-protocol`, `tos`) whose lesson is relevant to
-what this repo specifies or documents — kept here so anyone writing or
-reviewing a normative contract in `atos-spec` knows what implementation-side
-mistakes it should help prevent. The canonical, more detailed log lives in
-`atos/CLAUDE.md` (Phase 4A's 10-round review retrospective); this file
-mirrors only the entries with a specification-level angle.
+## Read authority in order
 
-## 1. Hardcoded golden/vector test values transcribed incorrectly at commit time
+Before changing schemas or protocol behavior, read completely:
 
-Found in `atos/internal/financial`'s V2 batch golden CBOR test vector: it
-was wrong from the moment it was hardcoded, not a later regression — a
-transcription error at commit time that nothing caught because the test
-only ever compared against itself.
+1. `docs/NATIVE_ONLY_ARCHITECTURE_SLIMMING.md`
+2. `docs/PHASE5_NATIVE_REGISTRY_SIMPLIFICATION.md`
+3. `docs/ROADMAP2.md`
 
-**Relevance to this repo:** any normative doc that specifies a canonical
-encoding or a worked example digest (e.g. `docs/FINANCIAL_INTEGRITY.md`,
-`docs/PROOF_PROFILES.md`, or a schema's example vectors) should state
-plainly that such example values must be generated from a real, passing run
-of the reference implementation, never hand-computed or hand-copied — and
-implementers should treat "does this match the frozen example" test
-failures as a signal to re-verify the example itself before assuming their
-own code regressed.
+The architecture document controls system boundaries. The state-machine
+document controls Agent and Capability transitions. The roadmap controls only
+implementation order and acceptance evidence.
 
-## 2. Two independently-locked reads composed to test (or serve) one atomic write
+## Greenfield contract
 
-Found in `atos/internal/service`'s dispute-resolution test suite: a caller
-polled two related pieces of state (a dispute and its earning) via two
-separate, independently-locked reads. The underlying write of both was
-atomic, but two independent reads are never atomic with respect to each
-other regardless of how well-locked the write is.
+ATOS has one protocol: `atos_native_v1`. Do not add alternate authority paths,
+gateway-owned canonical objects, caller-supplied next state, or fields from
+abandoned drafts. If an implementation experiment conflicts with
+the specification, isolate or remove it; do not weaken the Native schema.
 
-**Relevance to this repo:** whenever a normative RPC/API contract describes
-two-or-more fields or resources that a single operation updates together
-(e.g. a Capability's `mode_support` alongside its `ownership` projection, or
-an identity-binding operation's durable journal alongside the live binding
-row), the spec should be explicit about whether callers are guaranteed a
-consistent combined view, and if so, require the implementation expose a
-genuinely combined atomic read for that pairing rather than leaving callers
-to compose two separate reads and assume consistency.
+## Schema discipline
+
+- Make normative changes in `proto/atos/native/v1/native.proto` first.
+- Use reserved field numbers when removing a field from a frozen message.
+- Bound every repeated field, string, byte sequence, cell, response, and retry.
+- Specify canonical ordering and rejection behavior.
+- Keep transport context outside signed action semantics.
+- Keep chain references and network domain explicit.
+
+## Vector discipline
+
+Every canonical encoding or digest change requires independently reproducible
+positive vectors and negative mutations. Generate values from implementation;
+never transcribe hashes, signatures, BOCs, or addresses manually.
+
+A frozen vector records all inputs needed to reproduce its output, including
+network domain, contract code hash, public keys, nonces, ordering, and expected
+state or action hashes.
+
+## Atomic-read discipline
+
+Tests and services must not compose one logical result from separately locked
+reads when a concurrent transition could occur between them. Expose one
+snapshot operation or hold one lock across the complete read. This rule applies
+to chain checkpoint views, indexes, stores, and in-memory test doubles.
+
+## Completion discipline
+
+Do not claim completion from source presence or compilation alone. Record:
+
+- normative schema and invariants;
+- implementation repositories and commits;
+- unit and adversarial tests;
+- frozen cross-language vectors;
+- local-chain or public-network evidence as appropriate; and
+- unresolved operational or audit gates.
+
+Documentation must describe the intended Native system directly. Historical
+draft narratives do not belong in the normative repository.

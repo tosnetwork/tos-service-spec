@@ -1,388 +1,80 @@
-# ATOS Capability Model v0.2
-
-> **Legacy v0.2 model:** Trust-mode fields in this document remain defined for
-> existing records and compatibility APIs only. New Native objects use the
-> single-authority model in `NATIVE_ONLY_ARCHITECTURE_SLIMMING.md` and the
-> implementation sequence in `ROADMAP2.md`.
-
-## 1. Canonical Capability
-
-A **Capability** is the smallest unit of supply that can be discovered, quoted and invoked.
-
-A Capability is independent of trust mode. The same capability may be available through `managed`, `verified`, and/or `native` execution without becoming three different Agent-facing products.
-
-```json
-{
-  "id": "cap_01...",
-  "provider_id": "agt_01...",
-  "name": "Document Translation",
-  "description": "Translate PDF/DOCX documents while preserving structure.",
-  "version": "1.2.0",
-  "manifest_commitment": "sha256:...",
-  "tags": ["translation", "pdf", "document"],
-  "modalities": ["text", "file"],
-  "delivery_mode": "async",
-  "input_schema": {"type":"object"},
-  "output_schema": {"type":"object"},
-  "supported_trust_modes": ["managed", "verified"],
-  "mode_support": {
-    "managed":{"status":"active"},
-    "verified":{"status":"active","proof_profile":"tos_verified_v1"},
-    "native":{"status":"pending","proof_profile":"tos_native_v1"}
-  },
-  "transports": ["mcp", "a2a", "http"],
-  "pricing": {
-    "model":"per_unit",
-    "unit":"page",
-    "price_hint":{"amount":"0.10","currency":"USD"}
-  },
-  "sla": {
-    "target_latency_ms": 120000,
-    "timeout_ms": 900000
-  },
-  "trust_summary": {
-    "score":0.96,
-    "identity_assurance":"tos_attested",
-    "proof_of_service_count":12831
-  },
-  "ownership": {
-    "status":"anchored",
-    "network":"tos",
-    "commitment":"tos:..."
-  },
-  "status":"active",
-  "updated_at":"2026-08-07T00:00:00Z"
-}
-```
-
-## 2. Supported vs Requested Trust Modes
-
-Public `supported_trust_modes` contains only concrete modes that are **currently active and quotable**:
-
-```text
-managed
-verified
-native
-```
-
-`auto` MUST NOT appear in `supported_trust_modes`. `auto` is a caller-side pre-Quote policy.
-
-Provider configuration uses a different concept:
-
-```text
-requested_trust_modes
-```
-
-A provider may request `verified` or `native` before the gateway/network can certify and activate it. Therefore:
-
-```json
-{
-  "requested_trust_modes":["managed","verified","native"],
-  "supported_trust_modes":["managed","verified"],
-  "mode_support":{
-    "managed":{"status":"active"},
-    "verified":{"status":"active","proof_profile":"tos_verified_v1"},
-    "native":{"status":"pending","proof_profile":"tos_native_v1"}
-  }
-}
-```
-
-Mode states:
-
-```text
-requested | pending | active | suspended | unsupported
-```
-
-Only `active` modes belong in public `supported_trust_modes`.
-
-A capability MUST NOT advertise `verified` or `native` until the gateway can satisfy the minimum guarantees defined in `docs/ARCHITECTURE_V0.2.md` and the applicable proof profile.
-
-## 3. Trust Summary Is Not Trust Mode
-
-A capability's reputation/identity quality and a transaction's trust mode are different dimensions.
+# ATOS Capability Model
 
-Do not use ambiguous fields such as:
+## Canonical identity
 
-```json
-{"trust":{"level":"verified"}}
-```
+A Capability is a deterministic TOS object owned by exactly one Agent. Its
+canonical state identifies the owner and immutable version commitments. Human
+names, descriptions, categories, pricing hints, endpoint health, and ranking
+are manifest or discovery metadata, not identity.
 
-because `verified` is also a transaction trust mode.
+## Manifest
 
-Use an explicit summary instead:
+Each version commits to a content-addressed manifest. A manifest should include:
 
-```json
-{
-  "trust_summary": {
-    "score": 0.96,
-    "identity_assurance": "tos_attested",
-    "proof_of_service_count": 12831,
-    "last_updated_at": "2026-08-07T00:00:00Z"
-  }
-}
-```
+- protocol and manifest schema version;
+- Capability ID and version string;
+- name and description;
+- input and output schema digests;
+- execution endpoint commitments;
+- authorized execution signer requirements;
+- pricing and supported asset declarations;
+- privacy, retention, and resource limits; and
+- artifact retrieval metadata.
 
-A gateway-computed `score` is a convenience ranking signal. It MUST NOT be presented as a globally canonical TOS value. Verifiable evidence is represented separately through identity attestations, ownership commitments, Execution Receipts, and Proof-of-Service references.
+The exact manifest bytes must hash to the on-chain digest. Gateways may cache or
+mirror those bytes but may not rewrite them under the same version.
 
-## 4. Delivery Modes
+## Versions
 
-Delivery mode describes execution interaction, not trust.
+Version strings are opaque bounded UTF-8 identifiers. Within one Capability,
+each version string maps forever to one manifest digest. Adding a new release
+creates a new version entry. Version mutation is not allowed.
 
-- `instant` — usually suitable for `atos_invoke`.
-- `async` — use a Job.
-- `interactive` — may enter `input_required` and continue.
+A version can be irreversibly revoked. Complete Capability revocation creates a
+terminal tombstone. Discovery and Quote construction must exclude revoked
+versions by default and must never accept a tombstoned Capability.
 
-Any delivery mode MAY be combined with any active supported trust mode.
+## Ownership
 
-## 5. Pricing Models
+The `owner_agent_id` in finalized Capability state is authoritative. The
+owner's live Agent controller policy authorizes Capability administration. The
+Capability does not contain a copied controller policy.
 
-Supported pricing models:
+Ownership transfer requires authorization by the current owner and acceptance
+by the new owner. The Capability account changes owner exactly once, atomically.
 
-- `free`
-- `fixed`
-- `per_use`
-- `per_unit`
-- `metered`
-- `negotiated`
+## Endpoint binding
 
-The catalog may provide only a hint. The **Quote** is authoritative.
+An endpoint advertised for execution is not trusted merely because a gateway
+can reach it. The selected Capability version and Accepted Quote bind an
+endpoint commitment and execution-signer authorization. Routing may change only
+within the alternatives explicitly committed by those objects.
 
-A capability MAY expose mode-specific pricing hints because TOS-backed proof/escrow may have different costs, but the client MUST rely on `atos_quote` for the final price.
+Availability observations are local, time-varying data. They must be labeled
+with observer and observation time and must not alter Capability state.
 
-Example:
+## Discovery record
 
-```json
-{
-  "pricing": {
-    "model":"fixed",
-    "price_hint":{"amount":"5.00","currency":"USD"},
-    "mode_hints": {
-      "managed":{"amount":"5.00","currency":"USD"},
-      "verified":{"amount":"5.05","currency":"USD"},
-      "native":{"amount":"5.02","currency":"USD"}
-    }
-  }
-}
-```
+A chain-derived discovery record contains:
 
-Mode hints are non-binding and MUST NOT imply that a non-active mode is currently quotable.
+- network domain and finalized checkpoint;
+- Capability ID and deterministic account;
+- registry code and state hashes;
+- owner Agent ID;
+- immutable version and manifest digests;
+- revocation state; and
+- chain reference.
 
-## 6. Search Contract
+Search indexes may attach local annotations but must keep them structurally
+separate from this record.
 
-Search accepts natural-language intent plus hard constraints. The client must not need to know category codes or blockchain internals.
+## Invariants
 
-Search MAY accept:
-
-- `requested_trust_mode: managed | verified | native | auto`;
-- required proof properties;
-- maximum price;
-- latency/SLA constraints;
-- modality;
-- geography/jurisdiction;
-- minimum reputation/identity requirements.
-
-Ranking should combine:
-
-```text
-semantic fit
-+ provider reputation/evidence
-+ historical completion quality
-+ availability/freshness
-+ latency fit
-+ price fit
-+ requested trust/proof fit
-- policy risk
-```
-
-Do not expose exact anti-gaming weights.
-
-Search results SHOULD return active `supported_trust_modes` and per-mode availability so the client knows whether a later Quote can satisfy its policy.
-
-## 7. Capability Registration
-
-Provider registration requires:
-
-- public metadata;
-- input/output schemas;
-- pricing policy;
-- delivery mode;
-- endpoint binding(s) (`http`, `mcp`, `a2a`, `human`, `tos-native`, or future adapters);
-- health check policy;
-- `requested_trust_modes` containing only concrete values;
-- settlement destination/configuration as private provider data.
-
-Registration returns derived activation state. The provider does not directly write public `supported_trust_modes` as an authoritative field.
-
-### Mode activation
-
-#### Managed
-
-A capability may become searchable in Managed Mode after ordinary gateway validation.
-
-#### Verified
-
-Before `verified` becomes `active`, the implementation MUST be able to provide the applicable proof profile, including at minimum:
-
-- TOS-backed provider identity/capability ownership;
-- immutable capability version/manifest commitment;
-- quote/terms commitment;
-- TOS-backed enforceable escrow for paid committed work;
-- authorized-signer Execution Receipt and TOS-verifiable receipt commitment;
-- TOS-backed settlement proof;
-- portable Proof-of-Service evidence.
-
-#### Native
-
-Before `native` becomes `active`, all Verified transaction guarantees apply and the capability MUST additionally be globally resolvable without relying on `atos.im` as the canonical registry/namespace authority.
-
-The standard Native proof profile SHOULD be distinct from the Verified profile because it includes stronger resolution/federation guarantees.
-
-## 8. Endpoint Bindings
-
-Transport is separate from trust mode.
-
-A capability may expose one or more bindings:
-
-```json
-{
-  "bindings": [
-    {
-      "transport":"mcp",
-      "endpoint_ref":"ep_...",
-      "eligible_trust_modes":["managed","verified"]
-    },
-    {
-      "transport":"a2a",
-      "endpoint_ref":"ep_...",
-      "eligible_trust_modes":["native"]
-    }
-  ]
-}
-```
-
-`eligible_trust_modes` means the binding can technically participate in those paths. It does not activate a capability mode by itself; public activation still comes from `mode_support` certification.
-
-Public metadata SHOULD expose transport type and availability but MUST NOT expose provider secrets, private network topology, internal prompts, wallet keys, or sensitive settlement configuration.
-
-## 9. Authorized Execution Signers
-
-An Execution Receipt does not have to be signed directly by the provider's long-term identity key.
-
-Real capabilities may execute through:
-
-- a provider agent key;
-- a `tos-ai` worker/runtime key;
-- an HTTP/MCP adapter key;
-- an enterprise delegated key;
-- a gateway execution adapter for a human-backed capability.
-
-ATOS therefore models an **authorized execution signer**.
-
-Conceptually:
-
-```json
-{
-  "execution_signer": {
-    "signer_id":"sig_...",
-    "authorization_ref":"tos:...",
-    "scope":{
-      "provider_id":"agt_...",
-      "capability_id":"cap_...",
-      "capability_version":"1.2.0"
-    }
-  }
-}
-```
-
-For Verified/Native, the verifier MUST be able to establish that the receipt signer was authorized for the quoted provider/capability/version at the relevant time according to the proof profile.
-
-This preserves provider attribution without forcing every underlying worker or human to hold the provider's root identity key.
-
-## 10. Third-Party API Passthrough
-
-A capability that wraps a third-party API does not need a separate primitive.
-
-Register it as an `http` binding with suitable pricing and SLA. The client still uses `atos_invoke` or `atos_create_job`.
-
-If the wrapper advertises `verified`, ATOS/TOS guarantees apply to the wrapper's delivered service and receipt. They do not make the upstream third-party API itself decentralized or independently trustworthy beyond the evidence actually committed.
-
-## 11. Versioning and Manifest Commitments
-
-Breaking input/output contract changes require a new capability version. Existing Quotes, Jobs, and Receipts retain the version they were created against.
-
-For `verified` and `native`, the quoted version MUST resolve to an immutable `manifest_commitment` covering at least the fields necessary to prove what was bought, including:
-
-- capability ID;
-- provider ID;
-- semantic version;
-- input/output schema commitments;
-- relevant delivery/SLA terms;
-- mode/proof compatibility;
-- execution-signer authorization policy/binding references where required by the proof profile.
-
-Mutable discovery metadata such as descriptions, tags, popularity, health snapshots, and gateway ranking features do not need to be inside the immutable manifest unless a proof profile explicitly requires them.
-
-## 12. Global IDs and Federation
-
-Public Capability IDs MUST be designed for multi-gateway federation from v0.2 onward.
-
-A global ID MUST be collision-resistant across independent gateways. The exact encoding is deferred, but it MAY be:
-
-- provider-key-derived;
-- self-certifying;
-- issuer-namespaced;
-- another protocol-defined globally unique scheme.
-
-It MUST NOT be merely an auto-increment primary key from the `atos.im` database.
-
-Gateways MAY maintain local aliases and database keys, but those are implementation details.
-
-Conceptual addressing:
-
-```text
-atos://capability/<global-capability-id>
-```
-
-## 13. Ownership Anchoring
-
-Capability metadata is indexed off-chain for fast search. Ownership is a trust fact and is anchored separately through `tos-core`/TOS.
-
-Concretely:
-
-- Managed registration MAY create a capability before any TOS anchor exists.
-- Until ownership is anchored, the capability may operate in `managed` but MUST NOT advertise `verified` or `native` merely because the provider self-asserted ownership.
-- Verified/Native activation requires the ownership state required by the selected proof profile.
-- A capability MUST NOT be reassigned to another `provider_id` through a normal metadata patch.
-- Provider reassignment requires a protocol-defined ownership transfer/re-anchoring operation or a new capability identity.
-
-## 14. Availability and Health by Mode
-
-Availability MAY differ by trust mode.
-
-Example:
-
-```json
-{
-  "availability": {
-    "managed":{"status":"online"},
-    "verified":{"status":"degraded","reason":"tos_settlement_delayed"},
-    "native":{"status":"offline","reason":"resolver_unavailable"}
-  }
-}
-```
-
-A gateway MUST NOT silently route a request quoted for `verified` or `native` through a weaker mode because the stronger path becomes unavailable. It must fail, wait according to the quoted SLA, or require a new Quote.
-
-## 15. Capability Invariants
-
-1. One capability identity may support multiple concrete trust modes.
-2. `requested_trust_modes` is provider intent; `supported_trust_modes` is the derived set of active modes.
-3. `auto` is client request-only and never a supported concrete mode.
-4. Delivery mode and trust mode are orthogonal.
-5. Trust/reputation score is not the same thing as transaction trust mode.
-6. A Quote, not catalog pricing, determines the final commercial terms and concrete mode.
-7. Verified/Native capability versions have immutable verifiable manifest commitments.
-8. Native capabilities are globally resolvable without `atos.im` as canonical registry.
-9. Execution receipts are signed by an authorized execution signer whose authority is verifiable for Verified/Native.
-10. Search metadata remains off-chain and indexable; ownership/proof facts may be TOS-backed.
-11. Mode unavailability never permits a silent downgrade after Quote issuance.
+1. One Capability has one current owner.
+2. Ownership is read from finalized typed state.
+3. A version name never maps to two manifests.
+4. Revocation is irreversible.
+5. Gateway health does not change canonical availability.
+6. A Quote binds one exact, non-revoked version.
+7. A provider cannot substitute manifest, endpoint, or signer after acceptance.
+8. Capability administration always uses the current owner's live policy.

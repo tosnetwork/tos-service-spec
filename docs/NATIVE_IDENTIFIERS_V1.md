@@ -1,112 +1,85 @@
 # Native Identifiers V1
 
-Status: **normative Phase 5A contract**
+## Network domain
 
-## 1. Scope
-
-This document freezes gateway-independent Agent and Capability identifiers for
-TOS Native mode. A local `principal_id`, database primary key, HTTP origin,
-wallet address, controller key, mutable display name, ARD identifier or
-`atos.im` namespace MUST NOT be used as a Native identifier.
-
-All strings in this contract are exact ASCII. Implementations MUST reject
-Unicode lookalikes, leading/trailing whitespace, case aliases, percent escapes,
-path normalization, default-network inference and unknown critical versions.
-
-`key_id` is 1..128 ASCII bytes matching
-`[A-Za-z0-9][A-Za-z0-9._:-]{0,127}`. A purpose is 1..64 lower-case ASCII
-bytes matching `[a-z][a-z0-9_]{0,63}`. Ordered sets are strictly
-lexicographically sorted by UTF-8 bytes with no duplicates unless a field says
-otherwise. These rules are normative, not Go implementation details.
-
-## 2. Network domain
-
-Every identifier bootstrap value includes this exact tuple:
+Every identifier and signed action is bound to:
 
 ```text
-network_id        1..63 ASCII bytes matching
-                  [a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?
-genesis_root_hash "sha256:" + 64 lower-case hexadecimal digits, not all zero
-genesis_file_hash "sha256:" + 64 lower-case hexadecimal digits, not all zero
+network_id
+genesis_root_hash = sha256:<64 lowercase hex>
+genesis_file_hash = sha256:<64 lowercase hex>
 ```
 
-The two genesis hashes are independent fields. Network display names alone are
-not authority. A change to any field produces a different identifier.
+All three values are mandatory. A human network name alone is insufficient.
 
-## 3. Canonical encoding and digest
+## Text and digest rules
 
-Values use RFC 8949 Core Deterministic CBOR over the explicitly tagged JSON
-data model. Maps use the RFC 8949 deterministic ordering. Integers are encoded
-in their shortest form. Floats, CBOR tags, indefinite lengths, duplicate map
-keys, invalid UTF-8, unknown fields and non-canonical encodings are rejected.
+- Protocol text is UTF-8, bounded, and free of control characters.
+- Protocol identifiers and hexadecimal digests are lowercase.
+- SHA-256 digests use `sha256:<64 lowercase hex>`.
+- TVM cell hashes use `tvm-cell-sha256:<64 lowercase hex>`.
+- Object IDs are parsed strictly; alternate encodings are rejected.
 
-The digest function is:
+## Agent ID
+
+An Agent ID is:
 
 ```text
-SHA-256(
-  "TOS-PROTOCOL-CBOR" || 0x00 ||
-  uint16_be(byte_length(domain)) || UTF8(domain) ||
-  canonical_cbor(value)
-)
+agent_<lowercase SHA-256 hex>
 ```
 
-No delimiter-joined field hashing is permitted.
+The digest is calculated from the canonical identity cell containing protocol
+version, network domain, object nonce, and canonical initial controller policy.
+Controller input order does not affect the result because policies are sorted
+canonically before encoding.
 
-## 4. Agent ID
+## Capability ID
 
-Domain: `tos.native.agent-id.v1`.
+A Capability ID is:
 
 ```text
-version                           = "tos_native_registry_v1"
-network                           = NetworkDomain
-object_nonce_base64url            = exactly 32 bytes, RFC 4648 raw base64url
-initial_controller_policy_digest  = lower-case sha256 digest
+cap_<lowercase SHA-256 hex>
 ```
 
-The text ID is `agent_` followed by the 64 lower-case hexadecimal digest
-digits. The object nonce MUST come from a cryptographically secure random
-source. Controller rotation, recovery, delegation and policy changes do not
-change the Agent ID. Re-registering the same bootstrap value is exact replay,
-not a second Agent.
+The digest is calculated from the canonical identity cell containing protocol
+version, network domain, object nonce, owner Agent ID, initial version string,
+and initial manifest digest.
 
-Canonical URI: `atos://agent/<agent-id>`.
+The owner's controller policy is not part of Capability identity. Policy
+rotation therefore never changes Capability ID.
 
-## 5. Capability ID and version URI
+## Deterministic account
 
-Domain: `tos.native.capability-id.v1`.
+The account address is derived from the StateInit containing the reviewed
+registry code cell and the data cell for network, object kind, and object ID.
+Resolution must reconstruct this address rather than accept an unverified
+address from a gateway.
+
+## Version identity
+
+A Capability version is identified by the pair:
 
 ```text
-version                 = "tos_native_registry_v1"
-network                 = NetworkDomain
-owner_agent_id          = canonical Agent ID
-object_nonce_base64url  = exactly 32 bytes, RFC 4648 raw base64url
+(capability_id, version_string)
 ```
 
-The text ID is `cap_` followed by the 64 lower-case hexadecimal digest digits.
-Ownership transfer and owner-controller rotation do not change it.
+The version string maps immutably to one manifest digest. Reusing a version
+string for different bytes is invalid. Revocation does not free the name.
 
-The lineage URI is `atos://capability/<capability-id>`. An immutable version URI is:
+## Controller key ID
+
+Controller key IDs are exactly:
 
 ```text
-atos://capability/<capability-id>/versions/<semver>
+ed25519:<64 lowercase hex public key>
 ```
 
-`semver` is canonical SemVer without leading-zero numeric components or build
-metadata (`+...`), because build metadata would create multiple textual aliases
-with equal SemVer precedence. The bare
-Capability ID names the stable lineage; commercial commitments MUST name an
-exact immutable version.
+This format makes the key identity reconstructible from canonical state without
+an alias registry.
 
-## 6. Error taxonomy
+## Rejection rules
 
-| Code | Meaning |
-|---|---|
-| `NATIVE_UNSUPPORTED_VERSION` | version or critical extension is unknown |
-| `NATIVE_INVALID_NETWORK` | network/genesis tuple is invalid or mismatched |
-| `NATIVE_INVALID_IDENTIFIER` | ID bytes/text do not match this contract |
-| `NATIVE_NONCANONICAL_URI` | URI has an alias, escape or invalid version |
-| `NATIVE_CANONICAL_ENCODING` | deterministic CBOR validation failed |
-| `NATIVE_CROSS_DOMAIN_REPLAY` | value was used under another purpose/domain |
-
-Normative positive and adversarial values are in
-`test-vectors/native_registry_v1.json`.
+Reject wrong prefixes, uppercase or short hexadecimal forms, whitespace,
+Unicode lookalikes, malformed digests, unknown object kinds, empty version
+names, inconsistent key IDs, and identifiers that disagree with deterministic
+registration derivation.
