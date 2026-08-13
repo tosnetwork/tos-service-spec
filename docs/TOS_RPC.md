@@ -583,12 +583,15 @@ and `charged + refunded == reserved`. A transition string or publisher
 receipt without this observation is not settlement proof.
 
 Verified `SettleJobRequest` additionally carries `expected_terms`,
-`expected_escrow_ref`, and `expected_reservation_digest`. All three are
-mandatory together. Before any settlement mutation, the server performs the
+`expected_escrow_ref`, `expected_reservation_digest`, `expected_receipt`, and
+`expected_receipt_ref`. All five are mandatory together. Before any settlement mutation, the server performs the
 same live tuple recovery as `GetEscrow`, requires the canonical escrow to be
 reserved, and verifies that its local projection matches the canonical Quote
-commitment, reservation digest, contract reference and code hash. Local
-bbolt/cache state never selects the payout contract by itself.
+commitment, reservation digest, contract reference and code hash. It also
+recomputes and live-resolves the exact finalized execution Receipt before its
+result/evidence commitments may drive the irreversible payout. Local
+bbolt/cache state never selects the payout contract or execution evidence by
+itself.
 
 TaskEscrow V1 cannot pay a separate gateway recipient. Consequently Verified
 Quote `fees` MUST be exactly zero and `total_max == subtotal`; non-zero fees

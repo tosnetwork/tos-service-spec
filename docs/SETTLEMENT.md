@@ -372,8 +372,10 @@ action identity, finality checks and crash-safe replay as non-zero settlement.
 
 Before mutation, `SettleJob` MUST carry the same full `expected_terms`,
 `expected_reservation_digest`, and `expected_escrow_ref` assertions used by
-release. The authority MUST resolve that tuple live and compare it to its
-local projection before selecting a contract address. Missing, stale,
+release, plus the exact `expected_receipt` and `expected_receipt_ref`. The
+authority MUST resolve both reservation and Receipt live and compare them to
+its local projections before selecting a contract address or result/evidence
+hash. Missing, stale,
 regressed or mismatched canonical state fails closed before publication.
 
 ## 10. Execution Receipt
