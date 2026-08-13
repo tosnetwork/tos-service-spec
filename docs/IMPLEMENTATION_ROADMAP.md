@@ -1,6 +1,6 @@
 # ATOS Implementation Roadmap v0.2
 
-**Revision:** 2026-08-11
+**Revision:** 2026-08-13
 **Role:** canonical implementation-order and acceptance-gate document for ATOS v0.2.
 
 > ✅ marks below indicate deliverables independently re-verified against the
@@ -2075,9 +2075,10 @@ namespace/trust authority for Native supply.
 
 Native wallet access is not another `atos.im` registration method. It is a
 wallet-controlled, non-custodial security context for an ATOS-compatible
-gateway. The Agent owns its TOS key and global identity; the gateway verifies
-authority, serves or relays protocol operations, and may add replaceable search,
-risk, policy, simulation and fee-sponsorship services.
+gateway. The Agent controls its purpose-bounded identity/controller keys and,
+where applicable, separate funding keys; the gateway verifies authority, serves
+or relays protocol operations, and may add replaceable search, risk, policy,
+simulation and fee-sponsorship services.
 
 The product distinction is normative:
 
@@ -2087,7 +2088,7 @@ Gateway Account Context
 = gateway-local principal_id, policy and Managed services
 
 Wallet-Native Context
-= TOS wallet signature + globally resolvable TOS Agent Identity
+= TOS-native controller proof + globally resolvable TOS Agent Identity
 = no required gateway account, principal binding, custody or Managed balance
 ```
 
@@ -2095,18 +2096,25 @@ A wallet may separately choose to bind to a gateway account for proprietary
 Managed features, but that is an explicit opt-in gateway product outside the
 canonical Native identity path. Native access MUST work without that binding.
 
-⬜ **Status: not started.** Phase 5 is divided into six ordered, independently
-reviewable work packages. A later package may prototype against a frozen
-earlier contract, but it MUST NOT merge or claim completion while an earlier
-normative dependency remains provisional.
+⬜ **Status: not complete.** Phase 5 has useful pre-existing foundations
+(federation-safe public fields, ARD/discovery components, signed commitments,
+chain authorities and proof/economic references), but none of the six Native
+work packages below has passed its acceptance gate. These foundations MUST be
+reused where they satisfy the frozen contract; their existence is not evidence
+that Native mode or open federation is active.
+
+Phase 5 is divided into six ordered, independently reviewable work packages. A
+later package may prototype against a frozen earlier interface, but it MUST NOT
+merge or claim completion while an earlier normative dependency remains
+provisional.
 
 The required implementation order is:
 
 ```text
 5A protocol/identifier freeze
- -> 5B wallet authorization + PoP session
- -> 5C canonical Agent/Capability registry
- -> 5D independent indexer/resolver/discovery
+ -> 5B canonical Agent/Capability registry
+ -> 5C independent indexer/resolver/discovery
+ -> 5D wallet authorization + PoP session
  -> 5E Native transaction + portable proof
  -> 5F cross-gateway failover acceptance
 ```
@@ -2114,9 +2122,9 @@ The required implementation order is:
 Completion ledger:
 
 - ⬜ Phase 5A — Native protocol, identifier and signature freeze;
-- ⬜ Phase 5B — wallet authorization and short-lived PoP session;
-- ⬜ Phase 5C — canonical Native Agent and Capability registry;
-- ⬜ Phase 5D — independent indexer, resolver and discovery;
+- ⬜ Phase 5B — canonical Native Agent and Capability registry;
+- ⬜ Phase 5C — independent indexer, resolver and discovery;
+- ⬜ Phase 5D — wallet authorization and short-lived PoP session;
 - ⬜ Phase 5E — Native transaction path and portable proof;
 - ⬜ Phase 5F — cross-gateway failover and Phase 5 completion gate.
 
@@ -2130,18 +2138,21 @@ gateways use to join the federation.
 **Goal:** remove every provisional identifier, signature domain and event
 shape before two implementations or a deployed contract make it permanent.
 
-Freeze these normative primitives in `atos-spec` before stateful Phase 5 code
-is merged:
+Freeze these shared normative primitives in `atos-spec` before stateful Phase
+5 registry code is merged:
 
 - final global Agent and Capability identifier scheme;
-- wallet-key-to-global-Agent-Identity derivation/binding and rotation scheme;
+- stable global Agent identity plus controller-key binding/rotation scheme (the
+  Agent ID MUST NOT change merely because its controller key rotates);
 - canonical Agent registration/update/revocation events, including recovery and
   delegation without making one gateway database authoritative;
 - registry/ownership event format and domain separation;
 - globally resolvable manifest format;
-- indexer ingestion/rebuild protocol;
+- canonical registry event ordering and the minimum indexer
+  ingestion/rebuild contract;
 - final `atos://agent/...` / `atos://capability/...` (or replacement) semantics;
-- cross-gateway replay and signature domains.
+- common canonicalization, digest, versioning, stable-error and replay-domain
+  rules used by later Phase 5 contracts.
 
 Do not let the existing provisional URI or local database key accidentally
 become the permanent federation identifier merely because code already uses it.
@@ -2154,13 +2165,13 @@ Required frozen artifacts include at least:
   rotation and permanent revocation/tombstone semantics;
 - `NATIVE_CAPABILITY_REGISTRY_V1.md`: Capability/version ownership, immutable
   manifest commitment, endpoint/signer references and canonical event order;
-- `WALLET_AUTHORIZATION_V1.md`: wallet authorization and per-request PoP;
-- `NATIVE_ECONOMIC_INTENT_V1.md`: Quote/escrow/invocation/settlement intent
-  domains, exact monetary fields, nonces and relayer/sponsor constraints;
-- `NATIVE_PROOF_PACKAGE_V1.md`: `tos_native_v1` package and independent
-  verification algorithm;
 - protobuf/CBOR schemas plus positive and field-level adversarial vectors for
-  every signed or hashed value.
+  the shared identifiers, registry actions and events.
+
+Phase-specific public contracts are frozen immediately before their owning
+subphase, not guessed in 5A: `WALLET_AUTHORIZATION_V1.md` in Phase 5D, and
+`NATIVE_ECONOMIC_INTENT_V1.md` plus `NATIVE_PROOF_PACKAGE_V1.md` in Phase 5E.
+They inherit the 5A canonicalization, versioning and domain-separation rules.
 
 The contracts MUST define forward-compatible version negotiation without
 accepting unknown critical fields, Unicode/URI ambiguity, default-network
@@ -2175,122 +2186,109 @@ commitments.
 - cross-network, cross-genesis, cross-domain and cross-purpose replays fail;
 - ID parsing/serialization round trips without aliases or normalization
   collisions;
+- Agent and Capability IDs remain stable through allowed controller/owner key
+  rotation while network/genesis identity remains explicit;
 - rotation, delegation, recovery and revocation ordering is unambiguous under
   reorg/finality rules;
 - no schema uses an `atos.im` database ID as global authority.
 
-### 9.2 Phase 5B — Wallet-Native stateless gateway authorization
+### 9.2 Phase 5B — Canonical Native Agent and Capability registry
 
-**Goal:** a headless Agent generates and controls a TOS wallet locally, proves
-current authority to `atos.im` or another compatible gateway, and uses
-REST/MCP/A2A without creating a persistent gateway account or exposing its root
-private key.
+**Goal:** make finalized TOS state—not a gateway database—the canonical source
+for global Agent identity, delegation and Capability/version ownership.
 
-Phase 5B consumes a pre-enrolled canonical Agent/controller fixture through the
-Phase 5A resolver contract. Creating, rotating and revoking that canonical
-identity as a public product is Phase 5C; Phase 5B must not invent a temporary
-gateway-owned registration scheme to unblock authentication.
+Implement:
 
-#### 9.2.1 Canonical wallet authorization proof
+- wallet-controlled Agent bootstrap through any compatible submission path;
+- Agent controller/delegate authorization with bounded purpose/scope;
+- configurable threshold/multisignature control, recovery authority and
+  timelock semantics without granting a gateway unilateral recovery power;
+- deterministic register, rotate, recover and revoke actions;
+- permanent revocation/tombstone and stale-key rejection rules;
+- TOS-backed Capability/version registration, immutable manifest commitment,
+  content-addressed retrievable manifest reference, ownership
+  transfer/revocation and provider-authorized endpoint/transport-recipient-key
+  references with validity/rotation semantics;
+- authorized execution-signer registration/rotation/revocation independent of
+  `atos.im`;
+- purpose-bounded provider commerce/Quote signer authorization distinct from
+  execution-Receipt authority where automated quoting requires delegation;
+- deterministic Action IDs, durable journal-before-broadcast, typed canonical
+  absence and lost-response recovery;
+- live strict-majority observation, finality, code-hash allowlists and
+  monotonic local projections.
 
-Implement the domain-separated `atos_wallet_authorization_v1` frozen by Phase
-5A, containing at least:
+A gateway may sponsor fees or relay an unchanged signed action. It cannot
+become the Agent/controller, change the Capability tuple, silently broaden a
+delegation or treat its local row as proof that a chain action succeeded.
 
-```text
-format/signature version
-TOS network_id + genesis/chain domain
-gateway audience/origin
-global Agent ID + wallet address/public key
-ephemeral session public key
-exact requested scopes and optional resource constraints
-issued_at + expires_at
-one-time nonce + authorization_id
-purpose = gateway_session
-```
+Registration does not put private metadata or bulk manifests into consensus.
+Canonical state binds the public immutable commitment and retrieval reference;
+resolvers fetch bounded manifest bytes from independently replaceable sources
+and verify the commitment. Unavailable or mismatched bytes make the version
+unquotable/degraded, never permission to use mutable gateway-local metadata.
 
-The signed bytes and canonicalization test vectors must be identical across
-SDKs and gateways. Verification MUST establish that the signing key is
-currently authorized for the claimed TOS Agent Identity according to finalized
-TOS state, including rotation, revocation, recovery and delegation rules.
+No root private key or wallet seed crosses the client/gateway boundary. The
+registration path MUST support offline/HSM/TEE signing and a relayer that sees
+only the bounded signed action.
 
-The `gateway_session` signature domain MUST be disjoint from identity
-registration, token transfer, allowance/approval, Quote acceptance, escrow,
-Capability ownership, execution and settlement domains. No valid login proof
-may be reinterpreted as an economic or ownership action.
+#### 9.2.1 Phase 5B acceptance
 
-#### 9.2.2 Short-lived proof-of-possession session
+- a fresh wallet registers an Agent, delegate, Capability/version, endpoint and
+  signer on a real three-validator localnet;
+- a second, empty protocol instance resolves all tuples from finalized state;
+- rotation/recovery/revocation invalidates old authority at the exact finalized
+  ordering boundary without invalidating earlier legitimate history;
+- compromised-key, threshold, recovery-delay, concurrent rotation/transfer and
+  permanent-tombstone tests enforce the frozen control policy;
+- duplicate submission, response loss, restart and concurrent relayers produce
+  one canonical action/result;
+- cross-network, changed manifest/version/owner, stale signer, substituted
+  endpoint/recipient key, code hash and fake not-found responses fail before a
+  second mutation or private-input disclosure;
+- a Quote signer cannot sign an execution Receipt (or vice versa) unless the
+  registry explicitly grants both disjoint purposes;
+- gateway shutdown or database deletion does not remove canonical identity or
+  ownership.
 
-After successful wallet proof, a gateway MAY issue a short-lived session token,
-but the Native default is not the existing long-lived bearer/refresh-token
-account model. The session must:
+### 9.3 Phase 5C — Independent indexer, resolver and decentralized discovery
 
-- use the global TOS Agent Identity as subject, not require a local
-  `principal_id`;
-- be audience-, network-, scope-, expiry- and session-public-key-bound;
-- require proof of possession of the ephemeral session key on every request,
-  binding method, authority/path, body digest, timestamp and request nonce;
-- default to minutes, not days, and require a new wallet proof rather than an
-  indefinitely renewable refresh token;
-- grant no admin, activation, reviewer, signer-management, custody or economic
-  authority merely because the wallet is valid;
-- support deterministic expiry and fail closed after root/session-key
-  revocation or network/domain mismatch.
+**Goal:** make canonical Native supply queryable without moving semantic search
+or private workload data into consensus.
 
-The wallet root key establishes and rotates sessions; it should not sign every
-HTTP call. SDKs must support memory-only session keys and stronger local custody
-such as HSM/TEE/policy-controlled signers for autonomous Agents.
+Implement:
 
-#### 9.2.3 Minimum-state and privacy boundary
+- a versioned canonical event ingestion contract with block/checkpoint identity;
+- durable cursor, bounded catch-up, reorg rollback and finalized-event policy;
+- independent reference indexer with deterministic rebuild from genesis or a
+  cryptographically bound checkpoint;
+- Native resolver library for Agent, Capability/version, manifest, endpoint,
+  signer and revocation state;
+- normalized freshness/finality/source metadata defined by this phase;
+- explicit stale/degraded/unavailable results rather than cached success;
+- provider endpoint resolution without gateway-local ownership assumptions;
+- bounded content-addressed manifest retrieval with digest verification,
+  redirect/SSRF controls, duplicate-field rejection and decompression limits;
+- rebuildable gateway search/ranking projection clearly separated from
+  canonical registry facts;
+- privacy rules that index public registry commitments/references but never
+  wallet secrets, private inputs, proposals or bulk Artifact bytes.
 
-“Stateless gateway” means no persistent wallet account or custodial wallet
-state. It does not prohibit bounded operational security state.
+Indexers and gateways MUST treat registry input as hostile. A registered Agent
+or Capability is not automatically safe, reachable, high-ranked or eligible
+for invocation. Ingestion requires bounded parsing/storage, pagination and
+backpressure; search applies spam/abuse policy without rewriting canonical
+ownership facts.
 
-A Native gateway MUST NOT require or retain:
+Search ranking remains off-chain and competitive. A gateway may enrich results
+with proprietary ranking, reputation or risk signals, but every such field must
+be labeled as a replaceable projection rather than a TOS-canonical fact.
 
-- wallet private keys, seed phrases or signing credentials;
-- a persistent wallet-to-`principal_id` binding;
-- a gateway-custodied wallet balance or automatically provisioned Managed
-  account/credit;
-- wallet secrets in logs, Capability metadata, Agent Cards, Artifacts or A2A
-  extensions;
-- a proprietary account row as the authority for Native identity, ownership,
-  balance, reputation, proof or settlement.
-
-A gateway MAY retain only policy-bounded operational data such as:
-
-- TTL-bounded challenge/replay hashes and session revocation state;
-- abuse/rate-limit state;
-- minimized security/audit logs under a declared retention policy;
-- caches and indexes that are explicitly non-canonical and rebuildable from
-  TOS events;
-- proprietary search/risk projections that are never presented as canonical
-  Native facts.
-
-Replay protection must work across replicas and restarts. If one-time challenge
-consumption uses durable storage, store the minimum opaque hash/expiry needed;
-that does not create a wallet account. A design claiming literally zero state
-must prove equivalent replay safety and revocation behavior before adoption.
-
-#### 9.2.4 Verifiable reads and freshness
-
-Native responses derived from TOS state must identify what was actually
-observed. Where applicable expose normalized:
-
-```text
-network_id
-block height/hash or finalized checkpoint
-finality status
-observed_at
-proof/reference
-indexer lag/freshness
-resolver/source identity
-```
-
-Clients must be able to request a minimum finality/freshness policy. The gateway
-must fail closed or return an explicit stale/degraded result when RPC endpoints,
-indexers or quorum sources disagree beyond policy. Reorg handling, cache
-invalidation, multi-endpoint quorum and proof verification require normative
-tests.
+Every canonical resolution result exposes the observed network/genesis,
+finalized block/checkpoint, proof/reference, observation time, resolver/source
+identity and index lag/freshness where applicable. Clients can request minimum
+finality/freshness; stale, conflicting or unavailable sources produce explicit
+degraded/error results rather than cached canonical success.
 
 Canonical facts and replaceable projections remain separate:
 
@@ -2304,133 +2302,15 @@ authorized off-chain data = private inputs, proposals and bulk Artifacts
 “Read from chain” MUST NOT be used as justification to publish private or bulk
 payloads on-chain.
 
-#### 9.2.5 Separation from economic and ownership intent
-
-A gateway session authorizes API access; it does not authorize spending or
-ownership changes. Each economic/ownership operation must carry its own
-domain-separated Agent/wallet authorization bound to all material terms,
-including as applicable:
-
-- network and Agent/wallet;
-- operation type and stable nonce/sequence/idempotency identity;
-- immutable Quote/terms commitment;
-- provider, Capability ID and version;
-- asset, exact/maximum amount, fee and sponsorship terms;
-- escrow, deadline, trust mode and proof profile;
-- intended relayer/gateway constraints where required.
-
-A gateway may validate, simulate, relay, sponsor fees and monitor confirmation.
-It may not reprice, change the provider/Capability, weaken trust, enlarge
-authority or substitute its own semantic signature. A sponsored transaction is
-still authorized by the Agent; gas sponsorship is not spending consent.
-
-Economic retries follow §3.3: a timeout or lost response reuses the same signed
-intent and idempotency identity, queries canonical outcome and never guesses
-whether the TOS action occurred.
-
-Phase 5B implements and tests canonical parsing/verification of this separate
-intent envelope, but it does not submit the Native economic mutation. The
-authority/publisher/state-machine integration belongs to Phase 5E.
-
-#### 9.2.6 Phase 5B acceptance
-
-Prove with two gateway implementations/instances and a real TOS localnet:
-
-1. an unattended Agent creates and retains a fresh wallet locally, while a
-   test-only setup path pre-enrolls its controller under the frozen 5A rules;
-2. it establishes a short-lived PoP session without creating a gateway
-   principal/account or disclosing the root private key;
-3. it reads the pre-enrolled identity/Capability fixtures with explicit
-   checkpoint, finality and freshness metadata;
-4. a session-only request is rejected for ownership/economic authority, while
-   a separately signed bounded Native intent passes canonical verification but
-   is not yet submitted;
-5. replay, scope mutation, body/path substitution, cross-audience use,
-   cross-network use, expired session, revoked/rotated key and stale authority
-   all fail closed;
-6. Gateway A can disappear and the same Agent can establish a new session at
-   Gateway B without exporting a gateway secret, re-registering its canonical
-   identity or giving Gateway B custody of its wallet.
-
-Tests must include concurrent challenge/session use, lost responses,
-multi-replica replay protection, chain reorg/finality behavior and malicious
-gateway attempts to reinterpret or mutate the separately signed economic
-envelope.
-
-### 9.3 Phase 5C — Canonical Native Agent and Capability registry
-
-**Goal:** make finalized TOS state—not a gateway database—the canonical source
-for global Agent identity, delegation and Capability/version ownership.
-
-Implement:
-
-- wallet-controlled Agent bootstrap through any compatible submission path;
-- Agent controller/delegate authorization with bounded purpose/scope;
-- deterministic register, rotate, recover and revoke actions;
-- permanent revocation/tombstone and stale-key rejection rules;
-- TOS-backed Capability/version registration, immutable manifest commitment,
-  ownership transfer/revocation and provider endpoint references;
-- authorized execution-signer registration/rotation/revocation independent of
-  `atos.im`;
-- deterministic Action IDs, durable journal-before-broadcast, typed canonical
-  absence and lost-response recovery;
-- live strict-majority observation, finality, code-hash allowlists and
-  monotonic local projections.
-
-A gateway may sponsor fees or relay an unchanged signed action. It cannot
-become the Agent/controller, change the Capability tuple, silently broaden a
-delegation or treat its local row as proof that a chain action succeeded.
-
-No root private key or wallet seed crosses the client/gateway boundary. The
-registration path MUST support offline/HSM/TEE signing and a relayer that sees
-only the bounded signed action.
-
 #### 9.3.1 Phase 5C acceptance
-
-- a fresh wallet registers an Agent, delegate, Capability/version, endpoint and
-  signer on a real three-validator localnet;
-- a second, empty protocol instance resolves all tuples from finalized state;
-- rotation/recovery/revocation invalidates old authority at the exact finalized
-  ordering boundary without invalidating earlier legitimate history;
-- duplicate submission, response loss, restart and concurrent relayers produce
-  one canonical action/result;
-- cross-network, changed manifest/version/owner, stale signer, substituted
-  code hash and fake not-found responses fail before a second mutation;
-- gateway shutdown or database deletion does not remove canonical identity or
-  ownership.
-
-### 9.4 Phase 5D — Independent indexer, resolver and decentralized discovery
-
-**Goal:** make canonical Native supply queryable without moving semantic search
-or private workload data into consensus.
-
-Implement:
-
-- a versioned canonical event ingestion contract with block/checkpoint identity;
-- durable cursor, bounded catch-up, reorg rollback and finalized-event policy;
-- independent reference indexer with deterministic rebuild from genesis or a
-  cryptographically bound checkpoint;
-- Native resolver library for Agent, Capability/version, manifest, endpoint,
-  signer and revocation state;
-- normalized freshness/finality/source metadata from §9.2.4;
-- explicit stale/degraded/unavailable results rather than cached success;
-- provider endpoint resolution without gateway-local ownership assumptions;
-- rebuildable gateway search/ranking projection clearly separated from
-  canonical registry facts;
-- privacy rules that index public registry commitments/references but never
-  wallet secrets, private inputs, proposals or bulk Artifact bytes.
-
-Search ranking remains off-chain and competitive. A gateway may enrich results
-with proprietary ranking, reputation or risk signals, but every such field must
-be labeled as a replaceable projection rather than a TOS-canonical fact.
-
-#### 9.4.1 Phase 5D acceptance
 
 - two independently implemented/indexed empty stores rebuild byte-equivalent
   canonical projections from the same finalized event history;
 - live tailing plus restart reaches the same result as a clean rebuild;
 - reorg, delayed endpoint, conflicting quorum, cursor corruption, omitted
   event and event reordering are detected or deterministically recovered;
+- malicious/oversized manifests, decompression bombs, redirect/SSRF targets,
+  event floods and pagination abuse cannot exhaust or escape the indexer;
 - a resolver never returns a revoked controller/signer or superseded
   Capability version as current;
 - minimum checkpoint/freshness requests fail closed when the index is stale;
@@ -2438,62 +2318,260 @@ be labeled as a replaceable projection rather than a TOS-canonical fact.
 - loss of the reference indexer affects availability/search latency, not the
   existence or verifiability of the Agent/Capability.
 
+### 9.4 Phase 5D — Wallet-Native stateless gateway authorization
+
+**Goal:** a headless Agent controls a TOS wallet locally, proves current
+authority to `atos.im` or another compatible gateway, and uses REST/MCP/A2A
+without creating a persistent gateway account or exposing its root private key.
+
+Phase 5D depends on the finalized registry and resolver from Phases 5B–5C.
+Production authentication MUST NOT use a test-only pre-enrolled fixture or a
+gateway-owned identity row as a substitute for canonical controller authority.
+
+#### 9.4.1 Canonical wallet authorization proof
+
+Freeze and implement `WALLET_AUTHORIZATION_V1.md`, including the
+domain-separated `atos_wallet_authorization_v1` with at least:
+
+```text
+format/signature version
+TOS network_id + genesis/chain domain
+gateway audience/origin
+global Agent ID + controller key identifier
+ephemeral session public key
+exact requested scopes and optional resource constraints
+issued_at + expires_at
+one-time nonce + authorization_id
+purpose = gateway_session
+```
+
+The proof uses an active controller/delegate key, which need not be the wallet
+funding key and MUST NOT make a gateway session a token-transfer signature. The
+signed bytes and canonicalization vectors are identical across SDKs/gateways.
+Verification resolves the key's exact purpose, scope and finalized validity for
+the claimed Agent, including rotation, recovery, delegation and revocation.
+
+The `gateway_session` domain is disjoint from identity/Capability mutation,
+token transfer/allowance, Quote acceptance, escrow, invocation, Receipt,
+dispute and settlement. No login proof can be reinterpreted as an ownership or
+economic action.
+
+#### 9.4.2 Short-lived proof-of-possession session
+
+After successful wallet proof, a gateway MAY issue an opaque or self-contained
+short-lived session credential. Native does not reuse the existing long-lived
+bearer/refresh-token account model. The session must:
+
+- use global Agent ID as subject and require no local `principal_id`;
+- bind audience, network/genesis, scopes/resources, expiry, authorization ID
+  and the ephemeral session public key;
+- require PoP on every request over method, normalized authority/path/query,
+  body/content digest, timestamp, request nonce and session credential digest;
+- define proxy/forwarded-host canonicalization and streaming-body/trailer rules
+  so two gateways verify the same request bytes;
+- default to minutes and require new controller proof rather than an
+  indefinitely renewable refresh token;
+- grant no admin, activation, reviewer, custody, ownership or economic
+  authority merely because the controller is valid;
+- fail closed after session expiry/revocation or controller/network mismatch.
+
+Every authorization and PoP decision records the authority checkpoint/freshness
+used. Controller/delegate revocation becomes effective at its finalized event
+boundary; resolver caching may improve availability only within the client's
+declared maximum authority-staleness policy and must never extend session
+expiry or override an observed revocation.
+
+The controller establishes sessions; it should not sign every HTTP call. SDKs
+support memory-only session keys and HSM/TEE/policy-controlled controller keys.
+
+#### 9.4.3 Minimum-state and privacy boundary
+
+“Stateless gateway” means no persistent wallet account or custodial wallet
+state, not literally zero operational state. A Native gateway MUST NOT require
+or retain wallet private keys/seed phrases, a persistent wallet-to-principal
+binding, automatically provisioned Managed credit, or an account row as Native
+identity/balance/proof authority.
+
+A gateway MAY retain only policy-bounded operational data: TTL-bounded
+challenge/replay hashes, session revocation, abuse/rate-limit state, minimized
+security logs, and non-canonical rebuildable caches/indexes. Replay protection
+must survive replicas and restarts. One-time challenges are atomically consumed
+and stored only as the minimum opaque hash/expiry needed.
+
+#### 9.4.4 Separation from economic and ownership intent
+
+A gateway session authorizes API access, including bounded reads and submission
+transport; it does not authorize spending, Capability mutation, invocation or
+settlement. Each semantic operation carries its own Phase 5A-domain-separated
+Agent/controller authorization with stable nonce/idempotency identity and all
+material terms. Phase 5D freezes only the common authorization envelope and
+proves separation; Phase 5E freezes the complete economic/invocation payloads
+and performs mutations.
+
+A gateway may validate or simulate the unchanged envelope. It cannot reprice,
+change provider/Capability, weaken trust, enlarge authority or substitute its
+own semantic signature. Fee sponsorship is not spending consent. Lost-response
+recovery reuses the same signed intent and queries canonical outcome under
+§3.3; it never guesses whether mutation occurred.
+
+#### 9.4.5 Phase 5D acceptance
+
+Prove with two gateway instances, the Phase 5C resolver and real localnet:
+
+1. a registered Agent establishes a PoP session without a gateway account or
+   disclosing the controller/root key;
+2. it performs scoped canonical reads with explicit checkpoint/freshness data;
+3. a session-only ownership/economic/invocation request is rejected, while a
+   separate bounded semantic envelope passes parsing but is not submitted;
+4. replay, scope/query/body/path substitution, proxy canonicalization,
+   cross-audience/network use, expiry and revoked/rotated/delegated key misuse
+   fail closed;
+5. Gateway A disappears and the Agent creates a distinct audience-bound
+   session at Gateway B without exporting Gateway A's credential.
+
+Tests include concurrent challenge/session use, lost responses, multi-replica
+replay state, revocation/finality races, clock skew bounds, streaming requests
+and malicious reinterpretation of the semantic envelope.
+
 ### 9.5 Phase 5E — Native transaction path and portable proof
 
 **Goal:** activate `trust_mode=native` for the complete economic lifecycle
 without reusing a gateway account, bearer-token authority or Managed ledger as
 canonical truth.
 
-Build on the completed Verified state machines rather than creating a parallel
-unrelated product. Native extends Verified with wallet-authorized intent and
-gateway-independent resolution:
+Build on the completed Verified durability, fencing, live-observation and
+projection-recovery mechanisms rather than creating an unrelated product.
+Native does **not** reuse a commitment whose version/domain is frozen to
+`verified`/`tos_verified_v1`; it defines purpose-separated Native values and
+domains while preserving the same safety properties.
+
+Freeze `NATIVE_ECONOMIC_INTENT_V1.md` and `NATIVE_PROOF_PACKAGE_V1.md`, their
+schemas, stable errors and positive/field-level adversarial vectors before the
+first Native economic implementation merges.
+
+The minimum authority chain is:
 
 ```text
-wallet-authorized Native Quote intent
+controller-authorized bounded Quote request
+ -> provider-authorized immutable service offer/Quote
+ -> requester accepts exact Native Quote commitment
+ -> payer or sponsor authorizes exact escrow funding (paid work)
  -> canonical Agent/Capability/signer resolution
  -> finalized Native Quote commitment
- -> wallet-funded or explicitly sponsored TaskEscrow
- -> provider execution + authorized Receipt
+ -> TaskEscrow reservation (paid) / committed zero-price path (free)
+ -> separately authorized invocation/input commitment
+ -> provider execution + authorized Receipt/result commitment
  -> settlement/release/dispute
  -> tos_native_v1 portable proof
  -> independent live verifier -> VALID
 ```
 
+These roles may be controlled by the same key in a simple client, but their
+purposes and signatures remain distinct. A Quote request with price/expiry
+bounds is not escrow consent; a session is not Quote acceptance; a sponsor's
+funding signature is not requester invocation consent; and an invocation is
+not settlement/dispute authority.
+
 Implement:
 
 - Native Quote construction from current canonical registry facts;
-- domain-separated wallet authorization over all material Quote/economic terms;
+- provider authorization of the exact Capability/version, service terms and
+  immutable Quote/offer;
+- requester acceptance over the exact Quote commitment, provider, manifest,
+  mode/profile, price, asset, deadline, escrow and dispute policy;
+- explicit payer/sponsor authorization over the exact reservation amount,
+  refund destination, relayer constraints and Quote acceptance;
 - exact amount/asset/fee/sponsor/relayer/deadline constraints;
+- separate invocation authorization binding Quote/escrow, Capability/version,
+  provider-authorized endpoint/recipient key, input/Artifact commitment, usage
+  ceiling, nonce and expiry;
 - TaskEscrow reserve/release/settle/dispute with no Native→Managed fallback;
 - invocation authorization that cannot be replayed as spending, ownership or
   settlement consent;
 - execution Receipt and signer validation at the authority-bounded execution
   time;
+- purpose-separated requester release/cancel/dispute actions and authorized
+  provider settlement, each bound to the canonical escrow/Receipt/outcome;
 - `tos_native_v1` package extending `tos_verified_v1` with global identifiers,
-  registry/resolver evidence, wallet intent and gateway-independence proof;
+  registry/resolver evidence, purpose-bounded Agent/payer intents and
+  gateway-independence proof;
 - REST/MCP/A2A parity using one service/state machine;
 - durable intent→authority→projection checkpoints, monotonic terminal state,
   multi-replica fencing and read-only recovery after lost mutation responses;
 - an independent verifier with no ATOS database, gateway account, publisher or
   mutation dependency.
 
+The portable package contains the canonical bytes/digests for every public
+immutable semantic object needed for verification and binds network/genesis,
+chain references and historical authority checkpoints. Raw private/bulk
+payloads remain absent and are represented only by their committed digests.
+The verifier's only external policy inputs are explicit trust roots/RPC quorum,
+accepted contract/code versions, finality/freshness policy and verification
+time. A missing gateway cache, mutable URL response or current identity
+projection cannot substitute for historical proof, and verification never
+calls mutation.
+
 Fee sponsorship MUST be explicit and separately authorized. The sponsor may
 pay network fees but cannot alter the provider, Capability/version, asset,
 amount, trust profile, escrow or proof terms.
+
+Free Native work uses an explicitly zero-priced Quote and the proof-profile
+path defined for zero economic value; it does not fabricate an escrow or
+Managed balance. Metered/per-unit work reserves the accepted maximum and binds
+the Receipt's usage commitment and final payout/refund within that ceiling.
+
+TaskEscrow contract-version constraints are normative. If the selected
+contract version cannot pay a separate gateway-fee recipient, a Native Quote
+using it freezes `fees = 0` and `total_max = subtotal`, exactly as required for
+Verified TaskEscrow V1. A new fee model requires a reviewed contract/protocol
+version and new vectors; gateway-local fee accounting cannot be presented as
+part of the canonical Native escrow.
+
+The path supports both direct client submission to a compatible TOS boundary
+and relay through a gateway. Both consume the same signed semantic values and
+derive the same deterministic action identities. The relayer supplies
+transport/gas only and gains no semantic authority. Typed canonical absence,
+journal-before-broadcast and read-only terminal recovery remain mandatory.
+
+OpenTask listings, private proposals, prompts and bulk Artifacts are not made
+canonical merely because a resulting transaction is Native. A gateway-local
+OpenTask/proposal flow may culminate in the exact Native Quote acceptance above;
+loss of pre-Quote marketplace state is an availability/product concern unless
+a separate portable-demand protocol is explicitly standardized.
+
+Native verifiability is not an automatic confidentiality guarantee. A client
+that sends plaintext through a gateway trusts that gateway for plaintext
+handling under its declared policy. End-to-end confidentiality, when required,
+binds the provider-authorized recipient/encryption key and ciphertext/Artifact
+commitment into the invocation; a relay cannot substitute itself as recipient.
+Secrets and raw private payloads never enter registry, Quote or proof packages.
 
 #### 9.5.1 Phase 5E acceptance
 
 - provider settlement, requester release and dispute resolution each produce a
   valid, byte-stable `tos_native_v1` package;
+- direct submission and gateway relay of the same signed semantic action
+  resolve to one deterministic action/result, without relayer substitution;
+- Quote request, provider offer, requester acceptance, sponsor funding and
+  invocation signatures cannot be replayed across purposes or replace one
+  another;
 - exact replay, crash at every checkpoint, two replicas and lost response
   converge without double reserve, execution, settlement or refund;
 - changed price/fee/sponsor/provider/version/deadline/body/relayer, stale
-  registry fact, revoked wallet/delegate/signer, finality regression and
-  cross-network/domain replay fail closed;
+  registry fact, revoked controller/delegate/payer/signer, finality regression
+  and cross-network/domain replay fail closed;
+- endpoint/recipient-key substitution, plaintext/ciphertext confusion and
+  Artifact-reference substitution fail before private input is released;
 - REST, MCP and A2A expose the same Native state and cannot bypass wallet
   intent, resolver, escrow, Receipt or proof checks;
 - removing every local account/principal mapping does not prevent independent
   verification of a completed Native transaction.
+
+Historical verification evaluates controller, owner and execution-signer
+authority at the exact finalized transaction/Receipt ordering boundary. Later
+rotation or revocation blocks future authority but does not retroactively
+invalidate a correctly finalized earlier transaction; conflicting same-boundary
+ordering fails closed according to the Phase 5A event rules.
 
 ### 9.6 Phase 5F — Cross-gateway failover and Native completion gate
 
@@ -2516,11 +2594,26 @@ The mandatory scenario is:
 1. an unattended Agent creates and retains a wallet locally;
 2. Gateway A relays registration of the Agent and Capability;
 3. Gateway A and its database/index/cache are stopped and remain unavailable;
-4. Gateway B rebuilds/resolves the canonical Agent/Capability and establishes a
-   fresh PoP session without any Gateway A secret;
-5. Gateway B quotes, reserves escrow, invokes, settles or resolves a dispute;
-6. a third read-only process verifies the portable proof as `VALID`;
-7. byte-for-byte replay after every component restart returns the same result.
+4. Gateway B rebuilds/resolves the canonical Agent/Capability without any
+   Gateway A database or cache;
+5. the Agent creates a fresh audience-bound PoP session at Gateway B without
+   any Gateway A secret, then can quote/reserve a new transaction or read-only
+   recover canonical action/terminal state created through Gateway A;
+6. Gateway B invokes/completes work created through Gateway A only when the
+   private input/Artifact/execution context was addressed to a provider-owned
+   portable endpoint or an explicitly standardized encrypted handoff store;
+7. settlement, requester release or dispute resolution completes without
+   weakening the original authority/terms;
+8. a third read-only process verifies the portable proof as `VALID`;
+9. byte-for-byte replay of the same completed package after every component
+   restart returns the same result.
+
+Gateway independence does not promise magical recovery of uncommitted private
+gateway state. Unsigned search sessions, local OpenTasks/proposals, upload
+buffers and an in-flight execution held only by Gateway A may be unavailable.
+The conformance claim covers canonical registry/economic/proof state, exact
+signed-intent replay, and private execution handoff only when its transport and
+encryption were explicitly made portable before failure.
 
 The adversarial matrix MUST include gateway censorship/unavailability,
 malicious term mutation, shared-cache assumptions, stale/reorged indexers,
@@ -2536,17 +2629,23 @@ without querying the `atos.im` canonical database. The Agent exports no gateway
 secret, re-registers no canonical identity and gives neither gateway custody of
 its wallet.
 
+For an already-started transaction, another gateway can always resolve and
+verify canonical checkpoints and may complete any transition for which it has
+the original still-valid signed authorization and required portable encrypted
+payload. It is not required to reconstruct private bytes or authority that were
+never committed or handed off.
+
 The Native path preserves three replaceable roles:
 
 ```text
-Agent wallet/key       = signs identity and authorized protocol intents
+Agent controller/payer = signs purpose-bounded identity, commerce and funding intents
 Gateway/resolver       = UX, policy, discovery, routing and optional fee sponsorship
 TOS Network            = canonical identity/registry/trust/proof/economic state
 ```
 
 No `atos.im` bearer token, local `principal_id`, account row or private API is
 required to establish or verify canonical Native identity. A short-lived PoP
-context from §9.2 or an explicitly opted-in local account alias is never the
+context from §9.4 or an explicitly opted-in local account alias is never the
 federation identity.
 
 ### 9.7 Phase 5 repository ownership and merge gates
@@ -2573,8 +2672,10 @@ reference `atos.im` instance can exercise Native mode against its own database.
 **Goal:** make `atos.im` a reference gateway rather than a mandatory choke
 point.
 
-⬜ **Status: not started.** Phase 6 is divided into five ordered, independently
-reviewable work packages:
+⬜ **Status: not complete.** Existing ARD/registry/federation helpers are
+reusable foundations, but no Phase 6 gateway-descriptor, conformance or
+independent-interoperability work package has passed the gates below. Phase 6
+is divided into five ordered, independently reviewable work packages:
 
 ```text
 6A gateway interoperability contract
@@ -2598,6 +2699,11 @@ versioned contract that an implementation not derived from `atos.im` can
 discover, implement, test and operate. Running two copies of the same gateway
 binary is not sufficient evidence that Phase 6 is complete.
 
+Phase 5A–5E contracts and Phase 5F acceptance are the normative entry gate for
+Phase 6. A 6A draft may be developed earlier, but Phase 6 MUST NOT redefine an
+unfinished Native identifier, wallet proof, economic intent or proof package to
+make federation appear complete.
+
 ### 10.1 Phase 6A — Gateway interoperability contract
 
 **Goal:** freeze how an unknown client or peer discovers a gateway, verifies
@@ -2618,10 +2724,25 @@ Define a versioned, canonical and signed gateway descriptor covering at least:
 - descriptor issue/expiry times, sequence/version and replacement/revocation;
 - stable machine-readable error codes and retry/terminal classification.
 
+Freeze a well-known retrieval path and explicit bootstrap modes. A client may
+start from a configured HTTPS origin, a TOS-anchored gateway/operator key, or a
+signed referral/directory accepted by client policy. The initial trust source
+and expected gateway identity are inputs to verification; a descriptor signed
+only by a key contained inside itself proves internal integrity, not who the
+operator is. Origin/TLS binding and TOS/referral identity binding must never be
+silently substituted for one another.
+
 The descriptor is a capability statement, not proof that the operator behaves
-honestly. Canonical Native facts still come from TOS state and portable proof.
-Optional directories may index signed descriptors, but no directory, DNS name
-or `atos.im` database becomes the authority for global Agent/Capability state.
+honestly or passed conformance. Canonical Native facts still come from TOS
+state and portable proof. Optional directories may index signed descriptors,
+but no directory, DNS name or `atos.im` database becomes the authority for
+global Agent/Capability state.
+
+Likewise, a descriptor's privacy, retention, jurisdiction, availability or
+rate-limit declaration is operator metadata unless backed by a separately
+verifiable mechanism. Clients must not confuse a signed claim with technical
+proof of confidential handling; end-to-end provider encryption remains the
+strong boundary for a gateway that should not see workload plaintext.
 
 Freeze request/response schemas, canonical bytes, signatures, media types,
 version negotiation, critical-extension handling and positive/adversarial test
@@ -2648,6 +2769,8 @@ Descriptor fetching and endpoint use require explicit security rules for:
   economic intent;
 - a descriptor key can rotate or be revoked without accepting rollback to the
   old descriptor;
+- configured-origin, TOS-anchored and signed-referral bootstrap modes each
+  authenticate the expected gateway identity and reject self-signed impostors;
 - standard errors distinguish retryable availability, stale/degraded state,
   unsupported capability, authorization failure and integrity conflict;
 - no gateway advertisement can redefine `native`, `tos_native_v1` or any
@@ -2680,22 +2803,36 @@ The suite MUST include:
 - stale/reorged/conflicting indexer and finality/quorum responses;
 - Quote/Capability/provider/amount/fee/deadline/escrow/proof substitution;
 - lost response, retry, restart, concurrent duplicate and terminal replay;
-- privacy checks for secrets, private proposals/inputs/Artifacts and logs;
+- black-box privacy checks for secrets/private payloads in responses, errors and
+  externally emitted diagnostics;
 - descriptor downgrade/equivocation and endpoint/redirect/SSRF attacks;
 - proof verification from an empty independent verifier with no gateway DB.
 
 Conformance output must be a deterministic, machine-readable evidence bundle
 binding suite release/digest, gateway descriptor identity/version, declared
-profile, network/genesis, test vector revision, results and execution time. A
-report is reproducible evidence for a specific build/configuration, not a
-permanent certification or protocol authority.
+profile, network/genesis, test vector revision, results, execution time, runner
+identity/provenance and report signature. A report is reproducible evidence for
+a specific build/configuration, not a permanent certification or protocol
+authority.
+
+Determinism applies to canonical vector inputs, expected digests and normalized
+result classifications. Run IDs, timestamps, nonces, chain transaction
+references and latency measurements remain explicit run metadata and are not
+expected to be byte-identical across independent live executions.
+
+The harness may control its own test deployment, fault proxy and process
+lifecycle, but protocol assertions use only standard public boundaries. Pure
+black-box testing cannot prove an operator's internal retention/logging claim;
+operator-assisted deployment checks are a separate profile and the reference
+gateway's internal redaction/retention tests belong to Phase 6C.
 
 #### 10.2.1 Phase 6B acceptance
 
 - the runner detects intentionally weakened reference-gateway variants for
   every mandatory security class;
-- exact reruns against an unchanged build/config produce the same semantic
-  report and stable result classification;
+- exact vector reruns against an unchanged build/config produce the same
+  canonical assertions and stable result classification after excluding the
+  declared live-run metadata;
 - a gateway cannot pass a profile by omitting the corresponding descriptor
   claim or returning `unsupported` after accepting sensitive input;
 - tests never require private operator credentials, a copied gateway database
@@ -2739,6 +2876,8 @@ breaking Native resolution, transaction verification or proof portability.
   descriptor matching the actual runtime configuration;
 - key/config/database/indexer/process loss and restore drills preserve replay,
   monotonic state and descriptor-rotation safety;
+- log/trace/metric and backup/restore tests demonstrate redaction and declared
+  retention for session material and private workload data;
 - disabling every Managed/account/ranking component leaves the advertised
   Native profiles operational;
 - readiness fails on insecure custody, unsupported network/genesis, stale
@@ -2752,11 +2891,14 @@ internal assumptions.
 The acceptance matrix requires at least:
 
 - the open ATOS reference gateway;
-- one independently authored minimal gateway/client implementation that does
-  not import ATOS business packages or copy its database/state;
+- one independently authored minimal gateway implementation that does not
+  import ATOS business packages or copy its database/state;
+- an independent client implementation (it may reuse frozen generated schemas,
+  but not ATOS gateway business/state-machine code);
 - separate resolver/indexer instances rebuilt from canonical events;
 - a real multi-validator TOS test network with independent RPC endpoints;
-- an empty third implementation of the portable proof verifier.
+- an independently authored portable-proof verifier, started empty and not
+  importing either gateway's verifier/business implementation.
 
 Exercise registration/resolution, wallet session bootstrap, Capability
 discovery, Native Quote, escrow, invocation, provider settlement, requester
@@ -2764,6 +2906,13 @@ release, dispute and `tos_native_v1` verification across mixed implementations.
 Repeat with Gateway A unavailable and Gateway B selected from a verified
 descriptor. The client creates a fresh audience-bound session at Gateway B; it
 MUST NOT export or replay Gateway A's session token.
+
+Apply the Phase 5F recovery boundary: Gateway B must resolve and recover
+canonical/signed state, but it can continue an in-flight private execution only
+when the required encrypted payload and provider execution context were made
+portable under a standardized handoff. The suite must separately classify
+“canonical transaction recoverable” and “gateway-local workload unavailable”;
+the latter is not proof that Native trust/economic state was lost.
 
 Test both compatible-version overlap and incompatible-version failure. Feature
 routing may select only a gateway that advertises and passes the required
@@ -2773,10 +2922,13 @@ signed economic intent.
 
 #### 10.4.1 Phase 6D acceptance
 
-- all supported implementation pairs produce byte-identical canonical
-  commitments/proofs and equivalent stable errors;
-- Gateway B completes or read-only-recovers work created through Gateway A
-  without a shared gateway DB, secret or local principal mapping;
+- all supported implementation pairs produce byte-identical canonical bytes
+  and digests for the same pre-mutation vectors, recover the same completed
+  chain object/package byte-for-byte, and return equivalent stable errors;
+- Gateway B read-only-recovers canonical work created through Gateway A, and
+  completes only transitions for which it possesses the original signed
+  authority and any required portable encrypted workload, without a shared
+  gateway DB, secret or local principal mapping;
 - incompatible versions, split quorum, stale descriptor/index, malicious
   routing, partial feature claims and finality regression fail closed;
 - killing each gateway, resolver, indexer, publisher and client between every
@@ -2793,10 +2945,13 @@ and compatibility do not depend on one operator making unpublished decisions.
 Before declaring Phase 6 complete, publish:
 
 - immutable protocol/conformance release manifests and artifact digests;
+- reproducible-build instructions, signed provenance, dependency/SBOM and
+  release-signing/verification procedure for normative binaries/artifacts;
 - supported-version, deprecation and minimum-security-version policy;
 - compatibility and critical-extension rules for rolling upgrades;
 - vulnerability disclosure, emergency revocation and coordinated patch rules;
 - descriptor signing-key compromise/recovery and operator-exit procedures;
+- conformance-suite signing-key compromise and false/misleading claim handling;
 - incident classifications for equivocation, stale/fake state, replay,
   censorship, unavailable quorum and proof-integrity failure;
 - privacy/data-retention baseline and abuse/rate-limit interoperability rules;
