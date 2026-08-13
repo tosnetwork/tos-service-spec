@@ -11,6 +11,10 @@
 > <read-only-rpc> --protocol-token-file <file> verify package.cbor`. The CLI
 > has no ATOS database access and its protocol observer exposes no mutation or
 > publisher operation.
+> Deployments selecting `--observer-command` instead MUST also provide
+> `--observer-command-sha256 sha256:<hex>` and install that command as a
+> root-owned, non-writable executable under root-owned, non-writable path
+> components; verifier service accounts remain unprivileged.
 
 Base URL:
 

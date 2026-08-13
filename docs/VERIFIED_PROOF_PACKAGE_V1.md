@@ -285,6 +285,16 @@ reference)`. Exact replay is byte-identical. Changed semantics under the same
 identity is `IDEMPOTENCY_CONFLICT`. Recovery after any local failure is
 read-only; proof production never retries a chain mutation.
 
+The standalone verifier MUST bound the proof file before reading it. When a
+deployment uses an external `--observer-command` instead of the pinned RPC
+observer, an absolute pathname alone is not a trust boundary. The verifier MUST
+require a configured SHA-256 digest, reject symlinks and writable/service-owned
+executables or path components, revalidate the executable on every call, and on
+Linux execute the already-verified file descriptor rather than reopening the
+pathname. Observer stdout/stderr, execution time and token-file input remain
+bounded. A changed or unavailable observer fails verification closed and can
+never fall back to offline acceptance.
+
 Normative positive and negative vectors live in
 `test-vectors/tos_verified_v1.json` and freeze canonical CBOR, digest, signer,
 network, checkpoint and terminal-outcome mutations. Every negative vector is

@@ -1940,6 +1940,10 @@ Current implementation/acceptance ledger (2026-08-13):
   also live-resolve the tombstone before returning a fresh-key same-tuple no-op;
 - ✅ every normative negative vector is applied as an RFC 6901 mutation and
   must produce its exact frozen verifier code and field;
+- ✅ the standalone verifier bounds package/token input and pins any external
+  observer command by root-owned path plus SHA-256, revalidating it per call and
+  executing the verified descriptor on Linux so pathname substitution cannot
+  forge live authority evidence;
 - ✅ two independently restarted ATOS processes, one backed by a restarted
   empty-bbolt protocol replica, replayed the same requester-release package
   through real REST GET and POST paths; both returned the identical 9,028-byte
