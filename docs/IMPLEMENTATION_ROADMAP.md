@@ -1941,6 +1941,8 @@ Current implementation/acceptance ledger (2026-08-13):
   also live-resolve the tombstone before returning a fresh-key same-tuple no-op;
 - ✅ every normative negative vector is applied as an RFC 6901 mutation and
   must produce its exact frozen verifier code and field;
+- ✅ canonical Quote, escrow and Receipt millisecond timestamps are converted
+  to package nanoseconds only after positive-range and overflow checks;
 - ✅ the standalone verifier bounds package/token input and pins any external
   observer command by root-owned path plus SHA-256, revalidating it per call and
   executing the verified descriptor on Linux so pathname substitution cannot

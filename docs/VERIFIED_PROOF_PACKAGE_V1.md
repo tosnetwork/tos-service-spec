@@ -157,7 +157,9 @@ A verifier MUST:
 
 1. decode exact canonical CBOR under bounded byte/depth/collection limits;
 2. reject unknown fields, unsupported semantics, malformed digests, times and
-   atomic amounts;
+   atomic amounts; every millisecond wire time compared with package
+   nanoseconds must be positive, exactly convertible and checked for integer
+   overflow before multiplication;
 3. recompute package, Quote, reservation, Receipt, release/dispute and
    Proof-of-Service digests;
 4. bind every reference and nested tuple to one network/domain, principal,
@@ -249,6 +251,12 @@ tos-protocol RPCs. Those RPCs live-resolve principal bindings, Capability
 ownership, Quote/Receipt/PoS commitments, and TaskEscrow reservation and
 terminal state. The observer has no ATOS database or mutation/publisher
 dependency.
+
+The external command observer contract is `tos_verified_observer_v2`.
+`observe` responses for `verified-receipt` MUST include positive
+`observed_unix_nanos`; `resolve_signer` requests include the mandatory
+`effective_receipt_unix_nanos`. A v1 observer cannot satisfy this proof profile
+and MUST fail closed rather than silently applying signed completion time.
 
 The outcome reference is the independently observed transaction that produced
 the current terminal TaskEscrow state. It is distinct from the immutable
