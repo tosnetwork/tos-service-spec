@@ -2573,32 +2573,277 @@ reference `atos.im` instance can exercise Native mode against its own database.
 **Goal:** make `atos.im` a reference gateway rather than a mandatory choke
 point.
 
-Ship:
+⬜ **Status: not started.** Phase 6 is divided into five ordered, independently
+reviewable work packages:
 
-- normative gateway feature/mode advertisement;
-- a conformance profile for wallet-signature authentication/session bootstrap,
-  including the §9.2 authorization proof, PoP request binding, domain separation,
-  scope/resource binding, replay protection and explicit declaration of
-  supported TOS networks/finality/freshness policy;
-- gateway conformance suite;
-- open reference gateway components;
-- cross-gateway Native resolution and `tos_native_v1` interoperability tests;
-- standardized trust/proof error semantics;
-- federation-safe caching/freshness rules;
-- anti-replay/domain-separation tests;
-- explicit gateway-local vs globally canonical field rules;
-- failover and recovery guidance.
+```text
+6A gateway interoperability contract
+ -> 6B black-box conformance suite
+ -> 6C independently deployable reference gateway
+ -> 6D multi-implementation interoperability and failover
+ -> 6E federation release and compatibility governance
+```
+
+Completion ledger:
+
+- ⬜ Phase 6A — gateway descriptor, negotiation and error contract;
+- ⬜ Phase 6B — black-box conformance suite and evidence format;
+- ⬜ Phase 6C — open reference gateway and operator deployment kit;
+- ⬜ Phase 6D — independent implementation interoperability and failover;
+- ⬜ Phase 6E — federation release, lifecycle and compatibility governance.
+
+Phase 5F demonstrates that the Native implementation works across separately
+operated reference processes. Phase 6 turns those guarantees into a public,
+versioned contract that an implementation not derived from `atos.im` can
+discover, implement, test and operate. Running two copies of the same gateway
+binary is not sufficient evidence that Phase 6 is complete.
+
+### 10.1 Phase 6A — Gateway interoperability contract
+
+**Goal:** freeze how an unknown client or peer discovers a gateway, verifies
+its claims and negotiates a compatible Native protocol without relying on an
+`atos.im` allowlist or private configuration.
+
+Define a versioned, canonical and signed gateway descriptor covering at least:
+
+- gateway/operator identity, descriptor signing keys and key-rotation chain;
+- canonical public endpoints and supported transport/API versions;
+- supported TOS network/genesis tuples and resolver/indexer source policy;
+- supported trust modes, proof profiles and exact feature levels;
+- wallet authorization/session bootstrap and per-request PoP mechanisms;
+- finality, freshness, quorum, cache and degraded-mode policies;
+- Native Quote, escrow, invocation, settlement, dispute and proof operations;
+- maximum request sizes, bounded timeouts, rate-limit signaling and privacy/log
+  retention declarations;
+- descriptor issue/expiry times, sequence/version and replacement/revocation;
+- stable machine-readable error codes and retry/terminal classification.
+
+The descriptor is a capability statement, not proof that the operator behaves
+honestly. Canonical Native facts still come from TOS state and portable proof.
+Optional directories may index signed descriptors, but no directory, DNS name
+or `atos.im` database becomes the authority for global Agent/Capability state.
+
+Freeze request/response schemas, canonical bytes, signatures, media types,
+version negotiation, critical-extension handling and positive/adversarial test
+vectors in `atos-spec`. Negotiation MUST fail closed on unsupported critical
+features and MUST NOT silently downgrade Native to Verified/Managed, remove
+proof/finality requirements or change a requested network.
+
+Descriptor fetching and endpoint use require explicit security rules for:
+
+- cross-network/domain replay and descriptor-signature substitution;
+- expired, rolled-back, equivocated or ambiguously encoded descriptors;
+- DNS rebinding, redirects, loopback/link-local/private targets, URL user-info,
+  alternate IP encodings and other SSRF routes;
+- TLS identity/pinning policy, proxy behavior and redirect limits;
+- cache keying by gateway identity, network and descriptor version;
+- size/decompression/time limits and duplicate/unknown critical fields.
+
+#### 10.1.1 Phase 6A acceptance
+
+- two independent parsers produce identical canonical bytes and decisions for
+  every descriptor/vector;
+- clients reject signature, audience, network, expiry, sequence, endpoint,
+  critical-feature and downgrade mutations before sending credentials or
+  economic intent;
+- a descriptor key can rotate or be revoked without accepting rollback to the
+  old descriptor;
+- standard errors distinguish retryable availability, stale/degraded state,
+  unsupported capability, authorization failure and integrity conflict;
+- no gateway advertisement can redefine `native`, `tos_native_v1` or any
+  Phase 5 canonical fact.
+
+### 10.2 Phase 6B — Black-box gateway conformance suite
+
+**Goal:** make every advertised standard feature independently testable from
+the public boundary instead of trusting gateway self-description.
+
+Ship an open, version-pinned conformance runner that starts from empty local
+state and tests a gateway only through standard public interfaces. Define
+separate, composable profiles so an operator claims only what it actually
+implements, for example:
+
+```text
+descriptor + discovery
+wallet authorization + PoP
+Native resolution + freshness
+Native economic relay
+portable proof retrieval/verification
+full Native gateway
+```
+
+The suite MUST include:
+
+- positive canonical vectors shared by REST, MCP and A2A where supported;
+- malformed framing/CBOR/protobuf/JSON, duplicate fields and size limits;
+- signature, replay, nonce, audience, scope, body/path and session-key attacks;
+- stale/reorged/conflicting indexer and finality/quorum responses;
+- Quote/Capability/provider/amount/fee/deadline/escrow/proof substitution;
+- lost response, retry, restart, concurrent duplicate and terminal replay;
+- privacy checks for secrets, private proposals/inputs/Artifacts and logs;
+- descriptor downgrade/equivocation and endpoint/redirect/SSRF attacks;
+- proof verification from an empty independent verifier with no gateway DB.
+
+Conformance output must be a deterministic, machine-readable evidence bundle
+binding suite release/digest, gateway descriptor identity/version, declared
+profile, network/genesis, test vector revision, results and execution time. A
+report is reproducible evidence for a specific build/configuration, not a
+permanent certification or protocol authority.
+
+#### 10.2.1 Phase 6B acceptance
+
+- the runner detects intentionally weakened reference-gateway variants for
+  every mandatory security class;
+- exact reruns against an unchanged build/config produce the same semantic
+  report and stable result classification;
+- a gateway cannot pass a profile by omitting the corresponding descriptor
+  claim or returning `unsupported` after accepting sensitive input;
+- tests never require private operator credentials, a copied gateway database
+  or an `atos.im` control-plane exception;
+- CI artifacts contain no wallet root key, bearer/session secret, private
+  workload payload or reusable economic authorization.
+
+### 10.3 Phase 6C — Open reference gateway and operator deployment kit
+
+**Goal:** let an independent operator deploy a standards-conformant Native
+gateway from reviewed source without inheriting `atos.im` Managed custody,
+accounts, proprietary ranking or private infrastructure.
+
+Package the minimum reference components needed for:
+
+- descriptor publication and signed rotation;
+- wallet authorization, short-lived PoP sessions and distributed replay state;
+- canonical resolver/indexer access with freshness/finality enforcement;
+- Native REST/MCP/A2A routing over the same service/state machines;
+- bounded relayer/fee-sponsor integration without semantic signing authority;
+- portable proof retrieval and independent verification;
+- health/readiness, metrics, traces, structured redacted logs and audit output;
+- fresh-store migrations, backup/restore, key rotation and zero-downtime
+  protocol/config upgrades.
+
+The operator kit MUST use explicit production configuration, least-privilege
+service identities, secret-file/HSM/Vault-compatible custody, purpose-separated
+keys and deny-by-default network egress. Development auto-approval, insecure
+TLS, default credentials, wildcard scopes, root execution and in-memory replay
+state must fail production readiness.
+
+Managed billing, local passkey accounts, private search ranking and enterprise
+policy remain optional gateway-local products. They must be removable without
+breaking Native resolution, transaction verification or proof portability.
+
+#### 10.3.1 Phase 6C acceptance
+
+- a third-party operator follows only the published source/configuration and
+  creates a fresh conformant gateway without copying an ATOS database;
+- the deployment passes the applicable Phase 6B profiles and publishes a
+  descriptor matching the actual runtime configuration;
+- key/config/database/indexer/process loss and restore drills preserve replay,
+  monotonic state and descriptor-rotation safety;
+- disabling every Managed/account/ranking component leaves the advertised
+  Native profiles operational;
+- readiness fails on insecure custody, unsupported network/genesis, stale
+  resolver/indexer, unavailable quorum or descriptor/runtime drift.
+
+### 10.4 Phase 6D — Multi-implementation interoperability and failover
+
+**Goal:** prove the standards describe behavior rather than one codebase's
+internal assumptions.
+
+The acceptance matrix requires at least:
+
+- the open ATOS reference gateway;
+- one independently authored minimal gateway/client implementation that does
+  not import ATOS business packages or copy its database/state;
+- separate resolver/indexer instances rebuilt from canonical events;
+- a real multi-validator TOS test network with independent RPC endpoints;
+- an empty third implementation of the portable proof verifier.
+
+Exercise registration/resolution, wallet session bootstrap, Capability
+discovery, Native Quote, escrow, invocation, provider settlement, requester
+release, dispute and `tos_native_v1` verification across mixed implementations.
+Repeat with Gateway A unavailable and Gateway B selected from a verified
+descriptor. The client creates a fresh audience-bound session at Gateway B; it
+MUST NOT export or replay Gateway A's session token.
+
+Test both compatible-version overlap and incompatible-version failure. Feature
+routing may select only a gateway that advertises and passes the required
+profile, network, finality, proof and economic operations. Ranking or directory
+presence alone is never authorization to send credentials, private inputs or
+signed economic intent.
+
+#### 10.4.1 Phase 6D acceptance
+
+- all supported implementation pairs produce byte-identical canonical
+  commitments/proofs and equivalent stable errors;
+- Gateway B completes or read-only-recovers work created through Gateway A
+  without a shared gateway DB, secret or local principal mapping;
+- incompatible versions, split quorum, stale descriptor/index, malicious
+  routing, partial feature claims and finality regression fail closed;
+- killing each gateway, resolver, indexer, publisher and client between every
+  durable checkpoint causes no duplicate economic mutation or terminal-state
+  regression;
+- removing `atos.im` for the entire run does not prevent Native completion or
+  independent verification.
+
+### 10.5 Phase 6E — Federation release and compatibility governance
+
+**Goal:** publish a sustainable open interoperability release whose security
+and compatibility do not depend on one operator making unpublished decisions.
+
+Before declaring Phase 6 complete, publish:
+
+- immutable protocol/conformance release manifests and artifact digests;
+- supported-version, deprecation and minimum-security-version policy;
+- compatibility and critical-extension rules for rolling upgrades;
+- vulnerability disclosure, emergency revocation and coordinated patch rules;
+- descriptor signing-key compromise/recovery and operator-exit procedures;
+- incident classifications for equivocation, stale/fake state, replay,
+  censorship, unavailable quorum and proof-integrity failure;
+- privacy/data-retention baseline and abuse/rate-limit interoperability rules;
+- reproducible conformance results for the reference and independent gateways;
+- operator runbooks for failover, rebuild, backup/restore and disaster drills.
+
+No mandatory global gateway directory or certification authority is introduced.
+Directories, auditors and reputation services may compete and sign their own
+observations. Clients decide which operators/evidence policies to trust while
+canonical Agent, Capability, economic and proof facts remain independently
+resolvable from TOS.
+
+#### 10.5.1 Phase 6 completion criterion
+
+At least one non-ATOS-derived gateway implementation and the open reference
+gateway pass the frozen conformance release and complete the Phase 6D matrix.
+An unattended wallet-controlled Agent can discover either gateway, verify its
+descriptor, establish a purpose-bound session, resolve and transact in Native
+mode, fail over, and verify the final proof without an `atos.im` account,
+database, secret or private API.
 
 A gateway may keep proprietary ranking, UX, risk controls, Managed billing and
 enterprise policy, but may not redefine the guarantees behind standard trust
 mode/profile names.
 
-**Success criterion:** loss of `atos.im` prevents access to its Managed service
-but does not prevent a compatible client/gateway from resolving, invoking,
-verifying and settling Native ATOS capabilities. A wallet-controlled Agent can
-move from one compatible gateway to another without exporting a gateway secret,
-re-registering its canonical identity, or trusting the replacement gateway with
-its private key.
+Loss of `atos.im` may prevent access to its Managed services, proprietary
+ranking or local support, but it must not prevent a conformant Native client
+from resolving, invoking, verifying and settling through another gateway.
+
+### 10.6 Phase 6 repository ownership and merge gates
+
+| Repository | Primary Phase 6 responsibility |
+|---|---|
+| `atos-spec` | descriptor/negotiation/error contracts, conformance profiles, vectors and release manifests |
+| `tos-protocol` | reusable resolver, wallet/PoP verification, Native authority, proof verifier and federation libraries |
+| `atos` | open reference gateway surfaces, runtime descriptor projection, orchestration and operator packaging |
+| `tos` | canonical contracts/events and network evidence required by the frozen Native profiles |
+| client SDK repositories | descriptor verification, safe endpoint selection, wallet/session custody, failover and proof verification |
+| independent conformance implementation | black-box runner and non-ATOS interoperability harness |
+
+Every subphase uses coordinated review branches/PRs in the repositories it
+changes. Normal module pseudo-versions are required and local filesystem
+`replace` directives are forbidden. A subphase remains Draft until its frozen
+vectors, fresh-store migrations, race/vet/build suites, adversarial black-box
+tests and applicable real-localnet/multi-process gates pass. Self-attestation,
+two processes sharing one database or two differently configured copies of one
+binary cannot by themselves close Phase 6D or Phase 6E.
 
 ---
 
