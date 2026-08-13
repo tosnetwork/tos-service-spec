@@ -1881,8 +1881,9 @@ Acceptance accounting:
   validation and exact code-hash allowlist binding before enrollment;
 - ✅ malformed capability/StateInit/address, policy mismatch and failed
   readiness leave no journal;
-- ⬜ one unified multi-process Phase 4 transaction spanning external ATOS
-  client, execution signer/Receipt and independent proof verifier (§8.4);
+- ✅ one unified multi-process Phase 4 transaction spanning external ATOS
+  client, execution signer/Receipt and independent proof verifier (completed
+  by the Phase 4C real-process/localnet acceptance matrix);
 - ⬜ production multi-validator/quorum topology, production Vault/HSM custody,
   operations and disaster recovery (§8.4).
 
@@ -1893,8 +1894,8 @@ system/deployment acceptance gates; they do not reopen the completed 4B-1 or
 
 ### 8.3 Phase 4C — Portable proof package and independent verifier
 
-✅ **Status: implementation complete and locally accepted on
-`agent/phase4c-portable-proof-verifier`.** Phase 4B references and local
+✅ **Status: implementation complete, locally accepted and merged to `main`.**
+Phase 4B references and local
 projections are not a portable proof. Phase 4C freezes and implements the
 `tos_verified_v1` package, durable multi-replica proof projection and a
 database-independent read-only verifier in
@@ -1984,6 +1985,15 @@ Proof package encoding, domain separation and test vectors must be normative in
 
 ### 8.4 Phase 4D — Full-stack and production gate
 
+✅ **Status: production-gate implementation complete and locally accepted.**
+The normative admission contract is frozen in
+`docs/PHASE4D_PRODUCTION_GATE.md`; `tos-phase4d-gate` performs the independent,
+read-only fail-closed audit. This completion means all repository code and
+local acceptance work for Phase 4D is delivered. It does **not** falsely
+certify an environment that has not supplied real HSM/KMS/Vault identities,
+independent production validator endpoints and current signed operational
+evidence: every concrete rollout must pass the gate with its own evidence.
+
 Required acceptance path:
 
 ```text
@@ -2004,6 +2014,45 @@ network, receipt, proof and settlement failures.
 Production readiness additionally requires multi-endpoint quorum deployment,
 reviewed code-hash allowlists, production key custody/HSM/Vault policy,
 monitoring, reconciliation, backup/disaster recovery and incident procedures.
+
+Implementation and acceptance ledger (2026-08-13):
+
+- ✅ **4D.1 — Frozen admission contract.** Strict manifest version, deployment
+  identity, trust pins, evidence signature domain and failure semantics are
+  normative; unknown/trailing fields and unsafe local paths fail closed.
+- ✅ **4D.2 — Real readiness boundaries.** ATOS `/readyz` checks PostgreSQL and
+  `tos-protocol`; protocol `/readyz`/`/healthz` checks live authority,
+  TaskEscrow economic driver and configured Worker. `/livez` remains liveness
+  only, so dependency failure cannot be hidden as readiness.
+- ✅ **4D.3 — Topology and reviewed-code enforcement.** The gate requires two
+  ATOS replicas, two protocol replicas, at least three independently operated
+  chain endpoints with strict-majority quorum, explicit network/domain pins,
+  and non-empty reviewed Agent/TaskEscrow TVM code-hash allowlists. The proof's
+  TaskEscrow hash must be in the deployment allowlist.
+- ✅ **4D.4 — Production key-custody gate.** Quote, Receipt, TaskEscrow and
+  chain-action purposes are separated; only HSM/KMS/Vault backends pass; live
+  health must exactly bind purpose/backend/key identity; file/software custody
+  is rejected.
+- ✅ **4D.5 — Operations and disaster-recovery evidence.** Monitoring signals
+  use exact Prometheus metric-name matching. Reconciliation, key ceremonies,
+  backups, restore drills and incident drills require current, read-only,
+  SHA-256-pinned and Ed25519-signed evidence.
+- ✅ **4D.6 — Complete independent proof gate.** The completed Phase 4C
+  external-client/localnet transaction and kill/restart matrix supplies the
+  canonical proof; the new gate re-pins its bytes, code hash, network and
+  domain and accepts only live independently observed `VALID`.
+- ✅ **4D.7 — Fail-closed adversarial tests.** Tests cover unavailable quorum
+  dependencies, non-diverse endpoints, redirects, insecure remote URLs,
+  incorrect custody identity/backend, stale/tampered/writable evidence,
+  monitoring substring spoofing, invalid proof and reviewed-hash mismatch.
+- ✅ **4D.8 — Reproducible operator command.** `tos-phase4d-gate` uses an
+  owner-only read-only observer token, has no publisher/mutation dependency,
+  emits a machine-readable report and exits non-zero on any failed check.
+- ⬜ **Per-environment production certification.** Mainnet operators must run
+  4D.8 against their real HTTPS replicas, independent validator operators,
+  production HSM/KMS/Vault keys and current signed drills. This is a deployment
+  ceremony, not unfinished Phase 4D repository code, and cannot be checked by
+  committing local fixtures.
 
 **Phase 4 success criterion:** an independent verifier can validate a completed
 Verified transaction end to end without trusting mutable `atos.im` state, and

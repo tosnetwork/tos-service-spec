@@ -24,6 +24,14 @@ Base URL:
 
 `https://api.atos.im/v1`
 
+Operational endpoints are outside the versioned business API:
+
+- `GET /livez` reports process liveness only;
+- `GET /readyz` returns `200` only while the configured PostgreSQL durability
+  boundary and `tos-protocol` dependency are currently ready; otherwise it
+  returns `503`. Load balancers MUST use `/readyz`, not `/livez`, to admit new
+  work. See `docs/PHASE4D_PRODUCTION_GATE.md`.
+
 ## 1. Conventions
 
 - JSON request/response.
