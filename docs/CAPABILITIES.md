@@ -24,6 +24,25 @@ Each version commits to a content-addressed manifest. A manifest should include:
 The exact manifest bytes must hash to the on-chain digest. Gateways may cache or
 mirror those bytes but may not rewrite them under the same version.
 
+## Initial software-work profile
+
+The first commercial profile is restricted to machine-checkable software work.
+It must be frozen before commerce implementation, and its manifest commits to:
+
+- operation class: compile, test, static analysis, dependency scan,
+  vulnerability scan, reproducible build, or bounded transform-and-test;
+- accepted source and repository reference forms;
+- toolchain or sandbox image digest;
+- network and filesystem policy;
+- CPU, memory, storage, output, and wall-clock bounds;
+- deterministic command or operation descriptor;
+- artifact and report formats;
+- objective success, failure, release, and refund conditions; and
+- authorized execution signer and endpoint commitments.
+
+Arbitrary shell access is not a Capability profile. The manifest must define a
+bounded operation that a buyer can inspect before accepting a Quote.
+
 ## Versions
 
 Version strings are opaque bounded UTF-8 identifiers. Within one Capability,
@@ -78,3 +97,5 @@ separate from this record.
 6. A Quote binds one exact, non-revoked version.
 7. A provider cannot substitute manifest, endpoint, or signer after acceptance.
 8. Capability administration always uses the current owner's live policy.
+9. Initial-release Capabilities use the software-work profile.
+10. Local ranking or reputation never changes a manifest commitment.

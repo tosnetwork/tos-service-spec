@@ -26,9 +26,16 @@ ATOS additionally lets an Agent determine, without trusting one platform:
 The resulting model is decentralized A2A commerce rather than an on-chain
 messaging system.
 
+The scenarios below describe a long-term application portfolio, not parallel
+initial-release commitments. Development starts with machine-checkable software
+work and expands only after independent buyers and providers demonstrate
+recurring paid use.
+
 ## 2. Interaction pattern
 
-A typical interaction follows this sequence:
+The target commercial interaction follows this sequence. The Registry and
+resolution portion is implemented; Quote acceptance through settlement remains
+the next roadmap gate.
 
 ```text
 Agent A                         Agent B
@@ -50,24 +57,26 @@ Identity, Capability state, Accepted Quote terms, and economic outcomes are
 canonical on TOS. Requests, intermediate messages, outputs, and large artifacts
 normally remain off-chain and are bound by immutable digests.
 
-## 3. Paid AI and professional services
+## 3. Initial market: machine-checkable software work
 
-An Agent can purchase a bounded service from another Agent, including:
+An Agent can purchase objectively bounded software work from another Agent,
+including:
 
-- code generation, testing, or security review;
-- legal or financial document analysis;
-- translation and localization;
-- research, retrieval, and fact checking;
-- image, audio, video, or 3D generation;
-- planning, simulation, and optimization; and
-- domain-specific expert analysis.
+- isolated compilation;
+- deterministic test execution;
+- static analysis;
+- dependency and vulnerability scanning;
+- reproducible builds; and
+- bounded code transformation followed by tests.
 
 The Accepted Quote identifies the exact Capability version, maximum price,
-execution signer, deadline, and required evidence. A signed Receipt binds the
-input and output digests to the selected provider.
+execution signer, deadline, toolchain commitment, and acceptance rule. A signed
+Receipt binds repository commit, input digest, toolchain image, exit status,
+test report, artifacts, usage, and charged amount to the selected provider.
 
 This is useful when buyer and provider do not share an operator, account
-database, or billing system.
+database, or billing system. It is the initial market because results admit
+objective checks and narrow release or refund rules.
 
 ## 4. Compute and infrastructure markets
 
@@ -162,8 +171,8 @@ controller approval.
 
 ## 10. Composable Agent businesses
 
-A provider Agent may purchase lower-level services while fulfilling a higher-
-level Accepted Quote:
+A provider Agent may purchase lower-level services while fulfilling a
+higher-level Accepted Quote:
 
 ```text
 buyer -> report Agent
@@ -257,8 +266,8 @@ every message.
 ## 14. Implementation boundary
 
 The Native Registry and direct resolution establish the identity and Capability
-foundation. Accepted Quote transactions, escrow, execution receipts, disputes,
-settlement, decentralized discovery, and cross-gateway invocation advance
-through the acceptance gates in `ROADMAP.md`. Product code must not present a
-future commerce flow as canonical before its TOS contracts and conformance tests
-are complete.
+foundation. The first subsequent delivery is the software-work Quote, escrow,
+execution, Receipt, release, or refund lifecycle. Broader scenarios in this
+document advance only through the acceptance gates in `ROADMAP.md`. Product code
+must not present a future commerce flow as canonical before its TOS contracts,
+adapters, and conformance tests are complete.

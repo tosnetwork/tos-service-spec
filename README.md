@@ -17,7 +17,7 @@ Capability accounts are deterministic from the network domain, object ID,
 registry code, and workchain. Off-chain databases and interchange encodings
 are caches or projections only.
 
-## Core objects
+## Target core objects
 
 - **Agent** — a deterministic identity controlled by a weighted Ed25519 policy.
 - **Capability** — a deterministic object owned by one Agent, with immutable
@@ -26,7 +26,12 @@ are caches or projections only.
 - **Accepted Quote** — exact commercial and execution terms committed in a
   finalized TOS transaction.
 - **Receipt** — a result commitment signed by the execution authority selected
-  by the Accepted Quote and anchored according to its terms.
+  by the Accepted Quote and committed according to its terms.
+
+The Registry objects and relay/resolve service are implemented. Accepted Quote
+commitment construction exists, while its TOS transaction, escrow, execution
+Receipt, and settlement remain the next commercial delivery gate. See
+`IMPLEMENTATION_STATUS.md` for evidence-backed status.
 
 ## System boundaries
 
@@ -42,14 +47,16 @@ are caches or projections only.
 
 Read these documents completely and in this order:
 
-1. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-2. [`docs/NATIVE_REGISTRY_STATE_MACHINES.md`](docs/NATIVE_REGISTRY_STATE_MACHINES.md)
-3. [`docs/ROADMAP.md`](docs/ROADMAP.md)
+1. [`docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md)
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+3. [`docs/NATIVE_REGISTRY_STATE_MACHINES.md`](docs/NATIVE_REGISTRY_STATE_MACHINES.md)
+4. [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
-The first defines product and system architecture. The second defines the
-Agent and Capability state machines. The third defines implementation order
-and acceptance gates. More focused documents refine those rules but cannot
-contradict them.
+The strategy controls product priority and initial market scope but cannot
+weaken protocol safety. The architecture controls system authority. The state
+machine document controls Agent and Capability transitions. The roadmap
+controls implementation order and acceptance evidence. Focused documents may
+refine these rules but cannot contradict them.
 
 ## Product and use cases
 
@@ -57,6 +64,9 @@ contradict them.
   interaction lifecycle, suitable paid-agent applications, the roles of TOS
   and stable-value assets, and when to batch many off-chain messages into one
   settlement.
+- [Product and Commercial Strategy](docs/PRODUCT_STRATEGY.md) defines market
+  positioning, the initial software-work wedge, revenue paths, development
+  priorities, risks, and evidence required to establish a viable business.
 
 ## Normative contract
 

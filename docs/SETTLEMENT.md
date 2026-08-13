@@ -1,5 +1,13 @@
 # Native Quote, Execution, and Settlement Model
 
+## Delivery scope
+
+This document defines the target economic model. The first implementation is
+limited to machine-checkable software work, one supported stable-value asset,
+TOS network fees, objective release or refund, and narrowly bounded dispute
+evidence. Additional assets, subjective work, generalized arbitration, and
+high-frequency payment channels require later roadmap gates.
+
 ## Quote Proposal
 
 A gateway may construct `QuoteProposalV1` after resolving a Capability version.
@@ -52,6 +60,11 @@ At minimum, the lifecycle distinguishes funded, accepted for execution,
 released to provider, refunded to buyer, disputed, and resolved. Impossible or
 ambiguous simultaneous terminal outcomes are rejected by contract state.
 
+For the first release, escrow supports funded, released, and refunded terminal
+outcomes. A disputed state is included only if a concrete software-work failure
+cannot be decided from the committed objective evidence. It must not require a
+general-purpose arbitration platform.
+
 ## Execution
 
 Execution begins only after the Accepted Quote and required escrow state are
@@ -76,6 +89,10 @@ A successful receipt binds:
 - completion time; and
 - any evidence commitment required by the Quote.
 
+For the software-work profile, the Receipt also binds repository or source
+reference, toolchain or sandbox image digest, operation descriptor, exit status,
+test or scan report digest, and reproducible artifact digest where applicable.
+
 The authorized execution signer signs the canonical receipt. Bulk outputs and
 evidence remain off-chain and are checked by digest.
 
@@ -92,6 +109,18 @@ The Accepted Quote commits to dispute terms before execution. A dispute refers
 to the Quote, escrow, receipt or failure evidence, and exact challenged amount.
 Resolution authority and allowed outcomes come from the committed policy, not
 from the gateway that routed the job.
+
+Initial-release disputes are narrow exceptions around objective software-work
+evidence. Subjective quality judgments and generalized marketplace arbitration
+are outside scope.
+
+## Asset roles
+
+TOS pays contract execution, Registry operations, relaying, and protocol
+security costs. The provider service is denominated in the exact asset selected
+by the Accepted Quote; the initial commercial target is one supported
+stable-value asset. Wallets and accounting views must show service payment and
+TOS fees separately.
 
 ## Invariants
 

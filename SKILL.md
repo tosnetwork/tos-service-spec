@@ -18,12 +18,16 @@ gateway database row, mempool observation, or unfinalized transaction.
 
 Read, in order:
 
-1. `docs/ARCHITECTURE.md`
-2. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
-3. `docs/ROADMAP.md`
+1. `docs/PRODUCT_STRATEGY.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
+4. `docs/ROADMAP.md`
 
 Then read the focused document for the feature being changed and the complete
 `proto/atos/native/v1/native.proto` schema.
+
+For product work, complete the machine-checkable software-work lifecycle before
+adding another market, transport, asset, or generalized policy system.
 
 ## Client flow
 
@@ -41,6 +45,10 @@ Then read the focused document for the feature being changed and the complete
    terminal conflicting state is observed.
 
 ## Quote flow
+
+This flow becomes canonical only after the Gate D TOS contracts and conformance
+tests in `docs/ROADMAP.md` are complete. Until then, implementations may build
+and compare commitments but must not claim a finalized purchase lifecycle.
 
 1. Resolve the Capability and immutable version.
 2. Obtain one or more gateway Quote Proposals.

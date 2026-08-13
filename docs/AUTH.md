@@ -56,6 +56,21 @@ Automated clients use narrowly scoped, short-lived credentials and separate
 controller policies where on-chain signing is required. Gateway service
 credentials must not be treated as controller keys.
 
+## Commercial authorization
+
+The software-work commercial API must separate permission to search, request a
+proposal, dispatch work, retrieve artifacts, and request relay from permission
+to sign or spend. Gateway scopes never authorize a TOS payment.
+
+Wallet policy must independently constrain network, assets, maximum amounts,
+counterparties, Capability IDs or classes, expiry, and transaction frequency.
+Stable-value-asset allowance and TOS fee budget are displayed separately. Quote
+acceptance and any exceptional refund or dispute action require semantic wallet
+confirmation appropriate to those bounds.
+
+Custodial checkout, conversion, and compliance are optional operator services.
+They cannot change canonical Quote or settlement semantics.
+
 ## Security requirements
 
 - TLS is mandatory outside loopback development.

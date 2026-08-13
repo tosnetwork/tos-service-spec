@@ -2,15 +2,17 @@
 
 ## Read authority in order
 
-Before changing schemas or protocol behavior, read completely:
+Before changing product scope, schemas, or protocol behavior, read completely:
 
-1. `docs/ARCHITECTURE.md`
-2. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
-3. `docs/ROADMAP.md`
+1. `docs/PRODUCT_STRATEGY.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
+4. `docs/ROADMAP.md`
 
-The architecture document controls system boundaries. The state-machine
-document controls Agent and Capability transitions. The roadmap controls only
-implementation order and acceptance evidence.
+The strategy controls delivery priority and initial market scope. It cannot
+weaken architecture or contract safety. The architecture document controls
+system boundaries. The state-machine document controls Agent and Capability
+transitions. The roadmap controls implementation order and acceptance evidence.
 
 ## Greenfield contract
 
@@ -58,3 +60,8 @@ Do not claim completion from source presence or compilation alone. Record:
 
 Documentation must describe the intended Native system directly. Historical
 draft narratives do not belong in the normative repository.
+
+Before adding a new protocol surface, apply the decision filter in
+`docs/PRODUCT_STRATEGY.md`. Defer work that does not complete authority safety,
+the first software-work commercial lifecycle, interoperability, or measurable
+market usage.

@@ -68,6 +68,18 @@ tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d
 - Multi-operator conformance and failover exercise.
 - Production key custody, monitoring, incident response, and capacity evidence.
 
+## Current product priority
+
+The first commercial target is machine-checkable software work: isolated
+compilation, deterministic tests, static analysis, dependency or vulnerability
+scanning, and reproducible artifacts. The next implementation objective is one
+public-testnet lifecycle covering Capability resolution, Accepted Quote,
+stable-value-asset escrow, bound execution, signed Receipt, release or refund,
+and independent history resolution.
+
+General marketplaces, consumer commerce, generalized arbitration, cross-chain
+expansion, and per-message settlement are outside the initial release.
+
 ## Completion rule
 
 A feature is complete only when its normative schema, implementation,

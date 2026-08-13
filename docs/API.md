@@ -63,9 +63,24 @@ Native backend, relayer, resolver, network configuration, and required chain
 connectivity are ready. A gateway must leave readiness when it cannot safely
 establish canonical semantics.
 
-## Future gateway protocol
+## Next commercial surface
 
-Discovery, proposal, invocation, artifact, receipt, and settlement APIs are
-added only after their chain commitments and conformance rules pass the roadmap
-gate. They must reuse the same Agent, Capability, Accepted Quote, and chain
-reference types rather than invent parallel gateway-owned objects.
+The next API addition is limited to the first software-work commercial
+lifecycle. It needs public operations for minimal Capability discovery and
+manifest retrieval, Quote Proposal construction, Accepted Quote and escrow
+submission, one bound job, artifact retrieval, Receipt resolution, and release
+or refund. Exact methods are frozen in the Native protobuf before implementation.
+
+General marketplace, reputation, consumer checkout, and generalized arbitration
+APIs are not part of this release.
+
+## Adapter boundary
+
+A2A may carry task, progress, and result messages. MCP may expose the same
+Capability as a tool. An optional x402 adapter may carry payment negotiation.
+Adapters translate transport objects into the one Native lifecycle; they do not
+create alternate identities, Quotes, Receipts, balances, or settlement state.
+
+Every future gateway API must reuse the same Agent, Capability, Accepted Quote,
+Receipt, and chain-reference types rather than invent parallel gateway-owned
+objects.

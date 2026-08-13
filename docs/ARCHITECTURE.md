@@ -21,6 +21,13 @@ The product consists of:
 - escrow, receipt, dispute, and settlement commitments; and
 - open gateway interoperability.
 
+This list describes the target architecture, not the scope of the first
+release. Initial delivery is limited to the Native Registry plus one
+machine-checkable software-work lifecycle: resolve, Quote, escrow, execute,
+Receipt, release or refund, and independent history resolution. Other markets,
+generalized arbitration, and broader federation follow only after recurring
+paid use.
+
 ## 2. Canonical authority
 
 Finalized TOS state is the sole canonical authority for:
@@ -114,7 +121,18 @@ commercial semantics. Therefore:
 Gateway authentication protects transport resources. It does not authorize an
 on-chain state transition; contract signatures do that.
 
-## 7. Discovery
+## 7. Interoperability boundary
+
+ATOS does not define a new general Agent messaging protocol. A2A or MCP may
+carry task, progress, tool, and result messages. x402 or AP2 adapters may bridge
+payment negotiation or delegated purchase intent. These adapters map into ATOS
+objects and never become an alternate authority path.
+
+The Accepted Quote remains the canonical ATOS commercial boundary regardless
+of transport. An adapter cannot replace its Capability version, endpoint,
+signer, asset, amount, escrow, expiry, or dispute commitment.
+
+## 8. Discovery
 
 Discovery indexes finalized Agent and Capability state plus manifest
 content addressed by immutable digest. Indexes may add ranking, availability,
@@ -129,7 +147,11 @@ Clients must be able to verify:
 - Capability ownership and version commitment; and
 - the manifest bytes matching the selected digest.
 
-## 8. Commerce
+Initial discovery needs only enough search and manifest retrieval to complete
+the software-work commercial lifecycle. General ranking, reputation, and broad
+marketplace features are deferred until real provider and buyer activity exists.
+
+## 9. Commerce
 
 A Quote Proposal is discovery output. It may describe a Capability version,
 provider, manifest, endpoint binding, maximum price, expiry, escrow terms,
@@ -140,17 +162,22 @@ finalized TOS commitment is an Accepted Quote. Execution, escrow, receipt, and
 settlement must reference that commitment and may not substitute its bound
 version, endpoint, signer, price, asset, or policy.
 
-## 9. Data placement
+The initial commerce profile covers machine-checkable software work and narrow
+objective release or refund rules. TOS pays network execution and protocol
+security costs. A supported stable-value asset may denominate and settle the
+provider service. The Accepted Quote fixes both economic roles explicitly.
+
+## 10. Data placement
 
 Place only stable commitments and transition state on-chain. Keep prompts,
 inputs, outputs, logs, model traces, and large evidence off-chain. Bind off-chain
 content using immutable digests and disclose it only to authorized parties.
 
-Portable verification packages may aggregate finalized chain references,
-proofs, manifests, artifacts, and receipts. They are evidence containers, not
-an additional authority layer.
+Evidence bundles may aggregate finalized chain references, manifests,
+artifacts, and receipts. They are derived containers, not an additional
+authority layer.
 
-## 10. Failure model
+## 11. Failure model
 
 Clients and gateways fail closed when:
 
@@ -167,10 +194,12 @@ Clients and gateways fail closed when:
 
 Availability failure never permits semantic fallback.
 
-## 11. Completion criterion
+## 12. Completion criterion
 
 The architecture is complete when two independently operated gateways can
 discover the same finalized Capability, produce interoperable proposals, relay
 the same client-signed action, verify the same Accepted Quote, route execution,
 verify its receipt, and complete settlement without sharing a private database
-or trusted control service.
+or trusted control service. The first product gate applies this criterion to a
+software-work Capability with a real stable-value-asset payment and providers
+and buyers outside the core development team.
