@@ -293,3 +293,9 @@ package model with a typed replacement value; `expected_code` and
 `expected_field` are the mandatory verifier result after canonical
 re-encoding. A name without an operation and expected result is not a
 conformance vector.
+
+The repository conformance test MUST decode the positive package, apply every
+RFC 6901 operation, re-encode the typed package, run the independent verifier,
+and compare the exact `expected_code` and `expected_field`. Merely validating
+the vector object's shape is not execution. A `replace` path that does not
+exist in the positive package is itself an invalid vector.

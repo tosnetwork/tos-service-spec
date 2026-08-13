@@ -1934,6 +1934,11 @@ Current implementation/acceptance ledger (2026-08-13):
   empty protocol replica; exact finalized transaction time provides immutable
   as-of semantics, so pre-revocation execution remains valid while execution at
   or after revocation fails closed;
+- ✅ revoked v2 principal/Agent tuples are permanent canonical tombstones;
+  same-Agent reuse and A→B→A reuse fail before mutation instead of being
+  silently shadowed by an older revocation;
+- ✅ every normative negative vector is applied as an RFC 6901 mutation and
+  must produce its exact frozen verifier code and field;
 - ✅ two independently restarted ATOS processes, one backed by a restarted
   empty-bbolt protocol replica, replayed the same requester-release package
   through real REST GET and POST paths; both returned the identical 9,028-byte

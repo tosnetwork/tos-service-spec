@@ -370,6 +370,15 @@ MUST NOT enter this digest. Consequently an empty replica can reconstruct the
 same deterministic ActionID from the proof tuple and perform read-only live
 observation without possessing the original mutation request.
 
+Binding v2 intentionally has no mutable generation field. Therefore a
+canonically revoked `(principal_id, agent_id)` tuple is a permanent tombstone
+and MUST NOT be created again. `CreatePrincipalBinding` MUST live-resolve the
+deterministic revocation tuple before committing and return
+`BINDING_TUPLE_REVOKED` when it exists. Rotation to a previously unused Agent
+tuple remains allowed. Deployments that need tuple reuse require a future
+generation-bound commitment version; deleting a local revocation projection
+MUST NOT revive historical authority.
+
 ### `CreatePrincipalBinding` / `RevokePrincipalBinding` (Phase 4A)
 
 Durable, idempotent binding mutations, added for `docs/IMPLEMENTATION_ROADMAP.md`
