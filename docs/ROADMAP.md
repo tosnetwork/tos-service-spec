@@ -158,11 +158,13 @@ Deliver:
 - ✅ narrowly defined dispute evidence where an automatic outcome is
   impossible — V1 freezes an objective no-arbiter policy and exact evidence
   preimage rather than introducing a gateway-controlled decision maker;
-- 🟡 content-addressed artifact delivery — bounded immutable storage,
+- ✅ content-addressed artifact delivery — bounded immutable storage,
   deterministic report/artifact construction, tamper detection, exact
   manifest-to-executor mapping, and crash-safe at-most-once execution are
-  implemented; live conformance against the final protocol-pinned toolchain
-  image remains outstanding; and
+  implemented; the reproducible Go 1.26.5 OCI toolchain is frozen at index
+  digest `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105`,
+  two builds were byte-identical, and its live containerd workspace
+  conformance passed; and
 - 🟡 independent Quote, escrow, Receipt, and settlement resolution — production
   encoders, strict decoders, and a quorum-finalized escrow resolver exist; a
   finalized paid settlement transaction remains outstanding.
@@ -323,20 +325,20 @@ must reuse the existing authority objects.
     the actual frozen test stablecoin wallet code. Standard-wallet `excesses`
     is explicitly non-authoritative; terminal settlement resolution remains in
     item 13's multi-account transaction proof.
-12. 🟡 Integrate the bounded executor and content-addressed artifact delivery —
+12. ✅ Integrate the bounded executor and content-addressed artifact delivery —
     `tos-ai` now maps the provider-fixed image, invocation, workspace, and
     limits into containerd; safely extracts source archives; produces
     deterministic reports and USTAR artifacts; stores and reverifies immutable
     SHA-256 objects; and journals at-most-once execution across crashes. The
-    live test exists, but the final protocol-pinned toolchain image and
-    successful live conformance evidence must be frozen before this item is ✅.
+    reproducible Go 1.26.5 OCI image is frozen at index digest
+    `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105`;
+    two build archives were byte-identical and the pinned image passed the live
+    containerd workspace test under the production isolation policy.
 13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next implementation slice is to close item 12 by freezing the exact
-toolchain image digest and passing its live containerd workspace test, then
-complete item 13: fund the canonical escrow, execute the bound job, deliver the
-artifact, complete Receipt settlement, and independently reconstruct the paid
-transaction from finalized TOS state.
+The next implementation slice is item 13: fund the canonical escrow, execute
+the bound job, deliver the artifact, complete Receipt settlement, and
+independently reconstruct the paid transaction from finalized TOS state.
 The target is finalized Capability
 `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`
 and the exact test asset already recorded in this repository. Receipt, release,
