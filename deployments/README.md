@@ -29,5 +29,9 @@ The executable software-work manifest and its non-revoked Native Capability
 earlier `initial-public-testnet-software-work-capability-2026-08-14.json`
 record is retained as historical `1.1.0` evidence; its placeholder schema and
 toolchain digests are not valid execution inputs.
-The canonical Accepted Quote event and exact typed Escrow StateInit deployment
-are recorded in `initial-public-testnet-escrow-2026-08-14.json`.
+The payable Capability `1.2.0` Quote and exact typed Escrow StateInit are
+recorded in `initial-public-testnet-paid-escrow-v1-2-2026-08-14.json`. Earlier
+escrow records are immutable historical rehearsals: the original used the
+placeholder manifest, while `initial-public-testnet-escrow-v1-2-2026-08-14.json`
+bound a buyer address that did not own the deployed tUSDT balance and was
+therefore superseded before funding.
