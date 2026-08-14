@@ -15,6 +15,10 @@ operated provider, and a third party reconstructs the result from finalized TOS
 state. The recorded `2026-08-14` transaction is a same-host rehearsal and does
 **not** satisfy this.
 
+> **Before scheduling, read §9.** Only the **release** outcome is independently
+> verifiable end to end today; scope the pilot to release unless you first build a
+> refund verifier.
+
 ## 2. Independence rules (non-negotiable)
 
 From `GATE_D_EXTERNAL_PILOT.md`:
@@ -159,3 +163,24 @@ private-gateway dependency leaves Gate D open.
 4. Run §5 end to end; the verifier runs §6; complete and co-sign §7.
 5. Mark Gate D accepted in `ROADMAP.md` only when all three confirm the same
    record and the verifier returns the PASS token.
+
+## 9. Outcome scope — release is pilot-ready; refund needs new tooling
+
+The frozen profile allows **fixed-price full release or timeout refund**. Their
+assurance levels are not equal, so this determines what the pilot can prove.
+
+| Outcome | Emulator test | On-chain rehearsal | Independent evidence verifier |
+|---|---|---|---|
+| **Release** | complete | complete (25,000,000 tUSDT settled) | `atos-software-work-paid-evidence.py`, dry-verified end to end against live finalized state → `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT` |
+| **Timeout refund** | complete (`atos_stablecoin_escrow_sandbox::timeout_refunds_the_complete_stablecoin_balance`) | none | none — the paid-evidence verifier is release-specific: it requires a release body (`0x4E450001`) and a Receipt, which a refund has neither |
+
+Consequences:
+
+- **Scope the external pilot to the release outcome.** It is the only end-to-end
+  independently verifiable path today and is sufficient to accept Gate D; the
+  recorded rehearsal was also a release.
+- If the pilot must also demonstrate a refund on-chain, first build a
+  refund-evidence verifier (analogous to the release one, decoding the refund
+  body and a no-Receipt outcome) and record a refund rehearsal. That is net-new
+  tooling, not an organizational step, and blocks a refund-outcome pilot until it
+  exists.
