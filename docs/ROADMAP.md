@@ -34,6 +34,15 @@ detail are in `tos-protocol` commit
 not change the frozen Registry BOC, action encoding, authorization, state
 machine, or quorum decision rule reviewed at Gate B.
 
+The current Gate D design and test-evidence baseline is `atos-spec` commit
+`11464a84d0dec985f22636a8a94b3770c0cc2418`, `tos` commit
+`dc71dc8712f58e3d11ed973f4980ff6ae71de845`, and `tos-protocol` commit
+`6bb42b8968d4bbc374a89b7b61ea2c0e958d91ca`. It freezes the first
+software-work manifest and Accepted Quote encodings, records the finalized
+Capability binding and test-only stablecoin deployment, and provides
+`tosctl`-generated Ed25519 test identities. It does not claim that escrow,
+Quote acceptance, execution, Receipt, or settlement is complete.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -268,23 +277,42 @@ must reuse the existing authority objects.
       version on the initial public test network — the non-revoked Capability
       and three-endpoint evidence are recorded in
       `deployments/initial-public-testnet-software-work-capability-2026-08-14.json`;
-   3. ✅ freeze the Accepted Quote TVM cell and vector using an exact
-      TOS-network stablecoin contract identity, endpoint commitment, execution
-      signer authorization, escrow terms, dispute terms, price, and expiry;
-   4. ⬜ implement and resolve the canonical finalized TOS transaction that
-      turns that commitment into an Accepted Quote.
+   3. 🔄 freeze the Accepted Quote TVM cell and vector using an exact
+      TOS-network stablecoin contract identity, endpoint commitment, typed
+      execution signer authorization, typed escrow terms, dispute terms, price,
+      and expiry; the cell encoding, actual Capability ID, asset identity,
+      signer key preimage, and escrow terms preimage are frozen. Before
+      deployment, replace the remaining placeholder endpoint/dispute
+      commitments, update the software-work manifest, and finalize that digest
+      as a new immutable version on the existing Capability;
+   4. ⬜ deploy the escrow StateInit containing the complete Accepted Quote,
+      finalize that TOS transaction, and resolve both the transaction and typed
+      escrow state without gateway-private data; this transaction is the
+      canonical Quote acceptance event.
 9. ✅ Deploy a test-only TOS-network stablecoin and controlled wc=0 buyer
    wallet. The exact `tUSDT` master identity is
    `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
    this is test infrastructure, not a claim on real USDT reserves.
-10. ⬜ Implement the TOS-network stablecoin escrow contract and typed resolver.
+10. 🔄 Implement the TOS-network stablecoin escrow contract, reproducible
+    release artifact, exact StateInit builder, and finalized typed resolver.
 11. ⬜ Freeze the canonical software-work Receipt and implement objective
     release and refund transitions.
 12. ⬜ Integrate the bounded executor and content-addressed artifact delivery.
 13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next concrete tasks are item 8.4 and item 10: implement the escrow StateInit
-transaction and typed stablecoin custody state machine against finalized
-Capability `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`.
+The next implementation slice is items 10 and 11 followed by item 8.4. First freeze and
+implement one minimal typed stablecoin escrow state machine, its reproducible
+code artifact, StateInit builder, resolver, Receipt, release and refund
+transitions, and emulator negative matrix. Then deploy that exact final
+StateInit with the complete Accepted Quote and prove its finalized transaction
+is independently resolvable as the canonical acceptance event.
+The target is finalized Capability
+`cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`
+and the exact test asset already recorded in this repository. Receipt,
+execution, release, and refund work is item 11 and must be accepted before the
+first escrow deployment. Deploying a non-custodial shell first would change the
+later code hash and address and cannot be treated as an upgrade path. No
+intermediate milestone may advertise an asset-wallet address or risk locking
+test assets.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.

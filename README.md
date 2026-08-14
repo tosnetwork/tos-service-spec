@@ -81,6 +81,7 @@ refine these rules but cannot contradict them.
 - Quotes and settlement: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md)
 - Software-work manifest: [`docs/SOFTWARE_WORK_MANIFEST_V1.md`](docs/SOFTWARE_WORK_MANIFEST_V1.md)
 - Accepted Quote TVM cell: [`docs/ACCEPTED_QUOTE_TVM_V1.md`](docs/ACCEPTED_QUOTE_TVM_V1.md)
+- Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V1.md`](docs/STABLECOIN_ESCROW_TVM_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 

@@ -11,6 +11,8 @@ The first finalized transaction carrying this exact cell makes the terms an
 Accepted Quote. For the first commercial lifecycle, the transaction is the
 deployment of the stablecoin escrow whose StateInit embeds this cell. The
 escrow is a real custody and settlement state machine, not an Action Anchor.
+Its exact StateInit linkage and asynchronous settlement requirements are
+defined in [`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md).
 
 ## Cell layout
 
@@ -52,8 +54,10 @@ owner when the Quote is accepted.
 ## Vector and transaction rule
 
 [`accepted-quote-v1.json`](../test-vectors/accepted-quote-v1.json) freezes the
-cell and commitment using the test-only tUSDT contract identity. Production
-and independent Go encoders reproduce it without sharing Quote encoding code.
+cell and commitment using the test-only tUSDT contract identity, the finalized
+software-work Capability ID, concrete escrow terms, and the test execution
+signer's Ed25519 public key. Production and independent Go encoders reproduce
+it without sharing Quote encoding code and verify the typed preimage hashes.
 
 The vector proves encoding only. Before escrow deployment, a resolver must also
 verify the network genesis, Capability version and owner, stablecoin master and
