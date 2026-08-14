@@ -62,8 +62,9 @@ Deliver:
   retest;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
-- ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and
-  Capability transition.
+- 🟡 independent full-lifecycle TVM emulator evidence covering every Agent and
+  Capability transition — the internal v14 TVM matrix now passes, including
+  negative and atomic-transfer cases, but independent reproduction is pending.
 
 Accept when the full lifecycle passes on a local chain, the exported code hash
 matches frozen vectors, and independent review finds no unauthorized or partial
@@ -82,6 +83,8 @@ Deliver:
   manifest, and two-build comparison;
 - ✅ build/source separation that leaves generated `.fif` and embedded `.cpp`
   intermediates outside the source tree and verifies this invariant in CI;
+- ⬜ public-testnet ConfigParam 8 at global version 14 or later — the frozen
+  Registry BOC uses the version-gated `SHA256C` canonical snake hash;
 - ⬜ public-testnet deployment record binding network domain, contract address,
   deployed code BOC, code hash, transaction, and exact source commit;
 - 🟡 multi-endpoint quorum and finality configuration — client support exists,
@@ -220,17 +223,24 @@ must reuse the existing authority objects.
 
 ## 10. Immediate work
 
-1. ⬜ Obtain an independent audit of the Registry contract and `nativecore`.
-2. ✅ Add a Capability registration vector and second vector implementation.
-3. ✅ Freeze and continuously reproduce the Registry BOC, code hash, release
+1. 🟡 Close the independent Registry contract and `nativecore` audit — review
+   has confirmed the atomic slot-intent and broadcast-lease remediation, but the
+   subsequent chain-time recovery-preflight remediation requires independent
+   retest.
+2. 🟡 Produce independent full-lifecycle TVM emulator evidence for every Agent
+   and Capability transition — the internal Agent/Capability matrix and relay
+   crash-boundary suite pass; independent execution and published evidence are
+   still required.
+3. ✅ Add a Capability registration vector and second vector implementation.
+4. ✅ Freeze and continuously reproduce the Registry BOC, code hash, release
    manifest, negative corpus, and clean source/build boundary.
-4. ⬜ Deploy the frozen Registry code to a public TOS testnet and publish the
+5. ⬜ Deploy the frozen Registry code to a public TOS testnet and publish the
    complete deployment record.
-5. ✅ Implement wallet-native action signing and exact semantic confirmation.
-6. ⬜ Record the complete finalized Agent and Capability lifecycle on the public
+6. ✅ Implement wallet-native action signing and exact semantic confirmation.
+7. ⬜ Record the complete finalized Agent and Capability lifecycle on the public
    testnet using an independently operated wallet and resolver.
-7. 🟡 Freeze the software-work manifest and Accepted Quote commitment — the
+8. 🟡 Freeze the software-work manifest and Accepted Quote commitment — the
    deterministic commitment implementation and local test exist; the immutable
    software-work profile, frozen vector, and canonical TOS transaction do not.
-8. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
-9. ⬜ Complete one independently resolvable paid software-work transaction.
+9. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
+10. ⬜ Complete one independently resolvable paid software-work transaction.

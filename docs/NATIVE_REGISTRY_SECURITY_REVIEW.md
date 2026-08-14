@@ -267,6 +267,54 @@ the exact initiation and completion boundaries. This remains internal
 remediation. Gate B stays blocked until independent retest and the complete
 Agent/Capability TVM lifecycle matrix both pass.
 
+## Internal full-lifecycle emulator matrix
+
+The internal Gate B matrix now executes the frozen Registry BOC in the Rust
+TVM sandbox at global version 14. It covers:
+
+- Agent registration, exact replay, policy replacement with proof of
+  possession, delegation, recovery initiation, recovery after an intervening
+  delegation, generation-reset completion, superseded and invalidated
+  recovery, terminal revocation, and post-tombstone rejection;
+- caller-selected identity, stale and zero predecessor, skipped sequence,
+  wrong target, wrong network, forbidden signature shape, invalid signer,
+  unreachable purpose threshold, and early timelock rejection, with unchanged
+  state on every failure;
+- Capability registration, version addition, irreversible version revocation,
+  duplicate-version rejection, two-policy ownership transfer, former-owner
+  rejection, direct forged forwarding rejection, rejection by either transfer
+  policy, terminal revocation, and unchanged ownership after every failed
+  transfer; and
+- relayer journal restart from `prepared`, non-rebroadcast from
+  `broadcasting`, durable completion, conflicting-intent fencing, concurrent
+  broadcast-lease exclusion, and restart-surviving spend budgets.
+
+The matrix exposed that the Rust emulator lacked the TOS v14 `SHA256C` opcode
+used by the frozen contract even though the C++ TVM already implemented it.
+The Rust VM and assembler now implement opcode `0xf903` with the same version
+gate, canonical snake bounds, chunk-independent SHA-256 result, and malformed
+cell rejection. The sandbox uses an explicit pre-activation global-version
+configuration; ordinary defaults remain at the Rust implementation's declared
+supported version. Consequently, public deployment is invalid on any network
+whose finalized ConfigParam 8 remains below version 14.
+
+Run the TVM evidence with:
+
+```text
+tos/scripts/test-atos-native-registry-tvm-lifecycle.sh
+```
+
+Run the crash-boundary evidence from `tos-protocol` with:
+
+```text
+go test ./pkg/nativecore -race -count=20 \
+  -run 'TestFileRelayJournal|TestRelayerResolvesAmbiguousIntentWithoutRebroadcast'
+```
+
+These results are internal evidence only. The independent reviewer must run
+the same matrix from clean checkouts and publish exact commits, tool versions,
+and results before the independent Gate B item becomes complete.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a
@@ -305,6 +353,10 @@ Agent/Capability TVM lifecycle matrix both pass.
 - Reproducible build test: `tos/scripts/test-atos-native-registry-v1.sh`
 - Executable recovery lifecycle:
   `tos/tosctl/src/node-control/contracts/tests/native_registry_sandbox.rs`
+- TVM lifecycle entry point:
+  `tos/scripts/test-atos-native-registry-tvm-lifecycle.sh`
+- Version-gated `SHA256C` conformance:
+  `tos/tosctl/src/vm/tests/test_sha256c.rs`
 
 StateInit and action identities are frozen by TVM cell hash. A BOC container
 may legally use a different topological cell ordering while representing the
