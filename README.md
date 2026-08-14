@@ -79,6 +79,8 @@ refine these rules but cannot contradict them.
 - Security review: [`docs/NATIVE_REGISTRY_SECURITY_REVIEW.md`](docs/NATIVE_REGISTRY_SECURITY_REVIEW.md)
 - Public testnet gate: [`docs/NATIVE_REGISTRY_PUBLIC_TESTNET_GATE.md`](docs/NATIVE_REGISTRY_PUBLIC_TESTNET_GATE.md)
 - Quotes and settlement: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md)
+- Software-work manifest: [`docs/SOFTWARE_WORK_MANIFEST_V1.md`](docs/SOFTWARE_WORK_MANIFEST_V1.md)
+- Accepted Quote TVM cell: [`docs/ACCEPTED_QUOTE_TVM_V1.md`](docs/ACCEPTED_QUOTE_TVM_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 
@@ -125,6 +127,8 @@ deployments/                               public-network deployment evidence
 proto/atos/native/v1/native.proto          sole normative wire schema
 test-vectors/atos-native-v1-registry.json   frozen Agent and Capability vectors,
                                            addresses, and negative mutations
+test-vectors/atos-test-identities-v1.json   plaintext test-only TOS mnemonics, Ed25519 keys,
+                                           TVM addresses, and identity proof signatures
 ```
 
 Do not add a second object schema beside the Native protobuf contract. New

@@ -9,10 +9,14 @@ are manifest or discovery metadata, not identity.
 
 ## Manifest
 
-Each version commits to a content-addressed manifest. A manifest should include:
+Each version commits to a content-addressed manifest. The initial profile is
+frozen in [`SOFTWARE_WORK_MANIFEST_V1.md`](SOFTWARE_WORK_MANIFEST_V1.md). A
+manifest does not contain its Capability ID because the ID already commits to
+the manifest digest; including it would create a circular definition. A
+manifest includes:
 
 - protocol and manifest schema version;
-- Capability ID and version string;
+- version string (the finalized Capability state supplies the Capability ID);
 - name and description;
 - input and output schema digests;
 - execution endpoint commitments;

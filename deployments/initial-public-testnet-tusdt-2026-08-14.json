@@ -1,0 +1,140 @@
+{
+  "schema": "atos.native.test-stablecoin-deployment.v1",
+  "status": "active-test-only",
+  "deployed_now": false,
+  "buyer_wallet_deployed_now": true,
+  "minted_now": true,
+  "acceptance_events": {
+    "master_deployed": true,
+    "test_buyer_wallet_deployed": true,
+    "target_supply_minted": true
+  },
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8"
+  },
+  "asset": {
+    "name": "ATOS Test USDT",
+    "symbol": "tUSDT",
+    "decimals": 6,
+    "master_contract": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP",
+    "master_contract_raw": "0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a",
+    "admin": "Ef8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAU",
+    "metadata_uri": "data:application/json,%7B%22symbol%22%3A%22tUSDT%22%2C%22decimals%22%3A6%7D",
+    "total_supply_atomic": "1000000000000",
+    "test_buyer_wallet": "EQA7_WDGNU-nMb-OCPOFSFJTD1fBcvrS8UC8cVIViBA4MbsW",
+    "test_buyer_wallet_key_file": "/data/testnet/state/atos-test-buyer-wallet.pk",
+    "test_buyer_jetton_wallet_contract": "EQC0_F_vMgzXUiy-R0A9Ccf51QB5-ABne0PrwhZcMdrG_OFy"
+  },
+  "release": {
+    "source": "crypto/smartcont/reference/usdt-jetton-master",
+    "source_commit": "145bf7de195ac6105c630510ab51912f4b9e92ca",
+    "license": "MIT",
+    "minter_code_hash": "tvm-cell-sha256:18d5b6e780ff0bb451254c2c760d09d6e485638cd1407abb97078752c3c1c9ee",
+    "minter_boc_sha256": "sha256:107d8c83ec97394964b1413cb8a4c0afe2a8a69639017150ca1077b2a0c78fcb",
+    "minter_boc_bytes": 1483,
+    "wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+    "wallet_boc_sha256": "sha256:d07776e89e27649044bf3b2f16ea78e830ce25833dad03d5f692d3d3fe06e5a7",
+    "wallet_boc_bytes": 993,
+    "reproducible_builds": 2
+  },
+  "transactions": {
+    "master_last": {
+      "logical_time": 14883000001,
+      "hash": "sha256:bd9282840dfac0c6e55571ee2440135c3746da6f8b0d003bdb6135af4970fb23"
+    },
+    "wallet_last": {
+      "logical_time": 14883000003,
+      "hash": "sha256:5f235ea3b159165271b128ce1104a670a8fe3f5c09b74a6f7f47d214352a8b58"
+    }
+  },
+  "rejected_attempts": [
+    {
+      "purpose": "initial diagnostic mint targeted the wc=-1 issuer wallet",
+      "logical_time": 14211000001,
+      "transaction_hash": "sha256:eec6cfa3728cfe09d1669ff8bc60b85e8e8830263e2de856570071e19db2dedc",
+      "vm_exit_code": 333,
+      "reason": "USDT-style Jetton wallets are restricted to basechain wc=0",
+      "canonical_state_unchanged": true
+    }
+  ],
+  "quorum": 2,
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "checkpoint": {
+        "seqno": 12310,
+        "root_hash": "sha256:6fba26527f26ec1a3ad4131aaf9f87bf57717c2a6a36b503687b1e4508c9f06b",
+        "file_hash": "sha256:2cb4fb1d8d23153ef8e90f8781a9e1c815f8f06799d720b1dd80936668b52398"
+      },
+      "master_state_hash": "tvm-cell-sha256:6de35daa9afd74ee2b971fa4d35f28581f1d8cd92b1806baf9b6087aaa93b186",
+      "wallet_state_hash": "tvm-cell-sha256:da83b2697861546104bc7b9d4c580162196aa82e6e14eb51dafac098fd1905f2",
+      "master": {
+        "total_supply": "1000000000000",
+        "admin": "Ef8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAU",
+        "next_admin": null,
+        "wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+        "metadata_uri": "data:application/json,%7B%22symbol%22%3A%22tUSDT%22%2C%22decimals%22%3A6%7D"
+      },
+      "wallet": {
+        "status": 0,
+        "balance": "1000000000000",
+        "owner": "EQA7_WDGNU-nMb-OCPOFSFJTD1fBcvrS8UC8cVIViBA4MbsW",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "checkpoint": {
+        "seqno": 12310,
+        "root_hash": "sha256:6fba26527f26ec1a3ad4131aaf9f87bf57717c2a6a36b503687b1e4508c9f06b",
+        "file_hash": "sha256:2cb4fb1d8d23153ef8e90f8781a9e1c815f8f06799d720b1dd80936668b52398"
+      },
+      "master_state_hash": "tvm-cell-sha256:6de35daa9afd74ee2b971fa4d35f28581f1d8cd92b1806baf9b6087aaa93b186",
+      "wallet_state_hash": "tvm-cell-sha256:da83b2697861546104bc7b9d4c580162196aa82e6e14eb51dafac098fd1905f2",
+      "master": {
+        "total_supply": "1000000000000",
+        "admin": "Ef8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAU",
+        "next_admin": null,
+        "wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+        "metadata_uri": "data:application/json,%7B%22symbol%22%3A%22tUSDT%22%2C%22decimals%22%3A6%7D"
+      },
+      "wallet": {
+        "status": 0,
+        "balance": "1000000000000",
+        "owner": "EQA7_WDGNU-nMb-OCPOFSFJTD1fBcvrS8UC8cVIViBA4MbsW",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "checkpoint": {
+        "seqno": 12310,
+        "root_hash": "sha256:6fba26527f26ec1a3ad4131aaf9f87bf57717c2a6a36b503687b1e4508c9f06b",
+        "file_hash": "sha256:2cb4fb1d8d23153ef8e90f8781a9e1c815f8f06799d720b1dd80936668b52398"
+      },
+      "master_state_hash": "tvm-cell-sha256:6de35daa9afd74ee2b971fa4d35f28581f1d8cd92b1806baf9b6087aaa93b186",
+      "wallet_state_hash": "tvm-cell-sha256:da83b2697861546104bc7b9d4c580162196aa82e6e14eb51dafac098fd1905f2",
+      "master": {
+        "total_supply": "1000000000000",
+        "admin": "Ef8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAU",
+        "next_admin": null,
+        "wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+        "metadata_uri": "data:application/json,%7B%22symbol%22%3A%22tUSDT%22%2C%22decimals%22%3A6%7D"
+      },
+      "wallet": {
+        "status": 0,
+        "balance": "1000000000000",
+        "owner": "EQA7_WDGNU-nMb-OCPOFSFJTD1fBcvrS8UC8cVIViBA4MbsW",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      }
+    }
+  ],
+  "limitations": [
+    "test-only asset with no claim on real-world USDT reserves",
+    "issuer admin can mint, freeze wallets, change metadata, and upgrade code",
+    "all initial testnet endpoints are operated on one host"
+  ],
+  "verdict": "PASS_TEST_STABLECOIN_DEPLOYMENT"
+}

@@ -24,6 +24,16 @@ independently reproduced the complete Native Registry TVM lifecycle matrix.
 Gate C deployment evidence must continue to bind exact reviewed commits and
 release hashes.
 
+The initial Gate C deployment record is published by `atos-spec` commit
+`7a6cc02360e4cc8c2d95f80d433704cd72b0dc32`. Persistent validator JSON-RPC
+configuration is in `tos` commit
+`145bf7de195ac6105c630510ab51912f4b9e92ca`; the production quorum checker,
+live-node transaction response compatibility, and diagnostic-only quorum error
+detail are in `tos-protocol` commit
+`6bb42b8968d4bbc374a89b7b61ea2c0e958d91ca`. These operational additions do
+not change the frozen Registry BOC, action encoding, authorization, state
+machine, or quorum decision rule reviewed at Gate B.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -112,12 +122,18 @@ one machine-checkable software-work profile only.
 
 Deliver:
 
-- ⬜ immutable software-work Capability manifest profile;
+- ✅ immutable software-work Capability manifest profile — canonical CBOR,
+  bounds, positive vector, eight-case negative corpus, production Go encoder,
+  and independent stdlib-only Python reproducer are frozen;
 - 🟡 deterministic Accepted Quote commitment, vector, and TOS transaction — the
-  commitment implementation and local vector exist; the canonical transaction
-  path does not;
+  TVM cell, exact tUSDT master/code identity, production encoder, and independent
+  vector implementation are frozen; escrow deployment is specified as the
+  canonical transaction path but is not implemented or finalized;
 - 🟡 exact endpoint and execution-signer binding — commitment fields exist, but
   the end-to-end commercial lifecycle is incomplete;
+- ✅ test-only TOS-network stablecoin deployment with exact master-contract
+  identity, six-decimal metadata, controlled wc=0 buyer wallet, reproducible
+  code hashes, and three-endpoint state evidence;
 - ⬜ TOS-network stablecoin escrow with bounded native TOS network fees;
 - 🟡 isolated compilation, deterministic test, static-analysis, dependency-scan,
   or reproducible-build execution;
@@ -135,9 +151,12 @@ history without a private gateway database.
 Do not block this gate on general marketplace ranking, generalized arbitration,
 multiple verticals, cross-chain support, or per-message settlement.
 
-**Gate status: ⬜ Not accepted.** Accepted Quote primitives and an isolated
-executor foundation exist, but there is no stablecoin escrow, canonical Receipt,
-settlement path, or independently resolvable paid transaction.
+**Gate status: ⬜ Not accepted.** Accepted Quote primitives, an isolated
+executor foundation, and the test-only `tUSDT` asset recorded in
+`deployments/initial-public-testnet-tusdt-2026-08-14.json` exist, but there is
+no stablecoin escrow, canonical Receipt, settlement path, or independently
+resolvable paid transaction. Test-asset deployment alone is not payment
+acceptance.
 
 ## 5. Gate E — Developer usability and protocol adapters
 
@@ -241,14 +260,31 @@ must reuse the existing authority objects.
 6. ✅ Implement wallet-native action signing and exact semantic confirmation.
 7. ✅ Record the complete finalized Agent and Capability lifecycle and resolve
    it through three validator-backed JSON-RPC endpoints with quorum two.
-8. 🟡 **Next implementation task:**
-   freeze the immutable software-work Capability manifest profile, Accepted
-   Quote vector, and canonical TOS transaction. The deterministic commitment
-   implementation and local test already exist.
-9. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
-10. ⬜ Complete one independently resolvable paid software-work transaction.
+8. 🟡 **Active Gate D workstream:**
+   1. ✅ freeze the bounded software-work manifest schema, canonical byte
+      encoding, media type, digest rule, positive vector, and negative corpus;
+   2. ✅ implement the manifest in `atos-spec`, `tos-protocol`, and one
+      independent vector implementation, then bind its digest to a Capability
+      version on the initial public test network — the non-revoked Capability
+      and three-endpoint evidence are recorded in
+      `deployments/initial-public-testnet-software-work-capability-2026-08-14.json`;
+   3. ✅ freeze the Accepted Quote TVM cell and vector using an exact
+      TOS-network stablecoin contract identity, endpoint commitment, execution
+      signer authorization, escrow terms, dispute terms, price, and expiry;
+   4. ⬜ implement and resolve the canonical finalized TOS transaction that
+      turns that commitment into an Accepted Quote.
+9. ✅ Deploy a test-only TOS-network stablecoin and controlled wc=0 buyer
+   wallet. The exact `tUSDT` master identity is
+   `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
+   this is test infrastructure, not a claim on real USDT reserves.
+10. ⬜ Implement the TOS-network stablecoin escrow contract and typed resolver.
+11. ⬜ Freeze the canonical software-work Receipt and implement objective
+    release and refund transitions.
+12. ⬜ Integrate the bounded executor and content-addressed artifact delivery.
+13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next acceptance and implementation task is item 8: freeze the immutable
-software-work Capability manifest profile, Accepted Quote vector, and canonical
-TOS transaction. Multi-operator HTTPS endpoint diversity remains required in
-Gates F and G and is not implied by Gate C's initial profile.
+The next concrete tasks are item 8.4 and item 10: implement the escrow StateInit
+transaction and typed stablecoin custody state machine against finalized
+Capability `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`.
+Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
+is not implied by Gate C's initial profile.

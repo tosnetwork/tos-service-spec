@@ -50,9 +50,9 @@ base-10 text:
 No sign, decimal point, exponent, whitespace, locale formatting, or leading
 zero is allowed. Arithmetic uses checked integers with asset-specific bounds.
 
-The `asset` identifier names an asset contract on the same TOS network as the
-Accepted Quote. Resolution verifies the contract address, code identity,
-issuer-defined asset identity, decimals, and active status from finalized TOS
+The typed `asset` identity contains the wc=0 master account ID, master code
+hash, wallet code hash, and decimals on the same TOS network as the Accepted
+Quote. Resolution verifies every value and active status from finalized TOS
 state. A ticker such as `USD` or `USDT` is display metadata and is never a
 canonical asset identifier. Gateways cannot represent an off-chain balance,
 bridged claim on another network, or private ledger entry as settlement under
@@ -73,6 +73,11 @@ For the first release, escrow supports funded, released, and refunded terminal
 outcomes. A disputed state is included only if a concrete software-work failure
 cannot be decided from the committed objective evidence. It must not require a
 general-purpose arbitration platform.
+
+For the first lifecycle, escrow deployment embeds the complete Accepted Quote
+cell in StateInit. Its finalized deployment transaction is the canonical Quote
+acceptance transaction. This does not reintroduce an Action Anchor: the escrow
+exists because it has continuing custody and settlement behavior.
 
 ## Execution
 

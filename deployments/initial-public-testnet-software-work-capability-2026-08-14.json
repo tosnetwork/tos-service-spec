@@ -1,0 +1,65 @@
+{
+  "schema": "atos.native.software-work-capability-deployment.v1",
+  "deployed_now": false,
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8"
+  },
+  "manifest": {
+    "protocol": "atos.software-work-manifest.v1",
+    "version": "software-work-v1",
+    "digest": "sha256:a08cd75a4166bc1df44b645a4a4ca687004d05428a3764ce95d3d152be858e38",
+    "canonical_cbor_base64": "tAF4HmF0b3Muc29mdHdhcmUtd29yay1tYW5pZmVzdC52MQJlMS4wLjADdURldGVybWluaXN0aWMgR28gdGVzdAR4N1J1biB0aGUgY29tbWl0dGVkIEdvIHRlc3Qgc3VpdGUgd2l0aG91dCBuZXR3b3JrIGFjY2Vzcy4FZHRlc3QGgngZY29udGVudC1hZGRyZXNzZWQtYXJjaGl2ZXgbaW1tdXRhYmxlLXJlcG9zaXRvcnktY29tbWl0B3hHc2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEIeEdzaGEyNTY6MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMgl4R3NoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzCqMBcS91c3IvbG9jYWwvYmluL2dvAoNkdGVzdGUuLy4uLmgtY291bnQ9MQNxL3dvcmtzcGFjZS9zb3VyY2ULZG5vbmUMpQEaAAHUwAIaQAAAAAMagAAAAAQaAQAAAAUaAAK/IA2BeC1hcHBsaWNhdGlvbi92bmQuYXRvcy5zb2Z0d2FyZS1hcnRpZmFjdC52MSt0YXIOgXgoYXBwbGljYXRpb24vdm5kLmF0b3MudGVzdC1yZXBvcnQudjEranNvbg94IGV4aXQtY29kZS16ZXJvLWFuZC12YWxpZC1yZXBvcnRzEIR4H2V4ZWN1dG9yLWluZnJhc3RydWN0dXJlLWZhaWx1cmV4G25vdC1zdGFydGVkLWJlZm9yZS1kZWFkbGluZXgecmVzb3VyY2UtbGltaXQtY29udHJhY3QtYnJlYWNoeCByZXN1bHQtb3ItcmVwb3J0LWRpZ2VzdC1taXNtYXRjaBF4R3NoYTI1Njo0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0EnhHc2hhMjU2OjU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTUTGgABUYAUgaUBAAJ4QGNhMTEyMDBhN2Q0YTNjNjgyMmFmMDc3ZjAzNTEzMTg2ODU4NGY0MGY0OGZiMWI3YjdiMTg4OWFlNTFmOTkyNmEDeFB0dm0tY2VsbC1zaGEyNTY6MThkNWI2ZTc4MGZmMGJiNDUxMjU0YzJjNzYwZDA5ZDZlNDg1NjM4Y2QxNDA3YWJiOTcwNzg3NTJjM2MxYzllZQR4UHR2bS1jZWxsLXNoYTI1Njo4ZjQ1MmQ3YTRkZmQ3NDA2NmI2ODIzNjUxNzcyNTllZDA1NzM0NDM1YmU3NmI1ZmQ0YmQ1ZDhhZjJiN2MzZDY4BQY="
+  },
+  "provider_agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+  "provider_agent_address": "EQCrLBpT4SQxrXvpVNcdVRjlkZGunO72m5L3q7ZiHcOncKrZ",
+  "capability_id": "cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657",
+  "capability_address": "EQAkxqP1aua6prHt5KRKBZn_6sUg10MGUTz6TPAUYOmmtuXP",
+  "registry_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+  "state": {
+    "kind": "capability",
+    "tombstone": false,
+    "generation": 1,
+    "sequence": 1,
+    "action_hash": "78f502251cb517835abf3a458220d91defc4f2e47ae78265afbf20f609c4211a",
+    "state_hash": "1f0b4dbb5c1d645ef1ac22a6a5370ed09b9da8968c8e238cc7787a075498f1a6",
+    "data_hash": "287f19de0290b7fe735d448cdd994b949c033a9314ff12e48eff14bd1a435e95",
+    "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+  },
+  "transaction": {
+    "lt": 19558000003,
+    "hash": "0391d18055d1290639e3fe49c374f99804143cbe46005a7c54585ab82a3094db"
+  },
+  "checkpoint": {
+    "seqno": 16150,
+    "root_hash": "85a5e89f242751dc515cde1e4b6648e3d2861d9543394aa6968f1dc20389a6e2",
+    "file_hash": "c0e0c09f05d9d1176080a727d8c1f46060c9641afb5eb256e978f088663996a3",
+    "unix_time": 1786701644
+  },
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "checkpoint": 16150,
+      "block_root_hash": "haXonyQnUdxRXN4eS2ZI49KGHZVDOUqmlo8dwgOJpuI=",
+      "block_file_hash": "wODAnwXZ0RdggKcn2MH0YGDJZBr7XrJW6XjwiGY5lqM=",
+      "data_hash": "tvm-cell-sha256:287f19de0290b7fe735d448cdd994b949c033a9314ff12e48eff14bd1a435e95"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "checkpoint": 16150,
+      "block_root_hash": "haXonyQnUdxRXN4eS2ZI49KGHZVDOUqmlo8dwgOJpuI=",
+      "block_file_hash": "wODAnwXZ0RdggKcn2MH0YGDJZBr7XrJW6XjwiGY5lqM=",
+      "data_hash": "tvm-cell-sha256:287f19de0290b7fe735d448cdd994b949c033a9314ff12e48eff14bd1a435e95"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "checkpoint": 16150,
+      "block_root_hash": "haXonyQnUdxRXN4eS2ZI49KGHZVDOUqmlo8dwgOJpuI=",
+      "block_file_hash": "wODAnwXZ0RdggKcn2MH0YGDJZBr7XrJW6XjwiGY5lqM=",
+      "data_hash": "tvm-cell-sha256:287f19de0290b7fe735d448cdd994b949c033a9314ff12e48eff14bd1a435e95"
+    }
+  ],
+  "quorum": 2,
+  "verdict": "PASS_SOFTWARE_WORK_CAPABILITY_BINDING"
+}

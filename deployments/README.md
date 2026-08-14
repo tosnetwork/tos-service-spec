@@ -16,3 +16,13 @@ Before publication:
 4. resolve the first Agent account from quorum after finality; and
 5. attach transaction, state, lifecycle, independent resolver, and audit
    evidence required by `docs/NATIVE_REGISTRY_PUBLIC_TESTNET_GATE.md`.
+
+Test-only asset deployment records may also live here when they bind the exact
+network, master contract, code hashes, supply, holder state, transactions, and
+endpoint quorum. They must state explicitly that they are test infrastructure
+and make no claim on production reserves or issuer independence. The initial
+`tUSDT` record is `initial-public-testnet-tusdt-2026-08-14.json`.
+
+The frozen software-work manifest and its non-revoked Native Capability binding
+are recorded in
+`initial-public-testnet-software-work-capability-2026-08-14.json`.
