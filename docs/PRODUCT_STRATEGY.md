@@ -52,7 +52,90 @@ References to stablecoins in external market signals describe those external
 systems. They do not expand the ATOS asset model beyond stablecoins issued on
 TOS Network.
 
-## 3. Strategic position
+## 3. Competitive landscape — closest peers by philosophy
+
+The category is active, so ATOS must position against concrete peers, not an
+empty field. Peers below are ranked by how closely they share the ATOS premise:
+on-chain canonical authority with no gateway-owned truth, a non-custodial Agent
+and Capability identity registry, a discover → quote → escrow → invoke →
+Receipt → settle lifecycle, and independent resolvability of every
+trust-bearing fact. Communication and payment protocols are treated as adapters,
+not competitors.
+
+### Tier 1 — closest to the ATOS premise
+
+- **Virtuals Agent Commerce Protocol (ACP)** is the nearest analogue to the ATOS
+  commercial lifecycle. Its request, negotiation, escrow, delivery, evaluation,
+  and settlement flow mirrors the ATOS Accepted-Quote-to-settlement path, using
+  smart-contract escrow, a cryptographically signed proof of agreement, and an
+  independent evaluator market. It is live across several chains. ATOS differs by
+  binding this lifecycle to one purpose-built settlement layer through a typed
+  Registry state machine and derived, non-selectable identity, rather than a
+  multi-chain, tokenized-agent marketplace with a token flywheel. See the
+  [ACP whitepaper](https://whitepaper.virtuals.io/about-virtuals/agent-commerce-protocol-acp).
+- **ERC-8004 "Trustless Agents"** is the nearest analogue to the ATOS authority
+  registry. Its Identity, Reputation, and Validation registries express the same
+  belief in a neutral on-chain trust and discovery layer without a central
+  marketplace, and it is framed as an on-chain extension of A2A. ATOS differs by
+  making identity a fully on-chain typed state machine with escrow, Receipts, and
+  settlement built into the same authority objects, rather than an ERC-721
+  identity that points at an off-chain registration file with external reputation
+  signals. This is the most important standard for ATOS to track and
+  interoperate with. See [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004).
+
+No single peer spans the full ATOS scope from registry authority through
+settlement; the closest approximation to the intended whole is ACP for the
+commercial lifecycle combined with ERC-8004 for registry authority. The ATOS
+thesis is that both halves should converge on one purpose-built settlement layer.
+
+### Tier 2 — settlement and payment rails (complementary adapters)
+
+These are payment-layer peers that ATOS interoperates with rather than replaces;
+several already appear as adapters in the strategic stack in section 4.
+
+- **x402** (HTTP-402 stablecoin payments) has large live volume and is an
+  optional ATOS payment adapter, not a competing authority layer.
+- **Google A2A and AP2** provide Agent communication and delegated purchase
+  authorization; AP2 incorporates x402 for settlement. ATOS maps into these
+  rather than duplicating them.
+- **Nevermined** combines delegated spend, usage metering, access control,
+  pricing, and settlement, and integrates x402, A2A, AP2, and ERC-8004. It is the
+  most complete agent-payments platform in this tier, but it leans
+  hybrid-custodial and gateway-centric relative to the ATOS chain-canonical,
+  non-custodial stance.
+- **Skyfire** provides agent identity, wallets, spend controls, and
+  know-your-agent checks. It is a payments and identity layer, not a Capability
+  market or an escrow-to-settlement lifecycle.
+
+### Tier 3 — on-chain agent registries and service economies (same lineage)
+
+- **Fetch.ai / ASI Alliance** operates the on-chain Almanac registry plus
+  Agentverse discovery and native-token payments; it is philosophically aligned
+  on on-chain discovery and registry, though more agent-framework and marketplace
+  in emphasis. Independent audits place protocol-active agents far below headline
+  counts — a useful caution about registration-count vanity metrics that ATOS
+  already rejects in its evidence targets in section 15.
+- **Olas (Autonolas)** runs on-chain registries of agents, services, and
+  components with staking, sharing the non-custodial own-and-operate ethos.
+- **SingularityNET** (now part of the ASI Alliance) is an earlier decentralized
+  AI service marketplace with on-chain calls and payments.
+
+Custodial, card-rail agent-commerce efforts such as Mastercard Agent Pay and
+Visa's agent protocols occupy the opposite end of the design space from the ATOS
+non-custodial, independently resolvable model, and are treated as market context
+rather than peers.
+
+### Positioning consequence
+
+ATOS is differentiated less by any single capability than by the combination it
+insists on: identity authority and the full Accepted-Quote-to-settlement
+lifecycle converged on one purpose-built settlement layer, with every
+trust-bearing fact independently resolvable and no gateway-owned canonical truth.
+The nearest peers each hold one half of that combination. The strategy is to
+complete both halves together and to interoperate at the payment and
+communication edges rather than compete there.
+
+## 4. Strategic position
 
 ATOS should not replace every layer of the Agent stack.
 
@@ -79,7 +162,7 @@ The product promise is not that every message is on-chain. The promise is that
 every fact requiring shared trust is independently checkable after a gateway
 fails or is replaced.
 
-## 4. Target customer
+## 5. Target customer
 
 The initial customer should be a developer or organization buying digital work
 from a provider it does not operate. The customer values:
@@ -94,7 +177,7 @@ from a provider it does not operate. The customer values:
 
 Internal, free, low-risk calls within one security domain do not need ATOS.
 
-## 5. Initial market wedge
+## 6. Initial market wedge
 
 The first production market should be machine-checkable software work:
 
@@ -116,7 +199,7 @@ can refer to objective evidence.
 After this loop works with independent operators, expand to paid data APIs,
 batch inference, GPU jobs, and multi-Agent work supply chains.
 
-## 6. Commercial lifecycle to finish first
+## 7. Commercial lifecycle to finish first
 
 Development should complete exactly one end-to-end path:
 
@@ -135,7 +218,7 @@ Every step must work through documented public interfaces. A demonstration that
 uses private database edits, operator shortcuts, or a shared hidden service does
 not satisfy the product gate.
 
-## 7. Business model
+## 8. Business model
 
 The protocol should remain open. Revenue comes from services that improve
 availability, usability, risk management, and operations.
@@ -170,7 +253,7 @@ availability, usability, risk management, and operations.
 The reference gateway must earn revenue by delivering a better service, not by
 making identity or transaction history portable only through itself.
 
-## 8. Asset strategy
+## 9. Asset strategy
 
 Use native TOS and stablecoins issued on TOS Network for different jobs.
 
@@ -204,7 +287,7 @@ resolvable from finalized TOS state.
 The business must not depend on token price appreciation as its primary revenue
 model.
 
-## 9. Settlement efficiency
+## 10. Settlement efficiency
 
 Do not put every message, output token, progress event, or metering increment in
 a separate TOS transaction. Use:
@@ -219,7 +302,7 @@ On-chain operations should secure identity, authorization, commercial terms,
 and terminal economic outcomes. Ordinary data transfer and computation remain
 off-chain.
 
-## 10. Durable competitive advantage
+## 11. Durable competitive advantage
 
 Contract source code is reproducible and therefore not a sufficient moat. ATOS
 should build compounding advantages in:
@@ -237,7 +320,7 @@ should build compounding advantages in:
 The strongest network effect is a market where providers earn recurring revenue
 and buyers can compare and purchase services without bilateral integration.
 
-## 11. Major risks
+## 12. Major risks
 
 ### No market liquidity
 
@@ -279,7 +362,7 @@ TOS-network stablecoin custody, conversion, sanctions controls, taxation, and
 enterprise accounting vary by operator and jurisdiction. Protocol neutrality
 does not remove operator obligations.
 
-## 12. Explicit non-goals for the initial release
+## 13. Explicit non-goals for the initial release
 
 Do not prioritize:
 
@@ -293,7 +376,7 @@ Do not prioritize:
 - cross-chain expansion before one TOS market works; or
 - token-price-driven growth incentives without real service demand.
 
-## 13. Development priorities
+## 14. Development priorities
 
 ### Priority 0 — Complete authority foundations
 
@@ -338,7 +421,7 @@ Do not prioritize:
 - enterprise controls; and
 - additional assets or networks justified by customer demand.
 
-## 14. Twelve-month evidence targets
+## 15. Twelve-month evidence targets
 
 The following are product evidence targets, not protocol constants:
 
@@ -355,7 +438,7 @@ The following are product evidence targets, not protocol constants:
 Raw registration count, token price, social followers, and test transactions
 are not substitutes for recurring paid usage.
 
-## 15. Decision filter
+## 16. Decision filter
 
 Before starting a major feature, answer:
 
@@ -370,7 +453,7 @@ Before starting a major feature, answer:
 If a feature does not improve authority safety, commercial completion,
 interoperability, or real market usage, defer it.
 
-## 16. Strategic completion criterion
+## 17. Strategic completion criterion
 
 ATOS has crossed from protocol project to viable business infrastructure when
 independent providers repeatedly earn revenue from independent buyers, either
