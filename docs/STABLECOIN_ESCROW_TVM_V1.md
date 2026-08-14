@@ -37,7 +37,8 @@ execution_authorization$_ magic:uint32=0x4e454131 schema:uint16=1
 
 escrow_runtime$_ magic:uint32=0x4e455231 schema:uint16=1
   funded_atomic_amount:uint128 settled_atomic_amount:uint128
-  receipt_commitment:uint256 pending_query_id:uint64 ^asset_route
+  receipt_commitment:uint256 pending_query_id:uint64
+  ^asset_route ^transport_binding ^dispute_policy
   = NativeEscrowRuntimeV1;
 
 asset_route$_ magic:uint32=0x4e455031 schema:uint16=1
@@ -66,7 +67,10 @@ must equal their actual cell hashes. In addition:
   `cell_hash(execution_authorization)` and the digest in the Accepted Quote
   authority cell; and
 - the route master and wallet code hash equal the Accepted Quote asset, while
-  `cell_hash(wallet_code)` equals the route wallet code hash.
+  `cell_hash(wallet_code)` equals the route wallet code hash; and
+- `cell_hash(transport_binding)` and `cell_hash(dispute_policy)` equal the
+  corresponding Accepted Quote digests and both cells satisfy their frozen V1
+  schemas.
 
 Opaque placeholder digests are therefore not deployable. The exact buyer,
 provider payout address, deadlines, and execution signing key have public,

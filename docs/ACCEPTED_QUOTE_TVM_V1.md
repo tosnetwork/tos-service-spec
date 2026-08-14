@@ -38,6 +38,14 @@ asset$_ workchain:int32 master_account_id:uint256
   = TOSAssetIdentityV1;
 
 authority$_ execution_signer_authorization:uint256 = QuoteAuthorityV1;
+
+transport_binding$_ magic:uint32=0x4e544231 schema:uint16=1
+  security_mode:uint8 max_request_bytes:uint32
+  ^base_url_snake = NativeTransportBindingV1;
+
+dispute_policy$_ magic:uint32=0x4e445031 schema:uint16=1
+  mode:uint8 release_rule:uint8 refund_rule:uint8
+  = NativeObjectiveDisputePolicyV1;
 ```
 
 Strings are printable ASCII, minimally encoded as byte-aligned TVM snakes.
@@ -45,6 +53,26 @@ Atomic amounts use `0 | [1-9][0-9]*`, with no sign, fraction, exponent,
 whitespace, or leading zero. V1 accepts only wc=0 stablecoins, 1–18 decimals,
 and non-zero account and code hashes on the surrounding TOS network domain.
 A ticker such as `USDT` is never an asset identity.
+
+The transport digest is `cell_hash(transport_binding)`. Security mode `0` is
+Connect RPC over plaintext HTTP and is permitted only for an explicit loopback
+bootstrap endpoint; mode `1` is Connect RPC over HTTPS. The base URL is a
+canonical absolute ASCII URL with no credentials, query, fragment, or trailing
+slash. It is at most 120 bytes and occupies one canonical cell without
+continuation references. `max_request_bytes` is non-zero and at most 16 MiB. The service is fixed
+by this schema to `atos.native.v1.NativeService`; it is not supplied by a
+gateway. A production Quote must use mode `1`.
+
+The dispute digest is `cell_hash(dispute_policy)`. V1 supports exactly one
+policy: `mode=0`, `release_rule=1`, and `refund_rule=1`, meaning no discretionary
+arbitrator, full fixed-price release only for a valid signer-authorized Receipt,
+and full refund only after the committed timeout. Subjective quality disputes
+and early operator-directed refunds are not representable in V1.
+
+The escrow StateInit embeds both typed preimages and rejects deployment unless
+their cell hashes exactly equal the Accepted Quote transport and dispute
+digests. They are therefore reconstructible from finalized TOS state and are
+not gateway-private metadata.
 
 The manifest digest is the digest of the canonical software-work manifest.
 The exact Capability version in finalized Registry state must bind the same

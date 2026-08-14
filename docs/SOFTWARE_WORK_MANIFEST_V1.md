@@ -57,10 +57,13 @@ The limit map keys are CPU milliseconds (1), memory bytes (2), scratch bytes
 the implementation bounds are invalid. These values are execution-contract
 bounds, not post-hoc gateway observations.
 
-The v1 success condition is `exit-code-zero-and-valid-reports`. Refund values
-are `executor-infrastructure-failure`, `not-started-before-deadline`,
-`resource-limit-contract-breach`, and `result-or-report-digest-mismatch`.
-Normal tool failure is a valid charged result and is not a refund condition.
+The v1 success condition is `exit-code-zero-and-valid-reports`. The first
+fixed-price profile permits exactly one refund value:
+`not-started-before-deadline`. Infrastructure, resource-limit, or digest
+failures simply cannot produce a releasable Receipt; if no valid Receipt is
+settled, the committed timeout returns the complete price. Normal tool failure
+is a valid charged result only when the selected profile explicitly treats it
+as success; this first profile requires exit code zero.
 
 ## Asset identity
 

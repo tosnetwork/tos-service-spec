@@ -287,14 +287,15 @@ must reuse the existing authority objects.
       version on the initial public test network — the non-revoked Capability
       and three-endpoint evidence are recorded in
       `deployments/initial-public-testnet-software-work-capability-2026-08-14.json`;
-   3. 🔄 freeze the Accepted Quote TVM cell and vector using an exact
+   3. ✅ freeze the Accepted Quote TVM cell and vector using an exact
       TOS-network stablecoin contract identity, endpoint commitment, typed
       execution signer authorization, typed escrow terms, dispute terms, price,
       and expiry; the cell encoding, actual Capability ID, asset identity,
-      signer key preimage, and escrow terms preimage are frozen. Before
-      deployment, replace the remaining placeholder endpoint/dispute
-      commitments, update the software-work manifest, and finalize that digest
-      as a new immutable version on the existing Capability;
+      signer key preimage, and escrow terms preimage. The manifest now binds
+      typed transport digest `dca9babc…6c44c` and the objective no-arbiter
+      dispute-policy digest `1b42dbb0…d76345`; Capability version `1.1.0` is
+      finalized at generation 1, sequence 2, and the regenerated Quote
+      commitment is `3143417c…23ce57`;
    4. ⬜ deploy the escrow StateInit containing the complete Accepted Quote,
       finalize that TOS transaction, and resolve both the transaction and typed
       escrow state without gateway-private data; this transaction is the
@@ -315,10 +316,8 @@ must reuse the existing authority objects.
 12. ⬜ Integrate the bounded executor and content-addressed artifact delivery.
 13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next implementation slice is item 8.3 followed by item 8.4: replace the
-remaining placeholder endpoint and dispute commitments, update and finalize a
-new immutable software-work Capability version, regenerate the final Accepted
-Quote vector, then deploy that exact escrow StateInit. Resolve its finalized
+The next implementation slice is item 8.4: deploy the exact escrow StateInit
+for the frozen Accepted Quote. Resolve its finalized
 deployment transaction and typed state as the canonical Quote acceptance event.
 After public funding finality, continue with items 12 and 13 for bounded
 execution, content-addressed delivery, Receipt settlement, and independent

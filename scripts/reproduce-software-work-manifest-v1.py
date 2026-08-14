@@ -72,7 +72,7 @@ def validate(manifest):
         raise ValueError("shell")
     if manifest["network_policy"] != "none" or not manifest["limits"]["cpu_millis"]:
         raise ValueError("network or limits")
-    if manifest["refund_conditions"] != sorted(set(manifest["refund_conditions"])):
+    if manifest["refund_conditions"] != ["not-started-before-deadline"]:
         raise ValueError("refund conditions")
     for asset in manifest["supported_assets"]:
         exact_keys(asset, ASSET_KEYS)
@@ -96,7 +96,7 @@ def mutate(manifest, name):
     elif name == "shell_executable": candidate["invocation"]["executable"] = "/bin/sh"
     elif name == "network_enabled": candidate["network_policy"] = "full"
     elif name == "zero_cpu_limit": candidate["limits"]["cpu_millis"] = 0
-    elif name == "unsorted_refund_conditions": candidate["refund_conditions"][0:2] = reversed(candidate["refund_conditions"][0:2])
+    elif name == "subjective_refund_condition": candidate["refund_conditions"] = ["executor-infrastructure-failure"]
     elif name == "ticker_only_asset": candidate["supported_assets"][0]["master_account_id"] = "USDT"
     elif name == "zero_asset_decimals": candidate["supported_assets"][0]["decimals"] = 0
     else: raise ValueError(f"unknown mutation {name}")
