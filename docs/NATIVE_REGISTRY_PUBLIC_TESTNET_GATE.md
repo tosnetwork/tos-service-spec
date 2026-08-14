@@ -58,7 +58,22 @@ transaction hash, logical time, finalized checkpoint, code hash, and the
 independent resolver outputs. Secrets, private wallet configuration, gateway
 tokens, and private RPC credentials are never part of the record.
 
-## Current external blocker — 2026-08-13
+## Local-node rehearsal — 2026-08-14
+
+The complete required lifecycle passed against a version-14 local TOS network
+with a four-validator genesis, three validators online, and three same-host
+liteservers. The run deployed the frozen Registry code, exercised two Agent
+controllers, recovery, Capability version management, atomic transfer, former
+owner rejection, and terminal revocations, then reproduced the final typed
+state through all three liteservers.
+
+The machine-readable record is
+`deployments/local-gate-c-rehearsal-2026-08-14.json`. Its schema and verdict
+explicitly state that it is local rehearsal evidence. The validators,
+liteservers, fee payer, and resolver were operated on one host, so this result
+does not satisfy the public or independent-operation requirements above.
+
+## Current external blocker — 2026-08-14
 
 The implementation and release artifact are ready for deployment preparation,
 but this gate is not accepted:
@@ -73,5 +88,7 @@ but this gate is not accepted:
   evidence.
 
 Supplying one funded testnet wallet is not sufficient by itself. Endpoint
-diversity, a second independent wallet/resolver, and the independent security
-review remain mandatory acceptance inputs.
+diversity and a second independent wallet/resolver remain mandatory acceptance
+inputs. Gate B's independent security review is complete; Gate C still requires
+deployment and lifecycle evidence from the exact reviewed release on a
+qualifying public TOS testnet.

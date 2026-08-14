@@ -1,0 +1,436 @@
+{
+  "schema": "atos.native.gate-c.local-rehearsal.v1",
+  "qualifies_as_public_testnet_gate_c": false,
+  "reason": "single-host validators and liteservers are not independently operated public infrastructure",
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "global_id": 3,
+    "genesis_root_hash": "fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+    "config_param_8_version": 14,
+    "genesis_validators": 4,
+    "online_validators": 3,
+    "liteserver_ports": [
+      2003,
+      2006,
+      2009
+    ]
+  },
+  "release": {
+    "code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+    "boc_sha256": "sha256:e9845e6d7acda368f1d5ba8e7d32aa0f21022d36816ca33ec31e1b21348a6fcc",
+    "boc_bytes": 3763
+  },
+  "source_commits": {
+    "tos": "a787cb02dd6bc386be053ab233d0581cc1a14ef3",
+    "tos_protocol": "7a21c070c1160fc0a4278e1a086c0682eb2d3d31",
+    "atos_spec": "e72bab245a47b0f87a82977629cc03b1dfc64995"
+  },
+  "payer": "Ef8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAU",
+  "steps": [
+    {
+      "name": "agent_a_register",
+      "address": "EQCBU0EATcYlBprHY6TT8cklqfssErRP35bHch_b738NzYRl",
+      "state": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "f346c5b74fe844fb467cf0b96960bd72702faacd98e1657ebca80b2225c5bec6",
+        "state_hash": "566317d37f3d7aa7658dde5c3d150c9b8727b20db4ca75a91cbbcce4519d0ee5",
+        "data_hash": "850fb48c2327e2f5abcc3d50bf63198222590dab3f593b4f87664a1fc054142f"
+      },
+      "transaction": {
+        "lt": 1020000001,
+        "hash": "001edb037f185deb760e7e000c4aaba4570e21b0a50566e8ee3deb09784b7774"
+      },
+      "checkpoint": {
+        "seqno": 795,
+        "root_hash": "5993c80b3fda2b4c69a087a3c685a73d2247287dbbcf2cdab299fcb8aa1c6b41",
+        "file_hash": "dfaab958457d902a00f359a0856b5a9f0f9556b9efe3aaa67272f1f218f44d12",
+        "unix_time": 1786694172
+      },
+      "object_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4"
+    },
+    {
+      "name": "agent_b_register",
+      "address": "EQCrLBpT4SQxrXvpVNcdVRjlkZGunO72m5L3q7ZiHcOncKrZ",
+      "state": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "b7384a044865527605e67e793b957d0e4b90b8483fa0abaa19b940ae8736e9f0",
+        "state_hash": "7d2ea5d030a692098339e101d39a068a9f3ba91921f5e01d488944347a2953d3",
+        "data_hash": "afc205051e3c5637974d7c66f21aa6c77f9c5be8553f21ac0d61bcc4a06d28e0"
+      },
+      "transaction": {
+        "lt": 1023000001,
+        "hash": "78ba98db2ccfafa4ee414ca03459a57c848341ecdff6ad2f3cd9f25e40d4e5d0"
+      },
+      "checkpoint": {
+        "seqno": 798,
+        "root_hash": "a235fe43173d4a2ce28325e24796d60f2b43f96a5c644412af6088aa0f181056",
+        "file_hash": "67cada9afc27900bfcbf35bed28fcef4bc1d208c0f490af13f2643ef09976833",
+        "unix_time": 1786694174
+      },
+      "object_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+    },
+    {
+      "name": "agent_a_policy_update",
+      "address": "EQCBU0EATcYlBprHY6TT8cklqfssErRP35bHch_b738NzYRl",
+      "state": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 2,
+        "action_hash": "f0c485aba2b79cb208963e1b34a9a1dbd87231c6dd057dd1d327935d2f4a2067",
+        "state_hash": "a35a3d0c51c3db610b1555e70256a7319875e4017359224419b4b430c9e9e0d2",
+        "data_hash": "5f7d0f7496cdc8eb29dac419770aed08b59e085b4d7a567391249cff3f9333fb"
+      },
+      "transaction": {
+        "lt": 1031000001,
+        "hash": "bfca76b65b8c480ed2cc86b40aefc07c1ca3258af6fe443d3ac52ab117008270"
+      },
+      "checkpoint": {
+        "seqno": 805,
+        "root_hash": "a4c676aa7b230e6e7ead9c7e343fb0ee96dfa1775d881a03c7203fb4e895af12",
+        "file_hash": "3c9f35be9b00182b29f0279e94454f536de36a87a457fa79ca61fd2afbccfc6b",
+        "unix_time": 1786694177
+      }
+    },
+    {
+      "name": "agent_a_recovery_initiate",
+      "address": "EQCBU0EATcYlBprHY6TT8cklqfssErRP35bHch_b738NzYRl",
+      "state": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 3,
+        "action_hash": "c6dce56983974e1442f275442d019d237a02f72d1f1edf7a8dd38a0bd2579195",
+        "state_hash": "8a36725a566ad348514045a8aebb247a0a7b2af14c8b97e03f848ea4f084b86f",
+        "data_hash": "45e35986528916d524950b1dd690025e267d264b658088af62a056722f8c33e5"
+      },
+      "transaction": {
+        "lt": 1037000001,
+        "hash": "0eaf84a3e3183b869c3d3a25334c94ba7f7e9fdf3e0fcd1dc343f13cbee46add"
+      },
+      "checkpoint": {
+        "seqno": 809,
+        "root_hash": "4d42cb659aaea064770c92b5b71657cc5ff4d5de8f6c0553d419859e02a89d4c",
+        "file_hash": "74650617d46984e9d57ad29b1b48ef9b4be378b7a30c4afc1dd8fd80df2c1e1f",
+        "unix_time": 1786694179
+      },
+      "execute_after": 1786694190
+    },
+    {
+      "name": "agent_a_recovery_complete",
+      "address": "EQCBU0EATcYlBprHY6TT8cklqfssErRP35bHch_b738NzYRl",
+      "state": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 2,
+        "sequence": 1,
+        "action_hash": "153ddca102731dd943022f22795fde7ab3e2eddfa4eb4ca93c3641dbe4420ee2",
+        "state_hash": "541f8c33cefa93278b360da40fd20f060e2dfefd8365f45662d5a91917ade4c8",
+        "data_hash": "c638e6a7a27fb08796c945b4d403d7e5ee6eee3165bfbd3fa3ecc60771f16501"
+      },
+      "transaction": {
+        "lt": 1073000001,
+        "hash": "14aada7d6b17989d849dffa3735667bf6eedd4bc28a1e8493d9381fbd1dc8889"
+      },
+      "checkpoint": {
+        "seqno": 836,
+        "root_hash": "56a0fc9c6b20d700f59b68613cc1cf7952ca74034afe036cd862f9ac764536f8",
+        "file_hash": "a1a0548c52f255f108c8d1d8b8496d48c33eebe69a1a10e507f7d31680f68e00",
+        "unix_time": 1786694192
+      }
+    },
+    {
+      "name": "capability_register",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "675b49c75778105c903c9e12c438a575e33c875a401241d969818070e5441268",
+        "state_hash": "7acbd70152665ade2bc50291b3c0e95cdfee9a2a176a9448a8808e3290b6fca5",
+        "data_hash": "c84aeeafb165eb7b07ef4365b7b15e6b688d4912bd47644803ab7de803bc7022",
+        "owner_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4"
+      },
+      "transaction": {
+        "lt": 1079000003,
+        "hash": "4a153847347ae40361d17268b0d9d09a19b7561f7bec0017b976e5535e93a663"
+      },
+      "checkpoint": {
+        "seqno": 841,
+        "root_hash": "c04eb4f06e17ac19edba8decfa0ec20e01bfd56d50b0ffc2d36a0d6f29ed0dfb",
+        "file_hash": "571c7c2b6c5346d15d8294dc65ab0bb075335fc9c8eb64ee0a695e6ed0078919",
+        "unix_time": 1786694195
+      },
+      "object_id": "cap_c9d89f43cf035476d32995c09f527df30b0b1017df35663174007b4e9ca8beee"
+    },
+    {
+      "name": "capability_add_version",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 2,
+        "action_hash": "ae58331cfe2780166e66138e1d6dd120d69c4d77fb4aa3fcfe01f98f00d0390f",
+        "state_hash": "35ba7df6823caddde3f674ce566c5531407a1033790929e8d73bcf4fc659c280",
+        "data_hash": "e5a667a61abe86d0766c9c0bb2d387295884ad24235ca194cc0cf201eb8cb90b",
+        "owner_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4"
+      },
+      "transaction": {
+        "lt": 1085000003,
+        "hash": "a5f2746e2ca3bc3edc7ca2f1d5fade749a133ead7dbb4c40e7339e38de771fcc"
+      },
+      "checkpoint": {
+        "seqno": 844,
+        "root_hash": "d263313f87d9471034d6a4e8ac50d9f5240637a3e8dba28f89ef0e6ac8801acf",
+        "file_hash": "f9a0e46debc418f336f9fc8c407e3d9241ce7872c0bacd0ad40abd5bec0511dd",
+        "unix_time": 1786694196
+      }
+    },
+    {
+      "name": "capability_revoke_version",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 3,
+        "action_hash": "4039320dba2a5e0e26a275e0ffd90b935c82f2cad6411098783b36d3ffc6b895",
+        "state_hash": "04366be22e4a20e0be806df46b032e89f453108f27e40a1c90e1069414238176",
+        "data_hash": "16994882223740e9873ef98bd5eb787d5a0be9fdf549031db372693d9c3e0257",
+        "owner_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4"
+      },
+      "transaction": {
+        "lt": 1089000003,
+        "hash": "0461c85638f13a7b4907ebb61ab9bf1f921e0a8aa7247ab53757e45e44c7fc4e"
+      },
+      "checkpoint": {
+        "seqno": 848,
+        "root_hash": "09295ed0f0b5c678a07018fcc34d1fc88c3c90437d27ecb4c8cfe892620dd936",
+        "file_hash": "1c32dedf3c1ef5cb384b8b8637f5b829340c4bcfbb3291eed43972e0eb9cd9f9",
+        "unix_time": 1786694198
+      }
+    },
+    {
+      "name": "capability_atomic_transfer",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": false,
+        "generation": 2,
+        "sequence": 1,
+        "action_hash": "789db30192b6cda8d17644b056a322ddc5f16d41a108629a393f78cc82cdc9a3",
+        "state_hash": "c46ac1c4f6b94be0cbb738709ae96e561996a2faf4aeb9b789e3a0264f69b8fa",
+        "data_hash": "620a1450411c38ba528aaef743fc3e80de2a58963b5d38de225539b490893721",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      },
+      "transaction": {
+        "lt": 1095000005,
+        "hash": "95e9eaa04e19cb6ff34ea5bae26de534d65cbb10988f83adc189ea97c35be642"
+      },
+      "checkpoint": {
+        "seqno": 853,
+        "root_hash": "520fc2457c5b556ce654dbb3f9d352ad8c885062d7e536dc0c780cf476e13c30",
+        "file_hash": "64ce7eb02a1f4857c2ae0ea5618b2357ea2e1be273958a5e155f3304947492e7",
+        "unix_time": 1786694201
+      }
+    },
+    {
+      "name": "capability_former_owner_rejected",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": false,
+        "generation": 2,
+        "sequence": 1,
+        "action_hash": "789db30192b6cda8d17644b056a322ddc5f16d41a108629a393f78cc82cdc9a3",
+        "state_hash": "c46ac1c4f6b94be0cbb738709ae96e561996a2faf4aeb9b789e3a0264f69b8fa",
+        "data_hash": "620a1450411c38ba528aaef743fc3e80de2a58963b5d38de225539b490893721",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      },
+      "transaction": {
+        "lt": 1101000003,
+        "hash": "2817ddb014d941853c6b65febe1af8c1a6fd1e08870a480600c3c795f51b321e"
+      },
+      "checkpoint": {
+        "seqno": 862,
+        "root_hash": "7638b7976d3cca75207908f92347ff602b2e5bf845fa028c1e99764f67448f1e",
+        "file_hash": "a4f03558c48a8e8899635cf1eb3c9dc88a4335898ad2f82192e2bc73940a46a3",
+        "unix_time": 1786694204
+      },
+      "expected_state_unchanged": true
+    },
+    {
+      "name": "capability_terminal_revoke",
+      "address": "EQDz7FKfg3UY5URpvZqbOC6xUTcFBk638cyNyOrMKSarEPuX",
+      "state": {
+        "kind": "capability",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "2ece38af64f1c4d7b426ffbb0c42aebf5805c5604b08ce0293c1850f853df2e3",
+        "state_hash": "44de7885596c7ac4cd1cb97a2a0996cff08b91bf94ec711b194fd8ae9f6c634a",
+        "data_hash": "43c98f10cdd3e756a54d588fdb94cbc7f699687487d5e13c4dfc502ac7ecf8a1",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      },
+      "transaction": {
+        "lt": 1111000003,
+        "hash": "0217aa169935a0b5808df59df81cf715b4bacb0c3a7b2641a4f748dbd474f285"
+      },
+      "checkpoint": {
+        "seqno": 865,
+        "root_hash": "7d267e40200e50644d54c02508a56c6603df8ef9108ab4e6760eaa5455664152",
+        "file_hash": "b6a9fe99c91969440e1627a6767ccf5caaa888e9f4f570a508145635309923c9",
+        "unix_time": 1786694207
+      }
+    },
+    {
+      "name": "agent_a_terminal_revoke",
+      "address": "EQCBU0EATcYlBprHY6TT8cklqfssErRP35bHch_b738NzYRl",
+      "state": {
+        "kind": "agent",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "026614b5002609b095bbdf52001abdddff643b39cfa1e78b304677e347fe0dbd",
+        "state_hash": "d4a1355f5a9995f309808f1ced0976b35d213dca603e26f8ef8e4fc5a1890ada",
+        "data_hash": "f9959c46438af55b32df93122de4da66599834fef1276db331aa8bf91243b79e"
+      },
+      "transaction": {
+        "lt": 1117000001,
+        "hash": "a0cda38630de1f517cfc0d0eae4da65133dc7b4cda74adbe04520fd37c31b878"
+      },
+      "checkpoint": {
+        "seqno": 868,
+        "root_hash": "ddc58537cf2032a2e8b230622ab3a85a823d3cee09d19a609d63dd3c28668d98",
+        "file_hash": "183ff9dc680222c9e677d2620013758717a867dc765e0b1b273023b2942c775b",
+        "unix_time": 1786694208
+      }
+    }
+  ],
+  "endpoint_verification": [
+    {
+      "port": 2003,
+      "checkpoint": {
+        "seqno": 868,
+        "root_hash": "ddc58537cf2032a2e8b230622ab3a85a823d3cee09d19a609d63dd3c28668d98",
+        "file_hash": "183ff9dc680222c9e677d2620013758717a867dc765e0b1b273023b2942c775b",
+        "unix_time": 1786694208
+      },
+      "deployed_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+      "agent_a": {
+        "kind": "agent",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "026614b5002609b095bbdf52001abdddff643b39cfa1e78b304677e347fe0dbd",
+        "state_hash": "d4a1355f5a9995f309808f1ced0976b35d213dca603e26f8ef8e4fc5a1890ada",
+        "data_hash": "f9959c46438af55b32df93122de4da66599834fef1276db331aa8bf91243b79e"
+      },
+      "agent_b": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "b7384a044865527605e67e793b957d0e4b90b8483fa0abaa19b940ae8736e9f0",
+        "state_hash": "7d2ea5d030a692098339e101d39a068a9f3ba91921f5e01d488944347a2953d3",
+        "data_hash": "afc205051e3c5637974d7c66f21aa6c77f9c5be8553f21ac0d61bcc4a06d28e0"
+      },
+      "capability": {
+        "kind": "capability",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "2ece38af64f1c4d7b426ffbb0c42aebf5805c5604b08ce0293c1850f853df2e3",
+        "state_hash": "44de7885596c7ac4cd1cb97a2a0996cff08b91bf94ec711b194fd8ae9f6c634a",
+        "data_hash": "43c98f10cdd3e756a54d588fdb94cbc7f699687487d5e13c4dfc502ac7ecf8a1",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      }
+    },
+    {
+      "port": 2006,
+      "checkpoint": {
+        "seqno": 868,
+        "root_hash": "ddc58537cf2032a2e8b230622ab3a85a823d3cee09d19a609d63dd3c28668d98",
+        "file_hash": "183ff9dc680222c9e677d2620013758717a867dc765e0b1b273023b2942c775b",
+        "unix_time": 1786694208
+      },
+      "deployed_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+      "agent_a": {
+        "kind": "agent",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "026614b5002609b095bbdf52001abdddff643b39cfa1e78b304677e347fe0dbd",
+        "state_hash": "d4a1355f5a9995f309808f1ced0976b35d213dca603e26f8ef8e4fc5a1890ada",
+        "data_hash": "f9959c46438af55b32df93122de4da66599834fef1276db331aa8bf91243b79e"
+      },
+      "agent_b": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "b7384a044865527605e67e793b957d0e4b90b8483fa0abaa19b940ae8736e9f0",
+        "state_hash": "7d2ea5d030a692098339e101d39a068a9f3ba91921f5e01d488944347a2953d3",
+        "data_hash": "afc205051e3c5637974d7c66f21aa6c77f9c5be8553f21ac0d61bcc4a06d28e0"
+      },
+      "capability": {
+        "kind": "capability",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "2ece38af64f1c4d7b426ffbb0c42aebf5805c5604b08ce0293c1850f853df2e3",
+        "state_hash": "44de7885596c7ac4cd1cb97a2a0996cff08b91bf94ec711b194fd8ae9f6c634a",
+        "data_hash": "43c98f10cdd3e756a54d588fdb94cbc7f699687487d5e13c4dfc502ac7ecf8a1",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      }
+    },
+    {
+      "port": 2009,
+      "checkpoint": {
+        "seqno": 869,
+        "root_hash": "2dfe2715a07bf7a6a2c012b4d5f8a65f3c53e7400751b6fd102b7fd35106e9a2",
+        "file_hash": "a68e4e99f353e1fd4b5872e9faa9b2d7c38055f171783bd4762ddc09aa35d8f6",
+        "unix_time": 1786694208
+      },
+      "deployed_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+      "agent_a": {
+        "kind": "agent",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "026614b5002609b095bbdf52001abdddff643b39cfa1e78b304677e347fe0dbd",
+        "state_hash": "d4a1355f5a9995f309808f1ced0976b35d213dca603e26f8ef8e4fc5a1890ada",
+        "data_hash": "f9959c46438af55b32df93122de4da66599834fef1276db331aa8bf91243b79e"
+      },
+      "agent_b": {
+        "kind": "agent",
+        "tombstone": false,
+        "generation": 1,
+        "sequence": 1,
+        "action_hash": "b7384a044865527605e67e793b957d0e4b90b8483fa0abaa19b940ae8736e9f0",
+        "state_hash": "7d2ea5d030a692098339e101d39a068a9f3ba91921f5e01d488944347a2953d3",
+        "data_hash": "afc205051e3c5637974d7c66f21aa6c77f9c5be8553f21ac0d61bcc4a06d28e0"
+      },
+      "capability": {
+        "kind": "capability",
+        "tombstone": true,
+        "generation": 2,
+        "sequence": 2,
+        "action_hash": "2ece38af64f1c4d7b426ffbb0c42aebf5805c5604b08ce0293c1850f853df2e3",
+        "state_hash": "44de7885596c7ac4cd1cb97a2a0996cff08b91bf94ec711b194fd8ae9f6c634a",
+        "data_hash": "43c98f10cdd3e756a54d588fdb94cbc7f699687487d5e13c4dfc502ac7ecf8a1",
+        "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+      }
+    }
+  ],
+  "verdict": "PASS_LOCAL_REHEARSAL_ONLY"
+}

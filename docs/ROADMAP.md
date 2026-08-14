@@ -15,16 +15,14 @@ No later gate may weaken an earlier authority or security invariant.
 - ⬜ Pending: not implemented, or no qualifying evidence was found.
 
 A gate is complete only when every delivery item and its acceptance condition
-are complete. The latest 2026-08-14 incremental independent review evaluated
-`atos-spec` commit `6bcc655cee1784491d6b4cbd5a36019f0f1768e1`, `tos` commit
-`65ac8f9f0e1b910916b27ec3890b5611d80579e6`, and `tos-protocol` commit
-`5e0841b9db4a496af5c292032899fa52631437a5`. It confirmed the slot-intent
-crash-recovery P2 closed and found one P2 in recovery preflight's use of gateway
-wall-clock time instead of quorum-finalized chain time. The chain-time and relay
-safety-margin remediation described by the internal security review postdates
-that independent baseline and remains unaudited. Before Gate B or Gate C is
-accepted, published evidence must bind the reviewed sources and deployment to
-exact commit IDs and release hashes.
+are complete. The final 2026-08-14 independent Gate B review evaluated
+`atos-spec` commit `e72bab245a47b0f87a82977629cc03b1dfc64995`, `tos` commit
+`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-protocol` commit
+`7a21c070c1160fc0a4278e1a086c0682eb2d3d31`. It found no P0, P1, or P2,
+confirmed the chain-time recovery remediation and crash-safe relay journal, and
+independently reproduced the complete Native Registry TVM lifecycle matrix.
+Gate C deployment evidence must continue to bind exact reviewed commits and
+release hashes.
 
 ## 1. Gate A — Registry protocol freeze
 
@@ -56,24 +54,21 @@ Deliver:
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
-- 🟡 independent contract and `nativecore` security review — the initial and
-  incremental reviews delivered findings; the latest chain-time recovery
-  preflight P2 remediation is implemented internally and awaits independent
-  retest;
+- ✅ independent contract and `nativecore` security review, including the
+  chain-time recovery preflight and crash-safe relay journal remediations;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
-- 🟡 independent full-lifecycle TVM emulator evidence covering every Agent and
-  Capability transition — the internal v14 TVM matrix now passes, including
-  negative and atomic-transfer cases, but independent reproduction is pending.
+- ✅ independent full-lifecycle TVM emulator evidence covering every Agent and
+  Capability transition, including negative and atomic-transfer cases.
 
 Accept when the full lifecycle passes on a local chain, the exported code hash
 matches frozen vectors, and independent review finds no unauthorized or partial
 transition.
 
-**Gate status: 🟡 In progress.** Implementation, frozen conformance, internal
-review remediation, and reproducible contract release are complete. The gate
-is not accepted until independent TVM lifecycle testing and security review
-close without an unauthorized or partial transition finding.
+**Gate status: ✅ Complete.** Implementation, frozen conformance, reproducible
+contract release, full lifecycle testing, and independent security review are
+complete for the reviewed commits above. The independent review found no
+unauthorized or partial transition.
 
 ## 3. Gate C — Public testnet authority
 
@@ -87,19 +82,24 @@ Deliver:
   Registry BOC uses the version-gated `SHA256C` canonical snake hash;
 - ⬜ public-testnet deployment record binding network domain, contract address,
   deployed code BOC, code hash, transaction, and exact source commit;
-- 🟡 multi-endpoint quorum and finality configuration — client support exists,
-  but no public testnet configuration has been accepted;
+- 🟡 multi-endpoint quorum and finality configuration — client support and a
+  same-host three-liteserver rehearsal exist, but no independently operated
+  public-testnet configuration has been accepted;
 - ✅ wallet action signing and semantic confirmation, including exact action-hash
   confirmation and fee-payer destination, amount, body, and StateInit binding;
 - 🟡 registry explorer and typed-state checker — direct typed-state RPC checking
   exists; a public explorer does not; and
-- ⬜ recovery, transfer, and revocation drills on a public testnet.
+- 🟡 recovery, transfer, and revocation drills — the complete lifecycle passed
+  against a version-14 local four-validator genesis with three validators
+  online, but it has not run on a qualifying public testnet.
 
 Accept when an independently operated wallet registers, updates, transfers,
 revokes, and resolves objects without trusting the reference gateway.
 
 **Gate status: ⬜ Not accepted.** No qualifying public-testnet lifecycle has been
-recorded.
+recorded. The 2026-08-14 local-node deployment rehearsal passed and is recorded
+in `deployments/local-gate-c-rehearsal-2026-08-14.json`; it is explicitly
+non-public evidence and does not satisfy this gate.
 
 ## 4. Gate D — First commercial lifecycle
 
