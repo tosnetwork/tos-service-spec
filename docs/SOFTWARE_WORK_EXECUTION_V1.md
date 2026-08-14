@@ -17,7 +17,8 @@ commitments and must be frozen in the Native protobuf before implementation.
 
 A V1 job contains only:
 
-- the non-zero Accepted Quote commitment;
+- the non-zero Accepted Quote commitment in exact
+  `tvm-cell-sha256:<64 lowercase hex>` form;
 - a non-zero 256-bit execution ID;
 - the non-zero canonical input digest;
 - a non-zero SHA-256 source-archive digest; and

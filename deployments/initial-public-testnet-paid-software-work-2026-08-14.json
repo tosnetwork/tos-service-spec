@@ -1,0 +1,111 @@
+{
+  "schema": "atos.native.paid-software-work.v1",
+  "capability_version": "1.2.0",
+  "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+  "quote_commitment": "tvm-cell-sha256:82c3dff823bf9e22c554c691b128590aec91a15a7d8402204203b12b1189ca7f",
+  "escrow_address": "EQD-KXNGT7iJl8YnHu_G1icQHbKLKxuKB2kV5GHa3QTZFrpU",
+  "funding": {
+    "query_id": 1786719306,
+    "amount_atomic": "25000000"
+  },
+  "execution": {
+    "quote_commitment": "tvm-cell-sha256:82c3dff823bf9e22c554c691b128590aec91a15a7d8402204203b12b1189ca7f",
+    "execution_id": "sha256:c686d28369a044804223653d10115c3f37fea787f3c1e77b3fb4474ee89de65c",
+    "input_digest": "sha256:c320949d5f6fc75ea10d024bd51574952fe8efd2ba4685b669d8e0e502c80cf9",
+    "result_digest": "sha256:8330b24a54c2749812e46874f06a332eee54352923ae00c063edb8249f07832a",
+    "artifact": {
+      "Digest": "sha256:6a5807a8ac4732c47805f2925393f9858b0f6e19caa2a299de261733749c00bb",
+      "MediaType": "application/vnd.atos.software-artifact.v1+tar",
+      "SizeBytes": 3072
+    },
+    "report": {
+      "Digest": "sha256:9a29890ffa88bcb2f9e131964c22d1bececf927405f85e34567b8b6e51d1cc08",
+      "MediaType": "application/vnd.atos.test-report.v1+json",
+      "SizeBytes": 355
+    },
+    "source_digest": "sha256:71757ceace73a17ba11f3b03691fc865ca65ad2771af5fd91f70c03093ca3a80",
+    "toolchain_digest": "sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105",
+    "sandbox_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "exit_code": 0,
+    "completed_at_unix": 1786739932
+  },
+  "release": {
+    "query_id": 1786740001,
+    "receipt_boc_base64": "te6cckECBQEAAXAABCROV1IxAAEAAAAAan983AAAAAABAgMEAMCCw9/4I7+eIsVUxpGxKFkK7JGhWn2EAiBCA7ErEYnKf8aG0oNpoESAQiNlPRARXD83/qeH88Hnez+0R07oneZcwyCUnV9vx16hDQJL1RV0lS/o79K6RoW2adjg5QLIDPkAwIMwskpUwnSYEuRodPBqMy7uVDUpI64AwGPtuCSfB4MqalgHqKxHMsR4BfKSU5P5hYsPbhnKoqKZ3iYXM3ScALuaKYkP+oi8svnhMZZMItG+zs+SdAX4XjRWe4tuUdHMCADAcXV86s5zoXuhHzsDaR/IZcplrSdxr1/ZH3DAMJPKOoCWJLynQJb4EMWyTkiVId3hJPrc+hgIWBZIs4vcG6GxBZ05otP1w0pL/rYzJGgeD0V0N7dW/7edqKFoGqeb+fPlAGAAAAAAAAAAAAAAAAABfXhAWtibzy0lvV56U+Nul2hR/RuTfXDC8NuAoY98uvzKG+RixLkt",
+    "receipt_commitment": "tvm-cell-sha256:43a2264f71df35decba15217a4da83266a68002043cad42a69354eb985ddf04e",
+    "release_body_boc_base64": "te6cckECBgEAAb8AAZhORQABAAAAAGp/fSHE4ORVLfIV91zfoiY1zJ9czUFakGXFTN18mfWF51OVvFdgliZ26Bka3PXDs0z3HFesitZfqAcfypZg5mzfowILAQQkTldSMQABAAAAAGp/fNwAAAAAAgMEBQDAgsPf+CO/niLFVMaRsShZCuyRoVp9hAIgQgOxKxGJyn/GhtKDaaBEgEIjZT0QEVw/N/6nh/PB53s/tEdO6J3mXMMglJ1fb8deoQ0CS9UVdJUv6O/SukaFtmnY4OUCyAz5AMCDMLJKVMJ0mBLkaHTwajMu7lQ1KSOuAMBj7bgknweDKmpYB6isRzLEeAXyklOT+YWLD24ZyqKimd4mFzN0nAC7mimJD/qIvLL54TGWTCLRvs7PknQF+F40VnuLblHRzAgAwHF1fOrOc6F7oR87A2kfyGXKZa0nca9f2R9wwDCTyjqAliS8p0CW+BDFsk5IlSHd4ST63PoYCFgWSLOL3BuhsQWdOaLT9cNKS/62MyRoHg9FdDe3Vv+3naihaBqnm/nz5QBgAAAAAAAAAAAAAAAAAX14QFrYm88tJb1eelPjbpdoUf0bk31wwvDbgKGPfLr8yhvk5ZoI9w==",
+    "settlement_intent": "tvm-cell-sha256:8e24809909f8a486aa3e4fe767330a3ecd763a157a5a099c0c3ab7369c50b43d",
+    "signature_hex": "c4e0e4552df215f75cdfa22635cc9f5ccd415a9065c54cdd7c99f585e75395bc5760962676e8191adcf5c3b34cf71c57ac8ad65fa8071fca9660e66cdfa3020b"
+  },
+  "escrow_transaction": {
+    "logical_time": 115694000007,
+    "hash": "sha256:b2d495bb3a09ed375926f7053e0c85c90de6643c926a67b2170be85829d5d761"
+  },
+  "provider_wallet": "EQCzUwtoLxFZjSI1PQMhulsp4j665-RgoP3C90OX-btu7bOJ",
+  "provider_wallet_transaction": {
+    "logical_time": 115694000005,
+    "hash": "sha256:613fc7ae787206a8e83d5dab28ab4a2eeff8e0fdcb3de5872adbe171950b6ddc"
+  },
+  "artifacts": [
+    "deployments/artifacts/sha256-6a5807a8ac4732c47805f2925393f9858b0f6e19caa2a299de261733749c00bb.tar",
+    "deployments/artifacts/sha256-9a29890ffa88bcb2f9e131964c22d1bececf927405f85e34567b8b6e51d1cc08.json"
+  ],
+  "quorum": 2,
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "checkpoint": 95358,
+      "block_root_hash": "+wqqg7Ihr6EEtRpyEzBuORb1rLSNm5ryaW4PRjGezx0=",
+      "block_file_hash": "12PBzX4GwBZ09KqGRuCyEQTxo6628JvsU2VzCroBzZY=",
+      "escrow_data_hash": "tvm-cell-sha256:a5cb0da5f22174119be5d8306db05ae5755fe9010188e862e43bb5832ab3e4b1",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:50cbef08ff791a8851457e71502d5e4ba26633cfec8935a00de1b98afff24476",
+      "provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:43a2264f71df35decba15217a4da83266a68002043cad42a69354eb985ddf04e",
+        "pending_query_id": 1786740001
+      },
+      "buyer_balance_atomic": "999975000000",
+      "provider_balance_atomic": "25000000"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "checkpoint": 95358,
+      "block_root_hash": "+wqqg7Ihr6EEtRpyEzBuORb1rLSNm5ryaW4PRjGezx0=",
+      "block_file_hash": "12PBzX4GwBZ09KqGRuCyEQTxo6628JvsU2VzCroBzZY=",
+      "escrow_data_hash": "tvm-cell-sha256:a5cb0da5f22174119be5d8306db05ae5755fe9010188e862e43bb5832ab3e4b1",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:50cbef08ff791a8851457e71502d5e4ba26633cfec8935a00de1b98afff24476",
+      "provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:43a2264f71df35decba15217a4da83266a68002043cad42a69354eb985ddf04e",
+        "pending_query_id": 1786740001
+      },
+      "buyer_balance_atomic": "999975000000",
+      "provider_balance_atomic": "25000000"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "checkpoint": 95358,
+      "block_root_hash": "+wqqg7Ihr6EEtRpyEzBuORb1rLSNm5ryaW4PRjGezx0=",
+      "block_file_hash": "12PBzX4GwBZ09KqGRuCyEQTxo6628JvsU2VzCroBzZY=",
+      "escrow_data_hash": "tvm-cell-sha256:a5cb0da5f22174119be5d8306db05ae5755fe9010188e862e43bb5832ab3e4b1",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:50cbef08ff791a8851457e71502d5e4ba26633cfec8935a00de1b98afff24476",
+      "provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:43a2264f71df35decba15217a4da83266a68002043cad42a69354eb985ddf04e",
+        "pending_query_id": 1786740001
+      },
+      "buyer_balance_atomic": "999975000000",
+      "provider_balance_atomic": "25000000"
+    }
+  ],
+  "verdict": "PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT"
+}

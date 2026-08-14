@@ -35,3 +35,12 @@ escrow records are immutable historical rehearsals: the original used the
 placeholder manifest, while `initial-public-testnet-escrow-v1-2-2026-08-14.json`
 bound a buyer address that did not own the deployed tUSDT balance and was
 therefore superseded before funding.
+
+The completed same-host paid software-work rehearsal is recorded in
+`initial-public-testnet-paid-software-work-2026-08-14.json`. It binds the
+funding, pinned execution, canonical Receipt, release transaction, provider
+wallet credit, immutable artifact and report, and three-endpoint finalized
+state reconstruction. The referenced files in `artifacts/` are named by their
+SHA-256 digests and must be rehashed before use. This is complete local Gate D
+evidence, but it is not the external commercial acceptance required by the
+Roadmap.

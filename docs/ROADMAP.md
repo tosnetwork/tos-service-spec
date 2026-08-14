@@ -165,9 +165,11 @@ Deliver:
   digest `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105`,
   two builds were byte-identical, and its live containerd workspace
   conformance passed; and
-- 🟡 independent Quote, escrow, Receipt, and settlement resolution — production
-  encoders, strict decoders, and a quorum-finalized escrow resolver exist; a
-  finalized paid settlement transaction remains outstanding.
+- ✅ independently resolvable Quote, escrow, Receipt, and settlement — one
+  finalized 25,000,000 atomic `tUSDT` software-work transaction, its immutable
+  artifact and report, the provider-wallet credit, and matching escrow state
+  from three validator-backed endpoints are recorded in
+  `deployments/initial-public-testnet-paid-software-work-2026-08-14.json`.
 
 Accept when a buyer outside the core development team pays an independent
 provider on a public TOS network and another resolver reconstructs the complete
@@ -182,9 +184,11 @@ Accepted Quote primitives, the test-only `tUSDT` asset recorded in
 `deployments/initial-public-testnet-tusdt-2026-08-14.json`, the fixed-price
 escrow, canonical Receipt, objective transfer transitions, reproducible BOC,
 and finalized typed escrow-state resolver now exist. Typed endpoint and dispute
-commitments and the public escrow deployment are finalized. No independently
-resolvable paid transaction has been recorded. Local emulator and executor
-evidence is not payment acceptance.
+commitments and the public escrow deployment are finalized. The same-host
+public-testnet rehearsal now includes a complete independently reproducible
+paid transaction, but it does not satisfy the acceptance requirement for a
+buyer outside the core team, an independent provider, and an independently
+operated resolver. Local operator diversity is not external independence.
 
 ## 5. Gate E — Developer usability and protocol adapters
 
@@ -334,17 +338,18 @@ must reuse the existing authority objects.
     `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105`;
     two build archives were byte-identical and the pinned image passed the live
     containerd workspace test under the production isolation policy.
-13. ⬜ Complete one independently resolvable paid software-work transaction.
+13. ✅ Complete one independently resolvable paid software-work transaction —
+    Capability `cap_c1745824…e657` version `1.2.0` was sold for 25,000,000
+    atomic `tUSDT`; the pinned OCI job completed successfully; the canonical
+    Receipt committed the result, artifact, report, source, toolchain, and
+    sandbox; and the release credited the provider wallet. Three endpoints
+    independently report the same finalized escrow and wallet state in
+    `deployments/initial-public-testnet-paid-software-work-2026-08-14.json`.
 
-The next implementation slice is item 13: fund the canonical escrow, execute
-the bound job, deliver the artifact, complete Receipt settlement, and
-independently reconstruct the paid transaction from finalized TOS state.
-The target is finalized Capability
-`cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`
-and the exact test asset already recorded in this repository. Receipt, release,
-refund, and public escrow deployment evidence is complete; the paid execution
-and settlement remain outstanding. No
-intermediate milestone may advertise an asset-wallet address or risk locking
-test assets.
+All local Gate D implementation items are complete. The next Gate D acceptance
+task is an external pilot with a buyer outside the core team, an independent
+provider, and an independently operated resolver or endpoint set. The
+same-host transaction is reproducible deployment evidence, not grounds to mark
+Gate D accepted.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.

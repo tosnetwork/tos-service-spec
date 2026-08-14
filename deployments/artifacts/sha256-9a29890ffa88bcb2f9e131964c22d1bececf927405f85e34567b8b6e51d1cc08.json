@@ -1,0 +1,1 @@
+{"schema":"atos.software-work-report.v1","execution_id":"sha256:c686d28369a044804223653d10115c3f37fea787f3c1e77b3fb4474ee89de65c","result_digest":"sha256:8330b24a54c2749812e46874f06a332eee54352923ae00c063edb8249f07832a","exit_code":0,"usage":{"CPUMillis":31786,"PeakMemory":289087488,"DiskWritten":0,"Duration":47899607180},"completed_at_unix":1786739932}
