@@ -42,6 +42,11 @@ that association.
 | 19 | `retention_seconds` | 3600 through 2592000 |
 | 20 | `supported_assets` | sorted unique TOS asset identities, 1–8 |
 
+Schema digests are SHA-256 over the exact UTF-8 bytes, including the final
+newline, of the corresponding files in [`schemas/`](../schemas/). V1 freezes
+`software-work-job-v1.schema.json` as the input schema and
+`software-work-outcome-v1.schema.json` as the output schema.
+
 Operation values are `compile`, `test`, `static-analysis`,
 `dependency-scan`, `vulnerability-scan`, `reproducible-build`, and
 `bounded-transform-and-test`. Accepted source kinds are

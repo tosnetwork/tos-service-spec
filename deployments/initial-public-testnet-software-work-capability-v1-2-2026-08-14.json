@@ -1,0 +1,66 @@
+{
+  "schema": "atos.native.software-work-capability-deployment.v1",
+  "deployed_now": true,
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8"
+  },
+  "capability_version": "1.2.0",
+  "manifest": {
+    "protocol": "atos.software-work-manifest.v1",
+    "version": "1.1.0",
+    "digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "canonical_cbor_base64": "tAF4HmF0b3Muc29mdHdhcmUtd29yay1tYW5pZmVzdC52MQJlMS4xLjADdURldGVybWluaXN0aWMgR28gdGVzdAR4N1J1biB0aGUgY29tbWl0dGVkIEdvIHRlc3Qgc3VpdGUgd2l0aG91dCBuZXR3b3JrIGFjY2Vzcy4FZHRlc3QGgngZY29udGVudC1hZGRyZXNzZWQtYXJjaGl2ZXgbaW1tdXRhYmxlLXJlcG9zaXRvcnktY29tbWl0B3hHc2hhMjU2OjU4MzM0Y2Q5YjRiMGI4NDc0ZjMzODE5NDRjY2ZmOTVkYjEzNTQzNTkwYzljMmZjMTcwNWFiYzJhMTA0ZGM5MGUIeEdzaGEyNTY6Y2I2NDY4OGE4YTFjNTIxNzJlYzkxOWNmMTMyNDVhMzAzNzU4NzA0MzY3MzYxZTYwYjlkMmM1NGFkNGIwZDFhNgl4R3NoYTI1Njo5NjI0YmNhNzQwOTZmODEwYzViMjRlNDg5NTIxZGRlMTI0ZmFkY2ZhMTgwODU4MTY0OGIzOGJkYzFiYTFiMTA1CqMBcS91c3IvbG9jYWwvYmluL2dvAoNkdGVzdGUuLy4uLmgtY291bnQ9MQNxL3dvcmtzcGFjZS9zb3VyY2ULZG5vbmUMpQEaAAHUwAIaQAAAAAMagAAAAAQaAQAAAAUaAAK/IA2BeC1hcHBsaWNhdGlvbi92bmQuYXRvcy5zb2Z0d2FyZS1hcnRpZmFjdC52MSt0YXIOgXgoYXBwbGljYXRpb24vdm5kLmF0b3MudGVzdC1yZXBvcnQudjEranNvbg94IGV4aXQtY29kZS16ZXJvLWFuZC12YWxpZC1yZXBvcnRzEIF4G25vdC1zdGFydGVkLWJlZm9yZS1kZWFkbGluZRF4R3NoYTI1NjpkY2E5YmFiY2Q0NDc3NWYyYzE5ZWY1NzE5NjRjMDFlMmU3NWIxNTI1NGQwZDE2ZjIzNDljOGQ0NDZmNzZjNDRjEnhHc2hhMjU2OmVmNWM4ZmYxMGE1MDE2ZDY0MTRiM2JkYmJjYWVkZDYxMjliZjViNzAwOTc4NDE2NTljNTk0MTEyZmQ1NjQzNTATGgABUYAUgaUBAAJ4QGNhMTEyMDBhN2Q0YTNjNjgyMmFmMDc3ZjAzNTEzMTg2ODU4NGY0MGY0OGZiMWI3YjdiMTg4OWFlNTFmOTkyNmEDeFB0dm0tY2VsbC1zaGEyNTY6MThkNWI2ZTc4MGZmMGJiNDUxMjU0YzJjNzYwZDA5ZDZlNDg1NjM4Y2QxNDA3YWJiOTcwNzg3NTJjM2MxYzllZQR4UHR2bS1jZWxsLXNoYTI1Njo4ZjQ1MmQ3YTRkZmQ3NDA2NmI2ODIzNjUxNzcyNTllZDA1NzM0NDM1YmU3NmI1ZmQ0YmQ1ZDhhZjJiN2MzZDY4BQY="
+  },
+  "provider_agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+  "provider_agent_address": "EQCrLBpT4SQxrXvpVNcdVRjlkZGunO72m5L3q7ZiHcOncKrZ",
+  "capability_id": "cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657",
+  "capability_address": "EQAkxqP1aua6prHt5KRKBZn_6sUg10MGUTz6TPAUYOmmtuXP",
+  "registry_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+  "state": {
+    "kind": "capability",
+    "tombstone": false,
+    "generation": 1,
+    "sequence": 3,
+    "action_hash": "9041cded07c1e36c9fcdbefbfa80d4723be5b120e654aed84b9e855a8cd58cb3",
+    "state_hash": "0283d9621543c838bb6f64627c412c5d9634c27714ee68d5fae7aa5d8dcb0407",
+    "data_hash": "643c0cd97e307c164262102b67a879a7e4572666257061d3ccff6562f9a607bd",
+    "owner_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4"
+  },
+  "transaction": {
+    "lt": 63088000003,
+    "hash": "114f2dc70e74601fb4759efb66475a6479e4443c1f675d374b3e9be30d4d8f43"
+  },
+  "checkpoint": {
+    "seqno": 51837,
+    "root_hash": "23037e3619c8eb49e69d797107e9a646cc34a7810e82cefa1f41d2676dd6cfc9",
+    "file_hash": "e9da1545ac97c6acf4b94d237a2a8a4f75ca77867fe1448298ee878307d64830",
+    "unix_time": 1786718974
+  },
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "checkpoint": 51837,
+      "block_root_hash": "IwN+NhnI60nmnXlxB+mmRsw0p4EOgs76H0HSZ23Wz8k=",
+      "block_file_hash": "6doVRayXxqz0uU0jeiqKT3XKd4Z/4USCmO6HgwfWSDA=",
+      "data_hash": "tvm-cell-sha256:643c0cd97e307c164262102b67a879a7e4572666257061d3ccff6562f9a607bd"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "checkpoint": 51837,
+      "block_root_hash": "IwN+NhnI60nmnXlxB+mmRsw0p4EOgs76H0HSZ23Wz8k=",
+      "block_file_hash": "6doVRayXxqz0uU0jeiqKT3XKd4Z/4USCmO6HgwfWSDA=",
+      "data_hash": "tvm-cell-sha256:643c0cd97e307c164262102b67a879a7e4572666257061d3ccff6562f9a607bd"
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "checkpoint": 51837,
+      "block_root_hash": "IwN+NhnI60nmnXlxB+mmRsw0p4EOgs76H0HSZ23Wz8k=",
+      "block_file_hash": "6doVRayXxqz0uU0jeiqKT3XKd4Z/4USCmO6HgwfWSDA=",
+      "data_hash": "tvm-cell-sha256:643c0cd97e307c164262102b67a879a7e4572666257061d3ccff6562f9a607bd"
+    }
+  ],
+  "quorum": 2,
+  "verdict": "PASS_SOFTWARE_WORK_CAPABILITY_VERSION_BINDING"
+}

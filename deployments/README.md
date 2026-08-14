@@ -23,8 +23,11 @@ endpoint quorum. They must state explicitly that they are test infrastructure
 and make no claim on production reserves or issuer independence. The initial
 `tUSDT` record is `initial-public-testnet-tusdt-2026-08-14.json`.
 
-The frozen software-work manifest and its non-revoked Native Capability binding
-are recorded in
-`initial-public-testnet-software-work-capability-2026-08-14.json`.
+The executable software-work manifest and its non-revoked Native Capability
+`1.2.0` binding are recorded in
+`initial-public-testnet-software-work-capability-v1-2-2026-08-14.json`. The
+earlier `initial-public-testnet-software-work-capability-2026-08-14.json`
+record is retained as historical `1.1.0` evidence; its placeholder schema and
+toolchain digests are not valid execution inputs.
 The canonical Accepted Quote event and exact typed Escrow StateInit deployment
 are recorded in `initial-public-testnet-escrow-2026-08-14.json`.

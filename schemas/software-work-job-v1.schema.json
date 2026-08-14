@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atos.im/schemas/software-work-job-v1.schema.json",
+  "title": "ATOS Software Work Job V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["quote_commitment", "execution_id", "input_digest", "source_digest", "source_media_type"],
+  "properties": {
+    "quote_commitment": {"type": "string", "pattern": "^tvm-cell-sha256:[0-9a-f]{64}$"},
+    "execution_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "input_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "source_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "source_media_type": {"const": "application/vnd.atos.source-archive.v1+tar"}
+  }
+}

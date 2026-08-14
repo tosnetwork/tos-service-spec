@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atos.im/schemas/software-work-outcome-v1.schema.json",
+  "title": "ATOS Software Work Outcome V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["quote_commitment", "execution_id", "input_digest", "result_digest", "artifact_digest", "report_digest", "source_digest", "toolchain_digest", "sandbox_digest", "exit_code", "completed_at_unix"],
+  "properties": {
+    "quote_commitment": {"type": "string", "pattern": "^tvm-cell-sha256:[0-9a-f]{64}$"},
+    "execution_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "input_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "result_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "artifact_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "report_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "source_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "toolchain_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "sandbox_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "exit_code": {"const": 0},
+    "completed_at_unix": {"type": "integer", "minimum": 1}
+  }
+}
