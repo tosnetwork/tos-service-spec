@@ -29,6 +29,13 @@ directory, Unix identity, and resource ceilings. The source digest is checked
 before an execution lease is acquired. Remote callers cannot supply an image,
 command, environment, host mount, network exception, user ID, or limit.
 
+V1 defines `sandbox_digest` as exactly the canonical manifest digest. The
+manifest already commits the invocation, network policy, resource ceilings,
+artifact types, success rule, endpoint, signer authorization, and asset route;
+allowing a separate provider-chosen sandbox identifier would create an
+uncommitted settlement input. A runner must reject any configuration where
+these two digests differ.
+
 The initial source media type is uncompressed POSIX tar. Entries are limited to
 regular files and directories. Absolute paths, `..`, non-canonical names,
 duplicate paths, symlinks, hard links, devices, FIFOs, sparse expansion, too
