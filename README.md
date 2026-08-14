@@ -28,13 +28,12 @@ are caches or projections only.
 - **Receipt** — a result commitment signed by the execution authority selected
   by the Accepted Quote and committed according to its terms.
 
-The Registry objects and relay/resolve service are implemented. The first
-Accepted Quote and escrow StateInit are finalized on the initial public test
-network; Receipt and settlement contracts are implemented. Bounded provider
-execution, artifact delivery, and the first paid settlement remain the active
-commercial delivery gate. See
-`docs/ROADMAP.md` for evidence-backed status, implementation order, and
-acceptance gates.
+The Registry objects and relay/resolve service are implemented. The initial
+public test network now records a complete same-host Accepted Quote, bounded
+provider execution, immutable artifact delivery, Receipt, and paid settlement.
+Gate D still requires the independent external pilot defined in
+`docs/GATE_D_EXTERNAL_PILOT.md`. See `docs/ROADMAP.md` for evidence-backed
+status, implementation order, and acceptance gates.
 
 ## System boundaries
 
@@ -70,6 +69,9 @@ refine these rules but cannot contradict them.
 - [Product and Commercial Strategy](docs/PRODUCT_STRATEGY.md) defines market
   positioning, the initial software-work wedge, revenue paths, development
   priorities, risks, and evidence required to establish a viable business.
+- [Gate D External Pilot](docs/GATE_D_EXTERNAL_PILOT.md) defines the independent
+  buyer, provider, and verifier procedure required to accept the first
+  commercial lifecycle.
 
 ## Normative contract
 
