@@ -66,12 +66,15 @@ and idempotent. Gateway accounting is a projection of finalized escrow and
 settlement transactions.
 
 At minimum, the lifecycle distinguishes funded, accepted for execution,
-released to provider, refunded to buyer, disputed, and resolved. Impossible or
-ambiguous simultaneous terminal outcomes are rejected by contract state.
+release pending, refund pending, and the chain-derived economic outcomes
+released or refunded. Mutually exclusive pending states prevent a second
+economic transfer request. The finalized resolver derives the terminal outcome
+from the exact stablecoin wallet transaction chain; a gateway callback or the
+standard wallet's unbound `excesses` message is not settlement authority.
 
-For the first release, escrow supports funded, released, and refunded terminal
-outcomes. A disputed state is included only if a concrete software-work failure
-cannot be decided from the committed objective evidence. It must not require a
+For the first release, escrow supports fixed-price release and timeout refund.
+A disputed state is added only if a concrete software-work failure cannot be
+decided from committed objective evidence. It must not require a
 general-purpose arbitration platform.
 
 For the first lifecycle, escrow deployment embeds the complete Accepted Quote
@@ -114,8 +117,10 @@ evidence remain off-chain and are checked by digest.
 
 Settlement verifies Accepted Quote, escrow, receipt signature, signer
 authorization, immutable version, amount bounds, and prior state. It then
-performs one terminal economic transition. Replaying the identical settlement
-is idempotent; conflicting receipt or amount data is rejected.
+records one replay-blocking transfer intent and asks the bound stablecoin wallet
+to perform the economic transition. The terminal projection requires finalized
+wallet transaction evidence. Replaying or conflicting receipt or amount data
+cannot create another transfer request.
 
 ## Disputes
 
@@ -141,6 +146,7 @@ show stablecoin service payment and native TOS fees separately.
 2. Only finalized acceptance creates canonical purchase terms.
 3. Execution cannot silently change bound version, endpoint, or signer.
 4. Total release plus refund never exceeds funded escrow.
-5. One escrow reaches one consistent terminal outcome.
+5. One escrow creates at most one terminal economic transfer, and its outcome
+   is derived from finalized wallet transaction evidence.
 6. Gateway balances and histories are rebuildable from finalized chain state.
 7. Ambiguous submission is resolved from chain state before retry.

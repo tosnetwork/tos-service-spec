@@ -34,14 +34,16 @@ detail are in `tos-protocol` commit
 not change the frozen Registry BOC, action encoding, authorization, state
 machine, or quorum decision rule reviewed at Gate B.
 
-The current Gate D design and test-evidence baseline is `atos-spec` commit
+The pre-escrow Gate D design and test-evidence baseline is `atos-spec` commit
 `11464a84d0dec985f22636a8a94b3770c0cc2418`, `tos` commit
 `dc71dc8712f58e3d11ed973f4980ff6ae71de845`, and `tos-protocol` commit
 `6bb42b8968d4bbc374a89b7b61ea2c0e958d91ca`. It freezes the first
 software-work manifest and Accepted Quote encodings, records the finalized
 Capability binding and test-only stablecoin deployment, and provides
-`tosctl`-generated Ed25519 test identities. It does not claim that escrow,
-Quote acceptance, execution, Receipt, or settlement is complete.
+`tosctl`-generated Ed25519 test identities. It intentionally makes no escrow,
+Quote-acceptance, execution, Receipt, or settlement claim; the implementation
+status below supersedes that historical baseline and must be bound to new exact
+commit hashes before public deployment.
 
 ## 1. Gate A — Registry protocol freeze
 
@@ -136,22 +138,28 @@ Deliver:
   and independent stdlib-only Python reproducer are frozen;
 - 🟡 deterministic Accepted Quote commitment, vector, and TOS transaction — the
   TVM cell, exact tUSDT master/code identity, production encoder, and independent
-  vector implementation are frozen; escrow deployment is specified as the
-  canonical transaction path but is not implemented or finalized;
+  vector implementation are frozen; the escrow implementation and StateInit
+  builder now exist, but the final Quote inputs and public deployment are not
+  finalized;
 - 🟡 exact endpoint and execution-signer binding — commitment fields exist, but
   the end-to-end commercial lifecycle is incomplete;
 - ✅ test-only TOS-network stablecoin deployment with exact master-contract
   identity, six-decimal metadata, controlled wc=0 buyer wallet, reproducible
   code hashes, and three-endpoint state evidence;
-- ⬜ TOS-network stablecoin escrow with bounded native TOS network fees;
-- 🟡 isolated compilation, deterministic test, static-analysis, dependency-scan,
-  or reproducible-build execution;
-- ⬜ canonical Receipt binding input, toolchain, result, artifacts, usage, and
-  charged amount;
-- ⬜ objective release and refund transitions;
+- 🟡 TOS-network stablecoin escrow with bounded native TOS network fees — the
+  fixed-price contract and a frozen `0.1 TOS` wallet-call budget are implemented
+  and emulator-tested, but not yet publicly deployed;
+- ✅ isolated compilation, deterministic emulator tests, and reproducible-build
+  execution for the frozen escrow BOC;
+- ✅ canonical Receipt binding input, toolchain, result, artifacts, evidence,
+  provider, and charged amount;
+- ✅ objective fixed-price release and timeout-refund transfer initiation,
+  including replay-blocking pending states and initial-wallet bounce recovery;
 - ⬜ narrowly defined dispute evidence where an automatic outcome is impossible;
 - ⬜ content-addressed artifact delivery; and
-- ⬜ independent Quote, escrow, Receipt, and settlement resolution.
+- 🟡 independent Quote, escrow, Receipt, and settlement resolution — production
+  encoders, strict decoders, and a quorum-finalized escrow resolver exist; a
+  finalized public transaction remains outstanding.
 
 Accept when a buyer outside the core development team pays an independent
 provider on a public TOS network and another resolver reconstructs the complete
@@ -160,12 +168,14 @@ history without a private gateway database.
 Do not block this gate on general marketplace ranking, generalized arbitration,
 multiple verticals, cross-chain support, or per-message settlement.
 
-**Gate status: ⬜ Not accepted.** Accepted Quote primitives, an isolated
-executor foundation, and the test-only `tUSDT` asset recorded in
-`deployments/initial-public-testnet-tusdt-2026-08-14.json` exist, but there is
-no stablecoin escrow, canonical Receipt, settlement path, or independently
-resolvable paid transaction. Test-asset deployment alone is not payment
-acceptance.
+**Gate status: 🟡 Core escrow implementation complete; Gate not accepted.**
+Accepted Quote primitives, the test-only `tUSDT` asset recorded in
+`deployments/initial-public-testnet-tusdt-2026-08-14.json`, the fixed-price
+escrow, canonical Receipt, objective transfer transitions, reproducible BOC,
+and finalized typed escrow-state resolver now exist. The Quote still contains placeholder
+endpoint/dispute commitments, and no finalized public escrow or independently
+resolvable paid transaction has been recorded. Local emulator evidence is not
+payment acceptance.
 
 ## 5. Gate E — Developer usability and protocol adapters
 
@@ -293,25 +303,33 @@ must reuse the existing authority objects.
    wallet. The exact `tUSDT` master identity is
    `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
    this is test infrastructure, not a claim on real USDT reserves.
-10. 🔄 Implement the TOS-network stablecoin escrow contract, reproducible
+10. ✅ Implement the TOS-network stablecoin escrow contract, reproducible
     release artifact, exact StateInit builder, and finalized typed resolver.
-11. ⬜ Freeze the canonical software-work Receipt and implement objective
-    release and refund transitions.
+11. ✅ Freeze the canonical software-work Receipt and implement objective
+    release and refund transitions. Five TVM emulator groups cover full release,
+    timeout refund, source/amount/signature rejection, buyer/deadline/replay
+    rejection, malformed Receipt rejection, and wallet-bounce recovery through
+    the actual frozen test stablecoin wallet code. Standard-wallet `excesses`
+    is explicitly non-authoritative; terminal settlement resolution remains in
+    item 13's multi-account transaction proof.
 12. ⬜ Integrate the bounded executor and content-addressed artifact delivery.
 13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next implementation slice is items 10 and 11 followed by item 8.4. First freeze and
-implement one minimal typed stablecoin escrow state machine, its reproducible
-code artifact, StateInit builder, resolver, Receipt, release and refund
-transitions, and emulator negative matrix. Then deploy that exact final
-StateInit with the complete Accepted Quote and prove its finalized transaction
-is independently resolvable as the canonical acceptance event.
+The next implementation slice is item 8.3 followed by item 8.4: replace the
+remaining placeholder endpoint and dispute commitments, update and finalize a
+new immutable software-work Capability version, regenerate the final Accepted
+Quote vector, then deploy that exact escrow StateInit. Resolve its finalized
+deployment transaction and typed state as the canonical Quote acceptance event.
+After public funding finality, continue with items 12 and 13 for bounded
+execution, content-addressed delivery, Receipt settlement, and independent
+end-to-end reconstruction.
 The target is finalized Capability
 `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`
-and the exact test asset already recorded in this repository. Receipt,
-execution, release, and refund work is item 11 and must be accepted before the
-first escrow deployment. Deploying a non-custodial shell first would change the
-later code hash and address and cannot be treated as an upgrade path. No
+and the exact test asset already recorded in this repository. Receipt, release,
+and refund implementation evidence is now complete under item 11; public
+deployment still requires the final non-placeholder Quote inputs. Deploying a
+non-custodial shell first would change the later code hash and address and
+cannot be treated as an upgrade path. No
 intermediate milestone may advertise an asset-wallet address or risk locking
 test assets.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
