@@ -63,6 +63,13 @@ Receipt, requires `charged == funded == Quote amount`, and enters
 `release_pending`. Replays or a different query ID, Receipt, amount, escrow,
 Quote, or signer fail before another transfer request can be created.
 
+Provider tooling must preserve the execution-signing custody boundary. It
+first emits `cell_hash(settlement_intent)` as a 32-byte signing payload, accepts
+only a signature response that repeats the exact payload and Quote-bound public
+key, verifies Ed25519 locally, and only then constructs the release message.
+Receipt tooling must never accept a mnemonic, private seed, or test-identity
+fixture as an operational signing input.
+
 The timeout refund message is:
 
 ```text

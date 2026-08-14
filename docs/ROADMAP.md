@@ -351,6 +351,7 @@ task is an external pilot with a buyer outside the core team, an independent
 provider, and an independently operated resolver or endpoint set. The
 same-host transaction is reproducible deployment evidence, not grounds to mark
 Gate D accepted. The role separation, execution sequence, strict verification
-command, and acceptance record are frozen in `docs/GATE_D_EXTERNAL_PILOT.md`.
+command, custody-safe two-stage Receipt signing flow, and acceptance record are
+frozen in `docs/GATE_D_EXTERNAL_PILOT.md`.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.

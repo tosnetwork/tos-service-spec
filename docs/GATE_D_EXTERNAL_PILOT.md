@@ -65,6 +65,50 @@ Editing a gateway record is never a substitute.
    clean environment. It must obtain a quorum without a private gateway
    database or files supplied by the gateway.
 
+### Custody-safe Receipt signing
+
+The Receipt tool is deliberately two-stage and never reads a private key. The
+provider first builds the canonical Receipt and settlement payload:
+
+```bash
+native-receipt-release \
+  --outcome OUTCOME.json \
+  --quote-vector ACCEPTED_QUOTE.json \
+  --escrow ESCROW_ADDRESS \
+  --query-id NON_ZERO_RELEASE_QUERY_ID \
+  > settlement-prepare.json
+```
+
+After inspecting the Receipt, Quote, escrow, amount, query ID, and displayed
+execution-signer public key, sign the exact 32-byte payload inside the `tosctl`
+vault boundary:
+
+```bash
+jq -r .signing_payload_hex settlement-prepare.json \
+  | xxd -r -p > settlement-payload.bin
+tosctl wallet sign \
+  --name EXECUTION_SIGNER_WALLET \
+  --message-file settlement-payload.bin \
+  > settlement-signature.json
+```
+
+Finalize the release body only after the tool verifies that the `tosctl`
+signature JSON contains the exact Quote-bound public key and payload:
+
+```bash
+native-receipt-release \
+  --outcome OUTCOME.json \
+  --quote-vector ACCEPTED_QUOTE.json \
+  --escrow ESCROW_ADDRESS \
+  --query-id NON_ZERO_RELEASE_QUERY_ID \
+  --signature-file settlement-signature.json \
+  > settlement-release.json
+```
+
+The provider must compare the unsigned and signed outputs before broadcasting.
+The signing payload is public, but the private key, mnemonic, and vault export
+must never be passed to `native-receipt-release`, the gateway, or the buyer.
+
 ## Independent verification
 
 Run the verifier with the Python environment frozen by `tos/test/tostester`.
