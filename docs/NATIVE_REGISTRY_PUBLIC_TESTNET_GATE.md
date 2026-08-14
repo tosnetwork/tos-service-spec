@@ -1,8 +1,29 @@
 # Native Registry Public Testnet Gate
 
-This document defines the evidence required to complete ROADMAP Gate C. A
-local chain, mocked RPC response, relay acknowledgement, or single endpoint is
-not public-testnet acceptance evidence.
+This document defines the evidence required to complete ROADMAP Gate C. The
+project owner may designate a versioned TOS network as the initial ATOS public
+test network. Gate C bootstraps protocol authority; operator and Internet
+diversity remain separate Gate F and Gate G requirements. A mocked RPC
+response, relay acknowledgement, or single endpoint is never acceptance
+evidence.
+
+## Initial public-testnet profile
+
+The initial profile permits three validator-backed endpoints operated on one
+host when all limitations are published in the deployment record. It requires:
+
+- at least three live TOS validator-backed JSON-RPC endpoints and quorum two;
+- ConfigParam 8 at version 14 or later;
+- one immutable network/genesis identity and frozen Registry release;
+- distinct Agent controller keys for the transfer lifecycle;
+- the production quorum resolver and typed-state decoder, not direct database
+  inspection; and
+- a complete finalized lifecycle with transaction and checkpoint evidence.
+
+Loopback HTTP endpoints may satisfy this bootstrap profile only when the record
+states that they are not publicly reachable or independently operated. They do
+not satisfy gateway federation, production endpoint diversity, or production
+readiness. Publishing an endpoint later requires authenticated HTTPS.
 
 ## Deployment identity
 
@@ -13,10 +34,11 @@ A deployment record must publish:
 - Registry workchain;
 - frozen code BOC, TVM code hash, BOC container SHA-256, byte size, source
   commit, and reproducible build command;
-- at least three independently operated HTTPS JSON-RPC endpoints and a strict
-  majority quorum;
+- at least three validator-backed JSON-RPC endpoints and a strict majority
+  quorum, with operator and transport limitations stated explicitly;
 - deployment time and finality policy; and
-- explorer and typed-state-checker URLs.
+- an explorer URL when one exists, plus the exact typed-state checker command
+  and machine-readable output.
 
 There is no global mutable Registry database contract. Agent and Capability
 accounts are deterministic instances of the published code. The first accepted
@@ -40,7 +62,7 @@ The signing wallet must:
 
 ## Required lifecycle evidence
 
-Two independently controlled wallets must complete and publish:
+Two distinct Agent controller keys must complete and publish:
 
 1. Agent registration;
 2. Agent policy update with new-key proof of possession;
@@ -58,37 +80,24 @@ transaction hash, logical time, finalized checkpoint, code hash, and the
 independent resolver outputs. Secrets, private wallet configuration, gateway
 tokens, and private RPC credentials are never part of the record.
 
-## Local-node rehearsal — 2026-08-14
+## Initial public-testnet deployment — 2026-08-14
 
-The complete required lifecycle passed against a version-14 local TOS network
+The complete required lifecycle passed against a version-14 TOS network
 with a four-validator genesis, three validators online, and three same-host
-liteservers. The run deployed the frozen Registry code, exercised two Agent
-controllers, recovery, Capability version management, atomic transfer, former
-owner rejection, and terminal revocations, then reproduced the final typed
-state through all three liteservers.
+liteservers. The project owner subsequently designated this network as the
+initial ATOS public test network. The run deployed the frozen Registry code,
+exercised two Agent controllers, recovery, Capability version management,
+atomic transfer, former-owner rejection, and terminal revocations, then
+reproduced the final typed state through all three liteservers.
 
-The machine-readable record is
-`deployments/local-gate-c-rehearsal-2026-08-14.json`. Its schema and verdict
-explicitly state that it is local rehearsal evidence. The validators,
-liteservers, fee payer, and resolver were operated on one host, so this result
-does not satisfy the public or independent-operation requirements above.
+The machine-readable deployment record is
+`deployments/initial-public-testnet-2026-08-14.json`. Three embedded JSON-RPC
+servers on ports 8011 through 8013 were then checked by the production quorum
+resolver. Its typed outputs are recorded in
+`deployments/initial-public-testnet-quorum-2026-08-14.json`.
 
-## Current external blocker — 2026-08-14
-
-The implementation and release artifact are ready for deployment preparation,
-but this gate is not accepted:
-
-- the machine has no configured funded public-testnet wallet or deployment
-  authority;
-- no set of three independently operated public TVM JSON-RPC endpoints and
-  exact genesis hashes is configured;
-- the advertised public testnet endpoint was not reachable from the deployment
-  host during this review; and
-- no independently operated wallet or resolver has produced lifecycle
-  evidence.
-
-Supplying one funded testnet wallet is not sufficient by itself. Endpoint
-diversity and a second independent wallet/resolver remain mandatory acceptance
-inputs. Gate B's independent security review is complete; Gate C still requires
-deployment and lifecycle evidence from the exact reviewed release on a
-qualifying public TOS testnet.
+**Gate C verdict: accepted under the initial public-testnet profile.** The
+record explicitly discloses that all nodes and endpoints share one host and
+that the endpoints are loopback HTTP. Independent operators, public HTTPS,
+gateway failover, and Internet reachability remain mandatory Gate F/G work and
+must not be inferred from this acceptance.

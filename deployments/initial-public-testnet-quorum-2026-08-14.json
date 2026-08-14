@@ -1,0 +1,138 @@
+{
+  "schema": "atos.native.gate-c.quorum-check.v1",
+  "acceptance_profile": "operator-designated-initial-public-testnet",
+  "generated_at": "2026-08-14T08:55:56Z",
+  "network": "tos-local-gate-c-20260814",
+  "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+  "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+  "registry_workchain": 0,
+  "expected_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+  "endpoints": [
+    "http://127.0.0.1:8011/jsonRPC",
+    "http://127.0.0.1:8012/jsonRPC",
+    "http://127.0.0.1:8013/jsonRPC"
+  ],
+  "quorum": 2,
+  "objects": [
+    {
+      "object_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4",
+      "found": true,
+      "state": {
+        "agent": {
+          "agent_id": "agent_c8f39ad71c11e91cc775987aec67dd92b67617d5394bf2786d0127ce67109fb4",
+          "generation": "2",
+          "last_action_hash": "sha256:026614b5002609b095bbdf52001abdddff643b39cfa1e78b304677e347fe0dbd",
+          "policy": {
+            "controllers": [
+              {
+                "ed25519_public_key": "wFDFY3pE+oYp//PMzOIwDLNipj2Z2V/FQUUmb0MyRFo=",
+                "key_id": "ed25519:c050c5637a44fa8629fff3cccce2300cb362a63d99d95fc54145266f4332445a",
+                "purpose_mask": 15,
+                "recovery": true,
+                "weight": 1
+              }
+            ],
+            "recovery_threshold": 1,
+            "recovery_timelock_seconds": "10",
+            "threshold": 1
+          },
+          "sequence": "2",
+          "tombstoned": true
+        },
+        "finalized_at": "2026-08-14T08:55:55Z",
+        "network": {
+          "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+          "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+          "network_id": "tos-local-gate-c-20260814"
+        },
+        "reference": {
+          "account": "0:815341004dc625069ac763a4d3f1c925a9fb2c12b44fdf96c7721fdbef7f0dcd",
+          "contract_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+          "finalized_checkpoint": "8140",
+          "logical_time": "1117000001",
+          "transaction_hash": "sha256:a0cda38630de1f517cfc0d0eae4da65133dc7b4cda74adbe04520fd37c31b878"
+        },
+        "tvm_state_hash": "tvm-cell-sha256:d4a1355f5a9995f309808f1ced0976b35d213dca603e26f8ef8e4fc5a1890ada"
+      }
+    },
+    {
+      "object_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+      "found": true,
+      "state": {
+        "agent": {
+          "agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+          "generation": "1",
+          "last_action_hash": "sha256:b7384a044865527605e67e793b957d0e4b90b8483fa0abaa19b940ae8736e9f0",
+          "policy": {
+            "controllers": [
+              {
+                "ed25519_public_key": "rwaj4ykXFOTzVsGcmxXNGVHsbmZiqne+B1R/KJODNB0=",
+                "key_id": "ed25519:af06a3e3291714e4f356c19c9b15cd1951ec6e6662aa77be07547f289383341d",
+                "purpose_mask": 15,
+                "recovery": true,
+                "weight": 1
+              }
+            ],
+            "recovery_threshold": 1,
+            "recovery_timelock_seconds": "10",
+            "threshold": 1
+          },
+          "sequence": "1"
+        },
+        "finalized_at": "2026-08-14T08:55:55Z",
+        "network": {
+          "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+          "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+          "network_id": "tos-local-gate-c-20260814"
+        },
+        "reference": {
+          "account": "0:ab2c1a53e12431ad7be954d71d5518e59191ae9ceef69b92f7abb6621dc3a770",
+          "contract_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+          "finalized_checkpoint": "8140",
+          "logical_time": "1111000001",
+          "transaction_hash": "sha256:78acce4a147ed624a5aae38a13b34f3b59d13125b977a3f11abf03602d8669ac"
+        },
+        "tvm_state_hash": "tvm-cell-sha256:7d2ea5d030a692098339e101d39a068a9f3ba91921f5e01d488944347a2953d3"
+      }
+    },
+    {
+      "object_id": "cap_c9d89f43cf035476d32995c09f527df30b0b1017df35663174007b4e9ca8beee",
+      "found": true,
+      "state": {
+        "capability": {
+          "capability_id": "cap_c9d89f43cf035476d32995c09f527df30b0b1017df35663174007b4e9ca8beee",
+          "generation": "2",
+          "last_action_hash": "sha256:2ece38af64f1c4d7b426ffbb0c42aebf5805c5604b08ce0293c1850f853df2e3",
+          "owner_agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+          "sequence": "2",
+          "tombstoned": true,
+          "versions": [
+            {
+              "manifest_digest": "sha256:8181818181818181818181818181818181818181818181818181818181818181",
+              "version": "1.0.0"
+            },
+            {
+              "manifest_digest": "sha256:8282828282828282828282828282828282828282828282828282828282828282",
+              "revoked": true,
+              "version": "1.1.0"
+            }
+          ]
+        },
+        "finalized_at": "2026-08-14T08:55:55Z",
+        "network": {
+          "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+          "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+          "network_id": "tos-local-gate-c-20260814"
+        },
+        "reference": {
+          "account": "0:f3ec529f837518e54469bd9a9b382eb1513705064eb7f1cc8dc8eacc2926ab10",
+          "contract_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+          "finalized_checkpoint": "8140",
+          "logical_time": "1111000003",
+          "transaction_hash": "sha256:0217aa169935a0b5808df59df81cf715b4bacb0c3a7b2641a4f748dbd474f285"
+        },
+        "tvm_state_hash": "tvm-cell-sha256:44de7885596c7ac4cd1cb97a2a0996cff08b91bf94ec711b194fd8ae9f6c634a"
+      }
+    }
+  ]
+}

@@ -2,6 +2,10 @@
   "schema": "atos.native.registry.deployment.v1",
   "status": "template-not-evidence",
   "protocol": "atos_native_v1",
+  "acceptance_profile": "REQUIRED",
+  "operator_independence": false,
+  "public_internet_reachability": false,
+  "known_limitations": ["REQUIRED"],
   "network": {
     "network_id": "REQUIRED",
     "genesis_root_hash": "sha256:REQUIRED",

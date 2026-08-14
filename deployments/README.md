@@ -2,8 +2,11 @@
 
 This directory is reserved for immutable public-network deployment evidence.
 Copy `public-testnet.template.json`, replace every `REQUIRED` value with
-independently verified chain data, and rename it to the network and deployment
-date. A template is never evidence and must not be marked accepted.
+verified chain data, and rename it to the network and deployment date. An
+initial profile may use same-host endpoints only when the record declares that
+operator independence and public Internet reachability are false. A mature
+profile requires independently operated HTTPS endpoints. A template is never
+evidence and must not be marked accepted.
 
 Before publication:
 

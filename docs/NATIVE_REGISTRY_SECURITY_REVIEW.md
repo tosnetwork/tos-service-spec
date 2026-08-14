@@ -363,9 +363,24 @@ may legally use a different topological cell ordering while representing the
 same cell DAG, so a container byte digest is frozen only for the published code
 artifact, not used as a consensus identity.
 
-## Independent review requirements
+## Final independent review — 2026-08-14
 
-The independent reviewer must, at minimum:
+The independent reviewer evaluated `atos-spec` commit
+`e72bab245a47b0f87a82977629cc03b1dfc64995`, `tos` commit
+`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-protocol` commit
+`7a21c070c1160fc0a4278e1a086c0682eb2d3d31`. The review reproduced the
+ten-test Agent and Capability TVM lifecycle matrix and retested the chain-time
+recovery preflight, atomic slot-intent record, and broadcast lease. It reported
+no P0, P1, or P2 finding and accepted the Gate B remediation baseline.
+
+This closes Gate B for the exact frozen release and commits above. It does not
+pre-authorize later consensus, contract, action-encoding, authorization,
+relayer-journal, or resolver changes.
+
+## Independent review requirements for a new release
+
+A new release that changes any security-sensitive behavior must again have an
+independent reviewer, who must at minimum:
 
 1. reproduce the code BOC and code hash from a clean toolchain;
 2. reproduce every positive and negative frozen vector without importing

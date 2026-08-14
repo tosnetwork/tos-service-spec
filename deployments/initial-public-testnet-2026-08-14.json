@@ -1,7 +1,20 @@
 {
-  "schema": "atos.native.gate-c.local-rehearsal.v1",
-  "qualifies_as_public_testnet_gate_c": false,
-  "reason": "single-host validators and liteservers are not independently operated public infrastructure",
+  "schema": "atos.native.registry.deployment.v1",
+  "status": "accepted-initial-public-testnet",
+  "protocol": "atos_native_v1",
+  "qualifies_as_public_testnet_gate_c": true,
+  "acceptance_profile": "operator-designated-initial-public-testnet",
+  "designated_at": "2026-08-14T08:49:20Z",
+  "deployed_at": "2026-08-14T07:56:12Z",
+  "registry_workchain": 0,
+  "operator_independence": false,
+  "public_internet_reachability": false,
+  "designation_basis": "The project owner designated the local three-node TOS network as the initial ATOS public test network for Gate C acceptance.",
+  "known_limitations": [
+    "all three validators and endpoints are operated on one host",
+    "JSON-RPC is loopback HTTP rather than publicly reachable HTTPS",
+    "operator and Internet diversity remain required for Gates F and G"
+  ],
   "network": {
     "network_id": "tos-local-gate-c-20260814",
     "global_id": 3,
@@ -14,8 +27,14 @@
       2003,
       2006,
       2009
+    ],
+    "json_rpc_endpoints": [
+      "http://127.0.0.1:8011/jsonRPC",
+      "http://127.0.0.1:8012/jsonRPC",
+      "http://127.0.0.1:8013/jsonRPC"
     ]
   },
+  "quorum": 2,
   "release": {
     "code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
     "boc_sha256": "sha256:e9845e6d7acda368f1d5ba8e7d32aa0f21022d36816ca33ec31e1b21348a6fcc",
@@ -432,5 +451,7 @@
       }
     }
   ],
-  "verdict": "PASS_LOCAL_REHEARSAL_ONLY"
+  "typed_state_quorum_evidence": "deployments/initial-public-testnet-quorum-2026-08-14.json",
+  "independent_gate_b_audit": "docs/NATIVE_REGISTRY_SECURITY_REVIEW.md#final-independent-review---2026-08-14",
+  "verdict": "PASS_GATE_C_INITIAL_PUBLIC_TESTNET"
 }

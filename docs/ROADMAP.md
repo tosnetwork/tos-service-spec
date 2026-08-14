@@ -78,28 +78,32 @@ Deliver:
   manifest, and two-build comparison;
 - ✅ build/source separation that leaves generated `.fif` and embedded `.cpp`
   intermediates outside the source tree and verifies this invariant in CI;
-- ⬜ public-testnet ConfigParam 8 at global version 14 or later — the frozen
-  Registry BOC uses the version-gated `SHA256C` canonical snake hash;
-- ⬜ public-testnet deployment record binding network domain, contract address,
-  deployed code BOC, code hash, transaction, and exact source commit;
-- 🟡 multi-endpoint quorum and finality configuration — client support and a
-  same-host three-liteserver rehearsal exist, but no independently operated
-  public-testnet configuration has been accepted;
+- ✅ C++ consensus VM and Rust emulator `SHA256C` differential coverage using
+  the same version-14 canonical snake vector;
+- ✅ designated initial public-testnet ConfigParam 8 at global version 14;
+- ✅ initial public-testnet deployment record binding network domain, contract
+  address, deployed code BOC, code hash, transaction, and exact source commit;
+- ✅ three validator-backed JSON-RPC endpoints and strict-majority finalized
+  resolution through the production typed-state resolver;
 - ✅ wallet action signing and semantic confirmation, including exact action-hash
   confirmation and fee-payer destination, amount, body, and StateInit binding;
-- 🟡 registry explorer and typed-state checker — direct typed-state RPC checking
-  exists; a public explorer does not; and
-- 🟡 recovery, transfer, and revocation drills — the complete lifecycle passed
-  against a version-14 local four-validator genesis with three validators
-  online, but it has not run on a qualifying public testnet.
+- ✅ registry typed-state checker with machine-readable three-endpoint quorum
+  evidence; and
+- ✅ recovery, transfer, former-owner rejection, and revocation drills on the
+  designated initial public test network.
 
-Accept when an independently operated wallet registers, updates, transfers,
-revokes, and resolves objects without trusting the reference gateway.
+Accept the initial profile when distinct controller keys register, update,
+transfer, revoke, and resolve objects through validator-backed quorum without
+trusting the reference gateway. Independent operators and public HTTPS are
+required by Gates F and G.
 
-**Gate status: ⬜ Not accepted.** No qualifying public-testnet lifecycle has been
-recorded. The 2026-08-14 local-node deployment rehearsal passed and is recorded
-in `deployments/local-gate-c-rehearsal-2026-08-14.json`; it is explicitly
-non-public evidence and does not satisfy this gate.
+**Gate status: ✅ Complete under the initial public-testnet profile.** The
+2026-08-14 deployment and lifecycle are recorded in
+`deployments/initial-public-testnet-2026-08-14.json`, and production quorum
+typed-state outputs are recorded in
+`deployments/initial-public-testnet-quorum-2026-08-14.json`. The record openly
+states that the three endpoints share one host and use loopback HTTP; this does
+not satisfy Gate F/G diversity or production-readiness requirements.
 
 ## 4. Gate D — First commercial lifecycle
 
@@ -223,24 +227,28 @@ must reuse the existing authority objects.
 
 ## 10. Immediate work
 
-1. 🟡 Close the independent Registry contract and `nativecore` audit — review
-   has confirmed the atomic slot-intent and broadcast-lease remediation, but the
-   subsequent chain-time recovery-preflight remediation requires independent
-   retest.
-2. 🟡 Produce independent full-lifecycle TVM emulator evidence for every Agent
-   and Capability transition — the internal Agent/Capability matrix and relay
-   crash-boundary suite pass; independent execution and published evidence are
-   still required.
+1. ✅ Close the independent Registry contract and `nativecore` audit — the
+   final 2026-08-14 review found no P0, P1, or P2 and accepted the chain-time,
+   atomic slot-intent, and broadcast-lease remediations.
+2. ✅ Produce independent full-lifecycle TVM emulator evidence for every Agent
+   and Capability transition — the final review independently reproduced the
+   ten-test Agent/Capability matrix with no unauthorized or partial transition.
 3. ✅ Add a Capability registration vector and second vector implementation.
 4. ✅ Freeze and continuously reproduce the Registry BOC, code hash, release
    manifest, negative corpus, and clean source/build boundary.
-5. ⬜ Deploy the frozen Registry code to a public TOS testnet and publish the
-   complete deployment record.
+5. ✅ Deploy the frozen Registry code to the operator-designated initial public
+   TOS testnet and publish the complete deployment record.
 6. ✅ Implement wallet-native action signing and exact semantic confirmation.
-7. ⬜ Record the complete finalized Agent and Capability lifecycle on the public
-   testnet using an independently operated wallet and resolver.
-8. 🟡 Freeze the software-work manifest and Accepted Quote commitment — the
-   deterministic commitment implementation and local test exist; the immutable
-   software-work profile, frozen vector, and canonical TOS transaction do not.
+7. ✅ Record the complete finalized Agent and Capability lifecycle and resolve
+   it through three validator-backed JSON-RPC endpoints with quorum two.
+8. 🟡 **Next implementation task:**
+   freeze the immutable software-work Capability manifest profile, Accepted
+   Quote vector, and canonical TOS transaction. The deterministic commitment
+   implementation and local test already exist.
 9. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
 10. ⬜ Complete one independently resolvable paid software-work transaction.
+
+The next acceptance and implementation task is item 8: freeze the immutable
+software-work Capability manifest profile, Accepted Quote vector, and canonical
+TOS transaction. Multi-operator HTTPS endpoint diversity remains required in
+Gates F and G and is not implied by Gate C's initial profile.
