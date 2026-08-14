@@ -215,6 +215,30 @@ the independent reviewer reruns the nonce-variant exploit, concurrent slot and
 budget cases, full Agent/Capability target-state preflight, and the complete
 TVM lifecycle matrix against the remediation commit.
 
+## Atomic slot-intent crash recovery
+
+The following incremental independent review evaluated `atos-spec` commit
+`61ad4851e7c5fd398f6064fd8e13c860921e6d49`, `tos` commit
+`c4814f3edb539888c5b333ab9a10c1164259964a`, and `tos-protocol` commit
+`b649927a3ceb3178bd95a611185c5bf1b1d3e782`. It confirmed the state-slot P1
+closed and found one P2 recovery failure: a crash after the slot file was
+created but before the separate action-intent file was created permanently
+classified a transition that had never entered the sender as ambiguous.
+
+The internal remediation removes the separate action record. One atomically
+created slot record now contains the state-slot identity, action identity,
+complete outbound intent, claim time, and a durable `prepared` phase. A second
+atomic operation under the cross-process journal lock grants exactly one
+broadcast lease by changing `prepared` to `broadcasting`; sender acceptance
+changes it to `complete`. A restarted `prepared` record can obtain a new lease,
+whereas `broadcasting` remains read-only and cannot buy another send. Budget
+accounting reads the same unified record.
+
+Fault-injection tests cover restart after prepare, restart while broadcasting,
+completion recovery, and concurrent lease acquisition. This remains internal
+remediation. Gate B stays blocked until independent retest and the complete
+Agent/Capability TVM lifecycle matrix both pass.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a

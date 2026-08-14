@@ -16,11 +16,11 @@ No later gate may weaken an earlier authority or security invariant.
 
 A gate is complete only when every delivery item and its acceptance condition
 are complete. The latest 2026-08-14 incremental independent review evaluated
-`atos-spec` commit `fd92cb921b1be1bef0db718908d3744b13694448`, `tos` commit
-`37a27f8fb09e577412b922d5b0138c4b7fc91e58`, and `tos-protocol` commit
-`6dff78ce53347e92565769ad32947fa8b9eef55b`. It confirmed the preceding five
-findings closed and found one new P1 in relay fee-spend deduplication. The
-state-slot, finalized-target-preflight, and persistent-budget remediation
+`atos-spec` commit `61ad4851e7c5fd398f6064fd8e13c860921e6d49`, `tos` commit
+`c4814f3edb539888c5b333ab9a10c1164259964a`, and `tos-protocol` commit
+`b649927a3ceb3178bd95a611185c5bf1b1d3e782`. It confirmed the state-slot P1
+closed and found one P2 in crash recovery between separate slot and action
+records. The unified slot-intent record and durable broadcast-lease remediation
 described by the internal security review postdates that independent baseline
 and remains unaudited. Before Gate B or Gate C is accepted, published evidence
 must bind the reviewed sources and deployment to exact commit IDs and release
@@ -57,8 +57,8 @@ Deliver:
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
 - 🟡 independent contract and `nativecore` security review — the initial and
-  incremental reviews delivered findings; the latest state-slot P1 remediation
-  is implemented internally and awaits independent retest;
+  incremental reviews delivered findings; the latest slot-intent crash-recovery
+  P2 remediation is implemented internally and awaits independent retest;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
 - ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and

@@ -66,16 +66,27 @@ Registry code hash, and action hash, may occupy it. A fresh request key or a
 fresh nonce therefore cannot buy another broadcast for the same transition.
 
 The canonical action identity deterministically supplies the query ID, so a
-caller cannot alter the outbound body by changing its request key. The durable
-action record binds action hash, destination, query ID, body hash, StateInit
-hash, and funded nanoTOS amount. A durable slot record binds the ordering
-position to that action, and a separate request record binds each
-`idempotency_key` to the action. Reusing a request key, state slot, or action
-with different semantics is a conflict. A completed retry returns the recorded
-result; a prepared or ambiguous retry is resolved read-only and is never
-blindly rebroadcast. `caller_id` describes the authenticated transport
-principal. None participates in contract authorization. Deadlines bound server
-work but do not alter on-chain semantics.
+caller cannot alter the outbound body by changing its request key. One
+atomically created slot record binds the ordering position, action identity,
+action hash, destination, query ID, body hash, StateInit hash, funded nanoTOS,
+claim time, and durable phase. A separate request record binds each
+`idempotency_key` to the action; it is not a fee-spend boundary. Reusing a
+request key, state slot, or action with different semantics is a conflict.
+
+The slot phases are `prepared`, `broadcasting`, and `complete`. `prepared`
+proves the sender has not been entered and may be recovered after process
+restart. Immediately before calling the sender, a process must atomically
+acquire the sole broadcast lease by changing `prepared` to `broadcasting`
+under the journal's exclusive lock. Concurrent recovery attempts cannot both
+acquire it. `broadcasting` means the outcome may be ambiguous and permits only
+read-only finalized-state resolution, never rebroadcast. `complete` records
+sender acceptance and returns the recorded action hash on retry. A crash after
+the durable `broadcasting` transition but before the sender call is treated
+conservatively as ambiguous because the sender boundary is not transactional.
+
+`caller_id` describes the authenticated transport principal. It does not
+participate in contract authorization. Deadlines bound server work but do not
+alter on-chain semantics.
 
 The relayer must locally reject wrong network/code binding and every signature
 or proof-of-possession failure decidable from the registration policy or a
