@@ -1,9 +1,13 @@
 # Native Registry Internal Security Review
 
-**Review date:** 2026-08-13
+**Review date:** 2026-08-14
 **Protocol:** `atos_native_v1`
-**Frozen code hash:**
-`tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d`
+**Reviewed code hash:**
+`tvm-cell-sha256:943c6cb3ddfeb470cfb76a343a29471ffbced9af25a467fde834926c1a8d525d`
+
+The previous reviewed artifact had code hash
+`tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d`.
+It is superseded and must not be deployed.
 
 ## Scope and conclusion
 
@@ -12,7 +16,7 @@ This review covered the canonical action and identity encoder in
 state resolution, the wallet sender boundary, and the Native Registry FunC
 contract in `tos/crypto/smartcont/native-registry-code.fc`.
 
-Four implementation findings were corrected. The corrected source builds
+Six implementation findings were corrected. The corrected source builds
 reproducibly to the frozen code hash and both registry encoders reproduce the
 Agent and Capability identifiers, contract addresses, action hashes, action
 BOCs, and frozen negative results.
@@ -85,6 +89,41 @@ artifact.
 The obsolete complex contract and the temporary `native-registry-v2` naming
 were removed. There is one canonical ATOS Native Registry source.
 
+### NR-05 — The protocol encoder rejected canonical generation resets
+
+**Severity:** High
+**Status:** Closed
+
+The protocol encoder previously treated `sequence == 1` as equivalent to a
+zero predecessor. That is valid only for registration. Recovery completion and
+Capability transfer reset sequence because they start a new generation, but
+they must still commit to the immediately preceding live state. As a result,
+the SDK could not construct a transition that the contract required.
+
+Registration now uniquely requires generation `1`, sequence `1`, and a zero
+predecessor. Every mutation requires a nonzero predecessor. Recovery completion
+and Capability transfer require a reset sequence of `1`; the contract remains
+responsible for proving the exact generation increment and predecessor match
+against live state. Go regression tests and an offline TVM recovery lifecycle
+exercise this boundary.
+
+### NR-06 — Pending recovery lacked an explicit initiating-policy binding
+
+**Severity:** High
+**Status:** Closed
+
+Recovery is authority delegation across time. Its validity must therefore be a
+function of the authority state that created it, rather than merely the passage
+of time. Pending recovery now stores the initiating live-policy cell hash.
+Completion fails closed unless that hash equals the current policy hash, and a
+policy replacement clears the pending proposal. Non-policy mutations preserve
+it but remain covered by the ordinary predecessor chain.
+
+The typed-state decoder independently validates the same binding. Offline TVM
+tests prove both required paths: initiation followed by delegation and
+generation-reset completion succeeds, while initiation followed by policy
+replacement makes completion fail without changing state.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a
@@ -93,6 +132,10 @@ were removed. There is one canonical ATOS Native Registry source.
   object, ordering, predecessor, nonce, and typed payload.
 - Controller and signature sets are bounded and strictly ordered.
 - New controller policies require proof of possession.
+- Registration alone uses a zero predecessor; generation resets retain the
+  immediate nonzero state predecessor.
+- Pending recovery is bound to its initiating policy, is invalidated by policy
+  replacement, and cannot bypass intervening state transitions.
 - Capability authorization traverses the live owner Agent policy.
 - Capability transfer commits only once in the Capability account after both
   owner policies authorize the unchanged action.
@@ -113,6 +156,8 @@ were removed. There is one canonical ATOS Native Registry source.
 - Contract release manifest:
   `tos/crypto/smartcont/atos-native-registry-v1.release.json`
 - Reproducible build test: `tos/scripts/test-atos-native-registry-v1.sh`
+- Executable recovery lifecycle:
+  `tos/tosctl/src/node-control/contracts/tests/native_registry_sandbox.rs`
 
 StateInit and action identities are frozen by TVM cell hash. A BOC container
 may legally use a different topological cell ordering while representing the

@@ -15,10 +15,12 @@ No later gate may weaken an earlier authority or security invariant.
 - ⬜ Pending: not implemented, or no qualifying evidence was found.
 
 A gate is complete only when every delivery item and its acceptance condition
-are complete. Status was last reviewed on 2026-08-13. Completion markers below
-include the current working-tree implementation. Before Gate B or Gate C is
-accepted, published evidence must bind the reviewed sources and deployment to
-exact commit IDs and release hashes.
+are complete. Status was last reviewed on 2026-08-14 against `tos` commit
+`d2ae6d92d`, `tos-protocol` commit `cfe6c4e`, `atos` commit `b6fad23`, and
+`tos-ai` commit `003633c`, plus the uncommitted remediation described in the
+Native Registry internal security review. Before Gate B or Gate C is accepted,
+published evidence must bind the reviewed sources and deployment to exact
+commit IDs and release hashes.
 
 ## 1. Gate A — Registry protocol freeze
 
@@ -49,11 +51,12 @@ Deliver:
 - ✅ live policy authorization;
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
-- 🟡 contract and `nativecore` audit — the internal review and remediation are
-  complete; an independent security review remains; and
-- 🟡 adversarial coverage aligned across TVM and protocol code — encoder,
-  resolver, relay, and source-level checks exist, but independent full-lifecycle
-  TVM emulator evidence remains.
+- ✅ internal contract and `nativecore` review and remediation;
+- ⬜ independent contract and `nativecore` security review;
+- ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
+  source-cleanliness, and recovery-policy-binding lifecycle checks; and
+- ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and
+  Capability transition.
 
 Accept when the full lifecycle passes on a local chain, the exported code hash
 matches frozen vectors, and independent review finds no unauthorized or partial
@@ -68,11 +71,12 @@ close without an unauthorized or partial transition finding.
 
 Deliver:
 
-- 🟡 reproducible contract build and deployment manifest — the release BOC,
-  manifest, and two-build test are frozen; a public deployment record does not
-  exist;
-- 🟡 public code BOC, code hash, and network domain — the code artifact and hash
-  are frozen, but no public-testnet network binding has been published;
+- ✅ reproducible contract build, frozen release BOC, code hash, release
+  manifest, and two-build comparison;
+- ✅ build/source separation that leaves generated `.fif` and embedded `.cpp`
+  intermediates outside the source tree and verifies this invariant in CI;
+- ⬜ public-testnet deployment record binding network domain, contract address,
+  deployed code BOC, code hash, transaction, and exact source commit;
 - 🟡 multi-endpoint quorum and finality configuration — client support exists,
   but no public testnet configuration has been accepted;
 - ✅ wallet action signing and semantic confirmation, including exact action-hash
@@ -211,12 +215,15 @@ must reuse the existing authority objects.
 
 1. ⬜ Obtain an independent audit of the Registry contract and `nativecore`.
 2. ✅ Add a Capability registration vector and second vector implementation.
-3. ⬜ Deploy the frozen Registry code to a public TOS testnet.
-4. 🟡 Implement wallet-native action signing and finalized lifecycle tests —
-   wallet signing and semantic confirmation are complete; the public finalized
-   lifecycle remains.
-5. 🟡 Freeze the software-work manifest and Accepted Quote commitment — the
-   Accepted Quote commitment exists; the software-work profile and final freeze
-   remain.
-6. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
-7. ⬜ Complete one independently resolvable paid software-work transaction.
+3. ✅ Freeze and continuously reproduce the Registry BOC, code hash, release
+   manifest, negative corpus, and clean source/build boundary.
+4. ⬜ Deploy the frozen Registry code to a public TOS testnet and publish the
+   complete deployment record.
+5. ✅ Implement wallet-native action signing and exact semantic confirmation.
+6. ⬜ Record the complete finalized Agent and Capability lifecycle on the public
+   testnet using an independently operated wallet and resolver.
+7. 🟡 Freeze the software-work manifest and Accepted Quote commitment — the
+   deterministic commitment implementation and local test exist; the immutable
+   software-work profile, frozen vector, and canonical TOS transaction do not.
+8. ⬜ Implement TOS-network stablecoin escrow, Receipt, release, and refund.
+9. ⬜ Complete one independently resolvable paid software-work transaction.

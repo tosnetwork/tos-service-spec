@@ -172,6 +172,9 @@ message AgentStateV1 {
   string recovery_initiation_action_hash = 8;
   ControllerPolicyV1 recovery_policy = 9;
   bool tombstoned = 10;
+  // Hash of the live canonical policy cell at recovery initiation. Completion
+  // fails unless this still matches the current live policy.
+  string recovery_initiating_policy_hash = 11;
 }
 
 message CapabilityStateV1 {

@@ -21,9 +21,11 @@ The TVM action cell is canonical. Its cell hash is the action hash signed by
 controllers. Callers do not provide an action hash or intended result state.
 
 For a new object, generation and sequence are both `1` and the predecessor is
-zero. For an ordinary existing-object mutation, sequence increases by one.
+zero. Every existing-object mutation, including a generation-reset mutation,
+commits to the nonzero hash of the immediately preceding typed state. For an
+ordinary mutation, generation is unchanged and sequence increases by one.
 Recovery completion and Capability ownership transfer advance generation and
-reset sequence to `1`.
+reset sequence to `1`; sequence reset never resets or omits the predecessor.
 
 Exact replay of the last finalized action is idempotent. Reuse of the same
 ordering position for different content is rejected.
@@ -37,7 +39,8 @@ Canonical Agent state contains only:
 - last action hash;
 - current controller policy;
 - delegation digests;
-- optional pending recovery time, initiating action hash, and new policy; and
+- optional pending recovery time, initiating action hash, initiating policy
+  hash, and new policy; and
 - tombstone flag.
 
 ### Register Agent
@@ -67,8 +70,15 @@ execution time, and proposed policy.
 ### Complete recovery
 
 The action references the pending initiation, is submitted after the timelock,
-and satisfies the recovery authorization rule. Completion installs the stored
-policy, clears recovery state, advances generation, and resets sequence.
+and satisfies the recovery authorization rule. The stored initiating-policy
+hash must still equal the live policy hash. Completion installs the stored
+policy, clears recovery state, advances generation, and resets sequence while
+retaining the immediately preceding typed-state hash as its predecessor.
+
+Any policy replacement clears pending recovery. Mutations that do not replace
+policy, such as adding a delegation, do not invalidate it: they are committed
+by the completion action's immediate predecessor and cannot be skipped or
+reordered. A later recovery initiation replaces the earlier pending proposal.
 
 ### Revoke Agent
 
@@ -179,6 +189,10 @@ to request a transition.
 - stale predecessor, skipped sequence, conflicting replay, or wrong generation;
 - policy installation without proof of possession;
 - stale recovery after policy rotation;
+- generation reset with a zero or stale predecessor;
+- recovery completion after an intervening delegation, proving the delegation
+  transition is included in the predecessor chain;
+- superseded recovery initiation; and
 - duplicate or overwritten Capability version;
 - mutation by a former owner after transfer;
 - transfer rejected by either current or new owner policy; and

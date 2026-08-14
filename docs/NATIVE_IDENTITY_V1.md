@@ -38,12 +38,17 @@ implicitly valid for another.
 ## Recovery
 
 Recovery is a two-step timelocked operation. Initiation stores the proposed
-policy, execution time, and initiating action hash. Completion must reference
-that exact initiation and occur after the timelock. Any ordinary policy update
-clears pending recovery so an old proposal cannot overwrite a newer policy.
+policy, execution time, initiating action hash, and initiating live-policy
+hash. Completion must reference that exact initiation, occur after the
+timelock, and prove that the live policy still has the initiating hash. Any
+policy replacement clears pending recovery so an old proposal cannot overwrite
+a newer policy. Non-policy mutations remain in the typed-state predecessor
+chain and do not cancel recovery.
 
-Recovery completion advances the Agent generation and resets sequence. Clients
-must resolve the resulting state before building further actions.
+Recovery completion advances the Agent generation and resets sequence to `1`,
+but its predecessor remains the nonzero hash of the immediately preceding
+typed state. Clients must resolve the resulting state before building further
+actions.
 
 ## Delegations
 
