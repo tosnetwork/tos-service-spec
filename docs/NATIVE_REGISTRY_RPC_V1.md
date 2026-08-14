@@ -56,17 +56,22 @@ conflict. It must not be silently returned as success.
 
 `request_id` and `trace_id` are observability values. `idempotency_key` is a
 mandatory request-retry alias, but it is not the fee-spend identity. The
-canonical action identity is derived from network domain, Registry code hash,
-and action hash. Before paying any fee, the relayer atomically claims that
-action identity and records its exact outbound intent. A fresh request key for
-the same action finds the same claim and cannot buy another broadcast.
+canonical state-slot identity is derived from protocol, network domain,
+Registry code hash, target object, generation, sequence, and predecessor TVM
+state hash. It deliberately excludes nonce, payload, signatures, and action
+hash because different signed intents for one ordering position are mutually
+exclusive on-chain. Before paying any fee, the relayer atomically claims that
+state slot. Exactly one canonical action identity, derived from network domain,
+Registry code hash, and action hash, may occupy it. A fresh request key or a
+fresh nonce therefore cannot buy another broadcast for the same transition.
 
 The canonical action identity deterministically supplies the query ID, so a
 caller cannot alter the outbound body by changing its request key. The durable
 action record binds action hash, destination, query ID, body hash, StateInit
-hash, and funded nanoTOS amount. A separate durable request record binds each
-`idempotency_key` to one canonical action. Reusing a request key or action with
-different semantics is a conflict. A completed retry returns the recorded
+hash, and funded nanoTOS amount. A durable slot record binds the ordering
+position to that action, and a separate request record binds each
+`idempotency_key` to the action. Reusing a request key, state slot, or action
+with different semantics is a conflict. A completed retry returns the recorded
 result; a prepared or ambiguous retry is resolved read-only and is never
 blindly rebroadcast. `caller_id` describes the authenticated transport
 principal. None participates in contract authorization. Deadlines bound server
@@ -76,6 +81,15 @@ The relayer must locally reject wrong network/code binding and every signature
 or proof-of-possession failure decidable from the registration policy or a
 finalized live policy. Failure to resolve required authority is an unavailable
 decision, never permission to spend relay funds.
+
+The relayer must also resolve the finalized target object before claiming a
+new state slot. Registration requires authoritative absence. Every mutation
+requires an exact predecessor hash, the immediately next generation/sequence,
+the correct object kind, and a non-terminal target. Capability preflight also
+requires the finalized current owner, immutable-version conditions, and the
+requested revocation state. Transfer additionally requires a live new-owner
+Agent. Resolver failure, non-finalized evidence, and ambiguous absence fail
+closed before journaling or payment.
 
 Before creating a journal claim, the relayer also mirrors the contract's
 signature-set shape: counterparty signatures are forbidden for registration,
@@ -92,13 +106,16 @@ idempotency or authorization fallback.
 
 - Bound message size before protobuf decoding and cell construction.
 - Authenticate and rate-limit public submission.
+- Enforce persistent sliding-window action and nanoTOS ceilings per target and
+  per relay wallet in the same exclusive journal transaction that claims a new
+  state slot. Count prepared and ambiguous claims conservatively as spent.
 - Keep fee-payer keys outside the gateway process where practical.
 - Never rewrite signed action fields.
 - Never accept caller-supplied action-result or next-state cells.
 - Avoid automatic paid resubmission after ambiguous errors; resolve first.
 - All processes or hosts spending from one relay wallet must share the same
-  durable action-claim journal; otherwise each wallet boundary must be treated
-  as an independent fee budget.
+  durable state-slot/action journal; otherwise each wallet boundary must be
+  treated as an independent fee budget.
 - Persist finalized checkpoint high-water state per network and genesis; commit
   it only after the complete account observation and typed state validate.
 - Make the durable checkpoint a mandatory resolver dependency and fsync both

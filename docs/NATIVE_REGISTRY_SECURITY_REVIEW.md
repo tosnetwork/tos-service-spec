@@ -189,6 +189,32 @@ internally. This section does not close the independent review: the reviewer
 must retest the remediation commits and the new frozen artifact, and Gate B
 still requires the complete Agent and Capability TVM lifecycle matrix.
 
+## State-slot fee-spend remediation
+
+The next incremental independent review evaluated `atos-spec` commit
+`fd92cb921b1be1bef0db718908d3744b13694448`, `tos` commit
+`37a27f8fb09e577412b922d5b0138c4b7fc91e58`, and `tos-protocol` commit
+`6dff78ce53347e92565769ad32947fa8b9eef55b`. It confirmed all five preceding
+findings closed but found one new P1: exact-action deduplication allowed an
+authorized caller to vary the nonce and make a relayer pay for multiple
+mutually exclusive actions occupying one on-chain ordering position.
+
+The internal remediation replaces action identity as the fee-spend boundary
+with a durable state-slot claim over network, code, target object, generation,
+sequence, and predecessor. The action identity remains the exact signed intent
+inside that slot. Before claiming it, the relayer now proves authoritative
+finalized absence for registration or exact live target continuity for a
+mutation, including Capability owner, terminal, and immutable-version state.
+The claim transaction also enforces persistent time-window action and nanoTOS
+ceilings per target and relay wallet. Concurrent nonce variants, stale or
+already-existing targets, and restart-surviving budget exhaustion are covered
+by adversarial tests and fail before paid broadcast.
+
+This is internal remediation, not audit closure. Gate B remains blocked until
+the independent reviewer reruns the nonce-variant exploit, concurrent slot and
+budget cases, full Agent/Capability target-state preflight, and the complete
+TVM lifecycle matrix against the remediation commit.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a
