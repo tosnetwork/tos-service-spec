@@ -54,8 +54,10 @@ The frozen manifest maps exactly to the existing `tos-ai` policy executor:
   workspace, and FIFOs before returning.
 
 The writable `/workspace` tmpfs is owned by the fixed non-root execution user.
-The source is mounted over `/workspace/source`; compiler cache and temporary
-executables use `/workspace/scratch`. There is no unsafe host-process fallback:
+The source is mounted over `/workspace/source`; compiler cache uses
+`/workspace/go-cache`, while temporary compiler files and executables use the
+existing `/workspace` root. The fixed `GOMAXPROCS=2` setting prevents the host
+CPU count from exhausting the committed PID ceiling. There is no unsafe host-process fallback:
 if the configured containerd isolation boundary is unavailable, execution
 fails closed.
 
