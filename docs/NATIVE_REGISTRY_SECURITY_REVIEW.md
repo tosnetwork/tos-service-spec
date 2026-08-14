@@ -239,6 +239,34 @@ completion recovery, and concurrent lease acquisition. This remains internal
 remediation. Gate B stays blocked until independent retest and the complete
 Agent/Capability TVM lifecycle matrix both pass.
 
+## Finalized chain-time recovery preflight
+
+The next incremental independent review evaluated `atos-spec` commit
+`6bcc655cee1784491d6b4cbd5a36019f0f1768e1`, `tos` commit
+`65ac8f9f0e1b910916b27ec3890b5611d80579e6`, and `tos-protocol` commit
+`5e0841b9db4a496af5c292032899fa52631437a5`. It confirmed atomic slot-intent
+recovery closed the preceding P2 and found one new P2: recovery initiation and
+completion preflight used gateway wall-clock time while the contract evaluates
+the same conditions with chain `now()`. A boundary action could therefore buy
+a broadcast, fail after ordinary inclusion delay, and leave its sole state slot
+ambiguous.
+
+The internal remediation makes the relayer require a chain-authored unix time
+from the same quorum-finalized observation as the target-state read. Recovery
+completion cannot enter the journal until that time reaches the stored
+execution time. Initiation additionally requires a mandatory deployment safety
+margin of 300 through 86400 seconds on top of the live policy timelock. Missing,
+zero, stale, future, inconsistent, or unavailable finalized time fails before
+the slot claim and fee spend. Observation freshness is checked inside each
+state resolution rather than delegated to an earlier readiness probe. Gateway
+time remains usable only for freshness rejection and the conservative relay
+budget window; it cannot authorize a contract timelock.
+
+Regression tests put gateway time both ahead of and behind chain time and cover
+the exact initiation and completion boundaries. This remains internal
+remediation. Gate B stays blocked until independent retest and the complete
+Agent/Capability TVM lifecycle matrix both pass.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a

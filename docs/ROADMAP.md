@@ -16,15 +16,15 @@ No later gate may weaken an earlier authority or security invariant.
 
 A gate is complete only when every delivery item and its acceptance condition
 are complete. The latest 2026-08-14 incremental independent review evaluated
-`atos-spec` commit `61ad4851e7c5fd398f6064fd8e13c860921e6d49`, `tos` commit
-`c4814f3edb539888c5b333ab9a10c1164259964a`, and `tos-protocol` commit
-`b649927a3ceb3178bd95a611185c5bf1b1d3e782`. It confirmed the state-slot P1
-closed and found one P2 in crash recovery between separate slot and action
-records. The unified slot-intent record and durable broadcast-lease remediation
-described by the internal security review postdates that independent baseline
-and remains unaudited. Before Gate B or Gate C is accepted, published evidence
-must bind the reviewed sources and deployment to exact commit IDs and release
-hashes.
+`atos-spec` commit `6bcc655cee1784491d6b4cbd5a36019f0f1768e1`, `tos` commit
+`65ac8f9f0e1b910916b27ec3890b5611d80579e6`, and `tos-protocol` commit
+`5e0841b9db4a496af5c292032899fa52631437a5`. It confirmed the slot-intent
+crash-recovery P2 closed and found one P2 in recovery preflight's use of gateway
+wall-clock time instead of quorum-finalized chain time. The chain-time and relay
+safety-margin remediation described by the internal security review postdates
+that independent baseline and remains unaudited. Before Gate B or Gate C is
+accepted, published evidence must bind the reviewed sources and deployment to
+exact commit IDs and release hashes.
 
 ## 1. Gate A — Registry protocol freeze
 
@@ -57,8 +57,9 @@ Deliver:
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
 - 🟡 independent contract and `nativecore` security review — the initial and
-  incremental reviews delivered findings; the latest slot-intent crash-recovery
-  P2 remediation is implemented internally and awaits independent retest;
+  incremental reviews delivered findings; the latest chain-time recovery
+  preflight P2 remediation is implemented internally and awaits independent
+  retest;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
 - ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and

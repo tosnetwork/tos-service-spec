@@ -63,14 +63,18 @@ are immutable and unique within the bounded Agent state.
 ### Initiate recovery
 
 Recovery-designated controllers satisfy the recovery threshold. The execution
-time must respect the current recovery timelock. Every key in the proposed
-policy proves possession. The contract stores the initiating action hash,
-execution time, and proposed policy.
+time must respect the current recovery timelock. A fee-paying relayer evaluates
+that boundary against chain-authored time from the same quorum-finalized
+observation as the live Agent state, plus its frozen relay/inclusion safety
+margin; gateway wall-clock time cannot authorize submission. Every key in the
+proposed policy proves possession. The contract stores the initiating action
+hash, execution time, and proposed policy.
 
 ### Complete recovery
 
-The action references the pending initiation, is submitted after the timelock,
-and satisfies the recovery authorization rule. The stored initiating-policy
+The action references the pending initiation, is submitted only after
+quorum-finalized chain time reaches the stored execution time, and satisfies
+the recovery authorization rule. The stored initiating-policy
 hash must still equal the live policy hash. Completion installs the stored
 policy, clears recovery state, advances generation, and resets sequence while
 retaining the immediately preceding typed-state hash as its predecessor.

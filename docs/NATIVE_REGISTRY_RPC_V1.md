@@ -102,6 +102,28 @@ requested revocation state. Transfer additionally requires a live new-owner
 Agent. Resolver failure, non-finalized evidence, and ambiguous absence fail
 closed before journaling or payment.
 
+That target-state result also carries the chain-authored unix time from the
+same quorum-finalized masterchain observation. Gateway wall-clock time is not
+contract time and MUST NOT authorize a recovery transition. Recovery
+initiation requires:
+
+```text
+execute_after >= finalized_chain_time
+               + live_policy.recovery_timelock
+               + recovery_relay_safety_seconds
+```
+
+`recovery_relay_safety_seconds` is mandatory deployment policy in the inclusive
+range 300 through 86400 seconds. It covers finalized-observation age, relay
+latency, and inclusion delay; a missing or out-of-range value makes the relayer
+unready. Recovery completion requires the same finalized chain time to be at or
+after the stored `execute_after`. The resolver must return time, state, and
+checkpoint from one observation; it may not combine a fresh timestamp with an
+older account read. It rechecks observation freshness inside every resolution;
+a readiness probe performed earlier cannot authorize a later paid request.
+Zero, stale, future, unavailable, or inconsistent chain time fails closed before
+a journal claim or paid broadcast.
+
 Before creating a journal claim, the relayer also mirrors the contract's
 signature-set shape: counterparty signatures are forbidden for registration,
 delegation, recovery completion, revocation, and Capability register/add/revoke;
@@ -124,6 +146,9 @@ idempotency or authorization fallback.
 - Never rewrite signed action fields.
 - Never accept caller-supplied action-result or next-state cells.
 - Avoid automatic paid resubmission after ambiguous errors; resolve first.
+- Never use process wall-clock time to satisfy a contract timelock. Bind
+  recovery preflight to quorum-finalized chain time and the configured relay
+  safety margin.
 - All processes or hosts spending from one relay wallet must share the same
   durable state-slot/action journal; otherwise each wallet boundary must be
   treated as an independent fee budget.
