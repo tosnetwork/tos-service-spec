@@ -26,3 +26,5 @@ and make no claim on production reserves or issuer independence. The initial
 The frozen software-work manifest and its non-revoked Native Capability binding
 are recorded in
 `initial-public-testnet-software-work-capability-2026-08-14.json`.
+The canonical Accepted Quote event and exact typed Escrow StateInit deployment
+are recorded in `initial-public-testnet-escrow-2026-08-14.json`.

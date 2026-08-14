@@ -296,10 +296,13 @@ must reuse the existing authority objects.
       dispute-policy digest `1b42dbb0…d76345`; Capability version `1.1.0` is
       finalized at generation 1, sequence 2, and the regenerated Quote
       commitment is `3143417c…23ce57`;
-   4. ⬜ deploy the escrow StateInit containing the complete Accepted Quote,
+   4. ✅ deploy the escrow StateInit containing the complete Accepted Quote,
       finalize that TOS transaction, and resolve both the transaction and typed
       escrow state without gateway-private data; this transaction is the
-      canonical Quote acceptance event.
+      canonical Quote acceptance event — escrow `0:ee6918da…a4241f7a`,
+      transaction `2e02dd6c…1f19db`, and identical typed data hash
+      `c7cbb362…cda4eb` are recorded from all three endpoints in
+      `deployments/initial-public-testnet-escrow-2026-08-14.json`.
 9. ✅ Deploy a test-only TOS-network stablecoin and controlled wc=0 buyer
    wallet. The exact `tUSDT` master identity is
    `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
@@ -316,12 +319,10 @@ must reuse the existing authority objects.
 12. ⬜ Integrate the bounded executor and content-addressed artifact delivery.
 13. ⬜ Complete one independently resolvable paid software-work transaction.
 
-The next implementation slice is item 8.4: deploy the exact escrow StateInit
-for the frozen Accepted Quote. Resolve its finalized
-deployment transaction and typed state as the canonical Quote acceptance event.
-After public funding finality, continue with items 12 and 13 for bounded
-execution, content-addressed delivery, Receipt settlement, and independent
-end-to-end reconstruction.
+The next implementation slice is item 12 followed by item 13: integrate the
+bounded executor and content-addressed artifact delivery, fund the canonical
+escrow, complete Receipt settlement, and independently reconstruct the paid
+transaction from finalized TOS state.
 The target is finalized Capability
 `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657`
 and the exact test asset already recorded in this repository. Receipt, release,
