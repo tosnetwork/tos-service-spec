@@ -3,11 +3,14 @@
 **Review date:** 2026-08-14
 **Protocol:** `atos_native_v1`
 **Reviewed code hash:**
-`tvm-cell-sha256:189c292404fe59293001c70ec568d8d38cd938d8bef92c7867e3268000808d1f`
+`tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0`
 
-The previous reviewed artifact had code hash
-`tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d`.
-It is superseded and must not be deployed.
+The incremental independent review evaluated the previous artifact with code
+hash
+`tvm-cell-sha256:189c292404fe59293001c70ec568d8d38cd938d8bef92c7867e3268000808d1f`.
+It and the still earlier
+`tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d`
+artifact are superseded and must not be deployed.
 
 ## Scope and conclusion
 
@@ -142,8 +145,8 @@ provides:
   and no blind rebroadcast;
 - fail-closed code binding, registration proof, signature, and finalized live
   policy preflight before relay funds are spent;
-- one ordinary authority set in both Go and FunC, rejecting split-purpose
-  policies instead of attempting to pool or route their weights;
+- purpose-isolated controllers with independently reachable Agent-control,
+  delegation, Capability-control, and recovery thresholds in Go and FunC;
 - a durable monotonic finalized-checkpoint fence committed only after the
   complete observation validates;
 - strict zero-hash, zero-owner, printable minimal-snake, and single-root BOC
@@ -162,6 +165,30 @@ These are internal remediation results, not an independent audit pass. Gate B
 still requires the independent reviewer to retest the new commits and frozen
 code hash, as well as execute the complete TVM lifecycle matrix.
 
+## Incremental independent review remediation
+
+The incremental review evaluated `tos` commit
+`53a3a796161bdb4e21714c1aa497a01ec5de666c`, `tos-protocol` commit
+`fd165aeabbf128b4c3ae887008fb3b8e75bde44b`, and `atos-spec` commit
+`7b9ebca793a85211d804f0cfad35281e40d69901`. It found one P1, two P2, and two
+P3 issues. The internal remediation closes them as follows:
+
+- request idempotency keys are aliases to a separate process-independent
+  canonical action claim, preventing the same signed action from buying a
+  second broadcast under a fresh key;
+- query IDs derive from canonical action identity, and every exact outbound
+  field remains bound by the action record;
+- forbidden counterparty signature sets fail before journaling or payment;
+- purpose-specific least privilege is restored while each purpose threshold
+  remains independently reachable;
+- frozen-BOC decoding uses Python's cross-platform strict Base64 decoder; and
+- Roadmap evidence names the exact commits reviewed.
+
+The fresh-key replay and forbidden-counterparty adversarial cases now pass
+internally. This section does not close the independent review: the reviewer
+must retest the remediation commits and the new frozen artifact, and Gate B
+still requires the complete Agent and Capability TVM lifecycle matrix.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a
@@ -169,8 +196,9 @@ code hash, as well as execute the complete TVM lifecycle matrix.
 - All actions bind network genesis, network ID hash, target code hash, target
   object, ordering, predecessor, nonce, and typed payload.
 - Controller and signature sets are bounded and strictly ordered.
-- Every controller belongs to the same ordinary authority set and carries all
-  three normal purpose bits; disjoint-purpose policies are invalid.
+- Purpose-specific controllers preserve least privilege; each normal purpose
+  independently reaches the ordinary threshold and cross-purpose weights are
+  never pooled.
 - New controller policies require proof of possession.
 - Registration alone uses a zero predecessor; generation resets retain the
   immediate nonzero state predecessor.

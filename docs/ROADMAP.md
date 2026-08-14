@@ -15,12 +15,15 @@ No later gate may weaken an earlier authority or security invariant.
 - ⬜ Pending: not implemented, or no qualifying evidence was found.
 
 A gate is complete only when every delivery item and its acceptance condition
-are complete. Status was last reviewed on 2026-08-14 against `tos` commit
-`d2ae6d92d`, `tos-protocol` commit `cfe6c4e`, `atos` commit `b6fad23`, and
-`tos-ai` commit `003633c`, plus the uncommitted remediation described in the
-Native Registry internal security review. Before Gate B or Gate C is accepted,
-published evidence must bind the reviewed sources and deployment to exact
-commit IDs and release hashes.
+are complete. The 2026-08-14 incremental independent review evaluated `tos`
+commit `53a3a796161bdb4e21714c1aa497a01ec5de666c`, `tos-protocol` commit
+`fd165aeabbf128b4c3ae887008fb3b8e75bde44b`, and `atos-spec` commit
+`7b9ebca793a85211d804f0cfad35281e40d69901`. It found one P1, two P2, and two
+P3 issues. The subsequent remediation and new frozen artifact described by the
+internal security review postdate that independent baseline and therefore
+remain unaudited. Before Gate B or Gate C is accepted, published evidence must
+bind the reviewed sources and deployment to exact commit IDs and release
+hashes.
 
 ## 1. Gate A — Registry protocol freeze
 
@@ -52,9 +55,10 @@ Deliver:
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
-- 🟡 independent contract and `nativecore` security review — the first review
-  delivered nine findings; remediation is implemented and awaits independent
-  retest against the new frozen artifact;
+- 🟡 independent contract and `nativecore` security review — the initial and
+  incremental reviews delivered findings; the latest P1/P2/P3 remediation is
+  implemented internally and awaits independent retest against the new frozen
+  artifact;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
 - ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and

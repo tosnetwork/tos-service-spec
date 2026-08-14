@@ -55,23 +55,33 @@ conflict. It must not be silently returned as success.
 ## Request context
 
 `request_id` and `trace_id` are observability values. `idempotency_key` is a
-mandatory durable financial-safety identity. Before paying any fee, the relayer
-atomically records its binding to the action and exact outbound intent. Reuse
-with different semantics is rejected. A completed retry returns the recorded
+mandatory request-retry alias, but it is not the fee-spend identity. The
+canonical action identity is derived from network domain, Registry code hash,
+and action hash. Before paying any fee, the relayer atomically claims that
+action identity and records its exact outbound intent. A fresh request key for
+the same action finds the same claim and cannot buy another broadcast.
+
+The canonical action identity deterministically supplies the query ID, so a
+caller cannot alter the outbound body by changing its request key. The durable
+action record binds action hash, destination, query ID, body hash, StateInit
+hash, and funded nanoTOS amount. A separate durable request record binds each
+`idempotency_key` to one canonical action. Reusing a request key or action with
+different semantics is a conflict. A completed retry returns the recorded
 result; a prepared or ambiguous retry is resolved read-only and is never
 blindly rebroadcast. `caller_id` describes the authenticated transport
 principal. None participates in contract authorization. Deadlines bound server
 work but do not alter on-chain semantics.
 
-The durable binding covers `idempotency_key`, action hash, destination, query
-ID, body hash, StateInit hash, and funded nanoTOS amount. Changing any member
-under an existing key is a conflict, even when the canonical action hash is
-unchanged.
-
 The relayer must locally reject wrong network/code binding and every signature
 or proof-of-possession failure decidable from the registration policy or a
 finalized live policy. Failure to resolve required authority is an unavailable
 decision, never permission to spend relay funds.
+
+Before creating a journal claim, the relayer also mirrors the contract's
+signature-set shape: counterparty signatures are forbidden for registration,
+delegation, recovery completion, revocation, and Capability register/add/revoke;
+they are required and fully verified for policy update, recovery initiation,
+and Capability transfer.
 
 The durable journal and finalized resolver are mandatory dependencies of the
 submission operation itself, not merely startup recommendations. A caller that
@@ -86,6 +96,9 @@ idempotency or authorization fallback.
 - Never rewrite signed action fields.
 - Never accept caller-supplied action-result or next-state cells.
 - Avoid automatic paid resubmission after ambiguous errors; resolve first.
+- All processes or hosts spending from one relay wallet must share the same
+  durable action-claim journal; otherwise each wallet boundary must be treated
+  as an independent fee budget.
 - Persist finalized checkpoint high-water state per network and genesis; commit
   it only after the complete account observation and typed state validate.
 - Make the durable checkpoint a mandatory resolver dependency and fsync both

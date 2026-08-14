@@ -64,7 +64,7 @@ not a valid registry object.
 The current reviewed hash is:
 
 ```text
-tvm-cell-sha256:189c292404fe59293001c70ec568d8d38cd938d8bef92c7867e3268000808d1f
+tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0
 ```
 
 Changing contract code requires a new frozen code identity, vectors, security

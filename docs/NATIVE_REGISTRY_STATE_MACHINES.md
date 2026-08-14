@@ -97,11 +97,13 @@ controller contains:
 - recovery designation.
 
 The policy contains action and recovery thresholds plus recovery timelock.
-Every controller belongs to the single normal authority set and therefore has
-Agent-control, delegation, and Capability-control purpose bits. Recovery is the
-only optional subset, and its purpose bit exactly matches the recovery flag.
-Recovery-subset weight must independently reach the recovery threshold.
-Disjoint normal-purpose partitions are invalid rather than pooled.
+Controllers may carry any supported combination of Agent-control, delegation,
+Capability-control, and recovery purposes. For each normal purpose, its own
+eligible aggregate weight must independently reach the ordinary threshold;
+weights are never pooled across purposes. The recovery purpose bit exactly
+matches the recovery flag, and recovery-eligible weight independently reaches
+the recovery threshold. This preserves least privilege without permitting an
+unusable policy.
 Duplicate keys, inconsistent key IDs, unsupported purposes, zero weights,
 unreachable thresholds, excessive counts, and trailing cell data are rejected.
 
