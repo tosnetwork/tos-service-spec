@@ -74,6 +74,11 @@ or refund. Exact methods are frozen in the Native protobuf before implementation
 General marketplace, reputation, consumer checkout, and generalized arbitration
 APIs are not part of this release.
 
+The provider-local execution and artifact boundary is frozen in
+[`SOFTWARE_WORK_EXECUTION_V1.md`](SOFTWARE_WORK_EXECUTION_V1.md). It is not a
+public RPC and cannot be exposed as one until the chain-verification inputs and
+exact methods are added to this protobuf contract.
+
 ## Adapter boundary
 
 A2A may carry task, progress, and result messages. MCP may expose the same

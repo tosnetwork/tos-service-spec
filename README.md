@@ -28,9 +28,11 @@ are caches or projections only.
 - **Receipt** — a result commitment signed by the execution authority selected
   by the Accepted Quote and committed according to its terms.
 
-The Registry objects and relay/resolve service are implemented. Accepted Quote
-commitment construction exists, while its TOS transaction, escrow, execution
-Receipt, and settlement remain the next commercial delivery gate. See
+The Registry objects and relay/resolve service are implemented. The first
+Accepted Quote and escrow StateInit are finalized on the initial public test
+network; Receipt and settlement contracts are implemented. Bounded provider
+execution, artifact delivery, and the first paid settlement remain the active
+commercial delivery gate. See
 `docs/ROADMAP.md` for evidence-backed status, implementation order, and
 acceptance gates.
 
@@ -83,6 +85,7 @@ refine these rules but cannot contradict them.
 - Accepted Quote TVM cell: [`docs/ACCEPTED_QUOTE_TVM_V1.md`](docs/ACCEPTED_QUOTE_TVM_V1.md)
 - Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V1.md`](docs/STABLECOIN_ESCROW_TVM_V1.md)
 - Software-work Receipt TVM cell: [`docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md`](docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md)
+- Software-work execution and artifacts: [`docs/SOFTWARE_WORK_EXECUTION_V1.md`](docs/SOFTWARE_WORK_EXECUTION_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 
