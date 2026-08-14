@@ -3,7 +3,7 @@
 **Review date:** 2026-08-14
 **Protocol:** `atos_native_v1`
 **Reviewed code hash:**
-`tvm-cell-sha256:943c6cb3ddfeb470cfb76a343a29471ffbced9af25a467fde834926c1a8d525d`
+`tvm-cell-sha256:189c292404fe59293001c70ec568d8d38cd938d8bef92c7867e3268000808d1f`
 
 The previous reviewed artifact had code hash
 `tvm-cell-sha256:c4af55e476c296c8a1dc7985e82db42218475b9e3864b7c733351bab526ab23d`.
@@ -71,9 +71,9 @@ confirm those values, not only opaque bytes.
 
 The prepared-send response now includes destination, exact nanoTOS amount,
 body cell hash, and optional StateInit cell hash. `tos-protocol` recomputes and
-matches every field before broadcast. The Native wallet tool also displays the
-complete semantic review and requires the exact action hash to be typed unless
-an explicit non-interactive flag is supplied.
+matches every field before broadcast. The Native wallet tool embeds the entire
+validated `NativeActionV1` in its review and always requires the exact action
+hash to be typed. There is no generic confirmation bypass.
 
 ### NR-04 — Contract export could consume stale generated Fift
 
@@ -124,6 +124,44 @@ tests prove both required paths: initiation followed by delegation and
 generation-reset completion succeeds, while initiation followed by policy
 replacement makes completion fail without changing state.
 
+## Independent audit remediation
+
+The independent audit in
+`memo/native-registry-security-audit-2026-08-14` reviewed superseded commits and
+reported nine findings. Its portable eight-assertion adversarial harness now
+has seven assertions passing unchanged against the remediated source. The
+eighth, legacy duplicate-relay assertion constructs a relayer without the now
+mandatory durable journal and finalized resolver, so it fails closed before
+broadcast rather than exercising its old in-memory setup. The equivalent
+durable duplicate, restart, conflict, and two-process race cases pass in the
+remediated test suite. In addition to generation reset, this remediation
+provides:
+
+- a durable, process-independent idempotency journal written before broadcast,
+  conflict rejection, terminal replay, read-only ambiguous-result recovery,
+  and no blind rebroadcast;
+- fail-closed code binding, registration proof, signature, and finalized live
+  policy preflight before relay funds are spent;
+- one ordinary authority set in both Go and FunC, rejecting split-purpose
+  policies instead of attempting to pool or route their weights;
+- a durable monotonic finalized-checkpoint fence committed only after the
+  complete observation validates;
+- strict zero-hash, zero-owner, printable minimal-snake, and single-root BOC
+  decoding;
+- complete signed-action wallet review with no generic `--yes`; and
+- one canonical frozen BOC consumed by release and CMake embedding paths.
+
+The remediation also found a compiler-level enforcement hazard while adding
+the TVM regression tests: FunC validation helpers whose result was discarded
+could be optimized away unless declared `impure`. Every throwing validation
+and signature helper is now explicitly `impure`, and the negative TVM tests
+are executed against the newly frozen BOC. Source-only inspection is not
+accepted as evidence for these guards.
+
+These are internal remediation results, not an independent audit pass. Gate B
+still requires the independent reviewer to retest the new commits and frozen
+code hash, as well as execute the complete TVM lifecycle matrix.
+
 ## Verified invariants
 
 - Agent and Capability registration identities are derived, not selected by a
@@ -131,6 +169,8 @@ replacement makes completion fail without changing state.
 - All actions bind network genesis, network ID hash, target code hash, target
   object, ordering, predecessor, nonce, and typed payload.
 - Controller and signature sets are bounded and strictly ordered.
+- Every controller belongs to the same ordinary authority set and carries all
+  three normal purpose bits; disjoint-purpose policies are invalid.
 - New controller policies require proof of possession.
 - Registration alone uses a zero predecessor; generation resets retain the
   immediate nonzero state predecessor.
@@ -145,6 +185,7 @@ replacement makes completion fail without changing state.
   account code, transaction tuple, and state checks.
 - Portable CBOR is produced only after typed-state decoding.
 - Relayer acknowledgement is not treated as transition finality.
+- Relay intent and finalized high-water state survive process restart.
 
 ## Frozen evidence
 

@@ -52,7 +52,9 @@ Deliver:
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
-- ⬜ independent contract and `nativecore` security review;
+- 🟡 independent contract and `nativecore` security review — the first review
+  delivered nine findings; remediation is implemented and awaits independent
+  retest against the new frozen artifact;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
 - ⬜ independent full-lifecycle TVM emulator evidence covering every Agent and

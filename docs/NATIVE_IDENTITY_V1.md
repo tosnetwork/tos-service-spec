@@ -7,9 +7,13 @@ declares key ID, public key, positive weight, allowed purposes, and whether it
 may participate in recovery. The policy declares ordinary and recovery
 thresholds plus a recovery timelock.
 
-Policies are encoded in canonical key order. Every threshold must be reachable
-using distinct eligible controllers. Unknown purposes and duplicate keys are
-invalid.
+Policies are encoded in canonical key order. Native v1 deliberately has one
+normal authority set: every controller must authorize Agent control,
+delegation, and Capability control. Recovery is the only opt-in subset, and its
+purpose bit must exactly match its recovery designation. Thus the ordinary
+threshold is reachable identically for every normal action, while the recovery
+threshold must be reachable by the recovery subset. Unknown purposes and
+duplicate keys are invalid.
 
 ## Signature semantics
 

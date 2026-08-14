@@ -54,10 +54,29 @@ conflict. It must not be silently returned as success.
 
 ## Request context
 
-`request_id` and `trace_id` are observability values. `idempotency_key` helps
-transport deduplication. `caller_id` describes the authenticated transport
+`request_id` and `trace_id` are observability values. `idempotency_key` is a
+mandatory durable financial-safety identity. Before paying any fee, the relayer
+atomically records its binding to the action and exact outbound intent. Reuse
+with different semantics is rejected. A completed retry returns the recorded
+result; a prepared or ambiguous retry is resolved read-only and is never
+blindly rebroadcast. `caller_id` describes the authenticated transport
 principal. None participates in contract authorization. Deadlines bound server
 work but do not alter on-chain semantics.
+
+The durable binding covers `idempotency_key`, action hash, destination, query
+ID, body hash, StateInit hash, and funded nanoTOS amount. Changing any member
+under an existing key is a conflict, even when the canonical action hash is
+unchanged.
+
+The relayer must locally reject wrong network/code binding and every signature
+or proof-of-possession failure decidable from the registration policy or a
+finalized live policy. Failure to resolve required authority is an unavailable
+decision, never permission to spend relay funds.
+
+The durable journal and finalized resolver are mandatory dependencies of the
+submission operation itself, not merely startup recommendations. A caller that
+bypasses server readiness checks still fails closed; there is no in-memory
+idempotency or authorization fallback.
 
 ## Security
 
@@ -67,6 +86,11 @@ work but do not alter on-chain semantics.
 - Never rewrite signed action fields.
 - Never accept caller-supplied action-result or next-state cells.
 - Avoid automatic paid resubmission after ambiguous errors; resolve first.
+- Persist finalized checkpoint high-water state per network and genesis; commit
+  it only after the complete account observation and typed state validate.
+- Make the durable checkpoint a mandatory resolver dependency and fsync both
+  its owner-private file and containing directory before serving advanced
+  state; no process-local-only fallback is permitted.
 - Return stable typed errors without leaking private configuration.
 
 ## Stable errors
