@@ -1,0 +1,40 @@
+{
+  "schema": "atos.local-gate-e-role-isolated-simulation.v1",
+  "scope": "single-machine process and custody isolation; not external organizational independence",
+  "network_id": "tos-local-gate-c-20260814",
+  "quorum": "2-of-3",
+  "provider": {
+    "agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "capability_id": "cap_595f0cc56a344bcc7515df7002132fa7ed599f0809adb3c2292732057b1d116e",
+    "capability_action_hash": "sha256:3b8c4c7a1bb65e2eda80bb429751249bbf8c2a023556d8f279d94c77ca84e1c9",
+    "capability_state_hash": "tvm-cell-sha256:b33668bf63eab458bbd9dbeff5efdac51f60146556c59d7fc6c29cd3d184d267",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5"
+  },
+  "purchase": {
+    "quote_commitment": "tvm-cell-sha256:12c3eba34e99b984f92c94e84c51d54ef96e29435f8c59802f1a9770e0f7e9c6",
+    "escrow": "0:23bc87efa9332754829d96c4412eda6c1fdd1e165407e45bfb9490a465d9a380",
+    "amount_atomic": "25000000",
+    "asset": "TOS-network tUSDT",
+    "funded_checkpoint": 157653,
+    "receipt_commitment": "tvm-cell-sha256:a6a6afe387f8b7cf3d749babd1493a5c84e474dab22542bf375fd011864e47d4",
+    "settlement_checkpoint": 157681,
+    "provider_balance_before_atomic": "25000000",
+    "provider_balance_after_atomic": "50000000"
+  },
+  "gateway_isolation": {
+    "gateway_a_and_b_used_distinct_catalog_directories": true,
+    "gateway_a_and_b_used_distinct_read_and_relay_credentials": true,
+    "gateway_b_search_before_publication": "empty",
+    "gateway_b_operator_database_edits": false,
+    "gateway_b_publish_checkpoint": 158016,
+    "gateway_b_search_checkpoint": 158017,
+    "gateway_b_returned_exact_canonical_cbor": true,
+    "shared_semantic_authority": "finalized TOS state only"
+  },
+  "transport_simulation": {
+    "official_a2a_tls_request_completed": true,
+    "same_purchase_mcp_replay_rejected": true,
+    "shared_execution_gate_runner_count": 1
+  },
+  "verdict": "PASS_LOCAL_ROLE_ISOLATED_SIMULATION"
+}
