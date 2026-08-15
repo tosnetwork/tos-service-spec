@@ -91,6 +91,8 @@ refine these rules but cannot contradict them.
 - [Gateway Federation V1](docs/GATEWAY_FEDERATION_V1.md) defines client-side
   multi-Gateway search and content-addressed manifest failover without shared
   semantic authority.
+- [Safe Handoff V1](docs/SAFE_HANDOFF_V1.md) defines portable post-acceptance
+  recovery from finalized escrow without the original Gateway.
 - [Public Errors V1](docs/PUBLIC_ERRORS_V1.md) freezes typed Connect error and
   retry dispositions, including mandatory resolution after ambiguous mutation
   outcomes.

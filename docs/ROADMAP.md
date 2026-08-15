@@ -360,10 +360,15 @@ Deliver:
   `5c091f9` implements creation/parsing and private Native classification;
   `atos` commit `7a0b58f` applies it to every public Gateway boundary and
   verifies detail survival across the Connect wire;
-- 🟡 pre-acceptance routing and post-acceptance failover rules — architecture
-  rules exist without multi-gateway acceptance evidence;
+- ✅ pre-acceptance routing and post-acceptance failover rules —
+  `docs/SAFE_HANDOFF_V1.md` freezes the portable boundary; the production
+  verifier reconstructs Quote, Accepted Quote, Receipt, and settlement intent
+  solely from owner-held inputs and finalized escrow, covers funded and
+  release-pending recovery, and fails closed on every authority boundary;
 - 🟡 public relay, resolver, Quote, and Receipt conformance tests — local relay
-  and resolver tests exist; public Quote and Receipt conformance does not;
+  and resolver tests exist; public Quote conformance and portable Receipt
+  conformance now exist locally, but an independently operated public Receipt
+  session does not;
 - ⬜ at least two independently operated gateways;
 - ⬜ at least three independently operated providers; and
 - ⬜ at least ten useful, purchasable Capabilities in the proven profile.
@@ -524,7 +529,7 @@ is not implied by Gate C's initial profile.
 15. 🟡 **Active Gate F engineering:** client-side federated Capability search,
     exact-digest manifest failover, complete-preimage Quote Proposal exchange,
     finalized provider-state construction, and local two-Gateway failover are
-    complete. Canonical public error/retry details are also complete. Next
-    exercise Quote, Receipt, and safe-handoff conformance across the two
-    Gateway processes. Independently operated Gateways, three providers, ten useful
-    Capabilities, and recurring buyers remain external market acceptance.
+    complete. Canonical public error/retry details and portable safe-handoff
+    verification are also complete. Next run the independently operated public
+    Receipt session and recruit two Gateways, three providers, ten useful
+    Capabilities, and recurring buyers for external market acceptance.
