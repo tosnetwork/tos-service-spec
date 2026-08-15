@@ -81,9 +81,13 @@ Both boundaries are required.
 
 ## Adapter and server boundary
 
-The A2A and MCP adapters must use this shared Gate before invoking the runner.
-Their official SDK server bindings expose only the frozen synchronous A2A
-operation and the single purchase-bound MCP tool. TLS, authentication,
+Every transport that can admit a purchase-bound task to the runner — the A2A
+adapter, the MCP adapter, and the Agent Packet receiver — must use this shared
+Gate before invoking the runner. The A2A and MCP official SDK server bindings
+expose only the frozen synchronous A2A operation and the single purchase-bound
+MCP tool; the Agent Packet receiver admits a task only when the packet carries
+the matching finalized Accepted Quote commitment and passes the same Gate. No
+transport may reach the runner on any other path. TLS, authentication,
 rate-limits, listener policy, and public deployment remain operator concerns;
 they cannot weaken or replace finalized-state verification.
 
@@ -97,7 +101,8 @@ translation layer.
 
 Unit and race tests must cover canonical Accepted Quote decode, exact escrow
 and Registry identities, Agent tombstone, Capability ownership/version/revoke,
-expired escrow, identical retry, concurrent conflicting A2A/MCP claims,
+expired escrow, identical retry, concurrent conflicting claims across every
+admitting transport (A2A, MCP, and Agent Packet),
 checkpoint advancement, checkpoint regression, malformed durable records, and
 restart recovery. A public interoperability session must additionally use
 fresh buyer/provider identities and independently operated finalized

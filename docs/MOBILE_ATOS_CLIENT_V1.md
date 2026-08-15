@@ -12,10 +12,11 @@ amount, expiry, and fee payer before requesting approval. The app then signs
 through the platform custody boundary, submits the exact bytes, and tracks only
 finalized checkpoints and typed state.
 
-After funding, the app may launch A2A, MCP, or Agent Packet transport. Payloads
-and artifacts remain off-chain. The app verifies the Receipt commitment and
-settlement before showing “paid”; a Gateway response or HTTP success is never
-payment evidence.
+After funding, the app may launch A2A, MCP, or Agent Packet transport. Every
+transport passes the shared Native execution Gate, so a funded purchase executes
+at most once regardless of transport. Payloads and artifacts remain off-chain.
+The app verifies the Receipt commitment and settlement before showing “paid”; a
+Gateway response or HTTP success is never payment evidence.
 
 ## iOS design
 

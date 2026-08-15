@@ -30,7 +30,9 @@ candidate is re-resolved from finalized TOS state before spending.
 
 The OpenFox loop may sleep and resume. Journal phases are intent, prepared,
 funding lease, funded, execution, Receipt, release, and resolved. Ambiguous
-funding or release always resolves finalized state before retry.
+funding or release always resolves finalized state before retry. Every task
+transport passes the shared Native execution Gate, so one funded purchase
+admits at most one runner execution across A2A, MCP, and Agent Packet.
 
 ## Provider flow
 
