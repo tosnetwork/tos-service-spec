@@ -432,6 +432,8 @@ must reuse the existing authority objects.
 - Convenience projections follow typed-state decoding.
 - Adapters follow one working direct protocol path.
 - Open federation follows one conforming gateway and one real transaction path.
+- Off-chain Agent packets require finalized sender/recipient identity and
+  replay protection; transport discovery never becomes semantic authority.
 - Expansion follows recurring paid use.
 
 ## 10. Immediate work
@@ -552,3 +554,12 @@ is not implied by Gate C's initial profile.
     validator endpoints. Then recruit two independently operated Gateways,
     three providers, ten useful Capabilities, and recurring buyers. Until that
     evidence exists, Gate F must remain not accepted.
+16. ✅ **Chain-authenticated off-chain Agent messaging:** `tos-protocol` commits
+    `7aa6f86`, `9603c9d`, and `ee25dea` implement the signed Agent Packet,
+    strict JSON wire format, replay guard, direct HTTPS/loopback HTTP transport,
+    and signed Contact Card discovery. `atos-spec` commits `41e01a9` and
+    `4306efe` define the envelope, locator, and transport boundary. Payloads
+    remain off-chain; finalized Agent policy authorizes keys; no Gateway,
+    Managed mode, or arbitrary on-chain message store is introduced.
+    Follow-up is integration into a production Agent runtime after Gate D/E/F
+    external sessions, not a new consensus feature.
