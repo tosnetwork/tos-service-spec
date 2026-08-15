@@ -46,8 +46,8 @@ status below supersedes that historical baseline and must be bound to new exact
 commit hashes before public deployment.
 
 The shared Gate E execution-admission implementation is `tos-protocol` commit
-`521804070ee9a8d24f692fba62ac592fe42e2614` and `tos-ai` commit
-`f58346666f71edcb4b43daedca252ee2a39cc863`. It adds canonical Accepted Quote
+`d61aafb5b8d98a2615020a37538fcab60fa6eca0` and `tos-ai` commit
+`47f26b033c6ba9f9ecef039e4c7dd85660fbc577`. It adds canonical Accepted Quote
 decode, finalized escrow/Agent/Capability verification, one atomic durable
 purchase-intent record shared by transports, monotonic three-object finality
 evidence, and official A2A JSON-RPC and MCP streamable-HTTP bindings. This is
