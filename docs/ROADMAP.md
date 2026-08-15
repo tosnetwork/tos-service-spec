@@ -194,7 +194,9 @@ operated resolver. Local operator diversity is not external independence.
 
 Deliver:
 
-- ⬜ provider SDK and deployment template;
+- 🟡 provider SDK and deployment template — the first Go publication SDK and
+  dedicated private-containerd template are implemented; a fresh-provider
+  onboarding session is still required;
 - ⬜ buyer SDK and wallet budget flow;
 - ⬜ minimal finalized-state Capability index and manifest retrieval;
 - ⬜ A2A task and result adapter;
@@ -209,8 +211,11 @@ a new buyer purchases it using public documentation in one working session.
 Adapters must map into the same Agent, Capability, Accepted Quote, Receipt, and
 chain-reference objects. They cannot create parallel protocol facts.
 
-**Gate status: ⬜ Not started.** The direct Native protocol path must be completed
-before adapters and SDK acceptance work begins.
+**Gate status: 🟡 In progress.** The complete same-host Native transaction and
+independent reconstruction are sufficient to begin SDK and adapter engineering;
+Gate D's external commercial acceptance continues in parallel and remains
+unaccepted. Provider publication and deployment are the first active slice.
+This sequencing exception does not weaken either gate's acceptance criteria.
 
 ## 6. Gate F — Open gateway and market evidence
 
@@ -361,3 +366,10 @@ provider balance increase between finalized checkpoints; its evidence is
 `deployments/initial-public-testnet-gate-d-local-preflight-2026-08-14.json`.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.
+
+14. 🟡 **Active Gate E workstream:** stabilize the public Native client and
+    provider SDK, validate the dedicated executor deployment template, and run
+    one fresh-provider onboarding session from
+    `docs/GATE_E_PROVIDER_ONBOARDING.md`. Buyer SDK and finalized Capability
+    discovery follow this provider slice. Gate D external acceptance continues
+    independently and is not being claimed by this work.

@@ -75,6 +75,8 @@ refine these rules but cannot contradict them.
 - [Gate D Pilot Readiness Packet](docs/GATE_D_PILOT_READINESS.md) assembles the
   fixed inputs, role checklists, verifier command, and acceptance record for
   those independent operators.
+- [Gate E Provider Onboarding](docs/GATE_E_PROVIDER_ONBOARDING.md) defines the
+  first SDK and deployment-template workflow without gateway-owned facts.
 
 ## Normative contract
 
