@@ -54,3 +54,11 @@ rather than assuming an initially empty provider wallet. The new immutable
 artifact and report are stored in `artifacts/` under their SHA-256 names. This
 record is explicitly a local preflight and does not satisfy external operator
 independence.
+
+The completed local Gate E engineering acceptance is recorded in
+`local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`. It binds a fresh
+Provider SDK Capability and Buyer SDK funded purchase to a live 2-of-3 chain
+execution Gate, successful A2A/TLS execution, rejected cross-transport MCP
+replay, exactly one runner invocation, and settlement of the exact execution
+outcome by canonical Receipt. It proves the integrated implementation, not the
+independent provider/buyer operator session required to accept Gate E.

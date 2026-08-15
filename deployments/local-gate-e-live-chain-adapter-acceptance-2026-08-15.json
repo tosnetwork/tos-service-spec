@@ -1,0 +1,65 @@
+{
+  "schema": "atos.native.local-gate-e-live-chain-adapter-acceptance.v1",
+  "scope": "single-machine role-isolated acceptance against the local 2-of-3 TOS test network; not external organizational independence",
+  "observed_at_utc": "2026-08-15T05:30:30Z",
+  "implementation": {
+    "atos_spec": "e91b1a043c1fafd2043e97b5aab9de00405cb931",
+    "atos": "657bd4a1f4f56bed3e4e9550b7e5f80ff5484a8f",
+    "tos_protocol": "6fcaf1012e97826e75368b346ef9037f7deb7d90",
+    "tos_ai": "2dcb7d9210f8163224459ee21644a7acc75e6636"
+  },
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "authority": "strict-majority finalized TOS state",
+    "endpoints": 3,
+    "quorum": 2
+  },
+  "provider_publication": {
+    "agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "provider_address": "0:41d7ffb3a3824de7a7ecf160790666e37d2cf369fd6d3ac2fd45d47373e2c50b",
+    "capability_id": "cap_019f43e8d761b8576283cac692f44711083bc571dc057b08eeda1758dde3f2e2",
+    "capability_version": "1.1.0",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5"
+  },
+  "purchase": {
+    "quote_commitment": "tvm-cell-sha256:e31632c898ba9c3751f1decab232c45c1e277e2e90779e58630d3e8e29052d37",
+    "escrow_address": "0:831a89d29b436c5b5ec1dceb54d3ea45e50a11f06fbd412815ac94285f66c19c",
+    "asset": "TOS-network tUSDT",
+    "amount_atomic": "25000000",
+    "funded_checkpoint": 160345,
+    "transport_digest": "sha256:e851104d1d4541fa72ed33bf27795c57997c8e307a3a21681516bf43d2720978",
+    "execution_signer_authorization": "sha256:be7385e12f9071f087524569bd2d0cdde62c64dd21fbaaa1cbc99993078e3512"
+  },
+  "live_adapter_acceptance": {
+    "execution_gate": "tos-protocol/pkg/executiongate.NewFromChain",
+    "a2a_transport": "official A2A JSON-RPC over TLS 1.3",
+    "a2a_completed": true,
+    "mcp_transport": "official MCP streamable HTTP over TLS 1.3",
+    "same_purchase_mcp_replay_rejected": true,
+    "runner_calls": 1,
+    "execution_id": "sha256:e073ec93283f6a80e7ed2aec92d17bfde65ffa15e05a5226ae7e1fd01011f899",
+    "input_digest": "sha256:91afb097e19ebc3ae7c1464dc489f9b756c9bbfafb8705090978e5864da79c8a",
+    "source_digest": "sha256:0446be30ba9d0b0d40a7fc51db9bd8e18b813c355db7e2941b16ae95bb467c15",
+    "result_digest": "sha256:b5d8e821c9de35f5c9cfd22387364614a108c1b948214c2d4fc9469b82303692",
+    "artifact_digest": "sha256:a4fe5b553b7185367daed565199ac43b9c8d8e70a5f87f0a4607f3453e6e12a9",
+    "report_digest": "sha256:f929f7675879aa8146eaeeb85f1044ad4dff723b07dafe665b3a393f1868f525",
+    "toolchain_digest": "sha256:a90fd056118ca89352dedc5754ca89f1d6d56d5d89f03d617259b1015e3f0450",
+    "sandbox_digest": "sha256:cf4c4f7955cb214f17ee96dc7dc12708bd2ec6b2412fda4ec00349059f1519a1"
+  },
+  "settlement": {
+    "receipt_commitment": "tvm-cell-sha256:2f26880577749271f8fc29f6df954083b9ab2df2e0059c35008a3573eb860b6b",
+    "status": "release_pending",
+    "settled_atomic": "25000000",
+    "finalized_checkpoint": 160637,
+    "provider_balance_atomic": "75000000",
+    "provider_balance_checkpoint": 160669
+  },
+  "negative_paths": {
+    "gateway_or_adapter_semantic_authority": false,
+    "execution_without_finalized_funded_escrow": false,
+    "cross_transport_duplicate_execution": false,
+    "receipt_not_bound_to_exact_execution_outcome": false
+  },
+  "verdict": "PASS_LOCAL_GATE_E_ENGINEERING_ACCEPTANCE",
+  "external_acceptance": "PENDING_INDEPENDENT_BUYER_PROVIDER_SESSION"
+}

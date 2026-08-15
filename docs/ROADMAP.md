@@ -263,13 +263,13 @@ operated resolver. Local operator diversity is not external independence.
 
 Deliver:
 
-- 🟡 provider SDK and deployment template — the first Go publication SDK and
+- ✅ provider SDK and deployment template — the first Go publication SDK and
   dedicated private-containerd template are implemented; a fresh same-host
   provider identity and Capability were published with newly generated
   controller custody and real signed Native actions, recorded in
   `deployments/local-gate-e-fresh-native-publication-2026-08-15.json`; an
   externally operated provider onboarding session is still required;
-- 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
+- ✅ buyer SDK and wallet budget flow — canonical purchase preflight and the
   crash-safe bounded funding journal and production `tosctl` stablecoin sender
   are implemented and have been revalidated end to end against live finalized
   state; a fresh same-host buyer used new custody to purchase the newly
@@ -278,7 +278,7 @@ Deliver:
   canonical Receipt subsequently authorized the exact 25,000,000-atomic
   settlement at a later finalized checkpoint; an externally operated buyer
   working session remains;
-- 🟡 minimal finalized-state Capability index and manifest retrieval — the
+- ✅ minimal finalized-state Capability index and manifest retrieval — the
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public
   same-host deployment published, searched, and retrieved the fresh
@@ -290,16 +290,22 @@ Deliver:
   manifest afterward, recorded in
   `deployments/local-gate-e-role-isolated-simulation-2026-08-15.json`; an
   independently operated cross-gateway retrieval test remains;
-- 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
+- ✅ A2A task and result adapter — the official A2A 1.0 Go types, exact
   request/result mapping, shared production finalized-chain execution Gate,
   synchronous JSON-RPC server binding, and negative tests are implemented;
   the public listener and local cross-transport single-execution test are
-  complete; a fresh external interoperability session remains;
-- 🟡 MCP tool adapter — official MCP 2026-07-28 typed tool registration,
+  complete; a fresh funded purchase was admitted from a strict-majority
+  finalized chain view and executed through the public TLS transport in
+  `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
+  external interoperability remains an acceptance activity, not engineering;
+- ✅ MCP tool adapter — official MCP 2026-07-28 typed tool registration,
   committed input/result mapping, shared production finalized-chain execution
   Gate, stateless streamable-HTTP binding, and negative tests are implemented;
   the public listener and local cross-transport single-execution test are
-  complete; fresh external interoperability remains;
+  complete; replaying the same live funded purchase after its A2A execution
+  reached the shared chain Gate but never the runner, as recorded in
+  `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
+  external interoperability remains an acceptance activity, not engineering;
 - ⏸ optional x402 payment-negotiation adapter — deliberately deferred until
   Gate F demonstrates recurring buyer demand. `docs/X402_ADAPTER_DECISION.md`
   forbids a parallel facilitator-owned settlement path and limits any future
@@ -313,12 +319,16 @@ a new buyer purchases it using public documentation in one working session.
 Adapters must map into the same Agent, Capability, Accepted Quote, Receipt, and
 chain-reference objects. They cannot create parallel protocol facts.
 
-**Gate status: 🟡 In progress.** The complete same-host Native transaction and
-independent reconstruction are sufficient to continue SDK and adapter
-engineering; Gate D's external commercial acceptance proceeds independently
-and remains unaccepted. Provider publication/deployment and the buyer's
-canonical preflight/bounded funding journal are implemented foundations. This
-sequencing exception does not weaken either gate's acceptance criteria.
+**Gate status: 🟡 Engineering complete; external acceptance pending.** A fresh
+same-host role-isolated run published a Capability, created and funded a
+canonical 25,000,000-atomic `tUSDT` purchase, admitted it from a 2-of-3
+finalized chain view over A2A/TLS, rejected its MCP replay before a second
+runner invocation, and settled the exact execution outcome by canonical
+Receipt. The evidence is
+`deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`.
+The acceptance sentence above still requires independently operated provider
+and buyer sessions; this local run cannot establish organizational
+independence. Gate D external commercial acceptance proceeds independently.
 
 ## 6. Gate F — Open gateway and market evidence
 
@@ -476,15 +486,20 @@ provider balance increase between finalized checkpoints; its evidence is
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.
 
-14. 🟡 **Active Gate E workstream:** the public Native client, provider SDK and
+14. 🟡 **Gate E external acceptance:** the public Native client, provider SDK and
     deployment template, plus the buyer's canonical purchase preflight and
     crash-safe bounded funding journal, plus the minimal authority-neutral
     Capability catalog/manifest API, and the authority-gated A2A task/result
     mapping, MCP tool adapter, shared production chain execution-claim Gate,
     official server bindings, hardened public listener, local search, and
-    public-interface discovery CLI are implemented. Next configure the Gate
-    against the public test network and run fresh cross-transport
-    interoperability. The optional x402 adapter has been evaluated and
+    public-interface discovery CLI are implemented. A fresh funded purchase
+    has now passed the live 2-of-3 chain execution Gate over A2A/TLS, its MCP
+    replay was rejected with one runner call, and its exact Receipt settled on
+    chain; see
+    `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`.
+    Engineering is complete. The remaining Gate E task is one independently
+    operated provider/buyer working session using the public onboarding docs.
+    The optional x402 adapter has been evaluated and
     deferred under `docs/X402_ADAPTER_DECISION.md` until Gate F supplies real
     demand. In parallel, deploy and cross-check discovery
     and run the fresh provider/buyer sessions from
