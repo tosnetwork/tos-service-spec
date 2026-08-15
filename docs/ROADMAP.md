@@ -208,7 +208,10 @@ Deliver:
   request/result mapping, finalized-authority gate, and negative tests are
   implemented; the production chain authorizer, server binding, and fresh
   interoperability session remain;
-- ⬜ MCP tool adapter;
+- 🟡 MCP tool adapter — official MCP 2026-07-28 typed tool registration,
+  committed input/result mapping, unique execution-claim gate, and negative
+  tests are implemented; production chain gate, server transport, and fresh
+  interoperability remain;
 - ⬜ optional x402 payment-negotiation adapter;
 - ⬜ gateway-local search with chain-derived fields kept separate; and
 - ⬜ examples that require no operator database edits or hidden control service.
@@ -380,8 +383,9 @@ is not implied by Gate C's initial profile.
     deployment template, plus the buyer's canonical purchase preflight and
     crash-safe bounded funding journal, plus the minimal authority-neutral
     Capability catalog/manifest API, and the authority-gated A2A task/result
-    mapping are implemented. Next build the MCP tool adapter and finish the A2A
-    production authorizer/server binding. In parallel, deploy and cross-check discovery, add the
+    mapping and MCP tool adapter are implemented. Next finish their shared
+    production chain execution-claim gate and server bindings, then evaluate
+    the optional x402 negotiation adapter. In parallel, deploy and cross-check discovery, add the
     production `tosctl` stablecoin sender, and run the fresh
     provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues

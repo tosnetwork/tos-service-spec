@@ -81,6 +81,8 @@ refine these rules but cannot contradict them.
   Quote review, bounded stablecoin funding, and crash-safe buyer recovery.
 - [A2A Software-Work Adapter V1](docs/A2A_ADAPTER_V1.md) maps official A2A
   Tasks and results into the same finalized Native commercial lifecycle.
+- [MCP Software-Work Tool Adapter V1](docs/MCP_ADAPTER_V1.md) exposes that
+  lifecycle as one authority-gated, purchase-bound MCP tool.
 
 ## Normative contract
 

@@ -44,13 +44,17 @@ extension declarations fail before any authoritative read or execution lease.
 ## Authority gate
 
 Before the runner is called, the provider adapter must independently verify
-from finalized TOS state:
+from finalized TOS state and atomically claim the Quote/escrow execution slot:
 
 - exact network and Registry identity;
 - active Capability and version plus manifest digest;
 - Accepted Quote commitment and execution authorization;
 - exact funded stablecoin escrow; and
 - a nonzero finalized checkpoint.
+
+The claim binds Quote commitment, escrow, execution ID, and input digest. A
+second execution identity for one paid purchase is a conflict, even if the
+escrow remains funded.
 
 The A2A sender, Message metadata, bearer credential, task ID, endpoint, and
 gateway are not evidence for any of these facts. Failure is fail-closed and no
