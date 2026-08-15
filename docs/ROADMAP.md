@@ -354,8 +354,12 @@ Deliver:
   from owner-private files. Two isolated local Gateways returned independently
   validated packages and Gateway B continued after Gateway A stopped, recorded
   in `deployments/local-gate-f-federated-quote-conformance-2026-08-15.json`;
-- 🟡 canonical error and retry semantics — protocol errors exist, but public
-  conformance is incomplete;
+- ✅ canonical error and retry semantics — `docs/PUBLIC_ERRORS_V1.md` freezes
+  codes `2300..2308`, Connect mappings, bounded backoff, fail-closed parsing,
+  and mandatory resolution after ambiguous mutations. `tos-protocol` commit
+  `5c091f9` implements creation/parsing and private Native classification;
+  `atos` commit `7a0b58f` applies it to every public Gateway boundary and
+  verifies detail survival across the Connect wire;
 - 🟡 pre-acceptance routing and post-acceptance failover rules — architecture
   rules exist without multi-gateway acceptance evidence;
 - 🟡 public relay, resolver, Quote, and Receipt conformance tests — local relay
@@ -520,7 +524,7 @@ is not implied by Gate C's initial profile.
 15. 🟡 **Active Gate F engineering:** client-side federated Capability search,
     exact-digest manifest failover, complete-preimage Quote Proposal exchange,
     finalized provider-state construction, and local two-Gateway failover are
-    complete. Next freeze canonical public error/retry details and exercise
-    Quote, Receipt, and safe-handoff conformance across the two Gateway
-    processes. Independently operated Gateways, three providers, ten useful
+    complete. Canonical public error/retry details are also complete. Next
+    exercise Quote, Receipt, and safe-handoff conformance across the two
+    Gateway processes. Independently operated Gateways, three providers, ten useful
     Capabilities, and recurring buyers remain external market acceptance.

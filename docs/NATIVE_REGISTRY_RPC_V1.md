@@ -167,3 +167,8 @@ Clients branch on the enum value or stable identifier and must not parse the
 human diagnostic. The frozen negative corpus in
 `test-vectors/atos-native-v1-registry.json` pins representative preflight
 results across two implementations.
+
+These deterministic Native validation details carry retry disposition
+`NEVER`. Public transport, dependency, capacity, deadline, and ambiguous
+outcome codes `2300..2308` and their retry rules are frozen separately in
+`PUBLIC_ERRORS_V1.md`.

@@ -87,6 +87,10 @@ remain non-canonical discovery hints.
 
 ## Error mapping
 
+Every error carries the single canonical `NativeErrorV1` detail defined by
+`PUBLIC_ERRORS_V1.md`. The Connect code alone never authorizes an automatic
+retry.
+
 | Connect code | Meaning |
 |---|---|
 | `invalid_argument` | malformed or non-canonical request |
@@ -99,6 +103,10 @@ remain non-canonical discovery hints.
 | `resource_exhausted` | size, rate, fee, or capacity bound reached |
 | `unavailable` | quorum, finality, relayer, or required dependency unavailable |
 | `internal` | bounded unexpected implementation failure |
+
+Unknown mutation outcomes use `aborted` plus `RESOLVE_BEFORE_RETRY`, not
+`unavailable`. Read-only dependency failures may permit the identical request
+after bounded backoff. Missing or inconsistent error details fail closed.
 
 Error messages are diagnostic, not stable machine identifiers. Conformance
 tests should assert code and structured detail where defined.
