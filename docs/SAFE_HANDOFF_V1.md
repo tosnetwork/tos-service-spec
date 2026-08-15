@@ -82,3 +82,8 @@ key and signature are lowercase hexadecimal.
 `deployments/safe-handoff.template.json` is a strict input template. Operators
 must replace every `REQUIRED` or placeholder value with bytes retained by the
 buyer/provider owner; placeholders are not valid evidence.
+
+`tos-protocol/cmd/native-safe-handoff-pack` assembles this document from
+protobuf-JSON Quote inputs and the `native-receipt-release` signing package.
+It rejects unknown/trailing JSON, incomplete signing authorization, and
+malformed Receipt or signature encodings before a resolver is contacted.
