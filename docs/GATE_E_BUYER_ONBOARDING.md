@@ -22,6 +22,16 @@ checks the wallet code, owner, master, unlocked status, balance, genesis, and
 monotonic finalized checkpoint through strict-majority TOS RPC. Its local live
 result is included in the same deployment record.
 
+The complete buyer preflight was also run against that live state through the
+production SDK and the in-process `toschain.DirectNativeClient`. It resolved
+the finalized Capability directly from the three TOS nodes, reproduced the
+manifest digest, Quote commitment, deterministic escrow and buyer stablecoin
+wallet, and accepted the exact finalized funded amount at checkpoint `143512`.
+Because the escrow was already funded, this was deliberately a read-only
+idempotency check and caused no second wallet broadcast. It closes the
+integration gap between the production resolvers and Buyer SDK, but it is not
+the required fresh-buyer onboarding session.
+
 ## Authority and custody boundary
 
 - a Quote Proposal is discovery input and is never canonical;
@@ -83,6 +93,8 @@ procedure.
   `d1a845eb7808365a413106d075c7c6316be67e27`
 - production finalized stablecoin resolver: `tos-protocol` commit
   `57f6429f2a0dc21b3292de8a27fa5d3a26255dd4`
+- direct finalized Native SDK adapter and full live Buyer SDK revalidation:
+  `tos-protocol` commit `a18162af3df971af265bf101ae9d40396e3c1370`
 - verified test-fixture custody import and exact-message submit CLI: `tos`
   commit `c8fbead6851cf63c4858035195045b4de0406302`
 - canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and

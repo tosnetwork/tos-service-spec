@@ -8,7 +8,7 @@
   },
   "release": {
     "tos": "c8fbead6851cf63c4858035195045b4de0406302",
-    "tos_protocol": "57f6429f2a0dc21b3292de8a27fa5d3a26255dd4"
+    "tos_protocol": "a18162af3df971af265bf101ae9d40396e3c1370"
   },
   "buyer": {
     "wallet": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
@@ -35,6 +35,19 @@
     "derived_wallet_raw": "0:fac1073657740d1f5ba7cae50edc0666f0f241d0840917bbd7b798fc6b5eae54",
     "balance_atomic": "75000000",
     "authority": "strict-majority finalized TOS account state"
+  },
+  "full_buyer_sdk_revalidation": {
+    "implementation": "tos-protocol/pkg/buyersdk with toschain.DirectNativeClient",
+    "checkpoint": 143512,
+    "capability_id": "cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657",
+    "capability_version": "1.2.0",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "quote_commitment": "tvm-cell-sha256:5637905cbc732c9fe74b2328752063545d8e341ec3a34fb28212ec53c676738a",
+    "escrow_raw": "0:473f8cfb7b90508e692afc2f92ea9be35b8e5572926eb6e570a31c69b55a0337",
+    "buyer_wallet_raw": "0:fac1073657740d1f5ba7cae50edc0666f0f241d0840917bbd7b798fc6b5eae54",
+    "funded_atomic": "25000000",
+    "result": "existing finalized funded state accepted without another broadcast",
+    "authority": "direct strict-majority finalized Native, stablecoin, and escrow state"
   },
   "funded_checkpoint": 142918,
   "quorum": 2,

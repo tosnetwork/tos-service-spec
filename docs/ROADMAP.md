@@ -73,6 +73,15 @@ both accounts, balance, ownership, network genesis, strict-majority finality,
 and a durable monotonic checkpoint. The live three-node result is attached to
 the local Gate E buyer-funding record.
 
+Direct buyer-side Native resolution and the full live Buyer SDK revalidation
+are implemented in `tos-protocol` commit
+`a18162af3df971af265bf101ae9d40396e3c1370`. The SDK reproduced the finalized
+Capability/manifest binding, Quote commitment, deterministic escrow, buyer
+stablecoin wallet, and funded amount from the three-node chain at checkpoint
+`143512` without a gateway or another broadcast. This is integration and
+idempotency evidence; the documented fresh-buyer acceptance session remains
+outstanding.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -227,7 +236,8 @@ Deliver:
   onboarding session is still required;
 - 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
   crash-safe bounded funding journal and production `tosctl` stablecoin sender
-  are implemented; a fresh-buyer working session remains;
+  are implemented and have been revalidated end to end against live finalized
+  state; a fresh-buyer working session remains;
 - 🟡 minimal finalized-state Capability index and manifest retrieval — the
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public
