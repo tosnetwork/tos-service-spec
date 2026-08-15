@@ -70,3 +70,12 @@ Conformance includes:
 
 `tos-protocol/pkg/safehandoff` is the production verifier for this profile.
 Its resolver interface exposes only finalized typed escrow state.
+
+The operator-facing checker is `tos-protocol/cmd/native-safe-handoff-check`.
+It accepts one strict `atos.native.safe-handoff.v1` JSON bundle, at least three
+validator JSON-RPC endpoints, and a durable checkpoint path. Its evidence
+output records zero Gateway inputs, the endpoint quorum, finalized checkpoint,
+commitments, and whether the release is ready to broadcast or already pending.
+The bundle uses protobuf JSON for `network`, `quote_request`, and
+`quote_package`; canonical Receipt bytes are Base64, while the Ed25519 public
+key and signature are lowercase hexadecimal.

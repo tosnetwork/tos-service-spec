@@ -364,7 +364,9 @@ Deliver:
   `docs/SAFE_HANDOFF_V1.md` freezes the portable boundary; the production
   verifier reconstructs Quote, Accepted Quote, Receipt, and settlement intent
   solely from owner-held inputs and finalized escrow, covers funded and
-  release-pending recovery, and fails closed on every authority boundary;
+  release-pending recovery, and fails closed on every authority boundary; the
+  `native-safe-handoff-check` CLI emits quorum-bound external evidence with
+  zero Gateway inputs;
 - 🟡 public relay, resolver, Quote, and Receipt conformance tests — local relay
   and resolver tests exist; public Quote conformance and portable Receipt
   conformance now exist locally, but an independently operated public Receipt
