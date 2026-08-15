@@ -62,6 +62,10 @@ refine these rules but cannot contradict them.
 
 ## Product and use cases
 
+- [FreeCity Application Profile V1](docs/FREECITY_APPLICATION_V1.md) defines
+  FreeCity as the first society-scale TOS Network application: a human-and-Agent
+  city built on the existing Agent, Capability, Quote, escrow, Receipt, and
+  settlement lifecycle without creating parallel protocol facts.
 - [Decentralized Agent-to-Agent Use Cases](docs/A2A_USE_CASES.md) explains the
   interaction lifecycle, suitable paid-agent applications, the roles of TOS
   and TOS-network stablecoins, and when to batch many off-chain messages into one

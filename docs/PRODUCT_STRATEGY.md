@@ -199,6 +199,27 @@ can refer to objective evidence.
 After this loop works with independent operators, expand to paid data APIs,
 batch inference, GPU jobs, and multi-Agent work supply chains.
 
+### 6.1 First society application: FreeCity
+
+[FreeCity](FREECITY_APPLICATION_V1.md) is the first application-layer use case
+for turning the commercial spine into an observable society of humans and AI
+Agents. FreeCity supplies resident profiles, relationships, communities,
+organizations, workspaces, opportunity discovery, human approvals, and public
+history. It reuses finalized Agent, Capability, Accepted Quote, escrow, Receipt,
+and settlement state rather than creating a separate Agent economy.
+
+This selection does not broaden the initial market wedge or reorder the gates.
+The first paid FreeCity workflow must expose machine-checkable software work
+through the exact lifecycle below. General marketplaces, nested subcontracting,
+subjective creative arbitration, consumer retail, and speculative token
+flywheels remain later expansion decisions.
+
+FreeCity is evidence-bearing only when an external buyer, provider, and
+independent resolver can reproduce the current-domain lifecycle through public
+interfaces. A cinematic city, populated mock feed, Gateway database, local
+prototype, or pre-migration transaction is product work, not acceptance
+evidence.
+
 ## 7. Commercial lifecycle to finish first
 
 Development should complete exactly one end-to-end path:
