@@ -51,11 +51,12 @@ ranking, signature, or Gateway acknowledgement makes terms canonical. The
 buyer validates every preimage and creates the deterministic Accepted Quote;
 only its finalized TOS escrow commitment establishes accepted terms.
 
-The first interoperable Quote exchange RPC must carry the complete preimages
-needed to reproduce every proposal digest. It must not introduce a Gateway
-order book, Gateway-controlled acceptance record, or server-side buyer wallet.
-That RPC remains a separate Gate F implementation item; this document does not
-pretend that the existing Capability API transports Quotes.
+`RequestQuoteProposal` carries the complete preimages needed to reproduce every
+proposal digest. `tos-protocol` validates those preimages and `atos` exposes a
+provider-source boundary that fails closed when no source is configured. The
+RPC does not introduce a Gateway order book, Gateway-controlled acceptance
+record, or server-side buyer wallet. A production provider quote source and
+multi-Gateway conformance deployment remain Gate F work.
 
 ## Safe handoffs
 

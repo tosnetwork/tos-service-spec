@@ -345,8 +345,11 @@ Deliver:
   `docs/GATEWAY_FEDERATION_V1.md` freezes authority-neutral client-side search
   composition and content-addressed manifest failover; `tos-protocol` commit
   `ec145a9` implements bounded multi-Gateway aggregation, source preservation,
-  malformed peer isolation, and exact-digest retrieval. The complete-preimage
-  Quote Proposal exchange RPC remains;
+  malformed peer isolation, and exact-digest retrieval. `tos-protocol` commit
+  `aedc832` adds the `RequestQuoteProposal` wire method and strict complete-
+  preimage validator; `atos` commit `1e2a812` adds the authenticated provider
+  source boundary and rejects conflicting packages. A production quote source
+  and multi-Gateway conformance deployment remain;
 - 🟡 canonical error and retry semantics — protocol errors exist, but public
   conformance is incomplete;
 - 🟡 pre-acceptance routing and post-acceptance failover rules — architecture

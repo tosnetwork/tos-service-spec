@@ -12,6 +12,7 @@ atos.native.v1.CapabilityDiscoveryService/ListCapabilities
 atos.native.v1.CapabilityDiscoveryService/SearchCapabilities
 atos.native.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
 atos.native.v1.CapabilityDiscoveryService/GetSoftwareWorkManifest
+atos.native.v1.CapabilityDiscoveryService/RequestQuoteProposal
 ```
 
 The canonical Connect path is generated from this fully qualified service name.
@@ -29,6 +30,8 @@ The Discovery service is a derived convenience boundary, separate from the
 canonical Native service. `ListCapabilities`, `SearchCapabilities`, and
 `GetSoftwareWorkManifest` require `native:read`;
 `PublishSoftwareWorkManifest` requires `native:relay`.
+`RequestQuoteProposal` requires `native:read`; it returns provider-supplied
+non-canonical terms and never accepts them for the buyer.
 These permissions control transport and storage use only.
 
 ## Submit semantics
@@ -107,13 +110,26 @@ Native backend, relayer, resolver, network configuration, and required chain
 connectivity are ready. A gateway must leave readiness when it cannot safely
 establish canonical semantics.
 
+## Quote Proposal exchange
+
+`RequestQuoteProposal` names an exact Capability version and canonical raw
+buyer address. A successful response carries `QuoteProposalV1` plus the exact
+canonical manifest CBOR and canonical single-root BOCs for escrow terms,
+transport binding, and objective dispute policy. Clients reject the package if
+any preimage digest, requested identity, buyer address, bound, or expiry
+conflicts. They still resolve Capability and asset state directly and select
+their own execution-signer authorization.
+
+The response remains discardable and non-canonical. Only the deterministic
+Accepted Quote escrow commitment finalized on TOS records accepted terms.
+
 ## Next commercial surface
 
-Minimal Capability discovery and manifest retrieval are now frozen. The next
-API additions remain limited to Quote Proposal construction, Accepted Quote
-and escrow submission, one bound job, artifact retrieval, Receipt resolution,
-and release or refund. Exact methods must be frozen in this Native protobuf
-before implementation.
+Minimal Capability discovery, manifest retrieval, and complete-preimage Quote
+Proposal exchange are now frozen. Further API additions remain limited to
+Accepted Quote and escrow submission, one bound job, artifact retrieval,
+Receipt resolution, and release or refund. Exact methods must be frozen in
+this Native protobuf before implementation.
 
 General marketplace, reputation, consumer checkout, and generalized arbitration
 APIs are not part of this release.
