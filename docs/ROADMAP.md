@@ -337,7 +337,10 @@ must reuse the existing authority objects.
     reproducible Go 1.26.5 OCI image is frozen at index digest
     `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105`;
     two build archives were byte-identical and the pinned image passed the live
-    containerd workspace test under the production isolation policy.
+    containerd workspace test under the production isolation policy. The
+    provider-local executor also rejects non-canonical, symlinked, non-private,
+    foreign-owned, or oversized privileged input paths; raw containerd access
+    remains isolated from gateways and signing custody.
 13. ✅ Complete one independently resolvable paid software-work transaction —
     Capability `cap_c1745824…e657` version `1.2.0` was sold for 25,000,000
     atomic `tUSDT`; the pinned OCI job completed successfully; the canonical

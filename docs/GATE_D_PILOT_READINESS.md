@@ -76,6 +76,9 @@ shown as shape reference only — **do not reuse them**.
 - [ ] run the pinned OCI executor under fail-closed containerd isolation; retain
       the content-addressed artifact and report; do **not** retry a
       crash-ambiguous execution under the same execution id
+- [ ] keep the private containerd socket and staged source/state paths owned by
+      the dedicated executor identity; never grant the gateway raw containerd
+      or general `sudo` access; keep every signing key outside executor state
 - [ ] sign only the displayed settlement-intent hash with the execution signer
 
 ### Buyer (organization B)

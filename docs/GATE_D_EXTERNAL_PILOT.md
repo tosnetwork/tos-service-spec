@@ -58,7 +58,11 @@ Editing a gateway record is never a substitute.
    Both parties resolve the funded state before execution begins.
 5. The provider executes the bound source under the pinned image and retains
    the content-addressed artifact and report. A crash-ambiguous execution is
-   not retried under the same execution ID.
+   not retried under the same execution ID. A privileged private containerd
+   socket remains owned by the executor identity and is never shared with the
+   gateway: raw containerd access is host-root authority. The executor accepts
+   only privately staged, executor-owned source and state paths and holds no
+   signing key.
 6. The execution signer signs only the displayed settlement-intent hash. The
    escrow validates the full Receipt and initiates the stablecoin transfer.
 7. The verifier waits for finality and runs the strict evidence checker from a
