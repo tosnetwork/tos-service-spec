@@ -88,6 +88,9 @@ refine these rules but cannot contradict them.
   existing canonical TOS escrow lifecycle.
 - [Gateway Discovery V1](docs/GATEWAY_DISCOVERY_V1.md) defines the minimal
   authority-neutral `/.well-known/atos-native.json` transport locator.
+- [Gateway Federation V1](docs/GATEWAY_FEDERATION_V1.md) defines client-side
+  multi-Gateway search and content-addressed manifest failover without shared
+  semantic authority.
 - [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
   shared finalized-chain and atomic cross-transport admission boundary.
 

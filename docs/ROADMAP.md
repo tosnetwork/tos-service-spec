@@ -341,8 +341,12 @@ Deliver:
   request forwarding headers, and `tos-protocol` commit `4e7b45c` adds strict
   client validation with bounded reads, authority-domain matching, redirect
   rejection, HTTPS enforcement, address filtering, and DNS-pinned dialing;
-- 🟡 interoperable search and Quote Proposal exchange — non-canonical Quote
-  objects are defined, but federation is not implemented;
+- 🟡 interoperable search and Quote Proposal exchange —
+  `docs/GATEWAY_FEDERATION_V1.md` freezes authority-neutral client-side search
+  composition and content-addressed manifest failover; `tos-protocol` commit
+  `ec145a9` implements bounded multi-Gateway aggregation, source preservation,
+  malformed peer isolation, and exact-digest retrieval. The complete-preimage
+  Quote Proposal exchange RPC remains;
 - 🟡 canonical error and retry semantics — protocol errors exist, but public
   conformance is incomplete;
 - 🟡 pre-acceptance routing and post-acceptance failover rules — architecture

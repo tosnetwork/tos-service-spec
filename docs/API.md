@@ -76,6 +76,12 @@ availability, names, descriptions, and manifest storage are not protocol
 facts. Resolver failure, rollback behind a persistent checkpoint fence,
 same-checkpoint conflict, malformed bytes, or corrupted storage fails closed.
 
+Clients may compose multiple independent discovery services according to
+`GATEWAY_FEDERATION_V1.md`. Federation preserves source identity, rejects a
+malformed Gateway page as a unit, isolates unavailable peers, and verifies
+manifest bytes by the exact chain-committed digest. The union and its ordering
+remain non-canonical discovery hints.
+
 ## Error mapping
 
 | Connect code | Meaning |
