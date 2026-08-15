@@ -392,20 +392,27 @@ unimplemented protocol engineering.
 Deliver:
 
 - ⬜ independent contract and protocol audits;
-- ⬜ production key custody, wallet recovery, and bounded spending policy;
-- ⬜ endpoint diversity and finality incident procedures;
+- 🟡 production key custody, wallet recovery, and bounded spending policy —
+  operational baseline is defined in `docs/PRODUCTION_READINESS_RUNBOOK_V1.md`;
+- 🟡 endpoint diversity and finality incident procedures — runbook baseline
+  exists; multi-operator exercise remains;
 - ⬜ load, storage, denial-of-service, and fee-budget evidence;
 - ⬜ TOS-network stablecoin accounting and operator compliance controls;
-- ⬜ monitoring for code, state, quorum, finality, and economic divergence;
-- ⬜ reproducible releases and signed deployment artifacts; and
-- ⬜ operator runbooks for degraded and emergency states.
+- 🟡 monitoring for code, state, quorum, finality, and economic divergence —
+  required signals and stop-the-line rules are defined in the runbook;
+- 🟡 reproducible releases and signed deployment artifacts — repository-level
+  reproducibility exists; production signing and release ceremony remain; and
+- 🟡 operator runbooks for degraded and emergency states — baseline published
+  in `docs/PRODUCTION_READINESS_RUNBOOK_V1.md`.
 
 Accept only after a multi-operator exercise completes discovery, Quote
 acceptance, paid software execution, Receipt checking, settlement, gateway
 failure, provider failure, endpoint disagreement, refund, and client recovery.
 
-**Gate status: ⬜ Not started.** Production acceptance depends on Gates C through
-F.
+**Gate status: 🟡 Operational baseline drafted; production acceptance pending.**
+The runbook closes the documentation/design gap, but independent audits,
+production custody, endpoint diversity, load/DoS evidence, accounting evidence,
+signed release ceremony, and the multi-operator exercise remain.
 
 ## 8. Expansion gate
 

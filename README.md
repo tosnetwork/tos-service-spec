@@ -98,6 +98,9 @@ refine these rules but cannot contradict them.
   outcomes.
 - [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
   shared finalized-chain and atomic cross-transport admission boundary.
+- [Production Readiness Runbook V1](docs/PRODUCTION_READINESS_RUNBOOK_V1.md)
+  defines custody, monitoring, incident, accounting, release, and emergency
+  controls for Gate G.
 
 ## Normative contract
 
