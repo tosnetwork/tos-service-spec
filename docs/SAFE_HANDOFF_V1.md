@@ -79,3 +79,6 @@ commitments, and whether the release is ready to broadcast or already pending.
 The bundle uses protobuf JSON for `network`, `quote_request`, and
 `quote_package`; canonical Receipt bytes are Base64, while the Ed25519 public
 key and signature are lowercase hexadecimal.
+`deployments/safe-handoff.template.json` is a strict input template. Operators
+must replace every `REQUIRED` or placeholder value with bytes retained by the
+buyer/provider owner; placeholders are not valid evidence.

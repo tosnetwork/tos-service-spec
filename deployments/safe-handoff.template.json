@@ -1,0 +1,26 @@
+{
+  "schema": "atos.native.safe-handoff.v1",
+  "network": {
+    "network_id": "REQUIRED",
+    "genesis_root_hash": "sha256:REQUIRED",
+    "genesis_file_hash": "sha256:REQUIRED"
+  },
+  "quote_request": {
+    "capability_id": "cap_REQUIRED",
+    "capability_version": "REQUIRED",
+    "buyer_address": "0:REQUIRED"
+  },
+  "quote_package": {
+    "proposal": {},
+    "canonical_manifest_cbor": "BASE64",
+    "escrow_terms_boc": "BASE64",
+    "transport_binding_boc": "BASE64",
+    "dispute_policy_boc": "BASE64"
+  },
+  "execution_signer_public_key_hex": "64 lowercase hex characters",
+  "escrow_address": "0:REQUIRED",
+  "expected_escrow_code_hash": "tvm-cell-sha256:REQUIRED",
+  "receipt_boc_base64": "BASE64",
+  "settlement_query_id": 1,
+  "settlement_signature_hex": "128 lowercase hex characters"
+}
