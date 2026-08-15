@@ -1,0 +1,60 @@
+{
+  "schema": "atos.local-gate-e-fresh-buyer-purchase.v1",
+  "acceptance_scope": "same-host three-validator rehearsal; not external independence",
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+    "resolver_quorum": "2-of-3"
+  },
+  "release": {
+    "atos_spec": "7d38ce94838120f8da4e2fe9e2995e52a2b8a384",
+    "tos_protocol": "96bb82a3670270169650324a1c54397110b17e72",
+    "tos": "c8fbead6851cf63c4858035195045b4de0406302"
+  },
+  "provider": {
+    "agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "capability_id": "cap_c76955a4f856369421fabfe9864eab7a7564ebc4ac21fa6ac55cad30ddb9822c",
+    "capability_version": "1.1.0",
+    "capability_action_hash": "sha256:cb596b2478e4c66baa53ebf41dc8f05f8fb362473bb6469a58fc57414ddc2379",
+    "capability_state_hash": "tvm-cell-sha256:913806f7b52c637be36e00a1ca7be0650673d7d4ed21dadfb213e58b84f9c61a",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "publication_path": "tos-protocol/pkg/providersdk"
+  },
+  "buyer": {
+    "address": "0:2a9ca8e9c88ed7d644c49222981146438791e27e94875ef97c508858eb67e82c",
+    "custody": "tosctl V3R2",
+    "wallet_state_after": "active",
+    "wallet_seqno_after": 3,
+    "wallet_balance_tos_after": "11.4367"
+  },
+  "payment": {
+    "asset_master": "0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a",
+    "asset_master_code_hash": "tvm-cell-sha256:18d5b6e780ff0bb451254c2c760d09d6e485638cd1407abb97078752c3c1c9ee",
+    "asset_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+    "buyer_asset_wallet": "0:2608a96149a74bc7983766f08262ac701d5c9b6f8d3b8c875493046e1d16fa5c",
+    "amount_atomic": "25000000",
+    "decimals": 6,
+    "query_id": "12891485005056340529"
+  },
+  "accepted_quote": {
+    "commitment": "tvm-cell-sha256:a8207d8b2c3cda5f9986ae85b3387295bc767d829bb13b0af7a80b270000f5d6",
+    "canonical_only_through_escrow_commitment": true
+  },
+  "escrow": {
+    "address": "0:57beed8a9c994024e0f2b86cb579fc747c976d44af6a6f15d4e17763ced7bba3",
+    "code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
+    "final_status": "funded",
+    "funded_atomic": "25000000",
+    "finalized_checkpoint": 155530
+  },
+  "budget_journal": {
+    "intent_identity": "sha256:b2e7c14f61a8723195185696d96d28837a915e0e82be316ce67cb8f0d8e981dc",
+    "phase": "complete",
+    "window_hours": 24,
+    "max_purchases": 10,
+    "max_per_purchase_atomic": "50000000",
+    "max_total_atomic": "250000000"
+  },
+  "verdict": "PASS_LOCAL_FRESH_PROVIDER_AND_BUYER_FUNDING"
+}
