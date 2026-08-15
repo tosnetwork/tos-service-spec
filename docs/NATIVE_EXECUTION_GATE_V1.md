@@ -87,6 +87,12 @@ operation and the single purchase-bound MCP tool. TLS, authentication,
 rate-limits, listener policy, and public deployment remain operator concerns;
 they cannot weaken or replace finalized-state verification.
 
+The production composition constructs both typed resolvers directly from the
+same configured strict-majority TOS JSON-RPC endpoint set, frozen Registry BOC
+and code hash, escrow code hash, and separate durable checkpoint paths. It does
+not route Native authority through an A2A/MCP gateway or require a private RPC
+translation layer.
+
 ## Acceptance
 
 Unit and race tests must cover canonical Accepted Quote decode, exact escrow
