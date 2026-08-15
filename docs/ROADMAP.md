@@ -300,7 +300,10 @@ Deliver:
   Gate, stateless streamable-HTTP binding, and negative tests are implemented;
   the public listener and local cross-transport single-execution test are
   complete; fresh external interoperability remains;
-- ⬜ optional x402 payment-negotiation adapter;
+- ⏸ optional x402 payment-negotiation adapter — deliberately deferred until
+  Gate F demonstrates recurring buyer demand. `docs/X402_ADAPTER_DECISION.md`
+  forbids a parallel facilitator-owned settlement path and limits any future
+  adapter to representation over the existing finalized TOS escrow lifecycle;
 - ✅ gateway-local search with chain-derived fields kept separate; and
 - ✅ examples that require no operator database edits or hidden control service.
 
@@ -475,8 +478,9 @@ is not implied by Gate C's initial profile.
     official server bindings, hardened public listener, local search, and
     public-interface discovery CLI are implemented. Next configure the Gate
     against the public test network and run fresh cross-transport
-    interoperability; then evaluate the optional
-    x402 negotiation adapter. In parallel, deploy and cross-check discovery
+    interoperability. The optional x402 adapter has been evaluated and
+    deferred under `docs/X402_ADAPTER_DECISION.md` until Gate F supplies real
+    demand. In parallel, deploy and cross-check discovery
     and run the fresh provider/buyer sessions from
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues

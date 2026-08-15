@@ -83,6 +83,9 @@ refine these rules but cannot contradict them.
   Tasks and results into the same finalized Native commercial lifecycle.
 - [MCP Software-Work Tool Adapter V1](docs/MCP_ADAPTER_V1.md) exposes that
   lifecycle as one authority-gated, purchase-bound MCP tool.
+- [x402 Adapter Decision](docs/X402_ADAPTER_DECISION.md) explains why x402 is
+  deferred and constrains any future integration to negotiation over the
+  existing canonical TOS escrow lifecycle.
 - [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
   shared finalized-chain and atomic cross-transport admission boundary.
 
