@@ -11,6 +11,16 @@ are live. A Gateway, relay, or transport connection cannot create identity or
 authorization. The packet may travel over any authenticated channel, including
 direct provider endpoints, A2A, MCP, or a Gateway used only as a router.
 
+## Signed discovery
+
+`ContactCard` is a signed, non-canonical locator that carries the Agent ID,
+network tuple, HTTPS endpoint, bounded expiry, and optional Capability IDs. It
+can be exchanged through DNS, a file, QR code, or another rendezvous channel;
+the verifier resolves the Agent from finalized TOS state and checks that a live
+controller signed the card. Expired cards, public plaintext endpoints, and
+duplicate Capabilities are rejected; callers must additionally compare the
+card's network tuple with their local network policy.
+
 ## Envelope
 
 The signed preimage includes protocol domain `atos.agent.packet.v1`, sender and
