@@ -1,0 +1,130 @@
+{
+  "schema": "atos.native.gate-e-local-buyer-funding.v1",
+  "scope": "same-host three-validator rehearsal; not external Gate E acceptance",
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8"
+  },
+  "release": {
+    "tos": "c8fbead6851cf63c4858035195045b4de0406302",
+    "tos_protocol": "d1a845eb7808365a413106d075c7c6316be67e27"
+  },
+  "buyer": {
+    "wallet": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
+    "wallet_raw": "0:632bba3cb2d27ea4c0274c1029abd8b47c140e7579990af64d01d239c79e6299",
+    "custody": "tosctl V1R3"
+  },
+  "asset": {
+    "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP",
+    "master_raw": "0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a",
+    "wallet": "EQD6wQc2V3QNH1unyuUO3AZm8PJB0IQJF7vXt5j8a16uVL7-",
+    "wallet_raw": "0:fac1073657740d1f5ba7cae50edc0666f0f241d0840917bbd7b798fc6b5eae54",
+    "decimals": 6,
+    "amount_atomic": "25000000"
+  },
+  "quote_commitment": "tvm-cell-sha256:5637905cbc732c9fe74b2328752063545d8e341ec3a34fb28212ec53c676738a",
+  "escrow_address": "EQBHP4z7e5BQjmkq_C-S6pvjW45VcpJutuVwoxxptVoDN2vU",
+  "escrow_address_raw": "0:473f8cfb7b90508e692afc2f92ea9be35b8e5572926eb6e570a31c69b55a0337",
+  "prepared_external_message_hash": "tvm-cell-sha256:b621da008230d6cb18f39dd204f57d7313c5c32c6bd589fc35d01d8797c48d3b",
+  "broadcast_boundary": "tosctl wallet send --build-only followed by exact wallet broadcast-prepared",
+  "funded_checkpoint": 142225,
+  "quorum": 2,
+  "quorum_votes": 3,
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "checkpoint": 142225,
+      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
+      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
+      "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
+      "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:a5129b4dd9c1f52cb58e8d6de77f3755ec38592f7921cb04235584837a9f5141",
+      "escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "buyer_wallet": {
+        "status": 0,
+        "balance": "75000000",
+        "owner": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      },
+      "escrow_transaction": {
+        "logical_time": 172342000007,
+        "hash": "sha256:097b018f2978ab12e98b8a4ec407cb3225920107628fdf09382751c7804cb767"
+      },
+      "buyer_wallet_transaction": {
+        "logical_time": 172342000003,
+        "hash": "sha256:0885641310cd41bc053f82bebecd909b3a2bcd57c2cb43016146d4f9e3b88c82"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "checkpoint": 142225,
+      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
+      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
+      "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
+      "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:a5129b4dd9c1f52cb58e8d6de77f3755ec38592f7921cb04235584837a9f5141",
+      "escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "buyer_wallet": {
+        "status": 0,
+        "balance": "75000000",
+        "owner": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      },
+      "escrow_transaction": {
+        "logical_time": 172342000007,
+        "hash": "sha256:097b018f2978ab12e98b8a4ec407cb3225920107628fdf09382751c7804cb767"
+      },
+      "buyer_wallet_transaction": {
+        "logical_time": 172342000003,
+        "hash": "sha256:0885641310cd41bc053f82bebecd909b3a2bcd57c2cb43016146d4f9e3b88c82"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "checkpoint": 142225,
+      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
+      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
+      "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
+      "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:a5129b4dd9c1f52cb58e8d6de77f3755ec38592f7921cb04235584837a9f5141",
+      "escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "buyer_wallet": {
+        "status": 0,
+        "balance": "75000000",
+        "owner": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
+        "master": "EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP"
+      },
+      "escrow_transaction": {
+        "logical_time": 172342000007,
+        "hash": "sha256:097b018f2978ab12e98b8a4ec407cb3225920107628fdf09382751c7804cb767"
+      },
+      "buyer_wallet_transaction": {
+        "logical_time": 172342000003,
+        "hash": "sha256:0885641310cd41bc053f82bebecd909b3a2bcd57c2cb43016146d4f9e3b88c82"
+      }
+    }
+  ],
+  "verdict": "PASS_LOCAL_TOSCTL_NATIVE_BUYER_FUNDING"
+}

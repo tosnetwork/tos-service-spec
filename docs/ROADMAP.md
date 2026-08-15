@@ -60,7 +60,11 @@ The production buyer funding boundary is `tos` commit
 `tosctl`-signed stablecoin funding message before acquiring its one-way
 broadcast lease, then submits those same bytes without rebuilding or
 re-signing. This closes the implementation item; fresh-buyer acceptance
-evidence remains outstanding.
+evidence remains outstanding. The same-host three-validator rehearsal in
+`deployments/local-gate-e-tosctl-buyer-funding-2026-08-15.json` additionally
+proves that a `tosctl`-native V1R3 wc=0 buyer can fund the exact new escrow and
+reach three-vote finalized funded state; it is not the complete public buyer
+session and does not establish external independence.
 
 ## 1. Gate A — Registry protocol freeze
 

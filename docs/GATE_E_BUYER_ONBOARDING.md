@@ -7,6 +7,14 @@ sender are implemented. This is not Gate E acceptance: a fresh buyer must
 still complete the purchase from public documentation, and the same session
 must include the fresh-provider sale required by the Gate.
 
+A same-host three-validator rehearsal has additionally funded a new escrow
+from a `tosctl`-native V1R3 wc=0 buyer. It verified the exact signed-message
+prepare/broadcast boundary and the post-payment escrow and stablecoin-wallet
+state with three agreeing endpoints. The record is
+`deployments/local-gate-e-tosctl-buyer-funding-2026-08-15.json`. This is
+implementation evidence only: it did not exercise the complete public buyer
+SDK session or establish external operator independence.
+
 ## Authority and custody boundary
 
 - a Quote Proposal is discovery input and is never canonical;
@@ -66,6 +74,8 @@ procedure.
   `d9d725534cb1a9120b1e49854b360c01f043c22a`
 - production `tosctl` funding adapter: `tos-protocol` commit
   `d1a845eb7808365a413106d075c7c6316be67e27`
+- verified test-fixture custody import and exact-message submit CLI: `tos`
+  commit `c8fbead6851cf63c4858035195045b4de0406302`
 - canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and
   `docs/STABLECOIN_ESCROW_TVM_V1.md`
 - external commercial lifecycle: `docs/GATE_D_EXTERNAL_PILOT.md`
