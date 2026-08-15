@@ -197,7 +197,9 @@ Deliver:
 - 🟡 provider SDK and deployment template — the first Go publication SDK and
   dedicated private-containerd template are implemented; a fresh-provider
   onboarding session is still required;
-- ⬜ buyer SDK and wallet budget flow;
+- 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
+  crash-safe bounded funding journal are implemented; the production `tosctl`
+  stablecoin sender and a fresh-buyer working session remain;
 - ⬜ minimal finalized-state Capability index and manifest retrieval;
 - ⬜ A2A task and result adapter;
 - ⬜ MCP tool adapter;
@@ -212,10 +214,11 @@ Adapters must map into the same Agent, Capability, Accepted Quote, Receipt, and
 chain-reference objects. They cannot create parallel protocol facts.
 
 **Gate status: 🟡 In progress.** The complete same-host Native transaction and
-independent reconstruction are sufficient to begin SDK and adapter engineering;
-Gate D's external commercial acceptance continues in parallel and remains
-unaccepted. Provider publication and deployment are the first active slice.
-This sequencing exception does not weaken either gate's acceptance criteria.
+independent reconstruction are sufficient to continue SDK and adapter
+engineering; Gate D's external commercial acceptance proceeds independently
+and remains unaccepted. Provider publication/deployment and the buyer's
+canonical preflight/bounded funding journal are implemented foundations. This
+sequencing exception does not weaken either gate's acceptance criteria.
 
 ## 6. Gate F — Open gateway and market evidence
 
@@ -367,9 +370,11 @@ provider balance increase between finalized checkpoints; its evidence is
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.
 
-14. 🟡 **Active Gate E workstream:** stabilize the public Native client and
-    provider SDK, validate the dedicated executor deployment template, and run
-    one fresh-provider onboarding session from
-    `docs/GATE_E_PROVIDER_ONBOARDING.md`. Buyer SDK and finalized Capability
-    discovery follow this provider slice. Gate D external acceptance continues
+14. 🟡 **Active Gate E workstream:** the public Native client, provider SDK and
+    deployment template, plus the buyer's canonical purchase preflight and
+    crash-safe bounded funding journal, are implemented. Next build the minimal
+    finalized-state Capability index and digest-addressed manifest retrieval.
+    In parallel, add the production `tosctl` stablecoin sender and run the fresh
+    provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
+    `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.

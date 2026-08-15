@@ -77,6 +77,8 @@ refine these rules but cannot contradict them.
   those independent operators.
 - [Gate E Provider Onboarding](docs/GATE_E_PROVIDER_ONBOARDING.md) defines the
   first SDK and deployment-template workflow without gateway-owned facts.
+- [Gate E Buyer Onboarding](docs/GATE_E_BUYER_ONBOARDING.md) defines canonical
+  Quote review, bounded stablecoin funding, and crash-safe buyer recovery.
 
 ## Normative contract
 
