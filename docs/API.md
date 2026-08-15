@@ -9,6 +9,7 @@ The public Native API is the Connect service generated from
 atos.native.v1.NativeService/SubmitNativeAction
 atos.native.v1.NativeService/ResolveNativeState
 atos.native.v1.CapabilityDiscoveryService/ListCapabilities
+atos.native.v1.CapabilityDiscoveryService/SearchCapabilities
 atos.native.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
 atos.native.v1.CapabilityDiscoveryService/GetSoftwareWorkManifest
 ```
@@ -25,8 +26,9 @@ Authentication bootstrap endpoints may be gateway-local. They do not define
 protocol objects.
 
 The Discovery service is a derived convenience boundary, separate from the
-canonical Native service. `ListCapabilities` and `GetSoftwareWorkManifest`
-require `native:read`; `PublishSoftwareWorkManifest` requires `native:relay`.
+canonical Native service. `ListCapabilities`, `SearchCapabilities`, and
+`GetSoftwareWorkManifest` require `native:read`;
+`PublishSoftwareWorkManifest` requires `native:relay`.
 These permissions control transport and storage use only.
 
 ## Submit semantics
@@ -59,6 +61,14 @@ Manifest publication accepts only the canonical CBOR defined in
 the supplied Capability and proves that an active version with the same
 version string commits to the exact SHA-256 digest. Storage is immutable and
 content-addressed. Retrieval returns those exact canonical bytes by digest.
+
+`SearchCapabilities` is deliberately gateway-local and incomplete. Every
+result contains a freshly resolved finalized Capability plus the exact active
+version and manifest digest selected from that chain state. Human-readable
+manifest fields and the match score are nested under `gateway_local`; they are
+digest-authenticated discovery projections, not chain state, ranking consensus,
+or an availability guarantee. Pagination remains ordered by Capability ID so
+the token does not silently encode a mutable ranking.
 
 Consumers must hash the returned bytes and compare the digest with a fresh
 Capability resolution or the Accepted Quote. Index inclusion, ordering,

@@ -280,6 +280,37 @@ message ListCapabilitiesResponse {
   string next_after_capability_id = 2;
 }
 
+// Gateway-local projection of digest-authenticated manifest content. These
+// fields and their match score are discovery hints, never TOS state.
+message GatewayLocalCapabilityMetadataV1 {
+  string name = 1;
+  string description = 2;
+  string operation = 3;
+  uint32 match_score = 4;
+}
+
+message CapabilitySearchResultV1 {
+  // Fresh finalized TOS Registry state.
+  NativeStateV1 capability = 1;
+  // Version and digest selected from capability, not from the local index.
+  string capability_version = 2;
+  string manifest_digest = 3;
+  // Optional, incomplete gateway-local manifest projection.
+  GatewayLocalCapabilityMetadataV1 gateway_local = 4;
+}
+
+message SearchCapabilitiesRequest {
+  RequestContext context = 1;
+  string query = 2;
+  uint32 page_size = 3;
+  string after_capability_id = 4;
+}
+
+message SearchCapabilitiesResponse {
+  repeated CapabilitySearchResultV1 results = 1;
+  string next_after_capability_id = 2;
+}
+
 message PublishSoftwareWorkManifestRequest {
   RequestContext context = 1;
   string capability_id = 2;
@@ -310,6 +341,7 @@ service NativeService {
 // manifests with a fresh Capability or Accepted Quote commitment.
 service CapabilityDiscoveryService {
   rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
+  rpc SearchCapabilities(SearchCapabilitiesRequest) returns (SearchCapabilitiesResponse);
   rpc PublishSoftwareWorkManifest(PublishSoftwareWorkManifestRequest) returns (PublishSoftwareWorkManifestResponse);
   rpc GetSoftwareWorkManifest(GetSoftwareWorkManifestRequest) returns (GetSoftwareWorkManifestResponse);
 }
