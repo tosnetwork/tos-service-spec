@@ -21,6 +21,10 @@ controller signed the card. Expired cards, public plaintext endpoints, and
 duplicate Capabilities are rejected; callers must additionally compare the
 card's network tuple with their local network policy.
 
+`EncodeContactJSON` and `DecodeContactJSON` provide the strict
+`atos.native.agent-contact.v1` exchange format; unknown fields and trailing
+JSON are rejected before the card is used.
+
 ## Envelope
 
 The signed preimage includes protocol domain `atos.agent.packet.v1`, sender and
