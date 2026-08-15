@@ -33,5 +33,6 @@ authorize payment by itself: escrow funding, execution admission, Receipt, and
 settlement still require their existing finalized-chain checks.
 
 `tos-protocol/pkg/agentpacket` implements signing, finalized-state verification,
-and replay protection. It deliberately has no Gateway database, no arbitrary
+replay protection, and strict JSON wire encoding/decoding for transport
+interoperability. It deliberately has no Gateway database, no arbitrary
 on-chain message storage, and no Managed/Verified trust mode.
