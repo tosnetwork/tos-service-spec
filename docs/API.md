@@ -8,6 +8,9 @@ The public Native API is the Connect service generated from
 ```text
 atos.native.v1.NativeService/SubmitNativeAction
 atos.native.v1.NativeService/ResolveNativeState
+atos.native.v1.CapabilityDiscoveryService/ListCapabilities
+atos.native.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
+atos.native.v1.CapabilityDiscoveryService/GetSoftwareWorkManifest
 ```
 
 The canonical Connect path is generated from this fully qualified service name.
@@ -20,6 +23,11 @@ GET /readyz
 
 Authentication bootstrap endpoints may be gateway-local. They do not define
 protocol objects.
+
+The Discovery service is a derived convenience boundary, separate from the
+canonical Native service. `ListCapabilities` and `GetSoftwareWorkManifest`
+require `native:read`; `PublishSoftwareWorkManifest` requires `native:relay`.
+These permissions control transport and storage use only.
 
 ## Submit semantics
 
@@ -37,6 +45,26 @@ finalized state to determine canonical outcome.
 Capability state plus network, TVM state hash, and chain reference. The gateway
 must fail closed if quorum, finality, deterministic address, code identity, or
 typed decoding cannot be established.
+
+## Capability discovery and manifest semantics
+
+The discovered ID set is explicitly incomplete and gateway-local. A listing
+must freshly resolve every returned Capability from finalized TOS state and
+must exclude a freshly tombstoned Capability. Its continuation token means
+only “after this locally discovered ID”; it is not a chain cursor or a proof of
+completeness. Page size is at most 100 IDs.
+
+Manifest publication accepts only the canonical CBOR defined in
+`SOFTWARE_WORK_MANIFEST_V1.md`. Before storage, the gateway freshly resolves
+the supplied Capability and proves that an active version with the same
+version string commits to the exact SHA-256 digest. Storage is immutable and
+content-addressed. Retrieval returns those exact canonical bytes by digest.
+
+Consumers must hash the returned bytes and compare the digest with a fresh
+Capability resolution or the Accepted Quote. Index inclusion, ordering,
+availability, names, descriptions, and manifest storage are not protocol
+facts. Resolver failure, rollback behind a persistent checkpoint fence,
+same-checkpoint conflict, malformed bytes, or corrupted storage fails closed.
 
 ## Error mapping
 
@@ -65,11 +93,11 @@ establish canonical semantics.
 
 ## Next commercial surface
 
-The next API addition is limited to the first software-work commercial
-lifecycle. It needs public operations for minimal Capability discovery and
-manifest retrieval, Quote Proposal construction, Accepted Quote and escrow
-submission, one bound job, artifact retrieval, Receipt resolution, and release
-or refund. Exact methods are frozen in the Native protobuf before implementation.
+Minimal Capability discovery and manifest retrieval are now frozen. The next
+API additions remain limited to Quote Proposal construction, Accepted Quote
+and escrow submission, one bound job, artifact retrieval, Receipt resolution,
+and release or refund. Exact methods must be frozen in this Native protobuf
+before implementation.
 
 General marketplace, reputation, consumer checkout, and generalized arbitration
 APIs are not part of this release.

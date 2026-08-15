@@ -200,7 +200,10 @@ Deliver:
 - 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
   crash-safe bounded funding journal are implemented; the production `tosctl`
   stablecoin sender and a fresh-buyer working session remain;
-- ⬜ minimal finalized-state Capability index and manifest retrieval;
+- 🟡 minimal finalized-state Capability index and manifest retrieval — the
+  bounded derived catalog, fresh-finality listing, canonical content store,
+  protobuf service, and gateway handlers are implemented; a clean public
+  deployment and cross-gateway retrieval test remain;
 - ⬜ A2A task and result adapter;
 - ⬜ MCP tool adapter;
 - ⬜ optional x402 payment-negotiation adapter;
@@ -372,9 +375,10 @@ is not implied by Gate C's initial profile.
 
 14. 🟡 **Active Gate E workstream:** the public Native client, provider SDK and
     deployment template, plus the buyer's canonical purchase preflight and
-    crash-safe bounded funding journal, are implemented. Next build the minimal
-    finalized-state Capability index and digest-addressed manifest retrieval.
-    In parallel, add the production `tosctl` stablecoin sender and run the fresh
+    crash-safe bounded funding journal, plus the minimal authority-neutral
+    Capability catalog and manifest API, are implemented. Next build the A2A
+    task/result adapter. In parallel, deploy and cross-check discovery, add the
+    production `tosctl` stablecoin sender, and run the fresh
     provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.
