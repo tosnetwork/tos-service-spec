@@ -69,3 +69,12 @@ separate catalogs and credentials constructed complete-preimage proposals from
 the same finalized provider Capability; the buyer continued through Gateway B
 after Gateway A stopped. This is failover implementation evidence only and
 does not claim independent Gateway operators or recurring market demand.
+
+For a post-acceptance Gateway handoff, retain the complete Quote package and
+the output of `native-receipt-release`, then assemble the portable bundle with
+`tos-protocol/cmd/native-safe-handoff-pack`. Use
+`safe-handoff.template.json` only as a field guide: it is not evidence. Verify
+the resulting bundle with `native-safe-handoff-check` against at least three
+validator endpoints and an absolute durable checkpoint path. The checker must
+be run while the original Gateway is unavailable; its JSON output is the
+machine-readable handoff evidence attached to the independent operator record.
