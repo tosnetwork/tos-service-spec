@@ -13,8 +13,11 @@ conformance suite defined here.
 
 Agent Economy Metrics measure paid Agent activity without turning a Gateway or
 analytics database into protocol authority. Every economic value included in a
-canonical-derived metric must be reconstructible from finalized TOS state and
-the authenticated TOS-network stablecoin transaction chain.
+finalized-derived metric must be reconstructible from finalized TOS state, the
+authenticated TOS-network stablecoin transaction chain, and exact
+content-addressed preimages whose digests are committed by that state. Manifest
+bytes are verification inputs, never independent authority; missing bytes fail
+closed.
 
 The metrics service is a replaceable projection. Its output must carry its
 network domain, finalized checkpoint range, exact asset identity, calculation
@@ -74,6 +77,43 @@ chain observations fail closed.
 Each job has at most one derived terminal outcome: `released` or `refunded`.
 The indexer must reject duplicate or conflicting terminal evidence rather than
 choosing one by arrival order.
+
+## Provider attribution and anti-spoofing
+
+An Accepted Quote is created by the buyer and names a provider Agent and
+Capability. Those names alone do not prove provider participation: an arbitrary
+buyer can reference a public Agent ID or Capability ID. Network escrow activity
+and provider-attributed economic output are therefore separate domains.
+
+A released payment is eligible for Agent GDP, provider receipts, Capability
+metrics, or an Agent ranking only when the indexer additionally proves:
+
+1. at Quote acceptance, the exact Registry code identity shows a live provider
+   Agent and a live Capability owned by that Agent, with the quoted version
+   present, unrevoked, and bound to the quoted manifest digest;
+2. the canonical manifest bytes match that digest and bind the same asset,
+   endpoint commitment, and execution-signer authorization as the Accepted
+   Quote;
+3. the Receipt and settlement intent are valid, and the committed execution
+   signer authorized the exact terminal release; and
+4. archived finalized Registry history shows that the Agent remained live and
+   the Capability remained owned by it, with the version unrevoked, from Quote
+   acceptance through the Receipt's signed `completed_at` time.
+
+The signed completion time must satisfy the Receipt and escrow rules and map to
+the finalized Registry history without ambiguity. Attribution additionally
+requires `acceptance_time <= funding_time <= completed_at <=
+release_request_time`; a Receipt timestamp outside that order is conclusively
+unattributable even if the escrow transfer itself finalized. A later Capability
+transfer or revocation does not rewrite work completed before that transition.
+
+A conclusive attribution mismatch is an `unattributed_release`, not Agent GDP.
+Unavailable manifest or historical Registry evidence is
+`attribution_unresolved`; it fails closed and prevents total Agent-GDP status.
+Funding, refund, or timeout without a provider-authorized Receipt may be counted
+as network escrow activity, but cannot lower the named Agent's performance or
+appear as that Agent's accepted work. This prevents third-party spam from
+poisoning provider statistics.
 
 ## Discovery completeness
 
@@ -140,11 +180,17 @@ conversion beside the atomic-unit result.
 
 ATOS V1 supports service-only jobs. Consequently:
 
-- `gross_agent_value_atomic` is the sum of verified settled service payments;
-- `settled_provider_receipts_atomic` is the sum actually transferred to
-  providers;
-- for the current exact-payment profile, the two totals are equal at network
-  level; and
+- `settled_cash_flow_atomic` is the sum of every authenticated terminal release
+  transfer, whether or not Agent attribution succeeds;
+- `gross_agent_value_atomic` is the attributable subset that passes every
+  provider-attribution rule above;
+- `settled_provider_receipts_atomic` is that same attributable amount actually
+  transferred to providers;
+- for the current exact-payment profile,
+  `gross_agent_value_atomic == settled_provider_receipts_atomic`;
+- `settled_cash_flow_atomic == gross_agent_value_atomic +
+  unattributed_released_value_atomic +
+  attribution_unresolved_released_value_atomic`; and
 - arbitrary trading notional, assets under management, or provider-reported
   "handled value" is not counted.
 
@@ -169,21 +215,33 @@ For each time window and exact asset bucket, export the following. A
 them as observed values in the UI and expose its discovery mode beside them. A
 complete scan with any unresolved escrow is treated as partial for this rule.
 
+Accepted, funded, refunded, request, and open-state counts describe authenticated
+escrow activity. They are permissionless and can be increased by one actor
+using many wallets, so they are not proof of independent demand, customers, or
+provider performance. Only attributed releases contribute Agent GDP and
+provider rankings.
+
 | Field | Definition |
 |---|---|
-| `gross_agent_value_atomic` | Sum of verified settled service payments. |
-| `settled_provider_receipts_atomic` | Amount actually transferred to providers. |
+| `settled_cash_flow_atomic` | Sum of all authenticated terminal provider-wallet releases. |
+| `gross_agent_value_atomic` | Attributable released value that passes the provider anti-spoofing rules. |
+| `settled_provider_receipts_atomic` | Same attributable amount, presented as provider receipts. |
+| `unattributed_released_value_atomic` | Conclusively non-attributable released value; never Agent GDP. |
+| `attribution_unresolved_released_value_atomic` | Released value whose provider attribution cannot be resolved; excluded from Agent GDP. |
+| `accepted_job_count` | Unique authenticated escrow deployments whose Quote acceptance finalized in the window. |
 | `funded_job_count` | Unique jobs whose exact escrow funding finalized. |
-| `settled_job_count` | Unique jobs with verified terminal provider payment. |
+| `released_escrow_count` | Unique jobs with an authenticated terminal provider-wallet payment. |
+| `attributed_settled_job_count` | Released jobs that pass every provider-attribution rule. |
 | `refunded_job_count` | Unique jobs with verified terminal buyer refund. |
 | `release_pending_entered_job_count` | Unique jobs whose release request finalized in the window, whether later released, bounced, or still pending. |
 | `refund_pending_entered_job_count` | Unique jobs whose refund request finalized in the window, whether later refunded, bounced, or still pending. |
 | `release_request_count` | Finalized transitions into `release_pending`, including a later retry after an authenticated bounce restored `funded`. |
 | `refund_request_count` | Finalized transitions into `refund_pending`, including a later retry after an authenticated bounce restored `funded`. |
-| `unique_buyer_wallet_count` | Distinct canonical buyer wallets in jobs with funding or a terminal outcome finalized in the window. |
-| `unique_provider_agent_count` | Distinct provider Agent IDs in those same jobs. |
-| `settlement_success_rate_ppm` | `settled / (settled + refunded)` in integer parts per million; this is an economic release rate, not proof of subjective job quality. |
-| `refund_rate_ppm` | `refunded / (settled + refunded)` in integer parts per million. |
+| `unique_buyer_wallet_count` | Distinct canonical buyer wallets in jobs with acceptance, funding, or a terminal outcome finalized in the window. |
+| `unique_quote_named_provider_agent_count` | Distinct provider Agent IDs named by those jobs; not proof of participation. |
+| `unique_attributed_provider_agent_count` | Distinct provider Agent IDs among attributed settled jobs. |
+| `terminal_release_rate_ppm` | `released / (released + refunded)` in integer parts per million; this is a network escrow outcome, not provider quality. |
+| `refund_rate_ppm` | `refunded / (released + refunded)` in integer parts per million. |
 | `median_settlement_seconds` | Median finalized funding-to-terminal duration. |
 | `p95_settlement_seconds` | Nearest-rank P95 finalized funding-to-terminal duration. |
 
@@ -195,6 +253,8 @@ reject overflow.
 
 Event times are unambiguous:
 
+- acceptance time is the authenticated containing-block Unix time of the
+  canonical escrow deployment transaction;
 - funding time is the authenticated containing-block Unix time of the escrow
   transaction that accepts the stablecoin `transfer_notification`;
 - pending-entry time is the authenticated containing-block Unix time of the
@@ -214,9 +274,10 @@ durations are exactly 3,600, 86,400, 604,800, and 2,592,000 seconds. Every time
 window is the half-open interval `[from_unix_seconds, to_unix_seconds)`, with
 `to - from` equal to the selected duration. Membership is
 based on the terminal finalized time for terminal value, terminal count, rate,
-and duration metrics; on funding finalized time for `funded_job_count`; and on
-pending-request finalized time for pending-entry counts. An `all` report starts
-at genesis. A bounded report may start later but cannot call itself all-time.
+and duration metrics; on acceptance finalized time for `accepted_job_count`; on
+funding finalized time for `funded_job_count`; and on pending-request finalized
+time for pending-entry counts. An `all` report starts at genesis. A bounded
+report may start later but cannot call itself all-time.
 For `all`, `from_unix_seconds` is the authenticated genesis block time.
 `to_unix_seconds` must not exceed the authenticated finalized chain time at the
 report's as-of checkpoint.
@@ -224,6 +285,8 @@ report's as-of checkpoint.
 Current economic state is exported separately from window events, but remains
 inside the same exact asset and escrow-code profile:
 
+- `open_awaiting_funding_job_count` is the number still derived as
+  `awaiting_funding`;
 - `open_funded_job_count` is the number of jobs still derived as `funded`;
 - `open_release_pending_job_count` is the number still derived as
   `release_pending`; and
@@ -232,6 +295,14 @@ inside the same exact asset and escrow-code profile:
 
 These are snapshots at the report as-of checkpoint and do not change when only
 the selected time window changes.
+
+State derivation is deterministic. A verified terminal wallet-transfer chain
+takes precedence over the escrow's persistent pending state. Otherwise an
+authenticated bounce that restores `funded` takes precedence over the earlier
+pending request. Without either, the latest authenticated typed escrow state at
+the as-of checkpoint determines `awaiting_funding`, `funded`,
+`release_pending`, or `refund_pending`. Conflicting evidence is unresolved,
+never selected by transaction arrival or index order.
 
 ## Registry snapshot metrics
 
@@ -265,17 +336,16 @@ For a provider Agent, export:
   buyer in another verified job;
 - `net_agent_flow_atomic = settled_receipts - paid_to_other_agents`, encoded as
   the signed canonical decimal form defined above;
-- funded, settled, refunded, pending-entry, and open-pending job counts;
-- unique buyer-wallet count;
+- attributed settled-job count and provider-authorized release-pending count;
+- unique buyer-wallet count among attributed settled jobs;
 - unique counterparty-Agent count where both identities are provably bound;
-- settlement success and refund rates;
-- median and P95 settlement duration;
+- median and P95 settlement duration among attributed settled jobs;
 - active Capability and active Capability-version snapshot counts at the report
   end checkpoint;
-- Capability utilization, defined as Capabilities with at least one settled job
-  in the selected window among the Agent's active Capabilities at the report
-  end checkpoint, divided by that same active set, in integer parts per
-  million; and
+- Capability utilization, defined as Capabilities with at least one attributed
+  settled job in the selected window among the Agent's active Capabilities at
+  the report end checkpoint, divided by that same active set, in integer parts
+  per million; and
 - last settled job finalized time.
 
 Wallet-to-Agent control must be established by an explicit finalized protocol
@@ -297,31 +367,45 @@ independent economic actors. Wallet rotation and Sybil wallets can increase it;
 interfaces must label it "unique buyer wallets", never "unique users".
 Likewise, an Agent ID is not proof of a unique legal entity.
 
+Buyer-created, pre-Receipt fields may be shown separately as
+`quote_referenced` exposure: accepted, funded, refunded, awaiting-funding, and
+refund-pending counts that merely name the Agent. They are not provider-
+authorized activity, are excluded from Agent GDP, success rates, and rankings,
+and must carry that warning in every response. V1 defines no fair per-Agent
+refund or success rate because a third party can create and fund a Quote that
+the provider never accepts.
+
 ## Per-Capability metrics
 
 For each exact Capability and version, export:
 
-- settled value and provider receipts, attributed to the provider Agent committed
-  by each job's Accepted Quote;
-- funded, settled, refunded, pending-entry, and open-pending job counts;
-- unique buyer-wallet count;
-- settlement success and refund rates;
-- median settled price;
-- median and P95 settlement duration;
+- settled value and provider receipts, attributed to the Agent named by each
+  Accepted Quote only after the anti-spoofing proof succeeds;
+- attributed settled-job count and provider-authorized release-pending count;
+- unique buyer-wallet count among attributed settled jobs;
+- median settled price among attributed settled jobs;
+- median and P95 settlement duration among attributed settled jobs;
 - current finalized owner Agent ID;
 - current Capability tombstone, version revocation, and effective owner-Agent
   tombstone status at the report end checkpoint; and
 - last settled job finalized time.
 
-Historical jobs remain attributed to the owner and version committed by their
-Accepted Quote. A later Capability transfer or revocation changes the current
-status but cannot rewrite historical attribution.
+Historical jobs remain attributed to the provider Agent and version named by
+their Accepted Quote only after the anti-spoofing proof establishes the owner
+relationship through completion. A later Capability transfer or revocation
+changes the current status but cannot rewrite that proven historical
+attribution.
+
+As with Agent reports, buyer-created pre-Receipt counts may appear only under a
+separate `quote_referenced` exposure object. They cannot be used as Capability
+quality, acceptance, failure, or refund metrics.
 
 ## Gross value and supply-chain duplication
 
-Agent-to-Agent subcontracting creates a new paid job and therefore contributes
-to gross Agent value. Summing all settlements intentionally measures gross
-network activity and may count multiple stages of one supply chain.
+An attributable Agent-to-Agent subcontract creates a new paid job and therefore
+contributes to gross Agent value. Summing attributed settlements intentionally
+measures gross network activity and may count multiple stages of one supply
+chain.
 
 To avoid presenting that number as unique final demand, an implementation may
 also export `end_buyer_economic_value_atomic`, but only when it can prove that a
@@ -393,6 +477,11 @@ conceptual JSON envelope:
     "discovered_escrow_count": 0,
     "indexed_escrow_count": 0,
     "unresolved_escrow_count": 0,
+    "attribution_eligible_release_count": 0,
+    "attributed_release_count": 0,
+    "unattributed_release_count": 0,
+    "attribution_unresolved_release_count": 0,
+    "attribution_coverage_ppm": 0,
     "provenance_eligible_job_count": 0,
     "classified_job_count": 0,
     "classification_coverage_ppm": 0
@@ -439,6 +528,22 @@ unresolved candidates, and authenticated discovered escrows. Rejected
 candidates are deterministically proven non-ATOS accounts. Any unresolved
 candidate or unresolved authenticated escrow removes total status.
 
+For releases whose terminal time is inside the selected window, every
+authenticated release is attribution-eligible, so
+`attribution_eligible_release_count == released_escrow_count`. That set is
+partitioned exactly into attributed, conclusively unattributed, and
+attribution-unresolved release counts. `attribution_coverage_ppm` is the integer floor of
+`(attributed_release_count + unattributed_release_count) * 1,000,000 /
+attribution_eligible_release_count`, or null for a zero denominator. An
+attribution-unresolved release does not prevent a complete cash-flow total, but
+it prevents a complete Agent-GDP total and all affected Agent, Capability, and
+ranking claims.
+
+The window metric `attributed_settled_job_count` equals coverage
+`attributed_release_count`; the duplicate semantic name is retained only to
+make the economic metric readable while the coverage object exposes the full
+classification partition.
+
 For `complete_chain_scan`, `index_origin_checkpoint` is the network genesis
 checkpoint and `address_set_digest` is null. For `bounded_address_set`, the
 address-set digest is mandatory. For `gateway_observed`, the response must name
@@ -469,9 +574,10 @@ counts that exceed their encoded bounds.
 
 `classification_coverage_ppm` is the integer floor of
 `classified_job_count * 1,000,000 / provenance_eligible_job_count`; it is
-`null` when the denominator is zero. Eligible jobs are settled jobs in the
-selected economic window for which end-buyer classification would affect the
-requested metric. The classified count must not exceed the eligible count.
+`null` when the denominator is zero. Eligible jobs are attributed settled jobs
+in the selected economic window for which end-buyer classification would
+affect the requested metric. The classified count must not exceed the eligible
+count.
 This classification coverage concerns optional end-buyer provenance, not
 chain-scan completeness.
 
@@ -518,20 +624,19 @@ excluded from deterministic value comparison.
 ## Ranking
 
 Clients may rank Agents by settled receipts, contributed gross value, settled
-jobs, unique buyer wallets, success rate, or recency. Every ranked row must
+jobs, unique buyer wallets, or recency. Every ranked row must
 expose the underlying metric, its numerator and denominator where applicable, asset
 identity, window, finality checkpoint, and coverage. Rankings must not combine
 different stablecoin identities or treat online status as economic authority.
 Ties are resolved by ascending canonical Agent ID so every implementation
 produces the same order.
 
-Settled receipts, contributed value, settled jobs, unique buyer wallets,
-success rate, and recency rank descending. Null values sort after non-null
-values. A success-rate leaderboard must publish its minimum terminal-job
-denominator; that threshold is presentation policy and must not be described as
-protocol authority. Rankings are partitioned by network domain, Registry code,
-escrow code, asset identity, window, as-of checkpoint, and discovery mode
-before sorting.
+Settled receipts, contributed value, attributed settled jobs, unique buyer
+wallets, and recency rank descending. Null values sort after non-null values. Rankings are
+partitioned by network domain, Registry code, escrow code, asset identity,
+window, as-of checkpoint, and discovery mode before sorting. V1 forbids a
+per-Agent success-rate ranking because refunds and abandoned funding do not
+carry provider authorization.
 
 ## Required implementation and acceptance
 
@@ -540,13 +645,16 @@ Implementation requires:
 1. a rollback-protected genesis-to-high-water finalized transaction scanner,
    plus escrow, Registry, and stablecoin transaction indexes;
 2. deterministic terminal-job classification and exact-asset aggregation;
-3. network, Agent, and Capability export APIs;
+3. historical Registry/manifest/signer attribution and network, Agent, and
+   Capability export APIs;
 4. if operational probes are exposed, a separate response and authority domain;
 5. restart, reorg, pre-window-deployment, duplicate-event,
    conflicting-terminal, incomplete-discovery, partial-coverage,
    code-identity, owner-tombstone, asset-confusion, signed-net-flow, overflow,
    authenticated-block-time, exact-window, percentile, candidate-account,
-   Sybil-label, refund, bounce-retry, and pending-entry/open-pending tests;
+   forged provider-name, missing manifest, wrong execution signer,
+   mid-job transfer/revocation, attribution-unresolved, Sybil-label, refund,
+   bounce-retry, and pending-entry/open-pending tests;
 6. an independent implementation reproducing frozen metric vectors; and
 7. comparison of two independent indexers over the same network, code
    identities, asset, time window, and as-of finalized checkpoint.
