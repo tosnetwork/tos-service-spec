@@ -101,6 +101,8 @@ refine these rules but cannot contradict them.
 - [Production Readiness Runbook V1](docs/PRODUCTION_READINESS_RUNBOOK_V1.md)
   defines custody, monitoring, incident, accounting, release, and emergency
   controls for Gate G.
+- [Agent Packet V1](docs/AGENT_PACKET_V1.md) defines chain-authenticated
+  off-chain Agent-to-Agent packets with replay protection.
 
 ## Normative contract
 
