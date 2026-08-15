@@ -24,15 +24,18 @@
     "tvm_state_hash": "tvm-cell-sha256:1cacaa5cadd01961862244382e8c276bf7f59999dbe3c4df292cd2e810107c86"
   },
   "capability": {
-    "object_id": "cap_fc5672dda1e15f1177d2add7055e906e04009b5dafe596dd603a103cdde8305c",
-    "address": "0:f64c10bb351ab81e73b60d2093b6a50e25bc9b2ba400767b2973a3e4a374f409",
-    "registration_action_hash": "sha256:6d7dc44dbd57d27bfbff609466203c94863c0f7112848f7d5f1328ba023dc85d",
+    "object_id": "cap_bf84b0dcd3fba0b201216cfbc69963b9f6e495c138aed51571bd470be3519bf8",
+    "address": "0:9a9ffcab49841846115ffcd4679160e48a9e4c356919309a4b243b8f181f2807",
+    "registration_action_hash": "sha256:c19e69006733b78b9ab40ff98f8170d8e8afee1330ba7c6ce3473f90bd2090fd",
     "owner_agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
-    "version": "1.0.0",
-    "manifest_digest": "sha256:ca521ef2e00b5380ee99ab3f3e044178834f12718a92fbc8ff2cca51c59711ca",
+    "version": "1.1.0",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
     "generation": 1,
     "sequence": 1,
-    "tvm_state_hash": "tvm-cell-sha256:9db0452a6fa74d47dc1195e5249e5ccd74adfb61fd354ed680befd40a71dc2d8"
+    "tvm_state_hash": "tvm-cell-sha256:94b7c0cb2beab494758a1717371ce5fe50eedd09eb3220a99c2514f5fb41d2f8",
+    "publication_path": "tos-protocol/pkg/providersdk",
+    "manifest_source": "test-vectors/software-work-manifest-v1.json",
+    "canonical_cbor_verified": true
   },
   "security": {
     "controller_key_generated_fresh": true,
