@@ -204,7 +204,10 @@ Deliver:
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public
   deployment and cross-gateway retrieval test remain;
-- ⬜ A2A task and result adapter;
+- 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
+  request/result mapping, finalized-authority gate, and negative tests are
+  implemented; the production chain authorizer, server binding, and fresh
+  interoperability session remain;
 - ⬜ MCP tool adapter;
 - ⬜ optional x402 payment-negotiation adapter;
 - ⬜ gateway-local search with chain-derived fields kept separate; and
@@ -376,8 +379,9 @@ is not implied by Gate C's initial profile.
 14. 🟡 **Active Gate E workstream:** the public Native client, provider SDK and
     deployment template, plus the buyer's canonical purchase preflight and
     crash-safe bounded funding journal, plus the minimal authority-neutral
-    Capability catalog and manifest API, are implemented. Next build the A2A
-    task/result adapter. In parallel, deploy and cross-check discovery, add the
+    Capability catalog/manifest API, and the authority-gated A2A task/result
+    mapping are implemented. Next build the MCP tool adapter and finish the A2A
+    production authorizer/server binding. In parallel, deploy and cross-check discovery, add the
     production `tosctl` stablecoin sender, and run the fresh
     provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues

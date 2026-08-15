@@ -79,6 +79,8 @@ refine these rules but cannot contradict them.
   first SDK and deployment-template workflow without gateway-owned facts.
 - [Gate E Buyer Onboarding](docs/GATE_E_BUYER_ONBOARDING.md) defines canonical
   Quote review, bounded stablecoin funding, and crash-safe buyer recovery.
+- [A2A Software-Work Adapter V1](docs/A2A_ADAPTER_V1.md) maps official A2A
+  Tasks and results into the same finalized Native commercial lifecycle.
 
 ## Normative contract
 
