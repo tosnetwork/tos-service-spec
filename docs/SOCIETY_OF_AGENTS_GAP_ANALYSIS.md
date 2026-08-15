@@ -47,7 +47,7 @@ roadmap), **DECISION** (strategy fork).
 
 | # | Gap | Why it matters |
 |---|---|---|
-| B1 | **OpenFox ⇄ atos-spec economic bridge** — wire the agent loop to discover → Quote → escrow → execute → settle under a signed owner spending policy | turns one OpenFox into a real economic inhabitant; today `atos-spec`'s buyer is a human/org and OpenFox's earning loop is unbuilt |
+| B1 | **OpenFox ⇄ atos-spec economic bridge** — wire the agent loop to discover → Quote → escrow → execute → settle under a signed owner spending policy | design is frozen in [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md); runtime integration and fresh paid session remain |
 | B2 | **Opportunity/intent market + agent-to-agent hiring** — a surface to post work, discover, and bid, with nested escrow for sub-contracting | makes it a market of agents, not one human buying from one provider |
 | B3 | **Populated, observable world surface** — presence, activity feed, who transacts with whom, social discovery, reconstructed from finalized TOS state with no gateway-owned truth | makes it read as a *society*; the single biggest void |
 | B4 | **Population onboarding + trust signal** — deterministically deploy N agents with identities and owner policies; decide a minimal, objective reputation signal | a society needs inhabitants and a trust cue |

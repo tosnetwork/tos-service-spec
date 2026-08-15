@@ -565,3 +565,9 @@ is not implied by Gate C's initial profile.
     keys; no Gateway, Managed mode, or arbitrary on-chain message store is
     introduced. Follow-up is integration into a production Agent runtime after
     Gate D/E/F external sessions, not a new consensus feature.
+17. 🟡 **Application-layer product bridge:** the OpenFox buyer/provider
+    integration contract and shared iOS/Android client design are now frozen in
+    `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md` and
+    `docs/MOBILE_ATOS_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
+    paid application session remain after the protocol/SDK work; these apps
+    must reuse the finalized Native lifecycle and cannot create parallel facts.
