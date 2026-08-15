@@ -83,6 +83,8 @@ refine these rules but cannot contradict them.
   Tasks and results into the same finalized Native commercial lifecycle.
 - [MCP Software-Work Tool Adapter V1](docs/MCP_ADAPTER_V1.md) exposes that
   lifecycle as one authority-gated, purchase-bound MCP tool.
+- [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
+  shared finalized-chain and atomic cross-transport admission boundary.
 
 ## Normative contract
 

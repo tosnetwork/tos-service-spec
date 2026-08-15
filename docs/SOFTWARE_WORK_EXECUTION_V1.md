@@ -24,6 +24,11 @@ A V1 job contains only:
 - a non-zero SHA-256 source-archive digest; and
 - the exact source archive bytes.
 
+Before a job enters this boundary, `NATIVE_EXECUTION_GATE_V1.md` also requires
+the transport to supply the exact escrow address and atomically binds the paid
+purchase to this job. The escrow address is chain-location input to the Gate,
+not a runner-selected execution parameter.
+
 The provider configuration, not the request, supplies the manifest digest,
 toolchain image digest, sandbox-policy digest, executable, arguments, working
 directory, Unix identity, and resource ceilings. The source digest is checked

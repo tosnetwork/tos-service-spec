@@ -45,6 +45,15 @@ Quote-acceptance, execution, Receipt, or settlement claim; the implementation
 status below supersedes that historical baseline and must be bound to new exact
 commit hashes before public deployment.
 
+The shared Gate E execution-admission implementation is `tos-protocol` commit
+`521804070ee9a8d24f692fba62ac592fe42e2614` and `tos-ai` commit
+`f58346666f71edcb4b43daedca252ee2a39cc863`. It adds canonical Accepted Quote
+decode, finalized escrow/Agent/Capability verification, one atomic durable
+purchase-intent record shared by transports, monotonic three-object finality
+evidence, and official A2A JSON-RPC and MCP streamable-HTTP bindings. This is
+implementation evidence, not the fresh external interoperability evidence
+required to accept Gate E.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -205,13 +214,13 @@ Deliver:
   protobuf service, and gateway handlers are implemented; a clean public
   deployment and cross-gateway retrieval test remain;
 - 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
-  request/result mapping, finalized-authority gate, and negative tests are
-  implemented; the production chain authorizer, server binding, and fresh
-  interoperability session remain;
+  request/result mapping, shared production finalized-chain execution Gate,
+  synchronous JSON-RPC server binding, and negative tests are implemented;
+  operator listener hardening and a fresh interoperability session remain;
 - 🟡 MCP tool adapter — official MCP 2026-07-28 typed tool registration,
-  committed input/result mapping, unique execution-claim gate, and negative
-  tests are implemented; production chain gate, server transport, and fresh
-  interoperability remain;
+  committed input/result mapping, shared production finalized-chain execution
+  Gate, stateless streamable-HTTP binding, and negative tests are implemented;
+  operator listener hardening and fresh interoperability remain;
 - ⬜ optional x402 payment-negotiation adapter;
 - ⬜ gateway-local search with chain-derived fields kept separate; and
 - ⬜ examples that require no operator database edits or hidden control service.
@@ -383,9 +392,11 @@ is not implied by Gate C's initial profile.
     deployment template, plus the buyer's canonical purchase preflight and
     crash-safe bounded funding journal, plus the minimal authority-neutral
     Capability catalog/manifest API, and the authority-gated A2A task/result
-    mapping and MCP tool adapter are implemented. Next finish their shared
-    production chain execution-claim gate and server bindings, then evaluate
-    the optional x402 negotiation adapter. In parallel, deploy and cross-check discovery, add the
+    mapping, MCP tool adapter, shared production chain execution-claim Gate,
+    and official server bindings are implemented. Next configure the Gate
+    against the public test network, harden the public listener boundary, and
+    run fresh cross-transport interoperability; then evaluate the optional
+    x402 negotiation adapter. In parallel, deploy and cross-check discovery, add the
     production `tosctl` stablecoin sender, and run the fresh
     provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues

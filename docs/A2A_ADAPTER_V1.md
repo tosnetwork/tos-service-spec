@@ -24,14 +24,14 @@ The user-role A2A Message contains exactly two Parts and exactly the extension
 URI above:
 
 1. `application/vnd.atos.a2a.software-work-task.v1+json` Data containing only
-   `protocol`, `quote_commitment`, `execution_id`, `input_digest`, and
-   `source_digest`;
+   `protocol`, `escrow_address`, `quote_commitment`, `execution_id`,
+   `input_digest`, and `source_digest`;
 2. `application/vnd.atos.software-source.v1+tar` raw bytes named `source.tar`.
 
 `protocol` is exactly `atos_native_v1`. Quote and SHA-256 digests use their
 canonical lowercase forms. The source digest is SHA-256 over the exact raw
 Part. The input digest is SHA-256 over this domain prefix plus canonical JSON
-of protocol, Quote commitment, execution ID, and source digest:
+of protocol, escrow address, Quote commitment, execution ID, and source digest:
 
 ```text
 atos.a2a.software-work-input.v1 || 0x00 || canonical_binding_json
@@ -47,14 +47,16 @@ Before the runner is called, the provider adapter must independently verify
 from finalized TOS state and atomically claim the Quote/escrow execution slot:
 
 - exact network and Registry identity;
-- active Capability and version plus manifest digest;
+- live provider Agent, plus active Capability and version and manifest digest;
 - Accepted Quote commitment and execution authorization;
 - exact funded stablecoin escrow; and
-- a nonzero finalized checkpoint.
+- authenticated chain references and nonzero finalized checkpoints for escrow,
+  Agent, and Capability.
 
-The claim binds Quote commitment, escrow, execution ID, and input digest. A
-second execution identity for one paid purchase is a conflict, even if the
-escrow remains funded.
+The shared Native Execution Gate binds Quote commitment, escrow, execution ID,
+input digest, and source digest in one atomic record. A second execution intent
+or a claim through another transport for one paid purchase is a conflict, even
+if the escrow remains funded. `NATIVE_EXECUTION_GATE_V1.md` freezes this rule.
 
 The A2A sender, Message metadata, bearer credential, task ID, endpoint, and
 gateway are not evidence for any of these facts. Failure is fail-closed and no
@@ -88,6 +90,7 @@ never executed again automatically.
 Unit and race tests must prove exact request mapping, mutation rejection before
 authority reads, finalized authorization before execution, terminal failure
 mapping, conflicting-runner rejection, HTTPS-only result locations, and exact
-result commitments. Gate E additionally requires an official A2A server
-binding, a production finalized-state authorizer, and a fresh buyer/provider
-interoperability session.
+result commitments. The official synchronous JSON-RPC server binding and the
+production finalized-state Gate are implemented. Gate E additionally requires
+operator listener hardening and a fresh buyer/provider interoperability
+session.
