@@ -281,7 +281,11 @@ Deliver:
 - 🟡 minimal finalized-state Capability index and manifest retrieval — the
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public
-  deployment and cross-gateway retrieval test remain;
+  same-host deployment published, searched, and retrieved the fresh
+  Capability exclusively through the public Connect API without catalog file
+  edits, recorded in
+  `deployments/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; an
+  independently operated cross-gateway retrieval test remains;
 - 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
   request/result mapping, shared production finalized-chain execution Gate,
   synchronous JSON-RPC server binding, and negative tests are implemented;

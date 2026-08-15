@@ -80,5 +80,19 @@
     ],
     "stress_race_tests_passed": true
   },
+  "public_gateway_catalog": {
+    "deployment": "fresh owner-private empty catalog behind a fresh ATOS public Connect gateway",
+    "operator_database_edits": false,
+    "publish_scope": "native.relay",
+    "publish_manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "publish_capability_checkpoint": 157356,
+    "search_scope": "native.read",
+    "search_query": "deterministic test",
+    "search_match_score_gateway_local": 16,
+    "search_capability_checkpoint": 157371,
+    "get_returned_exact_canonical_cbor": true,
+    "read_token_publish_negative_test": "permission_denied",
+    "gateway_semantic_authority": false
+  },
   "verdict": "PASS_LOCAL_FRESH_PROVIDER_BUYER_AND_RECEIPT_SETTLEMENT"
 }
