@@ -369,8 +369,11 @@ Deliver:
   zero Gateway inputs;
 - 🟡 public relay, resolver, Quote, and Receipt conformance tests — local relay
   and resolver tests exist; public Quote conformance and portable Receipt
-  conformance now exist locally, but an independently operated public Receipt
-  session does not;
+  conformance now exist locally. `tos-protocol` commits `f000e6d` and `b83515b`
+  add the strict bundle packer, quorum checker, and parser negative tests;
+  `atos-spec` commits `92129a5` and `e0ea5c6` publish the template and operator
+  runbook. An independently operated public Receipt session still does not
+  exist;
 - ⬜ at least two independently operated gateways;
 - ⬜ at least three independently operated providers; and
 - ⬜ at least ten useful, purchasable Capabilities in the proven profile.
@@ -528,10 +531,13 @@ is not implied by Gate C's initial profile.
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.
-15. 🟡 **Active Gate F engineering:** client-side federated Capability search,
+15. 🟡 **Active Gate F external acceptance:** client-side federated Capability search,
     exact-digest manifest failover, complete-preimage Quote Proposal exchange,
     finalized provider-state construction, and local two-Gateway failover are
-    complete. Canonical public error/retry details and portable safe-handoff
-    verification are also complete. Next run the independently operated public
-    Receipt session and recruit two Gateways, three providers, ten useful
-    Capabilities, and recurring buyers for external market acceptance.
+    complete. Canonical public error/retry details, portable safe-handoff
+    verification, the bundle packer, and the quorum checker are also complete.
+    The next executable task is an independent buyer/provider/resolver session:
+    create a complete bundle with `native-safe-handoff-pack`, stop the original
+    Gateway, and verify it with `native-safe-handoff-check` against three
+    validator endpoints. Then recruit two independently operated Gateways,
+    three providers, ten useful Capabilities, and recurring buyers.
