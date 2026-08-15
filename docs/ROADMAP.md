@@ -82,6 +82,14 @@ stablecoin wallet, and funded amount from the three-node chain at checkpoint
 idempotency evidence; the documented fresh-buyer acceptance session remains
 outstanding.
 
+Gateway-local Capability search is defined in `atos-spec` commit
+`c3ed72086798275021e1a45964f3b7d6d9d3eb5c`, implemented in `tos-protocol`
+commit `f3223ed7f9ceca54fd03298ce60aabd666b1e76c`, and exposed by `atos` commit
+`2981f6484e5310d2176717649cf41c50828c99ab`. Every result freshly resolves finalized Registry state and keeps its
+chain-selected version and manifest digest separate from explicitly local
+manifest metadata and match score. Pagination is Capability-ID ordered, so no
+gateway ranking becomes a cursor or protocol fact.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -251,7 +259,7 @@ Deliver:
   Gate, stateless streamable-HTTP binding, and negative tests are implemented;
   operator listener hardening and fresh interoperability remain;
 - ⬜ optional x402 payment-negotiation adapter;
-- ⬜ gateway-local search with chain-derived fields kept separate; and
+- ✅ gateway-local search with chain-derived fields kept separate; and
 - ⬜ examples that require no operator database edits or hidden control service.
 
 Accept when a new provider publishes and sells the software-work Capability and
