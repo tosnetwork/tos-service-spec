@@ -100,3 +100,9 @@ external exercises have occurred.
 readable evidence shape. It must remain a template until every `REQUIRED`
 field is replaced, two reproducible builds match, and each operator signs the
 multi-operator exercise record.
+
+Before publication, run
+`python3 scripts/verify-production-readiness-evidence.py <evidence.json>`.
+The validator intentionally rejects the template and any record that lacks a
+strict-majority diverse endpoint set, all operational drills, reproducible
+build proof, or three operator signatures.
