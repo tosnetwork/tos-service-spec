@@ -44,3 +44,13 @@ state reconstruction. The referenced files in `artifacts/` are named by their
 SHA-256 digests and must be rehashed before use. This is complete local Gate D
 evidence, but it is not the external commercial acceptance required by the
 Roadmap.
+
+A second fresh same-host rehearsal using the custody-safe two-stage Receipt
+signing flow is recorded in
+`initial-public-testnet-gate-d-local-preflight-2026-08-14.json`, with its exact
+Quote and escrow deployment in the adjacent `-quote-` and `-escrow-` records.
+It proves the provider-wallet balance delta from a finalized funded checkpoint
+rather than assuming an initially empty provider wallet. The new immutable
+artifact and report are stored in `artifacts/` under their SHA-256 names. This
+record is explicitly a local preflight and does not satisfy external operator
+independence.

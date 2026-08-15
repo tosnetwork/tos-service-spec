@@ -1,0 +1,49 @@
+{
+  "schema": "atos.accepted-quote.v1.vector",
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8"
+  },
+  "quote": {
+    "proposal_id": "local-preflight-2026-08-14",
+    "capability_id": "cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657",
+    "capability_version": "1.2.0",
+    "provider_agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "transport_binding_digest": "sha256:dca9babcd44775f2c19ef571964c01e2e75b15254d0d16f2349c8d446f76c44c",
+    "asset": {
+      "workchain": 0,
+      "master_account_id": "ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a",
+      "master_code_hash": "tvm-cell-sha256:18d5b6e780ff0bb451254c2c760d09d6e485638cd1407abb97078752c3c1c9ee",
+      "wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
+      "decimals": 6
+    },
+    "maximum_atomic_amount": "25000000",
+    "escrow_terms_digest": "sha256:48f606cd88f1e7ffc300a735718b32702d2b102045d3609464f80aaf0a100065",
+    "dispute_policy_digest": "sha256:1b42dbb0f12cc0a7b389c897da9194262dc72c98c84cfdbaa652e82cdbd76345",
+    "expires_at_unix_seconds": 1786834846,
+    "execution_signer_authorization": "sha256:ef5c8ff10a5016d6414b3bdbbcaedd6129bf5b70097841659c594112fd564350",
+    "escrow_terms": {
+      "buyer_address": "0:3bfd60c6354fa731bf8e08f3854852530f57c172fad2f140bc71521588103831",
+      "provider_address": "0:4314a3b2ea1eb6723df594ea257918373af90beb81a5ea3882d0d34966c148bd",
+      "funding_deadline_unix_seconds": 1786834846,
+      "refund_available_at_unix_seconds": 1786921246
+    },
+    "execution_signer_public_key_hex": "2a5f8d7eb3fd588f7a18c3262942930ffebefe8ee426e7a26491c9b6338c5aa4",
+    "transport_binding": {
+      "security_mode": 0,
+      "max_request_bytes": 16777216,
+      "base_url": "http://127.0.0.1:8080"
+    },
+    "dispute_policy": {
+      "mode": 0,
+      "release_rule": 1,
+      "refund_rule": 1
+    }
+  },
+  "expected": {
+    "commitment": "tvm-cell-sha256:382fea8fa6052e3c2f99cc2e2fccdd4101818cb3106845451d4de0fefec8c96f",
+    "boc_base64": "te6cckECCQEAAfoABAxOQVExAAEBAgMEAMD70TjTf36Og+y4+mbMpU2uZX42LqFurSWbahh243z8LL3YBvwJG7PJbMZX/swWCph+9BrPLjbN/cGeFHI+BoPYBPt3Rsiu4LDyljJLnyvuWU/2nwy47nz0oHoVTGcOJgkBgMF0WCR9RpnNdF123T0g332v1Wy/8j6FlWrxJZt32eZXWtibzy0lvV56U+Nul2hR/RuTfXDC8NuAoY98uvzKG+QFAoBI9gbNiPHn/8MApzVxizJwLSsQIEXTYJRk+AqvChAAZRtC27DxLMCns4nIl9qRlCYtxyyYyEz9uqZS6Czb12NFBgcAQO9cj/EKUBbWQUs727yu3WEpv1twCXhBZZxZQRL9VkNQAdCfdwNLHrV9JPIax962XJzJn2O3J3XjEfHygKsrbC4Gop05otP1w0pL/rYzJGgeD0V0N7dW/7edqKFoGqeb+fPl3Km6vNRHdfLBnvVxlkwB4udbFSVNDRbyNJyNRG92xEwAAAAAaoDvnggAygAAAADKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSahjVtueA/wu0USVMLHYNCdbkhWOM0UB6u5cHh1LDwcnuj0Utek39dAZraCNlF3JZ7QVzRDW+drX9S9XYryt8PWgGABAyNTAwMDAwMAAKMS4yLjA1tmyn"
+  }
+}

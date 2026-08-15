@@ -12,7 +12,7 @@ for Gate D status.
 Gate D's implementation is complete; the only remaining acceptance condition is
 **external independence**: one buyer outside the core team pays one independently
 operated provider, and a third party reconstructs the result from finalized TOS
-state. The recorded `2026-08-14` transaction is a same-host rehearsal and does
+state. The recorded `2026-08-14` transactions are same-host rehearsals and do
 **not** satisfy this.
 
 > **Before scheduling, read §9.** Only the **release** outcome is independently
@@ -41,7 +41,7 @@ These carry to any network and must match exactly.
 |---|---|
 | Software-work profile | V1 only |
 | Registry contract code hash | `tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0` |
-| Capability version | `1.1.0` |
+| Executable Capability version used by the latest rehearsal | `1.2.0` |
 | Canonical manifest / Accepted Quote / Receipt encodings | frozen in this repository (`SOFTWARE_WORK_MANIFEST_V1.md`, `ACCEPTED_QUOTE_TVM_V1.md`, `SOFTWARE_WORK_RECEIPT_TVM_V1.md`, `STABLECOIN_ESCROW_TVM_V1.md`) |
 | Pinned executor OCI toolchain (Go 1.26.5) index digest | `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105` |
 | Strict verifier | `tos/scripts/atos-software-work-paid-evidence.py`, run via `tos/test/tostester`, quorum 2 |
@@ -110,6 +110,7 @@ uv run --project test/tostester python \
   --endpoint https://operator-c.example/jsonRPC \
   --quorum 2 \
   --funding-query-id NON_ZERO_QUERY_ID \
+  --funded-checkpoint FINALIZED_PRE_RELEASE_CHECKPOINT \
   --evidence paid-software-work-evidence.json
 ```
 
@@ -129,12 +130,14 @@ Accept only when it returns `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT`.
   "release_commits": {"tos": "", "tos_protocol": "", "atos_spec": ""},
   "network": {"network_id": "", "genesis_root_hash": "", "genesis_file_hash": "",
               "registry_code_hash": "tvm-cell-sha256:600f2fda…a91ffa0"},
-  "capability": {"id": "", "version": "1.1.0"},
+  "capability": {"id": "", "version": "1.2.0"},
   "stablecoin": {"master": "", "wallet_code_hash": ""},
   "accepted_quote": {"commitment": "", "cell": ""},
   "receipt": {"boc_hash": "", "commitment": ""},
   "artifacts": {"artifact_digest": "", "report_digest": ""},
   "escrow": {"address": "", "funded_amount": "", "settled_amount": "",
+             "funded_checkpoint": "", "settlement_checkpoint": "",
+             "provider_balance_before": "", "provider_balance_after": "",
              "provider_credit": "", "release_query_id": ""},
   "endpoints": [
     {"url": "", "operator_org": ""},
@@ -171,7 +174,7 @@ assurance levels are not equal, so this determines what the pilot can prove.
 
 | Outcome | Emulator test | On-chain rehearsal | Independent evidence verifier |
 |---|---|---|---|
-| **Release** | complete | complete (25,000,000 tUSDT settled) | `atos-software-work-paid-evidence.py`, dry-verified end to end against live finalized state → `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT` |
+| **Release** | complete | complete (two fresh 25,000,000 tUSDT settlements) | `atos-software-work-paid-evidence.py`, verified end to end against live finalized pre-release and settlement checkpoints, including the exact provider balance delta → `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT` |
 | **Timeout refund** | complete (`atos_stablecoin_escrow_sandbox::timeout_refunds_the_complete_stablecoin_balance`) | none | none — the paid-evidence verifier is release-specific: it requires a release body (`0x4E450001`) and a Receipt, which a refund has neither |
 
 Consequences:

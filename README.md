@@ -72,6 +72,9 @@ refine these rules but cannot contradict them.
 - [Gate D External Pilot](docs/GATE_D_EXTERNAL_PILOT.md) defines the independent
   buyer, provider, and verifier procedure required to accept the first
   commercial lifecycle.
+- [Gate D Pilot Readiness Packet](docs/GATE_D_PILOT_READINESS.md) assembles the
+  fixed inputs, role checklists, verifier command, and acceptance record for
+  those independent operators.
 
 ## Normative contract
 

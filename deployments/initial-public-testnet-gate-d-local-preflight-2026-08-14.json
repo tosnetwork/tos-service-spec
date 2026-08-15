@@ -1,0 +1,207 @@
+{
+  "schema": "atos.native.paid-software-work.v1",
+  "capability_version": "1.2.0",
+  "capability_id": "cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657",
+  "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+  "quote_commitment": "tvm-cell-sha256:382fea8fa6052e3c2f99cc2e2fccdd4101818cb3106845451d4de0fefec8c96f",
+  "escrow_address": "EQDGDPuiMg1YjrKGjX6AYWFoe0HtAJDvD1v0P4Vb1MZTbiU0",
+  "funding": {
+    "query_id": 1786748501,
+    "amount_atomic": "25000000",
+    "finalized_checkpoint": 113270
+  },
+  "execution": {
+    "quote_commitment": "tvm-cell-sha256:382fea8fa6052e3c2f99cc2e2fccdd4101818cb3106845451d4de0fefec8c96f",
+    "execution_id": "sha256:905907f1a995fc60d90633c380a9b987eefef6fb1d1d8542ad18380a53749561",
+    "input_digest": "sha256:e4c07136e299d159bb59ed53154d60b2491c8aa7dc7ee67db474f2d344636e84",
+    "result_digest": "sha256:8330b24a54c2749812e46874f06a332eee54352923ae00c063edb8249f07832a",
+    "artifact": {
+      "Digest": "sha256:8481615c9fd597636d7df70f93b393a4c7feb08e56384c94d632ac61730497af",
+      "MediaType": "application/vnd.atos.software-artifact.v1+tar",
+      "SizeBytes": 3072
+    },
+    "report": {
+      "Digest": "sha256:d3c1f79a508bdfbe67e95f6e59501f48997df45bac6f45b15ecd044c67ab998a",
+      "MediaType": "application/vnd.atos.test-report.v1+json",
+      "SizeBytes": 355
+    },
+    "source_digest": "sha256:71757ceace73a17ba11f3b03691fc865ca65ad2771af5fd91f70c03093ca3a80",
+    "toolchain_digest": "sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105",
+    "sandbox_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "exit_code": 0,
+    "completed_at_unix": 1786748747
+  },
+  "release": {
+    "schema": "atos.native.software-work-settlement-release.v1",
+    "receipt_commitment": "tvm-cell-sha256:8bf4cce35d1662645b107b8c1c20ad656e5de3bd8c1c8d9ef7afb7fbf291978d",
+    "receipt_boc_base64": "te6cckECBQEAAXAABCROV1IxAAEAAAAAan+fSwAAAAABAgMEAMA4L+qPpgUuPC+ZzC4vzN1BAYGMsxBoRUUdTeD+/sjJb5BZB/Gplfxg2QYzw4CpuYfu/vb7HR2FQq0YOApTdJVh5MBxNuKZ0Vm7We1TFU1gskkciqfcfuZ9tHTy00RjboQAwIMwskpUwnSYEuRodPBqMy7uVDUpI64AwGPtuCSfB4MqhIFhXJ/Vl2NtffcPk7OTpMf+sI5WOEyU1jKsYXMEl6/TwfeaUIvfvmfpX25ZUB9ImX30W6xvRbFezQRMZ6uZigDAcXV86s5zoXuhHzsDaR/IZcplrSdxr1/ZH3DAMJPKOoCWJLynQJb4EMWyTkiVId3hJPrc+hgIWBZIs4vcG6GxBZ05otP1w0pL/rYzJGgeD0V0N7dW/7edqKFoGqeb+fPlAGAAAAAAAAAAAAAAAAABfXhAWtibzy0lvV56U+Nul2hR/RuTfXDC8NuAoY98uvzKG+TzkGvN",
+    "settlement_intent": "tvm-cell-sha256:6da6b236cabb87bf2a7ed57fb101d77c2a161f85359890cb7ad27627d76f157c",
+    "signing_payload_hex": "6da6b236cabb87bf2a7ed57fb101d77c2a161f85359890cb7ad27627d76f157c",
+    "execution_signer_public_key_hex": "2a5f8d7eb3fd588f7a18c3262942930ffebefe8ee426e7a26491c9b6338c5aa4",
+    "query_id": 1786749001,
+    "signature_hex": "f34b690def58263eca27149ca2a9bd08670fd15da45b1dba997119861aed82dfd287e4f4219a3f70943ba81a9954d3c5ec76bbb9fefccbe3d7e53890649b3e00",
+    "release_body_boc_base64": "te6cckECBgEAAb8AAZhORQABAAAAAGp/oEnzS2kN71gmPsonFJyiqb0IZw/RXaRbHbqZcRmGGu2C39KH5PQhmj9wlDuoGplU08Xsdru5/vzL49flOJBkmz4AAQQkTldSMQABAAAAAGp/n0sAAAAAAgMEBQDAOC/qj6YFLjwvmcwuL8zdQQGBjLMQaEVFHU3g/v7IyW+QWQfxqZX8YNkGM8OAqbmH7v72+x0dhUKtGDgKU3SVYeTAcTbimdFZu1ntUxVNYLJJHIqn3H7mfbR08tNEY26EAMCDMLJKVMJ0mBLkaHTwajMu7lQ1KSOuAMBj7bgknweDKoSBYVyf1ZdjbX33D5Ozk6TH/rCOVjhMlNYyrGFzBJev08H3mlCL375n6V9uWVAfSJl99Fusb0WxXs0ETGermYoAwHF1fOrOc6F7oR87A2kfyGXKZa0nca9f2R9wwDCTyjqAliS8p0CW+BDFsk5IlSHd4ST63PoYCFgWSLOL3BuhsQWdOaLT9cNKS/62MyRoHg9FdDe3Vv+3naihaBqnm/nz5QBgAAAAAAAAAAAAAAAAAX14QFrYm88tJb1eelPjbpdoUf0bk31wwvDbgKGPfLr8yhvkhGVPFw=="
+  },
+  "receipt": {
+    "quote_commitment": "tvm-cell-sha256:382fea8fa6052e3c2f99cc2e2fccdd4101818cb3106845451d4de0fefec8c96f",
+    "execution_id": "sha256:905907f1a995fc60d90633c380a9b987eefef6fb1d1d8542ad18380a53749561",
+    "input_digest": "sha256:e4c07136e299d159bb59ed53154d60b2491c8aa7dc7ee67db474f2d344636e84",
+    "result_digest": "sha256:8330b24a54c2749812e46874f06a332eee54352923ae00c063edb8249f07832a",
+    "artifact_digest": "sha256:8481615c9fd597636d7df70f93b393a4c7feb08e56384c94d632ac61730497af",
+    "report_digest": "sha256:d3c1f79a508bdfbe67e95f6e59501f48997df45bac6f45b15ecd044c67ab998a",
+    "source_digest": "sha256:71757ceace73a17ba11f3b03691fc865ca65ad2771af5fd91f70c03093ca3a80",
+    "toolchain_digest": "sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105",
+    "sandbox_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "charged_atomic_amount": "25000000",
+    "provider_agent_id": "agent_5ad89bcf2d25bd5e7a53e36e976851fd1b937d70c2f0db80a18f7cbafcca1be4",
+    "completed_at_unix": 1786748747,
+    "exit_code": 0
+  },
+  "provider_wallet": "EQCzUwtoLxFZjSI1PQMhulsp4j665-RgoP3C90OX-btu7bOJ",
+  "artifacts": [
+    "sha256-8481615c9fd597636d7df70f93b393a4c7feb08e56384c94d632ac61730497af.tar",
+    "sha256-d3c1f79a508bdfbe67e95f6e59501f48997df45bac6f45b15ecd044c67ab998a.json"
+  ],
+  "quorum": 2,
+  "quorum_votes": 3,
+  "endpoint_verification": [
+    {
+      "endpoint": "http://127.0.0.1:8011/jsonRPC",
+      "funded_checkpoint": 113270,
+      "funded_block_root_hash": "Uy0T+LYc+dXJOPaI2gG56tGuqnwjp6YqmVfVwCqTXAc=",
+      "funded_block_file_hash": "sc/EIZJ9yG3r5a6VtloZ9zk8fX1US+6taGdoEr6Ksm8=",
+      "funded_escrow_data_hash": "tvm-cell-sha256:bbd27a5a023c0613b06d403492d8f27b304a68db2d75bce524f3a188b8214137",
+      "funded_provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "funded_escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "provider_balance_before_atomic": "25000000",
+      "provider_wallet_transaction_before": {
+        "logical_time": 115694000005,
+        "hash": "sha256:613fc7ae787206a8e83d5dab28ab4a2eeff8e0fdcb3de5872adbe171950b6ddc"
+      },
+      "checkpoint": 113426,
+      "block_root_hash": "VroKJrkBCqUGhigg78F48kmXHik26dBA7aU/UgDsibI=",
+      "block_file_hash": "/lEvhOe+Gk1Pbti4XfDcNhlGS8EIs457YoZJmTx1y5g=",
+      "escrow_data_hash": "tvm-cell-sha256:0ace0ddd5d3c068088248289c2c91e829e74a8053234d99ae92cd68ad92c28c3",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:d5a5342f65aa469ea5677e8b70747ea9e6232dc4d99bc3469eeb89c0f634bbea",
+      "provider_wallet_data_hash": "tvm-cell-sha256:5f7851d86cf5e893fe2a25251fbf7ea8c10eb943e39f78f05d73bd7040b13eeb",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:8bf4cce35d1662645b107b8c1c20ad656e5de3bd8c1c8d9ef7afb7fbf291978d",
+        "pending_query_id": 1786749001
+      },
+      "buyer_balance_atomic": "999950000000",
+      "provider_balance_atomic": "50000000",
+      "escrow_transaction": {
+        "logical_time": 137900000007,
+        "hash": "sha256:8554aca9563673656f3704752cc5287a149cbd016ba9d7b7d232abf2887c4d96"
+      },
+      "provider_wallet_transaction": {
+        "logical_time": 137900000005,
+        "hash": "sha256:0e29924cf1c93d709a85a58fff3d4ada4a76c3b2aaecfb975f29ff376de6a0e5"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8012/jsonRPC",
+      "funded_checkpoint": 113270,
+      "funded_block_root_hash": "Uy0T+LYc+dXJOPaI2gG56tGuqnwjp6YqmVfVwCqTXAc=",
+      "funded_block_file_hash": "sc/EIZJ9yG3r5a6VtloZ9zk8fX1US+6taGdoEr6Ksm8=",
+      "funded_escrow_data_hash": "tvm-cell-sha256:bbd27a5a023c0613b06d403492d8f27b304a68db2d75bce524f3a188b8214137",
+      "funded_provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "funded_escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "provider_balance_before_atomic": "25000000",
+      "provider_wallet_transaction_before": {
+        "logical_time": 115694000005,
+        "hash": "sha256:613fc7ae787206a8e83d5dab28ab4a2eeff8e0fdcb3de5872adbe171950b6ddc"
+      },
+      "checkpoint": 113426,
+      "block_root_hash": "VroKJrkBCqUGhigg78F48kmXHik26dBA7aU/UgDsibI=",
+      "block_file_hash": "/lEvhOe+Gk1Pbti4XfDcNhlGS8EIs457YoZJmTx1y5g=",
+      "escrow_data_hash": "tvm-cell-sha256:0ace0ddd5d3c068088248289c2c91e829e74a8053234d99ae92cd68ad92c28c3",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:d5a5342f65aa469ea5677e8b70747ea9e6232dc4d99bc3469eeb89c0f634bbea",
+      "provider_wallet_data_hash": "tvm-cell-sha256:5f7851d86cf5e893fe2a25251fbf7ea8c10eb943e39f78f05d73bd7040b13eeb",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:8bf4cce35d1662645b107b8c1c20ad656e5de3bd8c1c8d9ef7afb7fbf291978d",
+        "pending_query_id": 1786749001
+      },
+      "buyer_balance_atomic": "999950000000",
+      "provider_balance_atomic": "50000000",
+      "escrow_transaction": {
+        "logical_time": 137900000007,
+        "hash": "sha256:8554aca9563673656f3704752cc5287a149cbd016ba9d7b7d232abf2887c4d96"
+      },
+      "provider_wallet_transaction": {
+        "logical_time": 137900000005,
+        "hash": "sha256:0e29924cf1c93d709a85a58fff3d4ada4a76c3b2aaecfb975f29ff376de6a0e5"
+      }
+    },
+    {
+      "endpoint": "http://127.0.0.1:8013/jsonRPC",
+      "funded_checkpoint": 113270,
+      "funded_block_root_hash": "Uy0T+LYc+dXJOPaI2gG56tGuqnwjp6YqmVfVwCqTXAc=",
+      "funded_block_file_hash": "sc/EIZJ9yG3r5a6VtloZ9zk8fX1US+6taGdoEr6Ksm8=",
+      "funded_escrow_data_hash": "tvm-cell-sha256:bbd27a5a023c0613b06d403492d8f27b304a68db2d75bce524f3a188b8214137",
+      "funded_provider_wallet_data_hash": "tvm-cell-sha256:99847ef6981952e8b63878a0b996ef2b4597eb17defb458ce42be8084f12002e",
+      "funded_escrow": {
+        "status": 1,
+        "funded_atomic": "25000000",
+        "settled_atomic": "0",
+        "receipt_commitment": "tvm-cell-sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "pending_query_id": 0
+      },
+      "provider_balance_before_atomic": "25000000",
+      "provider_wallet_transaction_before": {
+        "logical_time": 115694000005,
+        "hash": "sha256:613fc7ae787206a8e83d5dab28ab4a2eeff8e0fdcb3de5872adbe171950b6ddc"
+      },
+      "checkpoint": 113426,
+      "block_root_hash": "VroKJrkBCqUGhigg78F48kmXHik26dBA7aU/UgDsibI=",
+      "block_file_hash": "/lEvhOe+Gk1Pbti4XfDcNhlGS8EIs457YoZJmTx1y5g=",
+      "escrow_data_hash": "tvm-cell-sha256:0ace0ddd5d3c068088248289c2c91e829e74a8053234d99ae92cd68ad92c28c3",
+      "buyer_wallet_data_hash": "tvm-cell-sha256:d5a5342f65aa469ea5677e8b70747ea9e6232dc4d99bc3469eeb89c0f634bbea",
+      "provider_wallet_data_hash": "tvm-cell-sha256:5f7851d86cf5e893fe2a25251fbf7ea8c10eb943e39f78f05d73bd7040b13eeb",
+      "escrow": {
+        "status": 2,
+        "funded_atomic": "25000000",
+        "settled_atomic": "25000000",
+        "receipt_commitment": "tvm-cell-sha256:8bf4cce35d1662645b107b8c1c20ad656e5de3bd8c1c8d9ef7afb7fbf291978d",
+        "pending_query_id": 1786749001
+      },
+      "buyer_balance_atomic": "999950000000",
+      "provider_balance_atomic": "50000000",
+      "escrow_transaction": {
+        "logical_time": 137900000007,
+        "hash": "sha256:8554aca9563673656f3704752cc5287a149cbd016ba9d7b7d232abf2887c4d96"
+      },
+      "provider_wallet_transaction": {
+        "logical_time": 137900000005,
+        "hash": "sha256:0e29924cf1c93d709a85a58fff3d4ada4a76c3b2aaecfb975f29ff376de6a0e5"
+      }
+    }
+  ],
+  "verdict": "PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT",
+  "acceptance_profile": "same-host-preflight-not-external-acceptance",
+  "operator_independence": false,
+  "public_internet_reachability": false,
+  "known_limitations": [
+    "buyer, provider runtime, verifier, and validator endpoints were operated on one host",
+    "test-only tUSDT has no claim on production reserves",
+    "plaintext test identities were used only inside the local custody rehearsal and were destroyed from the temporary role workspace"
+  ]
+}

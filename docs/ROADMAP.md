@@ -352,6 +352,9 @@ provider, and an independently operated resolver or endpoint set. The
 same-host transaction is reproducible deployment evidence, not grounds to mark
 Gate D accepted. The role separation, execution sequence, strict verification
 command, custody-safe two-stage Receipt signing flow, and acceptance record are
-frozen in `docs/GATE_D_EXTERNAL_PILOT.md`.
+frozen in `docs/GATE_D_EXTERNAL_PILOT.md`. A fresh local preflight exercised
+that flow through a second 25,000,000 atomic `tUSDT` settlement and proved the
+provider balance increase between finalized checkpoints; its evidence is
+`deployments/initial-public-testnet-gate-d-local-preflight-2026-08-14.json`.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.

@@ -130,6 +130,7 @@ uv run --project test/tostester python \
   --endpoint https://operator-c.example/jsonRPC \
   --quorum 2 \
   --funding-query-id NON_ZERO_QUERY_ID \
+  --funded-checkpoint FINALIZED_PRE_RELEASE_CHECKPOINT \
   --evidence paid-software-work-evidence.json
 ```
 
@@ -139,7 +140,11 @@ The checker fails closed unless it can:
 - rehash the Receipt BOC, artifact, and report;
 - match the report to the execution result;
 - obtain the required endpoint quorum at one finalized checkpoint;
-- match funded, settled, and provider-credit amounts to the exact Quote;
+- prove the escrow was funded but unsettled at the supplied finalized
+  pre-release checkpoint;
+- match funded and settled amounts to the exact Quote and prove that the
+  provider-wallet balance increased by that amount between the funded and
+  settlement checkpoints;
 - match the on-chain Receipt commitment and release query ID; and
 - derive escrow and provider-wallet transaction identities from endpoint
   responses.
