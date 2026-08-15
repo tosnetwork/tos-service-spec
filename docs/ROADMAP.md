@@ -384,7 +384,8 @@ loss of identity, ownership, accepted terms, artifacts, Receipt, or settlement,
 and buyers outside the core team demonstrate recurring paid use.
 
 **Gate status: ⬜ Not accepted.** Multi-operator deployment and recurring paid-use
-evidence do not exist.
+evidence do not exist. All remaining Gate F work is external acceptance, not
+unimplemented protocol engineering.
 
 ## 7. Gate G — Production readiness
 
@@ -532,13 +533,15 @@ is not implied by Gate C's initial profile.
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.
-15. 🟡 **Active Gate F external acceptance:** client-side federated Capability search,
+15. 🟡 **Active Gate F external acceptance only:** client-side federated Capability search,
     exact-digest manifest failover, complete-preimage Quote Proposal exchange,
     finalized provider-state construction, and local two-Gateway failover are
     complete. Canonical public error/retry details, portable safe-handoff
     verification, the bundle packer, and the quorum checker are also complete.
-    The next executable task is an independent buyer/provider/resolver session:
+    No additional local protocol implementation is required for this item. The
+    next executable task is an independent buyer/provider/resolver session:
     create a complete bundle with `native-safe-handoff-pack`, stop the original
     Gateway, and verify it with `native-safe-handoff-check` against three
     validator endpoints. Then recruit two independently operated Gateways,
-    three providers, ten useful Capabilities, and recurring buyers.
+    three providers, ten useful Capabilities, and recurring buyers. Until that
+    evidence exists, Gate F must remain not accepted.
