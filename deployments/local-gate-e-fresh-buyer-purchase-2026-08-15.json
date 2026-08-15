@@ -69,7 +69,16 @@
     "tos_ai_race_test_passed": true,
     "cross_transport_package": "github.com/tosnetwork/tos-ai/pkg/adapterinterop",
     "atos_race_test": "GOWORK=off go test ./... -race -count=1",
-    "atos_race_test_passed": true
+    "atos_race_test_passed": true,
+    "stress_count": 20,
+    "stress_packages": [
+      "github.com/tosnetwork/tos-ai/pkg/adapterinterop",
+      "github.com/tosnetwork/tos-protocol/pkg/capabilitycatalog",
+      "github.com/tosnetwork/tos-protocol/pkg/nativeclient",
+      "github.com/tosnetwork/atos/internal/nativegateway",
+      "github.com/tosnetwork/atos/internal/adapters/tosprotocol"
+    ],
+    "stress_race_tests_passed": true
   },
   "verdict": "PASS_LOCAL_FRESH_PROVIDER_BUYER_AND_RECEIPT_SETTLEMENT"
 }
