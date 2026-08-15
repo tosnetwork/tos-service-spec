@@ -264,8 +264,11 @@ operated resolver. Local operator diversity is not external independence.
 Deliver:
 
 - 🟡 provider SDK and deployment template — the first Go publication SDK and
-  dedicated private-containerd template are implemented; a fresh-provider
-  onboarding session is still required;
+  dedicated private-containerd template are implemented; a fresh same-host
+  provider identity and Capability were published with newly generated
+  controller custody and real signed Native actions, recorded in
+  `deployments/local-gate-e-fresh-native-publication-2026-08-15.json`; an
+  externally operated provider onboarding session is still required;
 - 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
   crash-safe bounded funding journal and production `tosctl` stablecoin sender
   are implemented and have been revalidated end to end against live finalized

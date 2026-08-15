@@ -1,0 +1,55 @@
+{
+  "schema": "atos.local-gate-e-native-publication.v1",
+  "recorded_at": "2026-08-15T00:00:00Z",
+  "acceptance_scope": "same-host public-testnet rehearsal; not external independence",
+  "network": {
+    "network_id": "tos-local-gate-c-20260814",
+    "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",
+    "genesis_file_hash": "sha256:bdd806fc091bb3c96cc657fecc160a987ef41acf2e36cdfdc19e14723e0683d8",
+    "resolver_quorum": "2-of-3"
+  },
+  "native_registry_code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
+  "relayer": {
+    "address": "0:a07bde0c70e71725f4edf81671e0519c3611d8c1d00114529878d12c54c2006c",
+    "wallet_state_after": "active",
+    "wallet_seqno_after": 3,
+    "balance_tos_after": "8.9991"
+  },
+  "agent": {
+    "object_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "address": "0:a6936ca4c94490619218673dda8a1145df7f316fd3332aa85a4948fe62a9dc99",
+    "registration_action_hash": "sha256:6a91dc4b9d91d6986f519f4ee135f00d9ad18b7d2989a6902e39ce4f512904c3",
+    "generation": 1,
+    "sequence": 1,
+    "tvm_state_hash": "tvm-cell-sha256:1cacaa5cadd01961862244382e8c276bf7f59999dbe3c4df292cd2e810107c86"
+  },
+  "capability": {
+    "object_id": "cap_fc5672dda1e15f1177d2add7055e906e04009b5dafe596dd603a103cdde8305c",
+    "address": "0:f64c10bb351ab81e73b60d2093b6a50e25bc9b2ba400767b2973a3e4a374f409",
+    "registration_action_hash": "sha256:6d7dc44dbd57d27bfbff609466203c94863c0f7112848f7d5f1328ba023dc85d",
+    "owner_agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "version": "1.0.0",
+    "manifest_digest": "sha256:ca521ef2e00b5380ee99ab3f3e044178834f12718a92fbc8ff2cca51c59711ca",
+    "generation": 1,
+    "sequence": 1,
+    "tvm_state_hash": "tvm-cell-sha256:9db0452a6fa74d47dc1195e5249e5ccd74adfb61fd354ed680befd40a71dc2d8"
+  },
+  "security": {
+    "controller_key_generated_fresh": true,
+    "controller_key_committed": false,
+    "controller_key_file_mode": "0600",
+    "vault_file_mode": "0600",
+    "signed_actions_used": true,
+    "typed_finalized_state_used": true
+  },
+  "verification": {
+    "race_test_packages": [
+      "pkg/nativecore",
+      "pkg/toschain",
+      "pkg/chainactionpublisher",
+      "pkg/providersdk",
+      "pkg/buyersdk"
+    ],
+    "race_tests_passed": true
+  }
+}
