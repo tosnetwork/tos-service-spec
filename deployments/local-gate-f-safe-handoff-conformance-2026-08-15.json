@@ -1,0 +1,39 @@
+{
+  "schema": "atos.native.local-gate-f-safe-handoff-conformance.v1",
+  "scope": "same-host technical rehearsal; not independent operator or market acceptance",
+  "observed_at_utc": "2026-08-15T07:50:15Z",
+  "network_id": "tos-local-gate-c-20260814",
+  "processes": {
+    "validator_endpoints": [
+      "http://127.0.0.1:8011/jsonRPC",
+      "http://127.0.0.1:8012/jsonRPC",
+      "http://127.0.0.1:8013/jsonRPC"
+    ],
+    "gateway_a": "http://127.0.0.1:18081",
+    "gateway_b": "http://127.0.0.1:18082",
+    "backend": "http://127.0.0.1:8090"
+  },
+  "conformance": {
+    "both_gateways_returned_complete_preimage_quote": true,
+    "gateway_a_stopped": true,
+    "gateway_b_continued_after_gateway_a_stop": true,
+    "accepted_quote_rebuilt": true,
+    "canonical_only_after_tos_finality": true,
+    "original_gateway_acknowledgement_used": false
+  },
+  "observations": {
+    "initial_gateway_a_proposal": "provider-8e094a7ce22587cfc73e81cac88a66d0",
+    "initial_gateway_b_proposal": "provider-b8ba8544ddf7d7b4452ee4d25dc23088",
+    "initial_commitment": "tvm-cell-sha256:b81d14c5789cb6f957b91b14c9214ac8648bb9b066af8a598cb1776999950723",
+    "failover_gateway_b_proposal": "provider-7a16013423cfe41afa594d6779fe4521",
+    "failover_commitment": "tvm-cell-sha256:7fefa5c6c501d05e77258ce4b39d504c5468c887d36913c7c097a5b5c414cc06"
+  },
+  "coverage_limits": {
+    "independently_operated_gateways": 0,
+    "independently_operated_providers": 1,
+    "purchasable_capabilities": 1,
+    "recurring_external_buyers": 0
+  },
+  "verdict": "PASS_LOCAL_SAFE_HANDOFF_TECHNICAL_REHEARSAL",
+  "gate_f_acceptance": "PENDING_EXTERNAL_INDEPENDENCE_AND_MARKET_EVIDENCE"
+}

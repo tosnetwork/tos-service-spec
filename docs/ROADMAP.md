@@ -372,8 +372,9 @@ Deliver:
   conformance now exist locally. `tos-protocol` commits `f000e6d` and `b83515b`
   add the strict bundle packer, quorum checker, and parser negative tests;
   `atos-spec` commits `92129a5` and `e0ea5c6` publish the template and operator
-  runbook. An independently operated public Receipt session still does not
-  exist;
+  runbook. The live two-process failover rehearsal is recorded in
+  `deployments/local-gate-f-safe-handoff-conformance-2026-08-15.json`.
+  An independently operated public Receipt session still does not exist;
 - ⬜ at least two independently operated gateways;
 - ⬜ at least three independently operated providers; and
 - ⬜ at least ten useful, purchasable Capabilities in the proven profile.

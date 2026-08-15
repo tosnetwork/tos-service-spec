@@ -70,6 +70,13 @@ the same finalized provider Capability; the buyer continued through Gateway B
 after Gateway A stopped. This is failover implementation evidence only and
 does not claim independent Gateway operators or recurring market demand.
 
+The 2026-08-15 safe-handoff rehearsal is recorded in
+`local-gate-f-safe-handoff-conformance-2026-08-15.json`. It ran two isolated
+Gateway processes against the three-node validator quorum, stopped Gateway A,
+and verified that Gateway B continued with a rebuilt Quote commitment. It is
+explicitly local technical evidence and does not satisfy the independent
+operator, three-provider, ten-Capability, or recurring-buyer requirements.
+
 For a post-acceptance Gateway handoff, retain the complete Quote package and
 the output of `native-receipt-release`, then assemble the portable bundle with
 `tos-protocol/cmd/native-safe-handoff-pack`. Use
