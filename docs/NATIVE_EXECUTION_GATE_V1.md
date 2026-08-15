@@ -10,6 +10,40 @@ one funded purchase.
 A2A, MCP, HTTP credentials, gateways, and provider databases are inputs or
 transport. None is canonical authority.
 
+## Boundary
+
+```text
+   A2A adapter ──┐
+   MCP adapter ──┤   any task-admitting transport
+Agent Packet  ──┤   (+ every future adapter)
+   receiver      │
+                 ▼
+ ┌────────────────────────────────────────────────────────┐
+ │             Shared Native Execution Gate                │
+ │  slot key: (quote_commitment, escrow_address)           │
+ │  reconstruct authority from finalized TOS state:        │
+ │    - Accepted Quote commitment matches the claim        │
+ │    - escrow funded == exact quoted amount               │
+ │    - Capability owner / version / manifest, not revoked │
+ │    - Registry, escrow, and stablecoin identities        │
+ │    - checkpoints monotonic; regression fails closed     │
+ │  => admit AT MOST ONE exact execution intent            │
+ └────────────────────────────────────────────────────────┘
+                 │  admit once
+                 ▼
+        provider runner ──▶ runner execution journal
+        (one admitted execution_id starts exactly once,
+         even across retry or crash)
+                 │
+                 ▼
+   artifact + report + canonical Receipt ──▶ settlement
+```
+
+Authority is finalized TOS state only. TLS, bearer tokens, rate limits, gateway
+routing, and provider databases are transport, never authority. No transport
+can reach the runner except through this Gate, so one funded purchase admits at
+most one runner execution across A2A, MCP, Agent Packet, and any future adapter.
+
 ## Claim
 
 Every transport maps its request to the same claim:
