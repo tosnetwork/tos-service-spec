@@ -1,0 +1,55 @@
+{
+  "schema": "atos.native.local-gate-f-federated-quote-conformance.v1",
+  "scope": "same-machine process, catalog, and credential isolation; not independent operator evidence",
+  "network_id": "tos-local-gate-c-20260814",
+  "authority": "2-of-3 finalized TOS state",
+  "implementation": {
+    "tos_protocol": "6a9582d4c3ce",
+    "atos": "7f88298",
+    "atos_spec_baseline": "fabf40b527b7b48bcb2a798818a05825537f733d"
+  },
+  "requested_capability": {
+    "capability_id": "cap_019f43e8d761b8576283cac692f44711083bc571dc057b08eeda1758dde3f2e2",
+    "version": "1.1.0",
+    "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
+    "provider_agent_id": "agent_0ee64baf62571e4941e78f06aef327c1c86de174779441fd69522de01b055a6d",
+    "buyer_address": "0:2a9ca8e9c88ed7d644c49222981146438791e27e94875ef97c508858eb67e82c"
+  },
+  "initial_exchange": {
+    "gateway_a": {
+      "separate_catalog_and_credentials": true,
+      "package_validation": "PASS",
+      "proposal_id": "provider-4494f7eb334dd7298a1a28ca8d145dde",
+      "escrow_terms_digest": "sha256:fbd17763bed93dfc532df4ecabed13bf07ca3b15839009d032e4771f4bb4d5d6"
+    },
+    "gateway_b": {
+      "separate_catalog_and_credentials": true,
+      "package_validation": "PASS",
+      "proposal_id": "provider-e1cb3b6463fe8ddd65ef768d9707670a",
+      "escrow_terms_digest": "sha256:2215df55bb95ccda85c56f0ea672c11b7ce423f042ef8d3af2c89226a7a0ae03"
+    },
+    "all_manifest_terms_transport_and_dispute_preimages_verified": true,
+    "selected_gateway": "gateway_b",
+    "accepted_quote_commitment": "tvm-cell-sha256:a8b31fa9b861e199a72987dbdcf815d0e7f42b8bb0dbeb235b6ad21540f930a9"
+  },
+  "gateway_failure": {
+    "gateway_a_stopped_cleanly": true,
+    "gateway_a_result": "UNAVAILABLE",
+    "gateway_b_result": "VALID",
+    "gateway_b_new_proposal_id": "provider-10c122cf0830245dc1e713bf75a4d5f7",
+    "gateway_b_new_escrow_terms_digest": "sha256:2a0403ec48cb3bc5a37dde9b167d9d414c1d6689e29a10ae5440d93fcc4aacab",
+    "accepted_quote_commitment": "tvm-cell-sha256:009e49ae9b1c6995eb049e82c1e820cb2cccc76785b163dfdbf857ced048bacb",
+    "canonical_only_after_tos_finality": true
+  },
+  "negative_conformance": {
+    "wrong_manifest_preimage_rejected": true,
+    "wrong_escrow_terms_preimage_rejected": true,
+    "wrong_transport_preimage_rejected": true,
+    "wrong_dispute_preimage_rejected": true,
+    "wrong_buyer_rejected": true,
+    "expired_proposal_rejected": true,
+    "provider_owner_or_version_change_rejected": true
+  },
+  "verdict": "PASS_LOCAL_FEDERATED_SEARCH_AND_QUOTE_ENGINEERING",
+  "external_operator_independence": false
+}

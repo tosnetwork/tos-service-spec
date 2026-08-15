@@ -341,15 +341,19 @@ Deliver:
   request forwarding headers, and `tos-protocol` commit `4e7b45c` adds strict
   client validation with bounded reads, authority-domain matching, redirect
   rejection, HTTPS enforcement, address filtering, and DNS-pinned dialing;
-- 🟡 interoperable search and Quote Proposal exchange —
+- ✅ interoperable search and Quote Proposal exchange —
   `docs/GATEWAY_FEDERATION_V1.md` freezes authority-neutral client-side search
   composition and content-addressed manifest failover; `tos-protocol` commit
   `ec145a9` implements bounded multi-Gateway aggregation, source preservation,
   malformed peer isolation, and exact-digest retrieval. `tos-protocol` commit
   `aedc832` adds the `RequestQuoteProposal` wire method and strict complete-
   preimage validator; `atos` commit `1e2a812` adds the authenticated provider
-  source boundary and rejects conflicting packages. A production quote source
-  and multi-Gateway conformance deployment remain;
+  source boundary and rejects conflicting packages. `tos-protocol` commit
+  `6a9582d` constructs packages only from freshly finalized provider-owned
+  Capability state, and `atos` commit `7f88298` loads bounded commercial policy
+  from owner-private files. Two isolated local Gateways returned independently
+  validated packages and Gateway B continued after Gateway A stopped, recorded
+  in `deployments/local-gate-f-federated-quote-conformance-2026-08-15.json`;
 - 🟡 canonical error and retry semantics — protocol errors exist, but public
   conformance is incomplete;
 - 🟡 pre-acceptance routing and post-acceptance failover rules — architecture
@@ -513,3 +517,10 @@ is not implied by Gate C's initial profile.
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.
+15. 🟡 **Active Gate F engineering:** client-side federated Capability search,
+    exact-digest manifest failover, complete-preimage Quote Proposal exchange,
+    finalized provider-state construction, and local two-Gateway failover are
+    complete. Next freeze canonical public error/retry details and exercise
+    Quote, Receipt, and safe-handoff conformance across the two Gateway
+    processes. Independently operated Gateways, three providers, ten useful
+    Capabilities, and recurring buyers remain external market acceptance.

@@ -62,3 +62,10 @@ execution Gate, successful A2A/TLS execution, rejected cross-transport MCP
 replay, exactly one runner invocation, and settlement of the exact execution
 outcome by canonical Receipt. It proves the integrated implementation, not the
 independent provider/buyer operator session required to accept Gate E.
+
+The local Gate F search/Quote engineering record is
+`local-gate-f-federated-quote-conformance-2026-08-15.json`. Two processes with
+separate catalogs and credentials constructed complete-preimage proposals from
+the same finalized provider Capability; the buyer continued through Gateway B
+after Gateway A stopped. This is failover implementation evidence only and
+does not claim independent Gateway operators or recurring market demand.
