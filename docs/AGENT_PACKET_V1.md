@@ -19,7 +19,8 @@ can be exchanged through DNS, a file, QR code, or another rendezvous channel;
 the verifier resolves the Agent from finalized TOS state and checks that a live
 controller signed the card. Expired cards, public plaintext endpoints, and
 duplicate Capabilities are rejected; callers must additionally compare the
-card's network tuple with their local network policy.
+ card's network tuple with their local network policy. Production callers use
+ `VerifyContactForNetwork` to enforce this comparison before dialing.
 
 `EncodeContactJSON` and `DecodeContactJSON` provide the strict
 `atos.native.agent-contact.v1` exchange format; unknown fields and trailing
