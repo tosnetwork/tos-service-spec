@@ -571,3 +571,11 @@ is not implied by Gate C's initial profile.
     `docs/MOBILE_ATOS_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
     paid application session remain after the protocol/SDK work; these apps
     must reuse the finalized Native lifecycle and cannot create parallel facts.
+18. ⬜ **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
+    exact-asset network, Agent, and Capability statistics derived only from
+    finalized escrow, Receipt, and stablecoin settlement evidence. It includes
+    gross Agent value, provider revenue, job counts, unique buyers, success and
+    refund rates, settlement latency, active offerings, rankings, coverage, and
+    separately labelled operational availability. The finalized transaction
+    index, deterministic aggregator, protobuf/Connect export, frozen vectors,
+    and independent-indexer comparison are not implemented.
