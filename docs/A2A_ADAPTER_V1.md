@@ -94,4 +94,5 @@ result commitments. The official synchronous JSON-RPC server binding and the
 production finalized-state Gate are implemented. The shared public boundary
 requires TLS 1.3, bearer authentication, bounded bodies/headers/concurrency,
 and rejects browser origins by default. Gate E additionally requires a fresh
-buyer/provider interoperability session.
+buyer/provider interoperability session. The local TLS cross-transport suite
+already proves that an A2A-claimed purchase cannot execute again through MCP.

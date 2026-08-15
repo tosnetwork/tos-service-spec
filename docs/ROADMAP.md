@@ -106,6 +106,14 @@ default rejection of browser-origin requests. Optional client-CA configuration
 enforces mTLS. This closes listener hardening; it is not fresh interoperability
 or external operator evidence.
 
+Local cross-transport acceptance is implemented in `tos-ai` commit
+`2dcb7d9210f8163224459ee21644a7acc75e6636`. Official A2A JSON-RPC and MCP
+streamable-HTTP clients connect to separate TLS 1.3 servers through the
+hardened boundary. A2A claims and executes one purchase; the same Quote/escrow
+submitted through MCP reaches the shared Gate but not the runner, yielding
+exact counters `gate=2` and `runner=1`. This closes the local protocol-switch
+replay test, not the fresh external interoperability requirement.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -269,11 +277,13 @@ Deliver:
 - 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
   request/result mapping, shared production finalized-chain execution Gate,
   synchronous JSON-RPC server binding, and negative tests are implemented;
-  the public listener is hardened and a fresh interoperability session remains;
+  the public listener and local cross-transport single-execution test are
+  complete; a fresh external interoperability session remains;
 - 🟡 MCP tool adapter — official MCP 2026-07-28 typed tool registration,
   committed input/result mapping, shared production finalized-chain execution
   Gate, stateless streamable-HTTP binding, and negative tests are implemented;
-  the public listener is hardened and fresh interoperability remains;
+  the public listener and local cross-transport single-execution test are
+  complete; fresh external interoperability remains;
 - ⬜ optional x402 payment-negotiation adapter;
 - ✅ gateway-local search with chain-derived fields kept separate; and
 - ✅ examples that require no operator database edits or hidden control service.

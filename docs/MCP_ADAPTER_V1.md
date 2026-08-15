@@ -34,4 +34,5 @@ The production finalized execution-claim Gate and official stateless
 streamable-HTTP binding are implemented. The shared public boundary requires
 TLS 1.3, bearer authentication, bounded bodies/headers/concurrency, and rejects
 browser origins by default. Gate E completion still requires a fresh
-interoperability session.
+interoperability session. The local TLS cross-transport suite already proves
+that an A2A-claimed purchase cannot execute again through MCP.
