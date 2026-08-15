@@ -36,3 +36,9 @@ settlement still require their existing finalized-chain checks.
 replay protection, and strict JSON wire encoding/decoding for transport
 interoperability. It deliberately has no Gateway database, no arbitrary
 on-chain message storage, and no Managed/Verified trust mode.
+
+Its standard-library HTTP adapter accepts only bounded JSON `POST` requests,
+verifies before delivery, claims the replay guard before invoking the receiver,
+and rejects redirects. `Post` permits HTTPS endpoints and loopback HTTP for
+development; production discovery and endpoint authentication remain the
+operator's responsibility.
