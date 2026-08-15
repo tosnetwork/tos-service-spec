@@ -324,7 +324,9 @@ sequencing exception does not weaken either gate's acceptance criteria.
 
 Deliver:
 
-- ⬜ gateway discovery document;
+- ✅ gateway discovery document — `docs/GATEWAY_DISCOVERY_V1.md` freezes the
+  bounded `/.well-known/atos-native.json` locator and its non-authority,
+  expiry, failover, downgrade, credential, and SSRF rules;
 - 🟡 interoperable search and Quote Proposal exchange — non-canonical Quote
   objects are defined, but federation is not implemented;
 - 🟡 canonical error and retry semantics — protocol errors exist, but public

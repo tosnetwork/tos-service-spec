@@ -86,6 +86,8 @@ refine these rules but cannot contradict them.
 - [x402 Adapter Decision](docs/X402_ADAPTER_DECISION.md) explains why x402 is
   deferred and constrains any future integration to negotiation over the
   existing canonical TOS escrow lifecycle.
+- [Gateway Discovery V1](docs/GATEWAY_DISCOVERY_V1.md) defines the minimal
+  authority-neutral `/.well-known/atos-native.json` transport locator.
 - [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
   shared finalized-chain and atomic cross-transport admission boundary.
 
