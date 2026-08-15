@@ -11,10 +11,10 @@ the Capability from public documentation in one working session.
 
 - finalized typed TOS state is the sole authority for Agent and Capability
   publication;
-- `tos-protocol/pkg/providersdk` prepares canonical bytes, verifies external
+- `tos-service-protocol/pkg/providersdk` prepares canonical bytes, verifies external
   controller signatures, relays an exact reviewed action, and waits for the
   matching finalized state;
-- `tos-protocol/pkg/nativeclient` transports Native Submit/Resolve requests and
+- `tos-service-protocol/pkg/nativeclient` transports Native Submit/Resolve requests and
   requires HTTPS unless loopback development is explicitly selected;
 - neither SDK accepts a private key or stores canonical provider state;
 - a relay acknowledgement is not publication success;
@@ -47,11 +47,11 @@ the Capability from public documentation in one working session.
 
 ## Current implementation
 
-- Go SDK guide: `tos-protocol/docs/provider-sdk.md`
-- public transport: `tos-protocol/pkg/nativeclient`
-- provider publication: `tos-protocol/pkg/providersdk`
+- Go SDK guide: `tos-service-protocol/docs/provider-sdk.md`
+- public transport: `tos-service-protocol/pkg/nativeclient`
+- provider publication: `tos-service-protocol/pkg/providersdk`
 - public manifest publication and discovery CLI:
-  `tos-protocol/cmd/atos-native-discovery`
+  `tos-service-protocol/cmd/tos-service-discovery`
 - runtime deployment: `tos-ai/deploy/provider`
 - canonical manifest: `docs/SOFTWARE_WORK_MANIFEST_V1.md`
 - commercial lifecycle: `docs/GATE_D_EXTERNAL_PILOT.md`

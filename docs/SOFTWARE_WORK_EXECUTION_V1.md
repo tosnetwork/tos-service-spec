@@ -98,14 +98,14 @@ Successful V1 execution requires exit code zero. The result digest is SHA-256
 over the exact bounded combined output. The canonical report media type is:
 
 ```text
-application/vnd.atos.test-report.v1+json
+application/vnd.tos.service.test-report.v1+json
 ```
 
 The report contains schema identifier, execution ID, result digest, exit code,
 bounded resource usage, and completion time. The artifact media type is:
 
 ```text
-application/vnd.atos.software-artifact.v1+tar
+application/vnd.tos.service.software-artifact.v1+tar
 ```
 
 It is a deterministic USTAR archive, in this exact order:

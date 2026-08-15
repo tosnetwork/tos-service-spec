@@ -1,14 +1,14 @@
 {
-  "schema": "atos.native.production-readiness-evidence.v1",
+  "schema": "tos.service.production-readiness-evidence.v1",
   "network": {
     "network_id": "REQUIRED",
     "genesis_root_hash": "sha256:REQUIRED",
     "genesis_file_hash": "sha256:REQUIRED"
   },
   "release": {
-    "atos_spec_commit": "REQUIRED",
+    "tos_service_spec_commit": "REQUIRED",
     "tos_protocol_commit": "REQUIRED",
-    "atos_commit": "REQUIRED",
+    "tos_service_gateway_commit": "REQUIRED",
     "tos_ai_commit": "REQUIRED",
     "contract_code_hashes": [],
     "signed_manifest_digest": "sha256:REQUIRED",

@@ -66,7 +66,7 @@ def integer_map(value, keys):
 
 def validate(manifest):
     exact_keys(manifest, ROOT_KEYS)
-    if manifest["protocol"] != "atos.software-work-manifest.v1":
+    if manifest["protocol"] != "tos.service.software-work-manifest.v1":
         raise ValueError("protocol")
     if manifest["invocation"]["executable"].rsplit("/", 1)[-1].lower() in {"sh", "bash", "dash", "zsh", "cmd.exe", "powershell"}:
         raise ValueError("shell")
@@ -92,7 +92,7 @@ def canonical_model(manifest):
 def mutate(manifest, name):
     candidate = copy.deepcopy(manifest)
     if name == "add_capability_id": candidate["capability_id"] = "cap_" + "aa" * 32
-    elif name == "wrong_protocol": candidate["protocol"] = "atos.software-work-manifest.v0"
+    elif name == "wrong_protocol": candidate["protocol"] = "tos.service.software-work-manifest.v0"
     elif name == "shell_executable": candidate["invocation"]["executable"] = "/bin/sh"
     elif name == "network_enabled": candidate["network_policy"] = "full"
     elif name == "zero_cpu_limit": candidate["limits"]["cpu_millis"] = 0

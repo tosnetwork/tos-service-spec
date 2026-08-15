@@ -1,11 +1,11 @@
 ---
-name: atos-native
-description: Build clients and gateways for the atos_native_v1 protocol using finalized TOS state as the canonical authority.
+name: tos-service-protocol
+description: Build clients and gateways for the tos_service_v1 protocol using finalized TOS state as the canonical authority.
 ---
 
-# ATOS Native Protocol
+# TOS Service Protocol
 
-Use this skill when implementing an ATOS client, wallet, gateway, registry
+Use this skill when implementing a TOS Service Protocol client, wallet, gateway, registry
 indexer, relayer, resolver, or conformance test.
 
 ## Core rule
@@ -22,9 +22,10 @@ Read, in order:
 2. `docs/ARCHITECTURE.md`
 3. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
 4. `docs/ROADMAP.md`
+5. `docs/NAMING_MIGRATION.md`
 
 Then read the focused document for the feature being changed and the complete
-`proto/atos/native/v1/native.proto` schema.
+`proto/tos/service/v1/native.proto` schema.
 
 For product work, complete the machine-checkable software-work lifecycle before
 adding another market, transport, asset, or generalized policy system.
@@ -46,9 +47,9 @@ adding another market, transport, asset, or generalized policy system.
 
 ## Quote flow
 
-This flow becomes canonical only after the Gate D TOS contracts and conformance
-tests in `docs/ROADMAP.md` are complete. Until then, implementations may build
-and compare commitments but must not claim a finalized purchase lifecycle.
+The flow is canonical only for a purchase reconstructed from current-domain
+finalized TOS state. Passing local conformance tests or citing archived
+pre-migration evidence is not a finalized purchase lifecycle.
 
 1. Resolve the Capability and immutable version.
 2. Obtain one or more gateway Quote Proposals.

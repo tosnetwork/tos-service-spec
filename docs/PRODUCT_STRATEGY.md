@@ -1,4 +1,4 @@
-# ATOS Product and Commercial Strategy
+# TOS Service Protocol Product and Commercial Strategy
 
 **Status:** strategic guidance, not a normative protocol specification
 
@@ -6,20 +6,20 @@
 
 ## 1. Executive conclusion
 
-ATOS is pursuing a credible and timely market: autonomous software will need to
+TOS Service Protocol is pursuing a credible and timely market: autonomous software will need to
 discover, authorize, purchase, execute, and settle services across organizational
 boundaries. The Native architecture is technically strong because it separates
 public authority from gateway convenience and binds commercial execution to
 finalized TOS commitments.
 
 The opportunity is real, but protocol quality alone does not create a business.
-ATOS succeeds only if independent buyers and providers complete recurring paid
+TOS Service Protocol succeeds only if independent buyers and providers complete recurring paid
 transactions. Development must therefore move from broad protocol construction
 to one narrow, production-quality commercial loop.
 
 The strategic objective is:
 
-> Make ATOS the open authority and settlement layer for high-value Agent work,
+> Make TOS Service Protocol the open authority and settlement layer for high-value Agent work,
 > while interoperating with established communication and payment protocols.
 
 ## 2. Market signal
@@ -45,63 +45,63 @@ The surrounding market validates the category:
   [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) and
   [ERC-8183](https://eips.ethereum.org/EIPS/eip-8183).
 
-These signals validate Agent commerce, but they also mean ATOS enters an active
+These signals validate Agent commerce, but they also mean TOS Service Protocol enters an active
 standards market rather than an empty category.
 
 References to stablecoins in external market signals describe those external
-systems. They do not expand the ATOS asset model beyond stablecoins issued on
+systems. They do not expand the TOS Service Protocol asset model beyond stablecoins issued on
 TOS Network.
 
 ## 3. Competitive landscape — closest peers by philosophy
 
-The category is active, so ATOS must position against concrete peers, not an
-empty field. Peers below are ranked by how closely they share the ATOS premise:
+The category is active, so TOS Service Protocol must position against concrete peers, not an
+empty field. Peers below are ranked by how closely they share the TOS Service Protocol premise:
 on-chain canonical authority with no gateway-owned truth, a non-custodial Agent
 and Capability identity registry, a discover → quote → escrow → invoke →
 Receipt → settle lifecycle, and independent resolvability of every
 trust-bearing fact. Communication and payment protocols are treated as adapters,
 not competitors.
 
-### Tier 1 — closest to the ATOS premise
+### Tier 1 — closest to the TOS Service Protocol premise
 
-- **Virtuals Agent Commerce Protocol (ACP)** is the nearest analogue to the ATOS
+- **Virtuals Agent Commerce Protocol (ACP)** is the nearest analogue to the TOS Service Protocol
   commercial lifecycle. Its request, negotiation, escrow, delivery, evaluation,
-  and settlement flow mirrors the ATOS Accepted-Quote-to-settlement path, using
+  and settlement flow mirrors the TOS Service Protocol Accepted-Quote-to-settlement path, using
   smart-contract escrow, a cryptographically signed proof of agreement, and an
-  independent evaluator market. It is live across several chains. ATOS differs by
+  independent evaluator market. It is live across several chains. TOS Service Protocol differs by
   binding this lifecycle to one purpose-built settlement layer through a typed
   Registry state machine and derived, non-selectable identity, rather than a
   multi-chain, tokenized-agent marketplace with a token flywheel. See the
   [ACP whitepaper](https://whitepaper.virtuals.io/about-virtuals/agent-commerce-protocol-acp).
-- **ERC-8004 "Trustless Agents"** is the nearest analogue to the ATOS authority
+- **ERC-8004 "Trustless Agents"** is the nearest analogue to the TOS Service Protocol authority
   registry. Its Identity, Reputation, and Validation registries express the same
   belief in a neutral on-chain trust and discovery layer without a central
-  marketplace, and it is framed as an on-chain extension of A2A. ATOS differs by
+  marketplace, and it is framed as an on-chain extension of A2A. TOS Service Protocol differs by
   making identity a fully on-chain typed state machine with escrow, Receipts, and
   settlement built into the same authority objects, rather than an ERC-721
   identity that points at an off-chain registration file with external reputation
-  signals. This is the most important standard for ATOS to track and
+  signals. This is the most important standard for TOS Service Protocol to track and
   interoperate with. See [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004).
 
-No single peer spans the full ATOS scope from registry authority through
+No single peer spans the full TOS Service Protocol scope from registry authority through
 settlement; the closest approximation to the intended whole is ACP for the
-commercial lifecycle combined with ERC-8004 for registry authority. The ATOS
+commercial lifecycle combined with ERC-8004 for registry authority. The TOS Service Protocol
 thesis is that both halves should converge on one purpose-built settlement layer.
 
 ### Tier 2 — settlement and payment rails (complementary adapters)
 
-These are payment-layer peers that ATOS interoperates with rather than replaces;
+These are payment-layer peers that TOS Service Protocol interoperates with rather than replaces;
 several already appear as adapters in the strategic stack in section 4.
 
 - **x402** (HTTP-402 stablecoin payments) has large live volume and is an
-  optional ATOS payment adapter, not a competing authority layer.
+  optional TOS Service Protocol payment adapter, not a competing authority layer.
 - **Google A2A and AP2** provide Agent communication and delegated purchase
-  authorization; AP2 incorporates x402 for settlement. ATOS maps into these
+  authorization; AP2 incorporates x402 for settlement. TOS Service Protocol maps into these
   rather than duplicating them.
 - **Nevermined** combines delegated spend, usage metering, access control,
   pricing, and settlement, and integrates x402, A2A, AP2, and ERC-8004. It is the
   most complete agent-payments platform in this tier, but it leans
-  hybrid-custodial and gateway-centric relative to the ATOS chain-canonical,
+  hybrid-custodial and gateway-centric relative to the TOS Service Protocol chain-canonical,
   non-custodial stance.
 - **Skyfire** provides agent identity, wallets, spend controls, and
   know-your-agent checks. It is a payments and identity layer, not a Capability
@@ -113,7 +113,7 @@ several already appear as adapters in the strategic stack in section 4.
   Agentverse discovery and native-token payments; it is philosophically aligned
   on on-chain discovery and registry, though more agent-framework and marketplace
   in emphasis. Independent audits place protocol-active agents far below headline
-  counts — a useful caution about registration-count vanity metrics that ATOS
+  counts — a useful caution about registration-count vanity metrics that TOS Service Protocol
   already rejects in its evidence targets in section 15.
 - **Olas (Autonolas)** runs on-chain registries of agents, services, and
   components with staking, sharing the non-custodial own-and-operate ethos.
@@ -121,13 +121,13 @@ several already appear as adapters in the strategic stack in section 4.
   AI service marketplace with on-chain calls and payments.
 
 Custodial, card-rail agent-commerce efforts such as Mastercard Agent Pay and
-Visa's agent protocols occupy the opposite end of the design space from the ATOS
+Visa's agent protocols occupy the opposite end of the design space from the TOS Service Protocol
 non-custodial, independently resolvable model, and are treated as market context
 rather than peers.
 
 ### Positioning consequence
 
-ATOS is differentiated less by any single capability than by the combination it
+TOS Service Protocol is differentiated less by any single capability than by the combination it
 insists on: identity authority and the full Accepted-Quote-to-settlement
 lifecycle converged on one purpose-built settlement layer, with every
 trust-bearing fact independently resolvable and no gateway-owned canonical truth.
@@ -137,7 +137,7 @@ communication edges rather than compete there.
 
 ## 4. Strategic position
 
-ATOS should not replace every layer of the Agent stack.
+TOS Service Protocol should not replace every layer of the Agent stack.
 
 ```text
 A2A and MCP
@@ -146,7 +146,7 @@ A2A and MCP
 x402 and AP2 adapters
   simple payment negotiation and delegated purchase interoperability
 
-ATOS Native
+TOS Native Service
   Agent authority, Capability ownership and versions, Accepted Quotes,
   execution binding, escrow, Receipts, disputes, and settlement
 
@@ -154,7 +154,7 @@ TOS
   final state, contract execution, fees, and economic security
 ```
 
-ATOS differentiates itself by connecting identity, immutable Capability
+TOS Service Protocol differentiates itself by connecting identity, immutable Capability
 versions, commercial terms, execution authority, result commitments, and
 settlement in one independently resolvable lifecycle.
 
@@ -175,7 +175,7 @@ from a provider it does not operate. The customer values:
 - refund or dispute rules fixed before work begins; and
 - accounting reconstructed from finalized transactions.
 
-Internal, free, low-risk calls within one security domain do not need ATOS.
+Internal, free, low-risk calls within one security domain do not need TOS Service Protocol.
 
 ## 6. Initial market wedge
 
@@ -279,7 +279,7 @@ through finalized TOS contracts. The Accepted Quote fixes the exact stablecoin
 contract and amount bounds. Asset substitution after acceptance is forbidden.
 
 An external-chain token, custodial balance, bridged claim on another network,
-or gateway database balance is not a settlement asset under the initial ATOS
+or gateway database balance is not a settlement asset under the initial TOS Service Protocol
 protocol. Supporting a new stablecoin requires its TOS contract identity,
 issuer identity, decimals, and operational status to be independently
 resolvable from finalized TOS state.
@@ -304,7 +304,7 @@ off-chain.
 
 ## 11. Durable competitive advantage
 
-Contract source code is reproducible and therefore not a sufficient moat. ATOS
+Contract source code is reproducible and therefore not a sufficient moat. TOS Service Protocol
 should build compounding advantages in:
 
 1. useful Capability supply;
@@ -335,7 +335,7 @@ every payment asset before the first commercial loop delays evidence of demand.
 ### Standards isolation
 
 Requiring developers to abandon A2A, MCP, x402, or established wallets raises
-adoption cost. ATOS should provide adapters and reuse stable conventions where
+adoption cost. TOS Service Protocol should provide adapters and reuse stable conventions where
 they do not weaken its authority model.
 
 ### Chain cost and latency
@@ -455,7 +455,7 @@ interoperability, or real market usage, defer it.
 
 ## 17. Strategic completion criterion
 
-ATOS has crossed from protocol project to viable business infrastructure when
+TOS Service Protocol has crossed from protocol project to viable business infrastructure when
 independent providers repeatedly earn revenue from independent buyers, either
 gateway can fail without losing canonical state or accepted terms, and the
 reference operator earns service revenue without controlling protocol truth.

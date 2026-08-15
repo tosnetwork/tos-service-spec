@@ -1,10 +1,10 @@
-# ATOS Native Protocol Specification
+# TOS Service Protocol Specification
 
-ATOS is an open gateway protocol for discovering and using agents whose
+TOS Service Protocol is an open gateway protocol for discovering and using agents whose
 identity, capabilities, commercial commitments, and execution authority are
 verifiable from finalized TOS state.
 
-The protocol identifier is exactly `atos_native_v1`.
+The protocol identifier is exactly `tos_service_v1`.
 
 ## Authority
 
@@ -28,19 +28,19 @@ are caches or projections only.
 - **Receipt** — a result commitment signed by the execution authority selected
   by the Accepted Quote and committed according to its terms.
 
-The Registry objects and relay/resolve service are implemented. The initial
-public test network now records a complete same-host Accepted Quote, bounded
-provider execution, immutable artifact delivery, Receipt, and paid settlement.
-Gate D still requires the independent external pilot defined in
-`docs/GATE_D_EXTERNAL_PILOT.md`. See `docs/ROADMAP.md` for evidence-backed
-status, implementation order, and acceptance gates.
+The Registry objects, relay/resolve service, commerce primitives, and bounded
+provider execution are implemented and tested. The rename to `tos_service_v1`
+is a breaking pre-launch domain reset, so earlier local-chain evidence is
+archived and a fresh current-domain Gate C deployment is required before Gate D
+or later live acceptance. See `docs/ROADMAP.md` for evidence-backed status,
+implementation order, and acceptance gates.
 
 ## System boundaries
 
 - TOS contracts validate registry transitions and store canonical state.
-- `tos-protocol` builds canonical cells, verifies signatures, relays messages,
+- `tos-service-protocol` builds canonical cells, verifies signatures, relays messages,
   and resolves finalized state through independent endpoints.
-- `atos` authenticates transport clients and exposes the Native service.
+- `tos-service-gateway` authenticates transport clients and exposes the Native service.
 - Gateways provide discovery and orchestration without semantic authority.
 - Providers and workers execute jobs without authority to rewrite registry or
   commercial facts.
@@ -87,7 +87,7 @@ refine these rules but cannot contradict them.
   deferred and constrains any future integration to negotiation over the
   existing canonical TOS escrow lifecycle.
 - [Gateway Discovery V1](docs/GATEWAY_DISCOVERY_V1.md) defines the minimal
-  authority-neutral `/.well-known/atos-native.json` transport locator.
+  authority-neutral `/.well-known/tos-service.json` transport locator.
 - [Gateway Federation V1](docs/GATEWAY_FEDERATION_V1.md) defines client-side
   multi-Gateway search and content-addressed manifest failover without shared
   semantic authority.
@@ -105,16 +105,18 @@ refine these rules but cannot contradict them.
   off-chain Agent-to-Agent packets with replay protection.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
-- [Mobile ATOS Client V1](docs/MOBILE_ATOS_CLIENT_V1.md) defines the shared
+- [Mobile TOS Service Client V1](docs/MOBILE_TOS_SERVICE_CLIENT_V1.md) defines the shared
   iOS/Android discovery, approval, custody, execution, and settlement UX.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
   finalized-state-derived Agent GDP, settled receipts, job, wallet,
   reliability, and
   availability exports. Its implementation status is currently pending.
+- [Naming Migration](docs/NAMING_MIGRATION.md) freezes repository, wire,
+  protobuf, schema, command, environment, and deployment-evidence naming.
 
 ## Normative contract
 
-- Protobuf: [`proto/atos/native/v1/native.proto`](proto/atos/native/v1/native.proto)
+- Protobuf: [`proto/tos/service/v1/native.proto`](proto/tos/service/v1/native.proto)
 - Identifiers: [`docs/NATIVE_IDENTIFIERS_V1.md`](docs/NATIVE_IDENTIFIERS_V1.md)
 - Identity policy: [`docs/NATIVE_IDENTITY_V1.md`](docs/NATIVE_IDENTITY_V1.md)
 - TVM representation: [`docs/NATIVE_REGISTRY_TVM_V1.md`](docs/NATIVE_REGISTRY_TVM_V1.md)
@@ -159,10 +161,10 @@ a ticker symbol is display metadata and is never sufficient asset identity.
 
 | Repository | Responsibility |
 |---|---|
-| `atos-spec` | Normative schema, rules, and frozen vectors |
+| `tos-service-spec` | Normative schema, rules, and frozen vectors |
 | `tos` | TVM contract and consensus execution |
-| `tos-protocol` | Canonical encoding, relaying, resolution, and verification |
-| `atos` | Reference Native gateway and transport authentication |
+| `tos-service-protocol` | Canonical encoding, relaying, resolution, and verification |
+| `tos-service-gateway` | Reference Native gateway and transport authentication |
 | `tos-ai` | Execution workers and result production |
 
 ## Repository layout
@@ -170,10 +172,10 @@ a ticker symbol is display metadata and is never sufficient asset identity.
 ```text
 docs/                                      Native architecture and protocol rules
 deployments/                               public-network deployment evidence
-proto/atos/native/v1/native.proto          sole normative wire schema
-test-vectors/atos-native-v1-registry.json   frozen Agent and Capability vectors,
+proto/tos/service/v1/native.proto          sole normative wire schema
+test-vectors/tos-service-v1-registry.json   frozen Agent and Capability vectors,
                                            addresses, and negative mutations
-test-vectors/atos-test-identities-v1.json   plaintext test-only TOS mnemonics, Ed25519 keys,
+test-vectors/tos-service-test-identities-v1.json   plaintext test-only TOS mnemonics, Ed25519 keys,
                                            TVM addresses, and identity proof signatures
 ```
 
@@ -182,4 +184,4 @@ canonical encodings belong in the Native schema and must include reproducible
 vectors. Product-specific discovery views remain derived interfaces.
 
 This repository describes a greenfield protocol. There is no deployed earlier
-ATOS protocol whose behavior must be preserved.
+TOS service protocol whose behavior must be preserved.

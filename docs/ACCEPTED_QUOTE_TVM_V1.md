@@ -60,7 +60,7 @@ bootstrap endpoint; mode `1` is Connect RPC over HTTPS. The base URL is a
 canonical absolute ASCII URL with no credentials, query, fragment, or trailing
 slash. It is at most 120 bytes and occupies one canonical cell without
 continuation references. `max_request_bytes` is non-zero and at most 16 MiB. The service is fixed
-by this schema to `atos.native.v1.NativeService`; it is not supplied by a
+by this schema to `tos.service.v1.NativeService`; it is not supplied by a
 gateway. A production Quote must use mode `1`.
 
 The dispute digest is `cell_hash(dispute_policy)`. V1 supports exactly one

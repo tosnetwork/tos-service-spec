@@ -2,7 +2,7 @@
 
 **Normative authority:** Agent and Capability contract transitions
 
-**Protocol:** `atos_native_v1`
+**Protocol:** `tos_service_v1`
 
 ## 1. Common transition envelope
 

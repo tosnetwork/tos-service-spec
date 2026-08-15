@@ -1,4 +1,4 @@
-# ATOS Gateway Authentication
+# TOS Service Gateway Authentication
 
 ## Boundary
 

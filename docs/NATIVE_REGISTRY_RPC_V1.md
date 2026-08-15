@@ -2,7 +2,7 @@
 
 ## Service
 
-`atos.native.v1.NativeService` exposes two operations:
+`tos.service.v1.NativeService` exposes two operations:
 
 ```text
 SubmitNativeAction
@@ -165,7 +165,7 @@ Validation errors use `NativeErrorV1` Connect error details. Numeric values
 `2200` through `2213` exactly match the Native Registry TVM exit-code family.
 Clients branch on the enum value or stable identifier and must not parse the
 human diagnostic. The frozen negative corpus in
-`test-vectors/atos-native-v1-registry.json` pins representative preflight
+`test-vectors/tos-service-v1-registry.json` pins representative preflight
 results across two implementations.
 
 These deterministic Native validation details carry retry disposition

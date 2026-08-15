@@ -13,7 +13,7 @@ canonical stack?
 Canonical stack (only these three lines):
 
 - **`tos` (TOS Core)** — L1 settlement and finalized truth; native jetton assets.
-- **`tos-protocol` + `atos-spec`** — Native identity, Capability versions, and the
+- **`tos-service-protocol` + `tos-service-spec`** — Native identity, Capability versions, and the
   Quote → escrow → Receipt → settle commerce loop.
 - **`openfox` (Go)** — the always-on autonomous agent runtime (the inhabitant).
 
@@ -25,8 +25,8 @@ simulation/forecasting tool and any component outside these three lines.
 | Layer | Provides | Status |
 |---|---|---|
 | `tos` | L1 settlement, finalized state, native jetton fungible tokens | live testnet (Gate C) |
-| `atos-spec` | derived non-custodial identity, Capability versions, escrow, Receipt, objective release/refund | Gates A/B complete, Gate D core complete |
-| `openfox` | lightweight always-on agent runtime: agent loop, tools, MCP, multi-channel | runtime ✅; **its "discover paid TOS work → execute → settle" economic loop is still vision, not yet wired to `atos-spec`** |
+| `tos-service-spec` | derived non-custodial identity, Capability versions, escrow, Receipt, objective release/refund | Gates A/B complete, Gate D core complete |
+| `openfox` | lightweight always-on agent runtime: agent loop, tools, MCP, multi-channel | runtime ✅; **its "discover paid TOS work → execute → settle" economic loop is still vision, not yet wired to `tos-service-spec`** |
 
 Two of the hardest pieces already exist: the settlement/identity/commerce spine
 and an autonomous agent runtime. What is missing is the *world* around them.
@@ -38,16 +38,16 @@ roadmap), **DECISION** (strategy fork).
 
 ### A. Finish existing roadmaps — BUILD
 
-- `atos-spec` Gate D tail: content-addressed artifact delivery; full independent
+- `tos-service-spec` Gate D tail: content-addressed artifact delivery; full independent
   Quote → escrow → Receipt → settlement resolution.
-- `atos-spec` Gate E: Capability discovery/index; provider and buyer SDK; A2A and
+- `tos-service-spec` Gate E: Capability discovery/index; provider and buyer SDK; A2A and
   MCP adapters.
 
 ### B. The world/society layer — DESIGN+BUILD (the real work)
 
 | # | Gap | Why it matters |
 |---|---|---|
-| B1 | **OpenFox ⇄ atos-spec economic bridge** — wire the agent loop to discover → Quote → escrow → execute → settle under a signed owner spending policy | design is frozen in [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md); runtime integration and fresh paid session remain |
+| B1 | **OpenFox ⇄ tos-service-spec economic bridge** — wire the agent loop to discover → Quote → escrow → execute → settle under a signed owner spending policy | design is frozen in [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md); runtime integration and fresh paid session remain |
 | B2 | **Opportunity/intent market + agent-to-agent hiring** — a surface to post work, discover, and bid, with nested escrow for sub-contracting | makes it a market of agents, not one human buying from one provider |
 | B3 | **Populated, observable world surface** — presence, activity feed, who transacts with whom, social discovery, reconstructed from finalized TOS state with no gateway-owned truth | makes it read as a *society*; the single biggest void |
 | B4 | **Population onboarding + trust signal** — deterministically deploy N agents with identities and owner policies; decide a minimal, objective reputation signal | a society needs inhabitants and a trust cue |
@@ -69,7 +69,7 @@ roadmap), **DECISION** (strategy fork).
 
 ### D. Adoption and scale — BUILD, later
 
-`atos-spec` Gates F/G: multiple independent operators, real external users, and
+`tos-service-spec` Gates F/G: multiple independent operators, real external users, and
 production scale.
 
 ## 4. Minimal demo acceptance

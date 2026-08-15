@@ -71,6 +71,6 @@ Changing contract code requires a new frozen code identity, vectors, security
 review, and explicit protocol deployment decision.
 
 The reproducible release is defined by
-`tos/crypto/smartcont/atos-native-registry-v1.release.json`. The canonical
+`tos/crypto/smartcont/tos-service-registry-v1.release.json`. The canonical
 source is `tos/crypto/smartcont/native-registry-code.fc`; there is no parallel
 legacy or `v2` Registry source.

@@ -1,13 +1,13 @@
 # OpenFox Economic Bridge V1
 
-OpenFox is the autonomous application runtime for an ATOS Agent. This bridge
+OpenFox is the autonomous application runtime for a TOS Agent. This bridge
 connects its agent loop to the existing Native commercial lifecycle; it does
 not create a second marketplace, ledger, trust mode, or settlement protocol.
 
 ## Responsibilities
 
 OpenFox owns local intent, task scheduling, execution, artifacts, and owner
-policy. `tos-protocol`/`atos` owns finalized-state resolution, Quote preimage
+policy. `tos-service-protocol`/`tos-service-gateway` owns finalized-state resolution, Quote preimage
 validation, relay and escrow construction. TOS contracts own canonical Agent,
 Capability, Accepted Quote, escrow, Receipt, and settlement state.
 

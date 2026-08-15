@@ -1,7 +1,7 @@
 {
-  "schema": "atos.native.registry.deployment.v1",
+  "schema": "tos.service.registry.deployment.v1",
   "status": "template-not-evidence",
-  "protocol": "atos_native_v1",
+  "protocol": "tos_service_v1",
   "acceptance_profile": "REQUIRED",
   "operator_independence": false,
   "public_internet_reachability": false,

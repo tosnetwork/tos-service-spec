@@ -1,7 +1,7 @@
 # Native Registry Public Testnet Gate
 
 This document defines the evidence required to complete ROADMAP Gate C. The
-project owner may designate a versioned TOS network as the initial ATOS public
+project owner may designate a versioned TOS network as the initial TOS Service Protocol public
 test network. Gate C bootstraps protocol authority; operator and Internet
 diversity remain separate Gate F and Gate G requirements. A mocked RPC
 response, relay acknowledgement, or single endpoint is never acceptance
@@ -29,7 +29,7 @@ readiness. Publishing an endpoint later requires authenticated HTTPS.
 
 A deployment record must publish:
 
-- protocol `atos_native_v1`;
+- protocol `tos_service_v1`;
 - exact TOS network ID and genesis root/file hashes;
 - Registry workchain;
 - frozen code BOC, TVM code hash, BOC container SHA-256, byte size, source
@@ -85,16 +85,16 @@ tokens, and private RPC credentials are never part of the record.
 The complete required lifecycle passed against a version-14 TOS network
 with a four-validator genesis, three validators online, and three same-host
 liteservers. The project owner subsequently designated this network as the
-initial ATOS public test network. The run deployed the frozen Registry code,
+initial TOS Service Protocol public test network. The run deployed the frozen Registry code,
 exercised two Agent controllers, recovery, Capability version management,
 atomic transfer, former-owner rejection, and terminal revocations, then
 reproduced the final typed state through all three liteservers.
 
 The machine-readable deployment record is
-`deployments/initial-public-testnet-2026-08-14.json`. Three embedded JSON-RPC
+`deployments/archive/pre-tos-service-v1/initial-public-testnet-2026-08-14.json`. Three embedded JSON-RPC
 servers on ports 8011 through 8013 were then checked by the production quorum
 resolver. Its typed outputs are recorded in
-`deployments/initial-public-testnet-quorum-2026-08-14.json`.
+`deployments/archive/pre-tos-service-v1/initial-public-testnet-quorum-2026-08-14.json`.
 
 **Gate C verdict: accepted under the initial public-testnet profile.** The
 record explicitly discloses that all nodes and endpoints share one host and

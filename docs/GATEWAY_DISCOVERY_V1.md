@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Gateway discovery lets a client locate compatible ATOS transport endpoints
+Gateway discovery lets a client locate compatible TOS Service Protocol transport endpoints
 without granting the publisher semantic authority. The document is an
 availability hint. Every Agent, Capability, asset, escrow, Receipt, and
 settlement claim remains subject to direct finalized TOS verification.
@@ -10,7 +10,7 @@ settlement claim remains subject to direct finalized TOS verification.
 Gateways publish the document at:
 
 ```text
-GET /.well-known/atos-native.json
+GET /.well-known/tos-service.json
 ```
 
 The response media type is `application/json`. V1 is strict JSON: duplicate
@@ -21,8 +21,8 @@ rejected.
 
 ```json
 {
-  "schema": "atos.gateway-discovery.v1",
-  "protocol": "atos_native_v1",
+  "schema": "tos.service.gateway-discovery.v1",
+  "protocol": "tos_service_v1",
   "network": {
     "network_id": "tos-mainnet",
     "genesis_root_hash": "sha256:<64 lowercase hex>",

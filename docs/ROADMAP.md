@@ -1,4 +1,4 @@
-# ATOS Native Implementation Roadmap
+# TOS Service Protocol Implementation Roadmap
 
 This roadmap defines implementation order and acceptance gates. Product
 priority is defined by `PRODUCT_STRATEGY.md`. Authority boundaries are defined
@@ -14,29 +14,44 @@ No later gate may weaken an earlier authority or security invariant.
   evidence is incomplete.
 - ⬜ Pending: not implemented, or no qualifying evidence was found.
 
+### 2026-08-15 protocol-domain migration
+
+The repository and wire domain were renamed before production launch from the
+pre-release names to TOS Service Protocol. The current identifier is
+`tos_service_v1`, the protobuf package is `tos.service.v1`, and all current
+media types and signature domains use `tos.service.*`.
+
+This is intentionally a breaking reset. Protocol strings participate in
+identifiers, signatures, manifest digests, Quote commitments, and execution
+claims. Consequently, every deployment record created before this migration is
+archived under `deployments/archive/pre-tos-service-v1/` and is historical
+evidence only. It cannot satisfy a current Gate C, D, E, or F acceptance item.
+No transaction hash, object ID, or settlement record may be relabeled as if it
+were produced under `tos_service_v1`.
+
 A gate is complete only when every delivery item and its acceptance condition
 are complete. The final 2026-08-14 independent Gate B review evaluated
-`atos-spec` commit `e72bab245a47b0f87a82977629cc03b1dfc64995`, `tos` commit
-`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-protocol` commit
+`tos-service-spec` commit `e72bab245a47b0f87a82977629cc03b1dfc64995`, `tos` commit
+`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-service-protocol` commit
 `7a21c070c1160fc0a4278e1a086c0682eb2d3d31`. It found no P0, P1, or P2,
 confirmed the chain-time recovery remediation and crash-safe relay journal, and
 independently reproduced the complete Native Registry TVM lifecycle matrix.
 Gate C deployment evidence must continue to bind exact reviewed commits and
 release hashes.
 
-The initial Gate C deployment record is published by `atos-spec` commit
+The initial Gate C deployment record is published by `tos-service-spec` commit
 `7a6cc02360e4cc8c2d95f80d433704cd72b0dc32`. Persistent validator JSON-RPC
 configuration is in `tos` commit
 `145bf7de195ac6105c630510ab51912f4b9e92ca`; the production quorum checker,
 live-node transaction response compatibility, and diagnostic-only quorum error
-detail are in `tos-protocol` commit
+detail are in `tos-service-protocol` commit
 `6bb42b8968d4bbc374a89b7b61ea2c0e958d91ca`. These operational additions do
 not change the frozen Registry BOC, action encoding, authorization, state
 machine, or quorum decision rule reviewed at Gate B.
 
-The pre-escrow Gate D design and test-evidence baseline is `atos-spec` commit
+The pre-escrow Gate D design and test-evidence baseline is `tos-service-spec` commit
 `11464a84d0dec985f22636a8a94b3770c0cc2418`, `tos` commit
-`dc71dc8712f58e3d11ed973f4980ff6ae71de845`, and `tos-protocol` commit
+`dc71dc8712f58e3d11ed973f4980ff6ae71de845`, and `tos-service-protocol` commit
 `6bb42b8968d4bbc374a89b7b61ea2c0e958d91ca`. It freezes the first
 software-work manifest and Accepted Quote encodings, records the finalized
 Capability binding and test-only stablecoin deployment, and provides
@@ -45,7 +60,7 @@ Quote-acceptance, execution, Receipt, or settlement claim; the implementation
 status below supersedes that historical baseline and must be bound to new exact
 commit hashes before public deployment.
 
-The shared Gate E execution-admission implementation is `tos-protocol` commit
+The shared Gate E execution-admission implementation is `tos-service-protocol` commit
 `92d8d1f114f984c5a1348318f7859b564428a3b4` and `tos-ai` commit
 `7456cc22c22cc5105c9fe5beac48a3513a91fb4c`. It adds canonical Accepted Quote
 decode, finalized escrow/Agent/Capability verification, one atomic durable
@@ -55,18 +70,18 @@ implementation evidence, not the fresh external interoperability evidence
 required to accept Gate E.
 
 The production buyer funding boundary is `tos` commit
-`d9d725534cb1a9120b1e49854b360c01f043c22a` and `tos-protocol` commit
+`d9d725534cb1a9120b1e49854b360c01f043c22a` and `tos-service-protocol` commit
 `d1a845eb7808365a413106d075c7c6316be67e27`. The SDK validates one exact
 `tosctl`-signed stablecoin funding message before acquiring its one-way
 broadcast lease, then submits those same bytes without rebuilding or
 re-signing. This closes the implementation item; fresh-buyer acceptance
 evidence remains outstanding. The same-host three-validator rehearsal in
-`deployments/local-gate-e-tosctl-buyer-funding-2026-08-15.json` additionally
+`deployments/archive/pre-tos-service-v1/local-gate-e-tosctl-buyer-funding-2026-08-15.json` additionally
 proves that a `tosctl`-native V1R3 wc=0 buyer can fund the exact new escrow and
 reach three-vote finalized funded state; it is not the complete public buyer
 session and does not establish external independence.
 
-Finalized buyer asset resolution is implemented in `tos-protocol` commit
+Finalized buyer asset resolution is implemented in `tos-service-protocol` commit
 `57f6429f2a0dc21b3292de8a27fa5d3a26255dd4`. It derives the exact buyer wallet
 from the authenticated stablecoin master's wallet-code preimage and verifies
 both accounts, balance, ownership, network genesis, strict-majority finality,
@@ -74,7 +89,7 @@ and a durable monotonic checkpoint. The live three-node result is attached to
 the local Gate E buyer-funding record.
 
 Direct buyer-side Native resolution and the full live Buyer SDK revalidation
-are implemented in `tos-protocol` commit
+are implemented in `tos-service-protocol` commit
 `a18162af3df971af265bf101ae9d40396e3c1370`. The SDK reproduced the finalized
 Capability/manifest binding, Quote commitment, deterministic escrow, buyer
 stablecoin wallet, and funded amount from the three-node chain at checkpoint
@@ -82,16 +97,16 @@ stablecoin wallet, and funded amount from the three-node chain at checkpoint
 idempotency evidence; the documented fresh-buyer acceptance session remains
 outstanding.
 
-Gateway-local Capability search is defined in `atos-spec` commit
-`c3ed72086798275021e1a45964f3b7d6d9d3eb5c`, implemented in `tos-protocol`
-commit `f3223ed7f9ceca54fd03298ce60aabd666b1e76c`, and exposed by `atos` commit
+Gateway-local Capability search is defined in `tos-service-spec` commit
+`c3ed72086798275021e1a45964f3b7d6d9d3eb5c`, implemented in `tos-service-protocol`
+commit `f3223ed7f9ceca54fd03298ce60aabd666b1e76c`, and exposed by `tos-service-gateway` commit
 `2981f6484e5310d2176717649cf41c50828c99ab`. Every result freshly resolves finalized Registry state and keeps its
 chain-selected version and manifest digest separate from explicitly local
 manifest metadata and match score. Pagination is Capability-ID ordered, so no
 gateway ranking becomes a cursor or protocol fact.
 
 The public-interface discovery example is implemented by
-`tos-protocol/cmd/atos-native-discovery` at commit
+`tos-service-protocol/cmd/tos-service-discovery` at commit
 `96bb82a3670270169650324a1c54397110b17e72`. It publishes, lists, searches,
 and retrieves manifests only through authenticated Connect methods, reads its
 credential from the environment, has no catalog-directory option, and is
@@ -118,7 +133,7 @@ replay test, not the fresh external interoperability requirement.
 
 Deliver:
 
-- ✅ clean `atos.native.v1` schema;
+- ✅ clean `tos.service.v1` schema;
 - ✅ network domain, identifiers, action cells, policies, and state cells;
 - ✅ deterministic Agent and Capability registration vectors, including
   independently reproduced identifiers, addresses, action hashes, and BOCs;
@@ -144,7 +159,7 @@ Deliver:
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
-- ✅ independent contract and `nativecore` security review, including the
+- 🟡 independent contract and `nativecore` security review, including the
   chain-time recovery preflight and crash-safe relay journal remediations;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
@@ -155,10 +170,12 @@ Accept when the full lifecycle passes on a local chain, the exported code hash
 matches frozen vectors, and independent review finds no unauthorized or partial
 transition.
 
-**Gate status: ✅ Complete.** Implementation, frozen conformance, reproducible
-contract release, full lifecycle testing, and independent security review are
-complete for the reviewed commits above. The independent review found no
-unauthorized or partial transition.
+**Gate status: 🟡 Migration delta review pending.** Implementation, frozen
+conformance, reproducible contract release, and full lifecycle tests pass under
+the new domain. The prior independent review remains relevant to the unchanged
+contract state machines, but Gate B requires a focused independent review of
+the renamed domains, generated protobuf, vectors, and cross-repository imports
+before it can be accepted for `tos_service_v1`.
 
 ## 3. Gate C — Public testnet authority
 
@@ -171,15 +188,15 @@ Deliver:
 - ✅ C++ consensus VM and Rust emulator `SHA256C` differential coverage using
   the same version-14 canonical snake vector;
 - ✅ designated initial public-testnet ConfigParam 8 at global version 14;
-- ✅ initial public-testnet deployment record binding network domain, contract
+- ⬜ current-domain public-testnet deployment record binding network domain, contract
   address, deployed code BOC, code hash, transaction, and exact source commit;
-- ✅ three validator-backed JSON-RPC endpoints and strict-majority finalized
+- ⬜ current-domain three-validator strict-majority finalized
   resolution through the production typed-state resolver;
 - ✅ wallet action signing and semantic confirmation, including exact action-hash
   confirmation and fee-payer destination, amount, body, and StateInit binding;
 - ✅ registry typed-state checker with machine-readable three-endpoint quorum
   evidence; and
-- ✅ recovery, transfer, former-owner rejection, and revocation drills on the
+- ⬜ recovery, transfer, former-owner rejection, and revocation drills on the
   designated initial public test network.
 
 Accept the initial profile when distinct controller keys register, update,
@@ -187,13 +204,11 @@ transfer, revoke, and resolve objects through validator-backed quorum without
 trusting the reference gateway. Independent operators and public HTTPS are
 required by Gates F and G.
 
-**Gate status: ✅ Complete under the initial public-testnet profile.** The
-2026-08-14 deployment and lifecycle are recorded in
-`deployments/initial-public-testnet-2026-08-14.json`, and production quorum
-typed-state outputs are recorded in
-`deployments/initial-public-testnet-quorum-2026-08-14.json`. The record openly
-states that the three endpoints share one host and use loopback HTTP; this does
-not satisfy Gate F/G diversity or production-readiness requirements.
+**Gate status: ⬜ Current-domain deployment pending.** The reproducible contract,
+wallet, resolver, and lifecycle tooling pass locally. The 2026-08-14 deployment
+is archived pre-migration evidence and cannot establish authority for
+`tos_service_v1`. Gate C must deploy fresh objects and repeat the complete
+quorum lifecycle under the current protocol domain.
 
 ## 4. Gate D — First commercial lifecycle
 
@@ -238,7 +253,7 @@ Deliver:
   finalized 25,000,000 atomic `tUSDT` software-work transaction, its immutable
   artifact and report, the provider-wallet credit, and matching escrow state
   from three validator-backed endpoints are recorded in
-  `deployments/initial-public-testnet-paid-software-work-2026-08-14.json`.
+  `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`.
 
 Accept when a buyer outside the core development team pays an independent
 provider on a public TOS network and another resolver reconstructs the complete
@@ -247,17 +262,15 @@ history without a private gateway database.
 Do not block this gate on general marketplace ranking, generalized arbitration,
 multiple verticals, cross-chain support, or per-message settlement.
 
-**Gate status: 🟡 Core escrow and provider execution implementation complete;
-Gate not accepted.**
+**Gate status: 🟡 Core escrow and provider execution implementation migrated;
+current-domain chain evidence and external acceptance pending.**
 Accepted Quote primitives, the test-only `tUSDT` asset recorded in
-`deployments/initial-public-testnet-tusdt-2026-08-14.json`, the fixed-price
+`deployments/archive/pre-tos-service-v1/initial-public-testnet-tusdt-2026-08-14.json`, the fixed-price
 escrow, canonical Receipt, objective transfer transitions, reproducible BOC,
-and finalized typed escrow-state resolver now exist. Typed endpoint and dispute
-commitments and the public escrow deployment are finalized. The same-host
-public-testnet rehearsal now includes a complete independently reproducible
-paid transaction, but it does not satisfy the acceptance requirement for a
-buyer outside the core team, an independent provider, and an independently
-operated resolver. Local operator diversity is not external independence.
+and finalized typed escrow-state resolver now exist. The archived same-host
+transaction proves the pre-migration implementation only. A fresh
+`tos_service_v1` Capability, Quote, escrow, Receipt, and settlement must be
+recorded before the external buyer/provider/resolver acceptance session.
 
 ## 5. Gate E — Developer usability and protocol adapters
 
@@ -267,14 +280,14 @@ Deliver:
   dedicated private-containerd template are implemented; a fresh same-host
   provider identity and Capability were published with newly generated
   controller custody and real signed Native actions, recorded in
-  `deployments/local-gate-e-fresh-native-publication-2026-08-15.json`; an
+  `deployments/archive/pre-tos-service-v1/local-gate-e-fresh-native-publication-2026-08-15.json`; an
   externally operated provider onboarding session is still required;
 - ✅ buyer SDK and wallet budget flow — canonical purchase preflight and the
   crash-safe bounded funding journal and production `tosctl` stablecoin sender
   are implemented and have been revalidated end to end against live finalized
   state; a fresh same-host buyer used new custody to purchase the newly
   published software-work Capability for 25,000,000 atomic `tUSDT`, recorded
-  in `deployments/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; its
+  in `deployments/archive/pre-tos-service-v1/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; its
   canonical Receipt subsequently authorized the exact 25,000,000-atomic
   settlement at a later finalized checkpoint; an externally operated buyer
   working session remains;
@@ -284,11 +297,11 @@ Deliver:
   same-host deployment published, searched, and retrieved the fresh
   Capability exclusively through the public Connect API without catalog file
   edits, recorded in
-  `deployments/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; a second
+  `deployments/archive/pre-tos-service-v1/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; a second
   same-host Gateway with separate storage and credentials correctly returned
   no result before provider publication and independently retrieved the exact
   manifest afterward, recorded in
-  `deployments/local-gate-e-role-isolated-simulation-2026-08-15.json`; an
+  `deployments/archive/pre-tos-service-v1/local-gate-e-role-isolated-simulation-2026-08-15.json`; an
   independently operated cross-gateway retrieval test remains;
 - ✅ A2A task and result adapter — the official A2A 1.0 Go types, exact
   request/result mapping, shared production finalized-chain execution Gate,
@@ -296,7 +309,7 @@ Deliver:
   the public listener and local cross-transport single-execution test are
   complete; a fresh funded purchase was admitted from a strict-majority
   finalized chain view and executed through the public TLS transport in
-  `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
+  `deployments/archive/pre-tos-service-v1/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
   external interoperability remains an acceptance activity, not engineering;
 - ✅ MCP tool adapter — official MCP 2026-07-28 typed tool registration,
   committed input/result mapping, shared production finalized-chain execution
@@ -304,7 +317,7 @@ Deliver:
   the public listener and local cross-transport single-execution test are
   complete; replaying the same live funded purchase after its A2A execution
   reached the shared chain Gate but never the runner, as recorded in
-  `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
+  `deployments/archive/pre-tos-service-v1/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
   external interoperability remains an acceptance activity, not engineering;
 - ⏸ optional x402 payment-negotiation adapter — deliberately deferred until
   Gate F demonstrates recurring buyer demand. `docs/X402_ADAPTER_DECISION.md`
@@ -319,46 +332,41 @@ a new buyer purchases it using public documentation in one working session.
 Adapters must map into the same Agent, Capability, Accepted Quote, Receipt, and
 chain-reference objects. They cannot create parallel protocol facts.
 
-**Gate status: 🟡 Engineering complete; external acceptance pending.** A fresh
-same-host role-isolated run published a Capability, created and funded a
-canonical 25,000,000-atomic `tUSDT` purchase, admitted it from a 2-of-3
-finalized chain view over A2A/TLS, rejected its MCP replay before a second
-runner invocation, and settled the exact execution outcome by canonical
-Receipt. The evidence is
-`deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`.
-The acceptance sentence above still requires independently operated provider
-and buyer sessions; this local run cannot establish organizational
-independence. Gate D external commercial acceptance proceeds independently.
+**Gate status: 🟡 Engineering migration complete; current-domain live and
+external acceptance pending.** Unit, race, adapter, and cross-transport code
+passes under the new imports and domains. The archived same-host role-isolated
+run is pre-migration evidence. A fresh current-domain live session must precede
+the independently operated provider and buyer acceptance sessions.
 
 ## 6. Gate F — Open gateway and market evidence
 
 Deliver:
 
 - ✅ gateway discovery document — `docs/GATEWAY_DISCOVERY_V1.md` freezes the
-  bounded `/.well-known/atos-native.json` locator and its non-authority,
-  expiry, failover, downgrade, credential, and SSRF rules; `atos` commit
+  bounded `/.well-known/tos-service.json` locator and its non-authority,
+  expiry, failover, downgrade, credential, and SSRF rules; `tos-service-gateway` commit
   `657bd4a` implements the explicit-origin well-known response without trusting
-  request forwarding headers, and `tos-protocol` commit `4e7b45c` adds strict
+  request forwarding headers, and `tos-service-protocol` commit `4e7b45c` adds strict
   client validation with bounded reads, authority-domain matching, redirect
   rejection, HTTPS enforcement, address filtering, and DNS-pinned dialing;
 - ✅ interoperable search and Quote Proposal exchange —
   `docs/GATEWAY_FEDERATION_V1.md` freezes authority-neutral client-side search
-  composition and content-addressed manifest failover; `tos-protocol` commit
+  composition and content-addressed manifest failover; `tos-service-protocol` commit
   `ec145a9` implements bounded multi-Gateway aggregation, source preservation,
-  malformed peer isolation, and exact-digest retrieval. `tos-protocol` commit
+  malformed peer isolation, and exact-digest retrieval. `tos-service-protocol` commit
   `aedc832` adds the `RequestQuoteProposal` wire method and strict complete-
-  preimage validator; `atos` commit `1e2a812` adds the authenticated provider
-  source boundary and rejects conflicting packages. `tos-protocol` commit
+  preimage validator; `tos-service-gateway` commit `1e2a812` adds the authenticated provider
+  source boundary and rejects conflicting packages. `tos-service-protocol` commit
   `6a9582d` constructs packages only from freshly finalized provider-owned
-  Capability state, and `atos` commit `7f88298` loads bounded commercial policy
+  Capability state, and `tos-service-gateway` commit `7f88298` loads bounded commercial policy
   from owner-private files. Two isolated local Gateways returned independently
   validated packages and Gateway B continued after Gateway A stopped, recorded
-  in `deployments/local-gate-f-federated-quote-conformance-2026-08-15.json`;
+  in `deployments/archive/pre-tos-service-v1/local-gate-f-federated-quote-conformance-2026-08-15.json`;
 - ✅ canonical error and retry semantics — `docs/PUBLIC_ERRORS_V1.md` freezes
   codes `2300..2308`, Connect mappings, bounded backoff, fail-closed parsing,
-  and mandatory resolution after ambiguous mutations. `tos-protocol` commit
+  and mandatory resolution after ambiguous mutations. `tos-service-protocol` commit
   `5c091f9` implements creation/parsing and private Native classification;
-  `atos` commit `7a0b58f` applies it to every public Gateway boundary and
+  `tos-service-gateway` commit `7a0b58f` applies it to every public Gateway boundary and
   verifies detail survival across the Connect wire;
 - ✅ pre-acceptance routing and post-acceptance failover rules —
   `docs/SAFE_HANDOFF_V1.md` freezes the portable boundary; the production
@@ -369,11 +377,11 @@ Deliver:
   zero Gateway inputs;
 - 🟡 public relay, resolver, Quote, and Receipt conformance tests — local relay
   and resolver tests exist; public Quote conformance and portable Receipt
-  conformance now exist locally. `tos-protocol` commits `f000e6d` and `b83515b`
+  conformance now exist locally. `tos-service-protocol` commits `f000e6d` and `b83515b`
   add the strict bundle packer, quorum checker, and parser negative tests;
-  `atos-spec` commits `92129a5` and `e0ea5c6` publish the template and operator
+  `tos-service-spec` commits `92129a5` and `e0ea5c6` publish the template and operator
   runbook. The live two-process failover rehearsal is recorded in
-  `deployments/local-gate-f-safe-handoff-conformance-2026-08-15.json`.
+  `deployments/archive/pre-tos-service-v1/local-gate-f-safe-handoff-conformance-2026-08-15.json`.
   An independently operated public Receipt session still does not exist;
 - ⬜ at least two independently operated gateways;
 - ⬜ at least three independently operated providers; and
@@ -455,11 +463,11 @@ must reuse the existing authority objects.
 8. 🟡 **Active Gate D workstream:**
    1. ✅ freeze the bounded software-work manifest schema, canonical byte
       encoding, media type, digest rule, positive vector, and negative corpus;
-   2. ✅ implement the manifest in `atos-spec`, `tos-protocol`, and one
+   2. ✅ implement the manifest in `tos-service-spec`, `tos-service-protocol`, and one
       independent vector implementation, then bind its digest to a Capability
       version on the initial public test network — the non-revoked Capability
       and three-endpoint evidence are recorded in
-      `deployments/initial-public-testnet-software-work-capability-2026-08-14.json`;
+      `deployments/archive/pre-tos-service-v1/initial-public-testnet-software-work-capability-2026-08-14.json`;
    3. ✅ freeze the Accepted Quote TVM cell and vector using an exact
       TOS-network stablecoin contract identity, endpoint commitment, typed
       execution signer authorization, typed escrow terms, dispute terms, price,
@@ -475,7 +483,7 @@ must reuse the existing authority objects.
       canonical Quote acceptance event — escrow `0:ee6918da…a4241f7a`,
       transaction `2e02dd6c…1f19db`, and identical typed data hash
       `c7cbb362…cda4eb` are recorded from all three endpoints in
-      `deployments/initial-public-testnet-escrow-2026-08-14.json`.
+      `deployments/archive/pre-tos-service-v1/initial-public-testnet-escrow-2026-08-14.json`.
 9. ✅ Deploy a test-only TOS-network stablecoin and controlled wc=0 buyer
    wallet. The exact `tUSDT` master identity is
    `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
@@ -507,7 +515,7 @@ must reuse the existing authority objects.
     Receipt committed the result, artifact, report, source, toolchain, and
     sandbox; and the release credited the provider wallet. Three endpoints
     independently report the same finalized escrow and wallet state in
-    `deployments/initial-public-testnet-paid-software-work-2026-08-14.json`.
+    `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`.
 
 All local Gate D implementation items are complete. The next Gate D acceptance
 task is an external pilot with a buyer outside the core team, an independent
@@ -518,7 +526,7 @@ command, custody-safe two-stage Receipt signing flow, and acceptance record are
 frozen in `docs/GATE_D_EXTERNAL_PILOT.md`. A fresh local preflight exercised
 that flow through a second 25,000,000 atomic `tUSDT` settlement and proved the
 provider balance increase between finalized checkpoints; its evidence is
-`deployments/initial-public-testnet-gate-d-local-preflight-2026-08-14.json`.
+`deployments/archive/pre-tos-service-v1/initial-public-testnet-gate-d-local-preflight-2026-08-14.json`.
 Multi-operator HTTPS endpoint diversity remains required in Gates F and G and
 is not implied by Gate C's initial profile.
 
@@ -532,7 +540,7 @@ is not implied by Gate C's initial profile.
     has now passed the live 2-of-3 chain execution Gate over A2A/TLS, its MCP
     replay was rejected with one runner call, and its exact Receipt settled on
     chain; see
-    `deployments/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`.
+    `deployments/archive/pre-tos-service-v1/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`.
     Engineering is complete. The remaining Gate E task is one independently
     operated provider/buyer working session using the public onboarding docs.
     The optional x402 adapter has been evaluated and
@@ -554,12 +562,12 @@ is not implied by Gate C's initial profile.
     validator endpoints. Then recruit two independently operated Gateways,
     three providers, ten useful Capabilities, and recurring buyers. Until that
     evidence exists, Gate F must remain not accepted.
-16. ✅ **Chain-authenticated off-chain Agent messaging:** `tos-protocol` commits
+16. ✅ **Chain-authenticated off-chain Agent messaging:** `tos-service-protocol` commits
     `7aa6f86`, `9603c9d`, `ee25dea`, `e689536`, `79ab13d`, and `2537154`
     implement the signed Agent Packet, strict JSON wire format, replay guard,
     direct HTTPS/loopback HTTP transport, signed Contact Card discovery,
     network-tuple binding, and bounded Contact Card issuance lifetime.
-    `atos-spec` commits `41e01a9`, `4306efe`, `54e2b4d`, `df9194c`, and
+    `tos-service-spec` commits `41e01a9`, `4306efe`, `54e2b4d`, `df9194c`, and
     `804ba08` define the envelope, locator, wire exchange, and security
     boundary. Payloads remain off-chain; finalized Agent policy authorizes
     keys; no Gateway, Managed mode, or arbitrary on-chain message store is
@@ -568,7 +576,7 @@ is not implied by Gate C's initial profile.
 17. 🟡 **Application-layer product bridge:** the OpenFox buyer/provider
     integration contract and shared iOS/Android client design are now frozen in
     `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md` and
-    `docs/MOBILE_ATOS_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
+    `docs/MOBILE_TOS_SERVICE_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
     paid application session remain after the protocol/SDK work; these apps
     must reuse the finalized Native lifecycle and cannot create parallel facts.
 18. ⬜ **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines

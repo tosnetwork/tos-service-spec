@@ -68,11 +68,11 @@ Conformance includes:
 - verification of an expired but previously accepted proposal against its
   finalized escrow.
 
-`tos-protocol/pkg/safehandoff` is the production verifier for this profile.
+`tos-service-protocol/pkg/safehandoff` is the production verifier for this profile.
 Its resolver interface exposes only finalized typed escrow state.
 
-The operator-facing checker is `tos-protocol/cmd/native-safe-handoff-check`.
-It accepts one strict `atos.native.safe-handoff.v1` JSON bundle, at least three
+The operator-facing checker is `tos-service-protocol/cmd/native-safe-handoff-check`.
+It accepts one strict `tos.service.safe-handoff.v1` JSON bundle, at least three
 validator JSON-RPC endpoints, and a durable checkpoint path. Its evidence
 output records zero Gateway inputs, the endpoint quorum, finalized checkpoint,
 commitments, and whether the release is ready to broadcast or already pending.
@@ -83,7 +83,7 @@ key and signature are lowercase hexadecimal.
 must replace every `REQUIRED` or placeholder value with bytes retained by the
 buyer/provider owner; placeholders are not valid evidence.
 
-`tos-protocol/cmd/native-safe-handoff-pack` assembles this document from
+`tos-service-protocol/cmd/native-safe-handoff-pack` assembles this document from
 protobuf-JSON Quote inputs and the `native-receipt-release` signing package.
 It rejects unknown/trailing JSON, incomplete signing authorization, and
 malformed Receipt or signature encodings before a resolver is contacted.

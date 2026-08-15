@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package atos.native.v1;
+package tos.service.v1;
 
-option go_package = "github.com/tosnetwork/atos-spec/proto/atos/native/v1;atosnativev1";
+option go_package = "github.com/tosnetwork/tos-service-spec/proto/tos/service/v1;tosservicev1";
 
-// ATOS Native defines one canonical authority and execution protocol.
+// TOS Native Service defines one canonical authority and execution protocol.
 
 message RequestContext {
   string request_id = 1;
@@ -148,7 +148,7 @@ message RevokeCapabilityV1 {
 
 message NativeActionV1 {
   reserved 30;
-  string protocol = 1; // exactly atos_native_v1
+  string protocol = 1; // exactly tos_service_v1
   NetworkDomain network = 2;
   string target_object_id = 3;
   string target_contract_code_hash = 4;
@@ -278,7 +278,7 @@ message QuoteProposalV1 {
 }
 
 message AcceptedQuoteV1 {
-  string protocol = 1; // exactly atos_native_v1
+  string protocol = 1; // exactly tos_service_v1
   string quote_commitment = 2;
   QuoteProposalV1 proposal = 3;
   string execution_signer_authorization = 4;

@@ -23,12 +23,12 @@ duplicate Capabilities are rejected; callers must additionally compare the
  `VerifyContactForNetwork` to enforce this comparison before dialing.
 
 `EncodeContactJSON` and `DecodeContactJSON` provide the strict
-`atos.native.agent-contact.v1` exchange format; unknown fields and trailing
+`tos.service.agent-contact.v1` exchange format; unknown fields and trailing
 JSON are rejected before the card is used.
 
 ## Envelope
 
-The signed preimage includes protocol domain `atos.agent.packet.v1`, sender and
+The signed preimage includes protocol domain `tos.service.agent.packet.v1`, sender and
 recipient Agent IDs, Capability ID, optional finalized Accepted Quote
 commitment, strictly positive sender sequence, 32-byte nonce, creation time,
 sender Ed25519 public key, and SHA-256 of the payload. Payloads are bounded to
@@ -47,7 +47,7 @@ An optional Quote commitment binds the packet to an Accepted Quote. It does not
 authorize payment by itself: escrow funding, execution admission, Receipt, and
 settlement still require their existing finalized-chain checks.
 
-`tos-protocol/pkg/agentpacket` implements signing, finalized-state verification,
+`tos-service-protocol/pkg/agentpacket` implements signing, finalized-state verification,
 replay protection, and strict JSON wire encoding/decoding for transport
 interoperability. It deliberately has no Gateway database, no arbitrary
 on-chain message storage, and no Managed/Verified trust mode.

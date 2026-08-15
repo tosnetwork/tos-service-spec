@@ -3,7 +3,7 @@
 ## Scope
 
 This adapter maps the Linux Foundation A2A 1.0 Task model into the existing
-ATOS Native software-work lifecycle. A2A remains transport. It cannot create an
+TOS Native Service software-work lifecycle. A2A remains transport. It cannot create an
 Agent, Capability, Accepted Quote, funded escrow, Receipt, balance, or
 settlement fact.
 
@@ -11,7 +11,7 @@ The implementation uses the official Go SDK module
 `github.com/a2aproject/a2a-go/v2` and extension URI:
 
 ```text
-https://atos.im/extensions/native-software-work/v1
+https://tos.service.im/extensions/native-software-work/v1
 ```
 
 V1 is a synchronous `SendMessage` mapping. Streaming, push notifications,
@@ -23,22 +23,22 @@ part of this profile.
 The user-role A2A Message contains exactly two Parts and exactly the extension
 URI above:
 
-1. `application/vnd.atos.a2a.software-work-task.v1+json` Data containing only
+1. `application/vnd.tos.service.a2a.software-work-task.v1+json` Data containing only
    `protocol`, `escrow_address`, `quote_commitment`, `execution_id`,
    `input_digest`, and `source_digest`;
-2. `application/vnd.atos.software-source.v1+tar` raw bytes named `source.tar`.
+2. `application/vnd.tos.service.software-source.v1+tar` raw bytes named `source.tar`.
 
-`protocol` is exactly `atos_native_v1`. Quote and SHA-256 digests use their
+`protocol` is exactly `tos_service_v1`. Quote and SHA-256 digests use their
 canonical lowercase forms. The source digest is SHA-256 over the exact raw
 Part. The input digest is SHA-256 over this domain prefix plus canonical JSON
 of protocol, escrow address, Quote commitment, execution ID, and source digest:
 
 ```text
-atos.a2a.software-work-input.v1 || 0x00 || canonical_binding_json
+tos.service.a2a.software-work-input.v1 || 0x00 || canonical_binding_json
 ```
 
 Unknown binding fields, additional Parts, alternate media types, Part metadata,
-changed source bytes, malformed digests, agent-role requests, or multiple ATOS
+changed source bytes, malformed digests, agent-role requests, or multiple TOS Service Protocol
 extension declarations fail before any authoritative read or execution lease.
 
 ## Authority gate
@@ -67,7 +67,7 @@ container starts.
 Objective execution failure produces a terminal A2A failed Task without a
 result artifact. Success produces a terminal completed Task with one Artifact,
 extension URI above, and one
-`application/vnd.atos.a2a.software-work-result.v1+json` Data Part. It contains:
+`application/vnd.tos.service.a2a.software-work-result.v1+json` Data Part. It contains:
 
 - the finalized authorization evidence;
 - Quote, execution, input, result, source, toolchain, and sandbox digests;

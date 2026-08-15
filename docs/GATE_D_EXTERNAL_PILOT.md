@@ -121,7 +121,7 @@ from the local rehearsal:
 
 ```bash
 uv run --project test/tostester python \
-  scripts/atos-software-work-paid-evidence.py \
+  scripts/tos-service-software-work-paid-evidence.py \
   --outcome OUTCOME.json \
   --release RELEASE.json \
   --quote-vector ACCEPTED_QUOTE.json \

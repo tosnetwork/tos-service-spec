@@ -44,7 +44,7 @@ These carry to any network and must match exactly.
 | Executable Capability version used by the latest rehearsal | `1.2.0` |
 | Canonical manifest / Accepted Quote / Receipt encodings | frozen in this repository (`SOFTWARE_WORK_MANIFEST_V1.md`, `ACCEPTED_QUOTE_TVM_V1.md`, `SOFTWARE_WORK_RECEIPT_TVM_V1.md`, `STABLECOIN_ESCROW_TVM_V1.md`) |
 | Pinned executor OCI toolchain (Go 1.26.5) index digest | `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105` |
-| Strict verifier | `tos/scripts/atos-software-work-paid-evidence.py`, run via `tos/test/tostester`, quorum 2 |
+| Strict verifier | `tos/scripts/tos-service-software-work-paid-evidence.py`, run via `tos/test/tostester`, quorum 2 |
 | Endpoint config template | `deployments/public-testnet.template.json` |
 
 ## 4. Per-pilot instance values (establish and record on the PUBLIC network)
@@ -57,7 +57,7 @@ shown as shape reference only — **do not reuse them**.
 |---|---|---|
 | network_id | public network id | `tos-local-gate-c-20260814` |
 | genesis_root_hash / genesis_file_hash | of the public network | `sha256:fbd138d3…e37cfc2c` / `sha256:bdd806fc…23e0683d8` |
-| release commits (tos, tos-protocol, atos-spec) | exact reviewed release SHAs | pin at pilot time |
+| release commits (tos, tos-service-protocol, tos-service-spec) | exact reviewed release SHAs | pin at pilot time |
 | Capability id | provider re-registers → new derived id | `cap_c17458247d4699cd745d76dd3d20df7dafd56cbff23e85956af1259b77d9e657` |
 | tUSDT master + wallet-code hash | stablecoin deployed on public net | `EQDKESAKfUo8aCKvB38DUTGGhYT0D0j7G3t7GImuUfmSamgP` |
 | escrow address | derived from the new Accepted Quote | generated during pilot |
@@ -100,7 +100,7 @@ shown as shape reference only — **do not reuse them**.
 
 ```bash
 uv run --project test/tostester python \
-  scripts/atos-software-work-paid-evidence.py \
+  scripts/tos-service-software-work-paid-evidence.py \
   --outcome OUTCOME.json \
   --release RELEASE.json \
   --quote-vector ACCEPTED_QUOTE.json \
@@ -130,7 +130,7 @@ Accept only when it returns `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT`.
     "buyer":    {"org": "", "role_pubkey": "", "declaration": ""},
     "verifier": {"org": "", "role_pubkey": "", "declaration": ""}
   },
-  "release_commits": {"tos": "", "tos_protocol": "", "atos_spec": ""},
+  "release_commits": {"tos": "", "tos_service_protocol": "", "tos_service_spec": ""},
   "network": {"network_id": "", "genesis_root_hash": "", "genesis_file_hash": "",
               "registry_code_hash": "tvm-cell-sha256:600f2fda…a91ffa0"},
   "capability": {"id": "", "version": "1.2.0"},
@@ -177,8 +177,8 @@ assurance levels are not equal, so this determines what the pilot can prove.
 
 | Outcome | Emulator test | On-chain rehearsal | Independent evidence verifier |
 |---|---|---|---|
-| **Release** | complete | complete (two fresh 25,000,000 tUSDT settlements) | `atos-software-work-paid-evidence.py`, verified end to end against live finalized pre-release and settlement checkpoints, including the exact provider balance delta → `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT` |
-| **Timeout refund** | complete (`atos_stablecoin_escrow_sandbox::timeout_refunds_the_complete_stablecoin_balance`) | none | none — the paid-evidence verifier is release-specific: it requires a release body (`0x4E450001`) and a Receipt, which a refund has neither |
+| **Release** | complete | complete (two fresh 25,000,000 tUSDT settlements) | `tos-service-software-work-paid-evidence.py`, verified end to end against live finalized pre-release and settlement checkpoints, including the exact provider balance delta → `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT` |
+| **Timeout refund** | complete (`tos_service_stablecoin_escrow_sandbox::timeout_refunds_the_complete_stablecoin_balance`) | none | none — the paid-evidence verifier is release-specific: it requires a release body (`0x4E450001`) and a Receipt, which a refund has neither |
 
 Consequences:
 

@@ -1,18 +1,18 @@
-# ATOS Native Public API
+# TOS Native Service Public API
 
 ## Protocol surface
 
 The public Native API is the Connect service generated from
-`proto/atos/native/v1/native.proto`:
+`proto/tos/service/v1/native.proto`:
 
 ```text
-atos.native.v1.NativeService/SubmitNativeAction
-atos.native.v1.NativeService/ResolveNativeState
-atos.native.v1.CapabilityDiscoveryService/ListCapabilities
-atos.native.v1.CapabilityDiscoveryService/SearchCapabilities
-atos.native.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
-atos.native.v1.CapabilityDiscoveryService/GetSoftwareWorkManifest
-atos.native.v1.CapabilityDiscoveryService/RequestQuoteProposal
+tos.service.v1.NativeService/SubmitNativeAction
+tos.service.v1.NativeService/ResolveNativeState
+tos.service.v1.CapabilityDiscoveryService/ListCapabilities
+tos.service.v1.CapabilityDiscoveryService/SearchCapabilities
+tos.service.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
+tos.service.v1.CapabilityDiscoveryService/GetSoftwareWorkManifest
+tos.service.v1.CapabilityDiscoveryService/RequestQuoteProposal
 ```
 
 The canonical Connect path is generated from this fully qualified service name.

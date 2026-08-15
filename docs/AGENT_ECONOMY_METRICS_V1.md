@@ -37,7 +37,7 @@ One commercial job is identified by the following byte preimage:
 
 ```text
 job_id = "sha256:" || lowercase_hex(SHA-256(
-  "atos.native.economic-job.v1\0" ||
+  "tos.service.economic-job.v1\0" ||
   network_domain_cell_hash:bytes32 ||
   quote_commitment_hash:bytes32 ||
   escrow_workchain:int32_be ||
@@ -149,7 +149,7 @@ identities are reported separately unless a later specification freezes an
 explicit cross-version semantic aggregation rule. Registry snapshots likewise
 bind one exact Registry code hash.
 
-A same-code deployment is only a candidate. It becomes a discovered ATOS
+A same-code deployment is only a candidate. It becomes a discovered TOS Service Protocol
 escrow after strict typed decoding, root-to-reference validation, canonical
 StateInit reconstruction, and address equality succeed. A conclusively invalid
 candidate is excluded and counted in `rejected_candidate_count`; it cannot
@@ -178,7 +178,7 @@ The metrics protocol does not publish a fiat conversion as canonical-derived
 value. A UI may show an explicitly labelled, timestamped, non-authoritative
 conversion beside the atomic-unit result.
 
-ATOS V1 supports service-only jobs. Consequently:
+TOS Service Protocol V1 supports service-only jobs. Consequently:
 
 - `settled_cash_flow_atomic` is the sum of every authenticated terminal release
   transfer, whether or not Agent attribution succeeds;
@@ -353,7 +353,7 @@ binding before Agent spend or net flow is exported. Address similarity,
 Gateway configuration, or an operator assertion is insufficient. Until such a
 binding exists, `paid_to_other_agents_atomic`, `net_agent_flow_atomic`, and
 unique counterparty-Agent count are `null`, not zero, and coverage explains
-why. ATOS Native V1 currently defines no such general wallet-control binding.
+why. TOS Native Service V1 currently defines no such general wallet-control binding.
 
 For the fixed-price V1 profile,
 `contributed_gross_agent_value_atomic == settled_receipts_atomic`. Summing the
@@ -443,7 +443,7 @@ conceptual JSON envelope:
 
 ```json
 {
-  "schema": "atos.native.agent-economy-metrics.v1",
+  "schema": "tos.service.agent-economy-metrics.v1",
   "scope": {
     "kind": "network|agent|capability_version",
     "id": "",
@@ -525,7 +525,7 @@ when the unresolved count is nonzero.
 Candidate coverage counts distinct canonical account addresses, not transaction
 attempts. `candidate_account_count` equals the sum of rejected candidates,
 unresolved candidates, and authenticated discovered escrows. Rejected
-candidates are deterministically proven non-ATOS accounts. Any unresolved
+candidates are deterministically proven non-protocol accounts. Any unresolved
 candidate or unresolved authenticated escrow removes total status.
 
 For releases whose terminal time is inside the selected window, every
@@ -554,14 +554,14 @@ Set commitments use fixed deterministic preimages:
 
 ```text
 address_set_digest = "sha256:" || lowercase_hex(SHA-256(
-  "atos.native.metrics-address-set.v1\0" ||
+  "tos.service.metrics-address-set.v1\0" ||
   network_domain_cell_hash:bytes32 ||
   count:uint32_be ||
   each sorted (workchain:int32_be || account_id:bytes32)
 ))
 
 object_set_digest = "sha256:" || lowercase_hex(SHA-256(
-  "atos.native.metrics-object-set.v1\0" ||
+  "tos.service.metrics-object-set.v1\0" ||
   network_domain_cell_hash:bytes32 ||
   count:uint32_be ||
   each sorted (utf8_length:uint16_be || canonical_object_id:utf8)
@@ -586,7 +586,7 @@ meaningless asset bucket, economic window, or escrow coverage:
 
 ```json
 {
-  "schema": "atos.native.agent-economy-registry-snapshot.v1",
+  "schema": "tos.service.agent-economy-registry-snapshot.v1",
   "network": {},
   "registry_code_hash": "tvm-cell-sha256:...",
   "finalized_checkpoint": 0,
@@ -660,4 +660,4 @@ Implementation requires:
    identities, asset, time window, and as-of finalized checkpoint.
 
 Until every applicable item exists, the feature remains **⬜ Not implemented**
-and no Gateway may advertise its output as canonical ATOS GDP.
+and no Gateway may advertise its output as canonical Agent GDP.

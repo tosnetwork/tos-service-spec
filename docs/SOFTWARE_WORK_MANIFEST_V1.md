@@ -2,13 +2,13 @@
 
 ## Status and authority
 
-This document freezes the first ATOS commercial Capability profile. The
+This document freezes the first TOS Service Protocol commercial Capability profile. The
 manifest is immutable, content-addressed off-chain data. Finalized typed TOS
 state remains the authority for the Capability version and its manifest
 digest; a gateway copy has no authority.
 
 The media type is
-`application/vnd.atos.software-work-manifest.v1+cbor`. Canonical bytes use RFC
+`application/vnd.tos.service.software-work-manifest.v1+cbor`. Canonical bytes use RFC
 8949 Core Deterministic Encoding, definite lengths, no floats, and the integer
 field keys below. The digest is `sha256:<lowercase hex>` over those exact bytes.
 
@@ -21,7 +21,7 @@ that association.
 
 | Key | JSON projection | Type and bound |
 |---:|---|---|
-| 1 | `protocol` | exact `atos.software-work-manifest.v1` |
+| 1 | `protocol` | exact `tos.service.software-work-manifest.v1` |
 | 2 | `version` | 1–64 printable ASCII identifier |
 | 3 | `name` | 1–128 printable UTF-8 bytes |
 | 4 | `description` | 1–2048 printable UTF-8 bytes |

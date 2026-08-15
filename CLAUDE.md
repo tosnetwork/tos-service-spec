@@ -1,4 +1,4 @@
-# ATOS Specification Contributor Rules
+# TOS Service Protocol Specification Contributor Rules
 
 ## Read authority in order
 
@@ -8,6 +8,7 @@ Before changing product scope, schemas, or protocol behavior, read completely:
 2. `docs/ARCHITECTURE.md`
 3. `docs/NATIVE_REGISTRY_STATE_MACHINES.md`
 4. `docs/ROADMAP.md`
+5. `docs/NAMING_MIGRATION.md`
 
 The strategy controls delivery priority and initial market scope. It cannot
 weaken architecture or contract safety. The architecture document controls
@@ -16,14 +17,14 @@ transitions. The roadmap controls implementation order and acceptance evidence.
 
 ## Greenfield contract
 
-ATOS has one protocol: `atos_native_v1`. Do not add alternate authority paths,
+TOS Service Protocol has one protocol: `tos_service_v1`. Do not add alternate authority paths,
 gateway-owned canonical objects, caller-supplied next state, or fields from
 abandoned drafts. If an implementation experiment conflicts with
-the specification, isolate or remove it; do not weaken the Native schema.
+the specification, isolate or remove it; do not weaken the service schema.
 
 ## Schema discipline
 
-- Make normative changes in `proto/atos/native/v1/native.proto` first.
+- Make normative changes in `proto/tos/service/v1/native.proto` first.
 - Use reserved field numbers when removing a field from a frozen message.
 - Bound every repeated field, string, byte sequence, cell, response, and retry.
 - Specify canonical ordering and rejection behavior.
@@ -58,7 +59,7 @@ Do not claim completion from source presence or compilation alone. Record:
 - local-chain or public-network evidence as appropriate; and
 - unresolved operational or audit gates.
 
-Documentation must describe the intended Native system directly. Historical
+Documentation must describe the intended TOS Service Protocol directly. Historical
 draft narratives do not belong in the normative repository.
 
 Before adding a new protocol surface, apply the decision filter in

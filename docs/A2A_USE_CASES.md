@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-ATOS adds decentralized identity, authorization, commerce, and settlement to
+TOS Service Protocol adds decentralized identity, authorization, commerce, and settlement to
 agent-to-agent interaction. It does not require every message or computation to
 run on-chain.
 
@@ -13,7 +13,7 @@ A conventional A2A transport answers questions such as:
 - how progress and results are returned; and
 - how errors and cancellation are represented.
 
-ATOS additionally lets an Agent determine, without trusting one platform:
+TOS Service Protocol additionally lets an Agent determine, without trusting one platform:
 
 - who controls the provider Agent;
 - which Capability and immutable version are being offered;
@@ -249,7 +249,7 @@ one finalized Quote and budget
 
 ## 13. Selection criteria
 
-ATOS is most valuable when at least one of the following is true:
+TOS Service Protocol is most valuable when at least one of the following is true:
 
 - buyer and provider are operated by different parties;
 - payment or escrow is required;
@@ -260,7 +260,7 @@ ATOS is most valuable when at least one of the following is true:
 - multiple autonomous services are composed into one supply chain.
 
 For a private, free, low-risk interaction inside one security domain, direct
-A2A transport may be sufficient. ATOS should secure the trust and commercial
+A2A transport may be sufficient. TOS Service Protocol should secure the trust and commercial
 boundaries that require shared public facts, not add consensus overhead to
 every message.
 

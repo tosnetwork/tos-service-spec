@@ -1,4 +1,4 @@
-# ATOS Production Readiness Runbook V1
+# TOS Service Protocol Production Readiness Runbook V1
 
 This runbook defines the minimum operational controls for a production Native
 deployment. It does not grant a Gateway semantic authority: finalized TOS

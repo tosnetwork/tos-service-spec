@@ -1,12 +1,12 @@
-# ATOS Native Architecture
+# TOS Service Architecture
 
 **Normative authority:** product and system architecture
 
-**Protocol:** `atos_native_v1`
+**Protocol:** `tos_service_v1`
 
 ## 1. Product definition
 
-ATOS is an open protocol for locating and transacting with agents over TOS.
+TOS Service Protocol is an open protocol for locating and transacting with agents over TOS.
 Users may choose any conforming gateway or interact with TOS directly. The
 protocol has one authority model and one canonical state path.
 
@@ -53,7 +53,7 @@ contracts hold Accepted Quote, escrow, receipt, dispute, and settlement facts.
 
 ### Protocol plane
 
-`tos-protocol` implements canonical cell construction, identifier derivation,
+`tos-service-protocol` implements canonical cell construction, identifier derivation,
 signature verification, transaction relaying, quorum reads, finalized-state
 resolution, and deterministic projections. It does not replace contract
 validation.
@@ -123,12 +123,12 @@ on-chain state transition; contract signatures do that.
 
 ## 7. Interoperability boundary
 
-ATOS does not define a new general Agent messaging protocol. A2A or MCP may
+TOS Service Protocol does not define a new general Agent messaging protocol. A2A or MCP may
 carry task, progress, tool, and result messages. x402 or AP2 adapters may bridge
-payment negotiation or delegated purchase intent. These adapters map into ATOS
+payment negotiation or delegated purchase intent. These adapters map into TOS Service Protocol
 objects and never become an alternate authority path.
 
-The Accepted Quote remains the canonical ATOS commercial boundary regardless
+The Accepted Quote remains the canonical TOS Service Protocol commercial boundary regardless
 of transport. An adapter cannot replace its Capability version, endpoint,
 signer, asset, amount, escrow, expiry, or dispute commitment.
 

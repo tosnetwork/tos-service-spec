@@ -1,4 +1,4 @@
-# Mobile ATOS Client V1 (iOS and Android)
+# Mobile TOS Service Client V1 (iOS and Android)
 
 The iOS and Android applications are owner-controlled Native clients. They
 provide discovery, approval, custody, task status, and settlement receipts;

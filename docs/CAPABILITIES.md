@@ -1,4 +1,4 @@
-# ATOS Capability Model
+# TOS Service Protocol Capability Model
 
 ## Canonical identity
 

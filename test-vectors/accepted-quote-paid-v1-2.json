@@ -1,5 +1,5 @@
 {
-  "schema": "atos.accepted-quote.v1.vector",
+  "schema": "tos.service.accepted-quote.v1.vector",
   "network": {
     "network_id": "tos-local-gate-c-20260814",
     "genesis_root_hash": "sha256:fbd138d37f7e8e83ecb8fa66cca54dae657e362ea16ead259b6a1876e37cfc2c",

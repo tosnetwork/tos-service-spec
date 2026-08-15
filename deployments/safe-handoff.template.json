@@ -1,5 +1,5 @@
 {
-  "schema": "atos.native.safe-handoff.v1",
+  "schema": "tos.service.safe-handoff.v1",
   "network": {
     "network_id": "REQUIRED",
     "genesis_root_hash": "sha256:REQUIRED",

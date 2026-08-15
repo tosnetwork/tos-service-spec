@@ -52,7 +52,7 @@ buyer validates every preimage and creates the deterministic Accepted Quote;
 only its finalized TOS escrow commitment establishes accepted terms.
 
 `RequestQuoteProposal` carries the complete preimages needed to reproduce every
-proposal digest. `tos-protocol` validates those preimages and `atos` exposes a
+proposal digest. `tos-service-protocol` validates those preimages and `tos-service-gateway` exposes a
 provider-source boundary that fails closed when no source is configured. The
 RPC does not introduce a Gateway order book, Gateway-controlled acceptance
 record, or server-side buyer wallet. A production provider quote source and

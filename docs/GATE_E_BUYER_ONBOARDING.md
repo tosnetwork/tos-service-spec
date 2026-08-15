@@ -11,12 +11,12 @@ A same-host three-validator rehearsal has additionally funded a new escrow
 from a `tosctl`-native V1R3 wc=0 buyer. It verified the exact signed-message
 prepare/broadcast boundary and the post-payment escrow and stablecoin-wallet
 state with three agreeing endpoints. The record is
-`deployments/local-gate-e-tosctl-buyer-funding-2026-08-15.json`. This is
+`deployments/archive/pre-tos-service-v1/local-gate-e-tosctl-buyer-funding-2026-08-15.json`. This is
 implementation evidence only: it did not exercise the complete public buyer
 SDK session or establish external operator independence.
 
 The production asset read no longer requires a caller-supplied balance view.
-`tos-protocol/pkg/toschain.StablecoinResolver` authenticates the master code,
+`tos-service-protocol/pkg/toschain.StablecoinResolver` authenticates the master code,
 extracts and verifies its wallet-code preimage, derives the buyer wallet, and
 checks the wallet code, owner, master, unlocked status, balance, genesis, and
 monotonic finalized checkpoint through strict-majority TOS RPC. Its local live
@@ -49,7 +49,7 @@ the required fresh-buyer onboarding session.
 1. Create an owner-private `0700` budget directory and choose explicit window,
    purchase-count, per-purchase, and total atomic-unit limits.
 2. Obtain a Quote Proposal and retrieve the manifest independently by its
-   digest. Use `tos-protocol/pkg/buyersdk` to strictly decode the manifest and
+   digest. Use `tos-service-protocol/pkg/buyersdk` to strictly decode the manifest and
    verify the exact finalized Capability version and provider ownership.
 3. Resolve the quoted TOS stablecoin through finalized TOS state. Verify its
    master identity, wallet code, buyer wallet, balance, and checkpoint.
@@ -85,16 +85,16 @@ procedure.
 
 ## Current implementation and remaining acceptance
 
-- buyer safety boundary: `tos-protocol/pkg/buyersdk`
-- Go guide: `tos-protocol/docs/buyer-sdk.md`
+- buyer safety boundary: `tos-service-protocol/pkg/buyersdk`
+- Go guide: `tos-service-protocol/docs/buyer-sdk.md`
 - exact prepared-message broadcast boundary: `tos` commit
   `d9d725534cb1a9120b1e49854b360c01f043c22a`
-- production `tosctl` funding adapter: `tos-protocol` commit
+- production `tosctl` funding adapter: `tos-service-protocol` commit
   `d1a845eb7808365a413106d075c7c6316be67e27`
-- production finalized stablecoin resolver: `tos-protocol` commit
+- production finalized stablecoin resolver: `tos-service-protocol` commit
   `57f6429f2a0dc21b3292de8a27fa5d3a26255dd4`
 - direct finalized Native SDK adapter and full live Buyer SDK revalidation:
-  `tos-protocol` commit `a18162af3df971af265bf101ae9d40396e3c1370`
+  `tos-service-protocol` commit `a18162af3df971af265bf101ae9d40396e3c1370`
 - verified test-fixture custody import and exact-message submit CLI: `tos`
   commit `c8fbead6851cf63c4858035195045b4de0406302`
 - canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and

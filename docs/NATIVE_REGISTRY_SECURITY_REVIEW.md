@@ -1,7 +1,7 @@
 # Native Registry Internal Security Review
 
 **Review date:** 2026-08-14
-**Protocol:** `atos_native_v1`
+**Protocol:** `tos_service_v1`
 **Reviewed code hash:**
 `tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0`
 
@@ -15,7 +15,7 @@ artifact are superseded and must not be deployed.
 ## Scope and conclusion
 
 This review covered the canonical action and identity encoder in
-`tos-protocol/pkg/nativecore`, the independent conformance encoder, finalized
+`tos-service-protocol/pkg/nativecore`, the independent conformance encoder, finalized
 state resolution, the wallet sender boundary, and the Native Registry FunC
 contract in `tos/crypto/smartcont/native-registry-code.fc`.
 
@@ -73,7 +73,7 @@ destination, amount, body, and StateInit semantics. A signing boundary must
 confirm those values, not only opaque bytes.
 
 The prepared-send response now includes destination, exact nanoTOS amount,
-body cell hash, and optional StateInit cell hash. `tos-protocol` recomputes and
+body cell hash, and optional StateInit cell hash. `tos-service-protocol` recomputes and
 matches every field before broadcast. The Native wallet tool embeds the entire
 validated `NativeActionV1` in its review and always requires the exact action
 hash to be typed. There is no generic confirmation bypass.
@@ -90,7 +90,7 @@ digest, and size, and compares two independent builds with the frozen Base64
 artifact.
 
 The obsolete complex contract and the temporary `native-registry-v2` naming
-were removed. There is one canonical ATOS Native Registry source.
+were removed. There is one canonical TOS Native Service Registry source.
 
 ### NR-05 — The protocol encoder rejected canonical generation resets
 
@@ -168,8 +168,8 @@ code hash, as well as execute the complete TVM lifecycle matrix.
 ## Incremental independent review remediation
 
 The incremental review evaluated `tos` commit
-`53a3a796161bdb4e21714c1aa497a01ec5de666c`, `tos-protocol` commit
-`fd165aeabbf128b4c3ae887008fb3b8e75bde44b`, and `atos-spec` commit
+`53a3a796161bdb4e21714c1aa497a01ec5de666c`, `tos-service-protocol` commit
+`fd165aeabbf128b4c3ae887008fb3b8e75bde44b`, and `tos-service-spec` commit
 `7b9ebca793a85211d804f0cfad35281e40d69901`. It found one P1, two P2, and two
 P3 issues. The internal remediation closes them as follows:
 
@@ -191,9 +191,9 @@ still requires the complete Agent and Capability TVM lifecycle matrix.
 
 ## State-slot fee-spend remediation
 
-The next incremental independent review evaluated `atos-spec` commit
+The next incremental independent review evaluated `tos-service-spec` commit
 `fd92cb921b1be1bef0db718908d3744b13694448`, `tos` commit
-`37a27f8fb09e577412b922d5b0138c4b7fc91e58`, and `tos-protocol` commit
+`37a27f8fb09e577412b922d5b0138c4b7fc91e58`, and `tos-service-protocol` commit
 `6dff78ce53347e92565769ad32947fa8b9eef55b`. It confirmed all five preceding
 findings closed but found one new P1: exact-action deduplication allowed an
 authorized caller to vary the nonce and make a relayer pay for multiple
@@ -217,9 +217,9 @@ TVM lifecycle matrix against the remediation commit.
 
 ## Atomic slot-intent crash recovery
 
-The following incremental independent review evaluated `atos-spec` commit
+The following incremental independent review evaluated `tos-service-spec` commit
 `61ad4851e7c5fd398f6064fd8e13c860921e6d49`, `tos` commit
-`c4814f3edb539888c5b333ab9a10c1164259964a`, and `tos-protocol` commit
+`c4814f3edb539888c5b333ab9a10c1164259964a`, and `tos-service-protocol` commit
 `b649927a3ceb3178bd95a611185c5bf1b1d3e782`. It confirmed the state-slot P1
 closed and found one P2 recovery failure: a crash after the slot file was
 created but before the separate action-intent file was created permanently
@@ -241,9 +241,9 @@ Agent/Capability TVM lifecycle matrix both pass.
 
 ## Finalized chain-time recovery preflight
 
-The next incremental independent review evaluated `atos-spec` commit
+The next incremental independent review evaluated `tos-service-spec` commit
 `6bcc655cee1784491d6b4cbd5a36019f0f1768e1`, `tos` commit
-`65ac8f9f0e1b910916b27ec3890b5611d80579e6`, and `tos-protocol` commit
+`65ac8f9f0e1b910916b27ec3890b5611d80579e6`, and `tos-service-protocol` commit
 `5e0841b9db4a496af5c292032899fa52631437a5`. It confirmed atomic slot-intent
 recovery closed the preceding P2 and found one new P2: recovery initiation and
 completion preflight used gateway wall-clock time while the contract evaluates
@@ -301,10 +301,10 @@ whose finalized ConfigParam 8 remains below version 14.
 Run the TVM evidence with:
 
 ```text
-tos/scripts/test-atos-native-registry-tvm-lifecycle.sh
+tos/scripts/test-tos-service-registry-tvm-lifecycle.sh
 ```
 
-Run the crash-boundary evidence from `tos-protocol` with:
+Run the crash-boundary evidence from `tos-service-protocol` with:
 
 ```text
 go test ./pkg/nativecore -race -count=20 \
@@ -344,17 +344,17 @@ and results before the independent Gate B item becomes complete.
 ## Frozen evidence
 
 - Normative vector:
-  `test-vectors/atos-native-v1-registry.json`
-- Primary implementation: `tos-protocol/pkg/nativecore`
-- Independent implementation: `tos-protocol/internal/referencecodec`
+  `test-vectors/tos-service-v1-registry.json`
+- Primary implementation: `tos-service-protocol/pkg/nativecore`
+- Independent implementation: `tos-service-protocol/internal/referencecodec`
 - Stable error range: `2200` through `2213`, shared with TVM exit codes
 - Contract release manifest:
-  `tos/crypto/smartcont/atos-native-registry-v1.release.json`
-- Reproducible build test: `tos/scripts/test-atos-native-registry-v1.sh`
+  `tos/crypto/smartcont/tos-service-registry-v1.release.json`
+- Reproducible build test: `tos/scripts/test-tos-service-registry-v1.sh`
 - Executable recovery lifecycle:
   `tos/tosctl/src/node-control/contracts/tests/native_registry_sandbox.rs`
 - TVM lifecycle entry point:
-  `tos/scripts/test-atos-native-registry-tvm-lifecycle.sh`
+  `tos/scripts/test-tos-service-registry-tvm-lifecycle.sh`
 - Version-gated `SHA256C` conformance:
   `tos/tosctl/src/vm/tests/test_sha256c.rs`
 
@@ -365,9 +365,9 @@ artifact, not used as a consensus identity.
 
 ## Final independent review — 2026-08-14
 
-The independent reviewer evaluated `atos-spec` commit
+The independent reviewer evaluated `tos-service-spec` commit
 `e72bab245a47b0f87a82977629cc03b1dfc64995`, `tos` commit
-`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-protocol` commit
+`a787cb02dd6bc386be053ab233d0581cc1a14ef3`, and `tos-service-protocol` commit
 `7a21c070c1160fc0a4278e1a086c0682eb2d3d31`. The review reproduced the
 ten-test Agent and Capability TVM lifecycle matrix and retested the chain-time
 recovery preflight, atomic slot-intent record, and broadcast lease. It reported

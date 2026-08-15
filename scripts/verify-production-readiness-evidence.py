@@ -27,7 +27,7 @@ def main():
     try:
         raw = args.evidence.read_text(encoding="utf-8")
         value = json.loads(raw)
-        if not isinstance(value, dict) or value.get("schema") != "atos.native.production-readiness-evidence.v1":
+        if not isinstance(value, dict) or value.get("schema") != "tos.service.production-readiness-evidence.v1":
             reject("unsupported evidence schema")
         if value.get("verdict") != "PASS_PRODUCTION_READINESS_V1":
             reject("evidence is not an accepted production verdict")
@@ -42,7 +42,7 @@ def main():
         release = value.get("release")
         if not isinstance(release, dict):
             reject("release section is missing")
-        for field in ("atos_spec_commit", "tos_protocol_commit", "atos_commit", "tos_ai_commit", "signed_manifest_digest"):
+        for field in ("tos_service_spec_commit", "tos_protocol_commit", "tos_service_gateway_commit", "tos_ai_commit", "signed_manifest_digest"):
             require(release.get(field), f"release.{field}")
         if not HEX64.fullmatch(release["signed_manifest_digest"]):
             reject("signed_manifest_digest has invalid digest shape")

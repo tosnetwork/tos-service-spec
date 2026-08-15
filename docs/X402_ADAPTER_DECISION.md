@@ -2,7 +2,7 @@
 
 ## Decision
 
-ATOS does not implement an x402 settlement scheme in Gate E. The optional
+TOS Service Protocol does not implement an x402 settlement scheme in Gate E. The optional
 adapter is deferred until Gate F demonstrates recurring demand from buyers
 that already use x402.
 
@@ -13,7 +13,7 @@ EIP-3009 authorization. TOS-network stablecoin escrow has a different
 authorization, finality, Receipt, refund, and settlement state machine.
 
 Implementing an x402 facilitator or an `exact`-like TOS settlement path now
-would create a second payment authority beside the canonical ATOS escrow. It
+would create a second payment authority beside the canonical TOS Service Protocol escrow. It
 would violate the Native-only architecture and make success depend on a
 facilitator response rather than finalized TOS state.
 
@@ -24,7 +24,7 @@ Primary reference: the
 
 A future adapter may use x402 only as a negotiation and representation layer:
 
-- `PaymentRequired` may project a non-canonical ATOS Quote Proposal;
+- `PaymentRequired` may project a non-canonical TOS Service Protocol Quote Proposal;
 - the resource must identify the exact Capability and version;
 - the payment requirements must identify the exact TOS network, stablecoin,
   amount, provider, and deterministic escrow terms;
