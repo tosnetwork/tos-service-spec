@@ -90,6 +90,14 @@ chain-selected version and manifest digest separate from explicitly local
 manifest metadata and match score. Pagination is Capability-ID ordered, so no
 gateway ranking becomes a cursor or protocol fact.
 
+The public-interface discovery example is implemented by
+`tos-protocol/cmd/atos-native-discovery` at commit
+`96bb82a3670270169650324a1c54397110b17e72`. It publishes, lists, searches,
+and retrieves manifests only through authenticated Connect methods, reads its
+credential from the environment, has no catalog-directory option, and is
+covered by the full race/vet/build suite. No operator database edit or hidden
+control service is part of the example.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -260,7 +268,7 @@ Deliver:
   operator listener hardening and fresh interoperability remain;
 - ⬜ optional x402 payment-negotiation adapter;
 - ✅ gateway-local search with chain-derived fields kept separate; and
-- ⬜ examples that require no operator database edits or hidden control service.
+- ✅ examples that require no operator database edits or hidden control service.
 
 Accept when a new provider publishes and sells the software-work Capability and
 a new buyer purchases it using public documentation in one working session.

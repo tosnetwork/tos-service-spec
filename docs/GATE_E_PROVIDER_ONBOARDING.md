@@ -50,6 +50,8 @@ the Capability from public documentation in one working session.
 - Go SDK guide: `tos-protocol/docs/provider-sdk.md`
 - public transport: `tos-protocol/pkg/nativeclient`
 - provider publication: `tos-protocol/pkg/providersdk`
+- public manifest publication and discovery CLI:
+  `tos-protocol/cmd/atos-native-discovery`
 - runtime deployment: `tos-ai/deploy/provider`
 - canonical manifest: `docs/SOFTWARE_WORK_MANIFEST_V1.md`
 - commercial lifecycle: `docs/GATE_D_EXTERNAL_PILOT.md`
