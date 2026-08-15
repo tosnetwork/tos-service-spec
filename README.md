@@ -108,7 +108,8 @@ refine these rules but cannot contradict them.
 - [Mobile ATOS Client V1](docs/MOBILE_ATOS_CLIENT_V1.md) defines the shared
   iOS/Android discovery, approval, custody, execution, and settlement UX.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
-  finalized-state-derived Agent GDP, revenue, job, user, reliability, and
+  finalized-state-derived Agent GDP, settled receipts, job, wallet,
+  reliability, and
   availability exports. Its implementation status is currently pending.
 
 ## Normative contract

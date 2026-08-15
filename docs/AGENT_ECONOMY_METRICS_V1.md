@@ -35,17 +35,20 @@ One commercial job is identified by the following byte preimage:
 ```text
 job_id = "sha256:" || lowercase_hex(SHA-256(
   "atos.native.economic-job.v1\0" ||
+  network_domain_cell_hash:bytes32 ||
   quote_commitment_hash:bytes32 ||
   escrow_workchain:int32_be ||
   escrow_account_id:bytes32
 ))
 ```
 
-The digest and address are decoded to fixed-width binary values before hashing;
-their display strings are never concatenated. V1 requires the escrow workchain
-to be zero. The pair remains explicit even though the deterministic escrow
-StateInit also binds the Quote, because it is the shared execution-Gate slot
-and makes a wrong Quote-to-account association fail visibly.
+The network-domain hash is `cell_hash(network_domain)` from
+`ACCEPTED_QUOTE_TVM_V1.md`. The digest and address are decoded to fixed-width
+binary values before hashing; their display strings are never concatenated. V1
+requires the escrow workchain to be zero. The pair remains explicit even though
+the deterministic escrow StateInit also binds the Quote, because it is the
+shared execution-Gate slot and makes a wrong network or Quote-to-account
+association fail visibly.
 
 Transport retries, Agent Packets, A2A messages, MCP calls, internal tool calls,
 artifacts, and settlement retries do not create additional jobs.
@@ -61,11 +64,12 @@ finalized escrow deployment whose authenticated StateInit embeds the Accepted Qu
 → finalized release outcome
 ```
 
-A verified refund contributes job activity and refund statistics, but contributes zero
-provider revenue and zero settled service value. `release_pending` is exported
-separately and never counted as settled merely because the escrow requested a
-transfer. `refund_pending` is likewise nonterminal until the exact refund
-transfer is verified. Ambiguous or divergent chain observations fail closed.
+A verified refund contributes job activity and refund statistics, but
+contributes zero provider receipts and zero settled service value.
+`release_pending` is exported separately and never counted as settled merely
+because the escrow requested a transfer. `refund_pending` is likewise
+nonterminal until the exact refund transfer is verified. Ambiguous or divergent
+chain observations fail closed.
 
 Each job has at most one derived terminal outcome: `released` or `refunded`.
 The indexer must reject duplicate or conflicting terminal evidence rather than
@@ -105,6 +109,15 @@ identities are reported separately unless a later specification freezes an
 explicit cross-version semantic aggregation rule. Registry snapshots likewise
 bind one exact Registry code hash.
 
+A same-code deployment is only a candidate. It becomes a discovered ATOS
+escrow after strict typed decoding, root-to-reference validation, canonical
+StateInit reconstruction, and address equality succeed. A conclusively invalid
+candidate is excluded and counted in `rejected_candidate_count`; it cannot
+destroy completeness. A candidate whose authentication cannot be completed is
+counted in `unresolved_candidate_count`, causes fail-closed loss of total
+status, and cannot contribute any metric. The same rule applies to Registry
+account candidates.
+
 ## Amount and asset rules
 
 Monetary inputs and gross aggregates are unsigned base-10 atomic-unit strings.
@@ -114,14 +127,22 @@ separately for each exact `TOSAssetIdentityV1`, including network domain,
 stablecoin master contract identity, wallet-code hash, and decimals. A ticker
 symbol is display metadata and cannot join asset buckets.
 
+Aggregate amounts use unsigned 256-bit arithmetic and must remain below
+`2^256`. `net_agent_flow_atomic` uses the signed range
+`[-(2^256 - 1), 2^256 - 1]`. Counts and Unix-second durations are unsigned
+64-bit integers; PPM rates are nullable unsigned 32-bit integers in
+`[0, 1_000_000]`. Any overflow invalidates the report rather than saturating,
+wrapping, or switching representation.
+
 The metrics protocol does not publish a fiat conversion as canonical-derived
 value. A UI may show an explicitly labelled, timestamped, non-authoritative
 conversion beside the atomic-unit result.
 
 ATOS V1 supports service-only jobs. Consequently:
 
-- `gross_agent_value` is the sum of verified settled service payments;
-- `settled_provider_revenue` is the sum actually transferred to providers;
+- `gross_agent_value_atomic` is the sum of verified settled service payments;
+- `settled_provider_receipts_atomic` is the sum actually transferred to
+  providers;
 - for the current exact-payment profile, the two totals are equal at network
   level; and
 - arbitrary trading notional, assets under management, or provider-reported
@@ -136,6 +157,11 @@ Product interfaces may label `gross_agent_value_atomic` as "Agent GDP" or
 mode, and coverage. The protocol field name remains explicit because gross
 multi-stage transaction value is not conventional value-added GDP.
 
+Likewise, a product may label `settled_provider_receipts_atomic` as "Total
+Revenue" only when it states that this is gross protocol-settled receipt value,
+not generally accepted accounting revenue, profit, taxable income, or value
+after costs and off-protocol adjustments.
+
 ## Economic metrics
 
 For each time window and exact asset bucket, export the following. A
@@ -146,12 +172,14 @@ complete scan with any unresolved escrow is treated as partial for this rule.
 | Field | Definition |
 |---|---|
 | `gross_agent_value_atomic` | Sum of verified settled service payments. |
-| `settled_provider_revenue_atomic` | Amount actually transferred to providers. |
+| `settled_provider_receipts_atomic` | Amount actually transferred to providers. |
 | `funded_job_count` | Unique jobs whose exact escrow funding finalized. |
 | `settled_job_count` | Unique jobs with verified terminal provider payment. |
 | `refunded_job_count` | Unique jobs with verified terminal buyer refund. |
 | `release_pending_entered_job_count` | Unique jobs whose release request finalized in the window, whether later released, bounced, or still pending. |
 | `refund_pending_entered_job_count` | Unique jobs whose refund request finalized in the window, whether later refunded, bounced, or still pending. |
+| `release_request_count` | Finalized transitions into `release_pending`, including a later retry after an authenticated bounce restored `funded`. |
+| `refund_request_count` | Finalized transitions into `refund_pending`, including a later retry after an authenticated bounce restored `funded`. |
 | `unique_buyer_wallet_count` | Distinct canonical buyer wallets in jobs with funding or a terminal outcome finalized in the window. |
 | `unique_provider_agent_count` | Distinct provider Agent IDs in those same jobs. |
 | `settlement_success_rate_ppm` | `settled / (settled + refunded)` in integer parts per million; this is an economic release rate, not proof of subjective job quality. |
@@ -181,12 +209,15 @@ quorum-finalized masterchain checkpoint that authenticates it. Resolver
 observation time, Gateway receipt time, and local wall-clock time cannot
 substitute for any event time.
 
-The standard windows are `1h`, `24h`, `7d`, `30d`, and `all`. Every time window
-is the half-open interval `[from_unix_seconds, to_unix_seconds)`. Membership is
+The standard windows are `1h`, `24h`, `7d`, `30d`, and `all`, where the bounded
+durations are exactly 3,600, 86,400, 604,800, and 2,592,000 seconds. Every time
+window is the half-open interval `[from_unix_seconds, to_unix_seconds)`, with
+`to - from` equal to the selected duration. Membership is
 based on the terminal finalized time for terminal value, terminal count, rate,
 and duration metrics; on funding finalized time for `funded_job_count`; and on
 pending-request finalized time for pending-entry counts. An `all` report starts
 at genesis. A bounded report may start later but cannot call itself all-time.
+For `all`, `from_unix_seconds` is the authenticated genesis block time.
 `to_unix_seconds` must not exceed the authenticated finalized chain time at the
 report's as-of checkpoint.
 
@@ -229,10 +260,10 @@ For a provider Agent, export:
 
 - `contributed_gross_agent_value_atomic`, the settled value of jobs whose
   Accepted Quote names this provider Agent;
-- `settled_revenue_atomic`;
+- `settled_receipts_atomic`;
 - `paid_to_other_agents_atomic` when the same controlled wallet is provably the
   buyer in another verified job;
-- `net_agent_flow_atomic = settled_revenue - paid_to_other_agents`, encoded as
+- `net_agent_flow_atomic = settled_receipts - paid_to_other_agents`, encoded as
   the signed canonical decimal form defined above;
 - funded, settled, refunded, pending-entry, and open-pending job counts;
 - unique buyer-wallet count;
@@ -248,24 +279,29 @@ For a provider Agent, export:
 - last settled job finalized time.
 
 Wallet-to-Agent control must be established by an explicit finalized protocol
-binding before Agent spend or net revenue is exported. Address similarity,
+binding before Agent spend or net flow is exported. Address similarity,
 Gateway configuration, or an operator assertion is insufficient. Until such a
 binding exists, `paid_to_other_agents_atomic`, `net_agent_flow_atomic`, and
 unique counterparty-Agent count are `null`, not zero, and coverage explains
 why. ATOS Native V1 currently defines no such general wallet-control binding.
 
 For the fixed-price V1 profile,
-`contributed_gross_agent_value_atomic == settled_revenue_atomic`. Summing the
+`contributed_gross_agent_value_atomic == settled_receipts_atomic`. Summing the
 contributed value over all provider Agents equals network
 `gross_agent_value_atomic`; buyer-side subcontract spend is not attributed a
 second time to the hiring Agent. This preserves one network contribution per
 settled job while still exposing provable outbound spend separately.
 
+`unique_buyer_wallet_count` counts addresses, not humans, organizations, or
+independent economic actors. Wallet rotation and Sybil wallets can increase it;
+interfaces must label it "unique buyer wallets", never "unique users".
+Likewise, an Agent ID is not proof of a unique legal entity.
+
 ## Per-Capability metrics
 
 For each exact Capability and version, export:
 
-- settled value and provider revenue, attributed to the provider Agent committed
+- settled value and provider receipts, attributed to the provider Agent committed
   by each job's Accepted Quote;
 - funded, settled, refunded, pending-entry, and open-pending job counts;
 - unique buyer-wallet count;
@@ -351,6 +387,9 @@ conceptual JSON envelope:
     "as_of": {}
   },
   "coverage": {
+    "candidate_account_count": 0,
+    "rejected_candidate_count": 0,
+    "unresolved_candidate_count": 0,
     "discovered_escrow_count": 0,
     "indexed_escrow_count": 0,
     "unresolved_escrow_count": 0,
@@ -369,6 +408,11 @@ operation and is excluded from deterministic value comparison. Operational
 metrics use a separate response envelope. Pagination and ranking are derived
 presentation features, not protocol authority.
 
+The exact `schema` string is the calculation-version identifier. Changing a
+formula, field meaning, event-time rule, numeric width, set commitment, or Job
+ID derivation requires a new schema version. Adding presentation metadata does
+not reinterpret an existing version.
+
 `asset`, `authority.registry_code_hash`, and
 `authority.escrow_code_hash` are mandatory. `scope.id` is empty only for
 network reports; an Agent ID or Capability ID is mandatory otherwise, and
@@ -380,7 +424,7 @@ Agent and Capability. The asset object supplies the exact stablecoin master
 contract and wallet code identities. The discovery high-water checkpoint must
 equal `as_of_finalized_checkpoint`.
 
-For nonempty discovered sets,
+For every report,
 `indexed_escrow_count + unresolved_escrow_count == discovered_escrow_count`.
 These counts cover every escrow of the bound code identity discovered through
 the report as-of checkpoint, not only escrows with an event in the selected
@@ -388,6 +432,12 @@ window. `indexed` means that the deployment, typed state, Quote linkage, and
 relevant stablecoin transaction history resolve without ambiguity through that
 checkpoint. Metrics exclude unresolved escrows and therefore lose total status
 when the unresolved count is nonzero.
+
+Candidate coverage counts distinct canonical account addresses, not transaction
+attempts. `candidate_account_count` equals the sum of rejected candidates,
+unresolved candidates, and authenticated discovered escrows. Rejected
+candidates are deterministically proven non-ATOS accounts. Any unresolved
+candidate or unresolved authenticated escrow removes total status.
 
 For `complete_chain_scan`, `index_origin_checkpoint` is the network genesis
 checkpoint and `address_set_digest` is null. For `bounded_address_set`, the
@@ -400,12 +450,14 @@ Set commitments use fixed deterministic preimages:
 ```text
 address_set_digest = "sha256:" || lowercase_hex(SHA-256(
   "atos.native.metrics-address-set.v1\0" ||
+  network_domain_cell_hash:bytes32 ||
   count:uint32_be ||
   each sorted (workchain:int32_be || account_id:bytes32)
 ))
 
 object_set_digest = "sha256:" || lowercase_hex(SHA-256(
   "atos.native.metrics-object-set.v1\0" ||
+  network_domain_cell_hash:bytes32 ||
   count:uint32_be ||
   each sorted (utf8_length:uint16_be || canonical_object_id:utf8)
 ))
@@ -445,6 +497,9 @@ meaningless asset bucket, economic window, or escrow coverage:
     "active_capability_version_count": 0
   },
   "coverage": {
+    "candidate_account_count": 0,
+    "rejected_candidate_count": 0,
+    "unresolved_candidate_count": 0,
     "discovered_object_count": 0,
     "indexed_object_count": 0,
     "unresolved_object_count": 0
@@ -453,19 +508,30 @@ meaningless asset bucket, economic window, or escrow coverage:
 }
 ```
 
-The same completeness rule applies: only a genesis-to-checkpoint scan with zero
+For Registry snapshots, `candidate_account_count` equals rejected candidates
+plus unresolved candidates plus authenticated discovered objects, and
+`indexed_object_count + unresolved_object_count == discovered_object_count`.
+Only a genesis-to-checkpoint scan with zero unresolved candidates and zero
 unresolved objects may use network-total labels. Snapshot generation time is
 excluded from deterministic value comparison.
 
 ## Ranking
 
-Clients may rank Agents by settled revenue, contributed gross value, settled
-jobs, unique buyers, success rate, or recency. Every ranked row must expose the
-underlying metric, its numerator and denominator where applicable, asset
+Clients may rank Agents by settled receipts, contributed gross value, settled
+jobs, unique buyer wallets, success rate, or recency. Every ranked row must
+expose the underlying metric, its numerator and denominator where applicable, asset
 identity, window, finality checkpoint, and coverage. Rankings must not combine
 different stablecoin identities or treat online status as economic authority.
 Ties are resolved by ascending canonical Agent ID so every implementation
 produces the same order.
+
+Settled receipts, contributed value, settled jobs, unique buyer wallets,
+success rate, and recency rank descending. Null values sort after non-null
+values. A success-rate leaderboard must publish its minimum terminal-job
+denominator; that threshold is presentation policy and must not be described as
+protocol authority. Rankings are partitioned by network domain, Registry code,
+escrow code, asset identity, window, as-of checkpoint, and discovery mode
+before sorting.
 
 ## Required implementation and acceptance
 
@@ -479,11 +545,11 @@ Implementation requires:
 5. restart, reorg, pre-window-deployment, duplicate-event,
    conflicting-terminal, incomplete-discovery, partial-coverage,
    code-identity, owner-tombstone, asset-confusion, signed-net-flow, overflow,
-   authenticated-block-time, time-window, percentile, refund, and
-   pending-entry/open-pending tests;
+   authenticated-block-time, exact-window, percentile, candidate-account,
+   Sybil-label, refund, bounce-retry, and pending-entry/open-pending tests;
 6. an independent implementation reproducing frozen metric vectors; and
 7. comparison of two independent indexers over the same network, code
    identities, asset, time window, and as-of finalized checkpoint.
 
-Until all seven items exist, the feature remains **⬜ Not implemented** and no
-Gateway may advertise its output as canonical ATOS GDP.
+Until every applicable item exists, the feature remains **⬜ Not implemented**
+and no Gateway may advertise its output as canonical ATOS GDP.

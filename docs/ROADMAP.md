@@ -574,7 +574,8 @@ is not implied by Gate C's initial profile.
 18. ⬜ **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes
-    gross Agent value, provider revenue, job counts, unique buyers, success and
+    gross Agent value, provider receipts, job counts, unique buyer wallets,
+    success and
     refund rates, settlement latency, active Registry supply, rankings,
     coverage, and
     separately labelled operational availability. The finalized transaction
