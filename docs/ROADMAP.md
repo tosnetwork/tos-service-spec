@@ -328,7 +328,9 @@ Deliver:
   bounded `/.well-known/atos-native.json` locator and its non-authority,
   expiry, failover, downgrade, credential, and SSRF rules; `atos` commit
   `657bd4a` implements the explicit-origin well-known response without trusting
-  request forwarding headers;
+  request forwarding headers, and `tos-protocol` commit `4e7b45c` adds strict
+  client validation with bounded reads, authority-domain matching, redirect
+  rejection, HTTPS enforcement, address filtering, and DNS-pinned dialing;
 - 🟡 interoperable search and Quote Proposal exchange — non-canonical Quote
   objects are defined, but federation is not implemented;
 - 🟡 canonical error and retry semantics — protocol errors exist, but public
