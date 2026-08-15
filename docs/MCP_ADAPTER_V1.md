@@ -31,5 +31,7 @@ prompts, resources, arbitrary commands, remote policy selection, and automatic
 payment are outside this adapter.
 
 The production finalized execution-claim Gate and official stateless
-streamable-HTTP binding are implemented. Gate E completion still requires
-operator listener hardening and a fresh interoperability session.
+streamable-HTTP binding are implemented. The shared public boundary requires
+TLS 1.3, bearer authentication, bounded bodies/headers/concurrency, and rejects
+browser origins by default. Gate E completion still requires a fresh
+interoperability session.

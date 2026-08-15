@@ -91,6 +91,7 @@ Unit and race tests must prove exact request mapping, mutation rejection before
 authority reads, finalized authorization before execution, terminal failure
 mapping, conflicting-runner rejection, HTTPS-only result locations, and exact
 result commitments. The official synchronous JSON-RPC server binding and the
-production finalized-state Gate are implemented. Gate E additionally requires
-operator listener hardening and a fresh buyer/provider interoperability
-session.
+production finalized-state Gate are implemented. The shared public boundary
+requires TLS 1.3, bearer authentication, bounded bodies/headers/concurrency,
+and rejects browser origins by default. Gate E additionally requires a fresh
+buyer/provider interoperability session.

@@ -98,6 +98,14 @@ credential from the environment, has no catalog-directory option, and is
 covered by the full race/vet/build suite. No operator database edit or hidden
 control service is part of the example.
 
+The shared A2A/MCP public listener boundary is implemented in `tos-ai` commit
+`97ef0cb31f598c298923f73b5959016603c54287`. The supported public constructors
+require TLS 1.3, a strong constant-time-checked bearer credential, protected
+certificate files, bounded request bodies/headers/concurrency/read time, and
+default rejection of browser-origin requests. Optional client-CA configuration
+enforces mTLS. This closes listener hardening; it is not fresh interoperability
+or external operator evidence.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -261,11 +269,11 @@ Deliver:
 - 🟡 A2A task and result adapter — the official A2A 1.0 Go types, exact
   request/result mapping, shared production finalized-chain execution Gate,
   synchronous JSON-RPC server binding, and negative tests are implemented;
-  operator listener hardening and a fresh interoperability session remain;
+  the public listener is hardened and a fresh interoperability session remains;
 - 🟡 MCP tool adapter — official MCP 2026-07-28 typed tool registration,
   committed input/result mapping, shared production finalized-chain execution
   Gate, stateless streamable-HTTP binding, and negative tests are implemented;
-  operator listener hardening and fresh interoperability remain;
+  the public listener is hardened and fresh interoperability remains;
 - ⬜ optional x402 payment-negotiation adapter;
 - ✅ gateway-local search with chain-derived fields kept separate; and
 - ✅ examples that require no operator database edits or hidden control service.
@@ -438,9 +446,10 @@ is not implied by Gate C's initial profile.
     crash-safe bounded funding journal, plus the minimal authority-neutral
     Capability catalog/manifest API, and the authority-gated A2A task/result
     mapping, MCP tool adapter, shared production chain execution-claim Gate,
-    and official server bindings are implemented. Next configure the Gate
-    against the public test network, harden the public listener boundary, and
-    run fresh cross-transport interoperability; then evaluate the optional
+    official server bindings, hardened public listener, local search, and
+    public-interface discovery CLI are implemented. Next configure the Gate
+    against the public test network and run fresh cross-transport
+    interoperability; then evaluate the optional
     x402 negotiation adapter. In parallel, deploy and cross-check discovery
     and run the fresh provider/buyer sessions from
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
