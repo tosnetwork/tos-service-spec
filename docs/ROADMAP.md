@@ -66,6 +66,13 @@ proves that a `tosctl`-native V1R3 wc=0 buyer can fund the exact new escrow and
 reach three-vote finalized funded state; it is not the complete public buyer
 session and does not establish external independence.
 
+Finalized buyer asset resolution is implemented in `tos-protocol` commit
+`57f6429f2a0dc21b3292de8a27fa5d3a26255dd4`. It derives the exact buyer wallet
+from the authenticated stablecoin master's wallet-code preimage and verifies
+both accounts, balance, ownership, network genesis, strict-majority finality,
+and a durable monotonic checkpoint. The live three-node result is attached to
+the local Gate E buyer-funding record.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:

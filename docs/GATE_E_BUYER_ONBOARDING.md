@@ -15,6 +15,13 @@ state with three agreeing endpoints. The record is
 implementation evidence only: it did not exercise the complete public buyer
 SDK session or establish external operator independence.
 
+The production asset read no longer requires a caller-supplied balance view.
+`tos-protocol/pkg/toschain.StablecoinResolver` authenticates the master code,
+extracts and verifies its wallet-code preimage, derives the buyer wallet, and
+checks the wallet code, owner, master, unlocked status, balance, genesis, and
+monotonic finalized checkpoint through strict-majority TOS RPC. Its local live
+result is included in the same deployment record.
+
 ## Authority and custody boundary
 
 - a Quote Proposal is discovery input and is never canonical;
@@ -74,6 +81,8 @@ procedure.
   `d9d725534cb1a9120b1e49854b360c01f043c22a`
 - production `tosctl` funding adapter: `tos-protocol` commit
   `d1a845eb7808365a413106d075c7c6316be67e27`
+- production finalized stablecoin resolver: `tos-protocol` commit
+  `57f6429f2a0dc21b3292de8a27fa5d3a26255dd4`
 - verified test-fixture custody import and exact-message submit CLI: `tos`
   commit `c8fbead6851cf63c4858035195045b4de0406302`
 - canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and

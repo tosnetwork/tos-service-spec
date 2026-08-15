@@ -8,7 +8,7 @@
   },
   "release": {
     "tos": "c8fbead6851cf63c4858035195045b4de0406302",
-    "tos_protocol": "d1a845eb7808365a413106d075c7c6316be67e27"
+    "tos_protocol": "57f6429f2a0dc21b3292de8a27fa5d3a26255dd4"
   },
   "buyer": {
     "wallet": "EQBjK7o8stJ-pMAnTBApq9i0fBQOdXmZCvZNAdI5x55ime5W",
@@ -28,15 +28,23 @@
   "escrow_address_raw": "0:473f8cfb7b90508e692afc2f92ea9be35b8e5572926eb6e570a31c69b55a0337",
   "prepared_external_message_hash": "tvm-cell-sha256:b621da008230d6cb18f39dd204f57d7313c5c32c6bd589fc35d01d8797c48d3b",
   "broadcast_boundary": "tosctl wallet send --build-only followed by exact wallet broadcast-prepared",
-  "funded_checkpoint": 142225,
+  "production_asset_resolution": {
+    "implementation": "tos-protocol/pkg/toschain.StablecoinResolver",
+    "checkpoint": 142898,
+    "master_raw": "0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a",
+    "derived_wallet_raw": "0:fac1073657740d1f5ba7cae50edc0666f0f241d0840917bbd7b798fc6b5eae54",
+    "balance_atomic": "75000000",
+    "authority": "strict-majority finalized TOS account state"
+  },
+  "funded_checkpoint": 142918,
   "quorum": 2,
   "quorum_votes": 3,
   "endpoint_verification": [
     {
       "endpoint": "http://127.0.0.1:8011/jsonRPC",
-      "checkpoint": 142225,
-      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
-      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "checkpoint": 142918,
+      "block_root_hash": "k/Ieb76Y1HjXTNpcJOYZ8yHdDkW3iCb8IvymHe4QzLM=",
+      "block_file_hash": "/yxx2vZtpx/aRYTbyhZ2giooAZWMgBHh34zXF4aMrMk=",
       "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
       "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
       "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
@@ -65,9 +73,9 @@
     },
     {
       "endpoint": "http://127.0.0.1:8012/jsonRPC",
-      "checkpoint": 142225,
-      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
-      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "checkpoint": 142918,
+      "block_root_hash": "k/Ieb76Y1HjXTNpcJOYZ8yHdDkW3iCb8IvymHe4QzLM=",
+      "block_file_hash": "/yxx2vZtpx/aRYTbyhZ2giooAZWMgBHh34zXF4aMrMk=",
       "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
       "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
       "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
@@ -96,9 +104,9 @@
     },
     {
       "endpoint": "http://127.0.0.1:8013/jsonRPC",
-      "checkpoint": 142225,
-      "block_root_hash": "6LbAgLmLlDLd/+KBvGc7VzONGja+AQkO0Lj5X2nHYDI=",
-      "block_file_hash": "M6cz7AeW8omte4ij+WXx5neG6UfYD30QRzog6+bBCGU=",
+      "checkpoint": 142918,
+      "block_root_hash": "k/Ieb76Y1HjXTNpcJOYZ8yHdDkW3iCb8IvymHe4QzLM=",
+      "block_file_hash": "/yxx2vZtpx/aRYTbyhZ2giooAZWMgBHh34zXF4aMrMk=",
       "escrow_code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
       "escrow_data_hash": "tvm-cell-sha256:0ab54bc6534efd1955ea423af43f16fa00ac9a34a4e222b8d73c0d476531a88b",
       "buyer_wallet_code_hash": "tvm-cell-sha256:8f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68",
