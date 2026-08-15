@@ -19,7 +19,10 @@
     "capability_action_hash": "sha256:cb596b2478e4c66baa53ebf41dc8f05f8fb362473bb6469a58fc57414ddc2379",
     "capability_state_hash": "tvm-cell-sha256:913806f7b52c637be36e00a1ca7be0650673d7d4ed21dadfb213e58b84f9c61a",
     "manifest_digest": "sha256:9d39a2d3f5c34a4bfeb63324681e0f457437b756ffb79da8a1681aa79bf9f3e5",
-    "publication_path": "tos-protocol/pkg/providersdk"
+    "publication_path": "tos-protocol/pkg/providersdk",
+    "asset_wallet_after_settlement": "0:4a52c114ec7b8f33771e670703a64d1a9a998950be0143d170ef43fe88a431b6",
+    "asset_balance_atomic_after_settlement": "25000000",
+    "asset_balance_checkpoint": 156889
   },
   "buyer": {
     "address": "0:2a9ca8e9c88ed7d644c49222981146438791e27e94875ef97c508858eb67e82c",
@@ -60,6 +63,13 @@
     "max_purchases": 10,
     "max_per_purchase_atomic": "50000000",
     "max_total_atomic": "250000000"
+  },
+  "adapter_regression": {
+    "tos_ai_race_test": "go test ./... -race -count=1",
+    "tos_ai_race_test_passed": true,
+    "cross_transport_package": "github.com/tosnetwork/tos-ai/pkg/adapterinterop",
+    "atos_race_test": "GOWORK=off go test ./... -race -count=1",
+    "atos_race_test_passed": true
   },
   "verdict": "PASS_LOCAL_FRESH_PROVIDER_BUYER_AND_RECEIPT_SETTLEMENT"
 }
