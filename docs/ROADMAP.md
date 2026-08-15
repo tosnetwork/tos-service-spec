@@ -54,6 +54,14 @@ evidence, and official A2A JSON-RPC and MCP streamable-HTTP bindings. This is
 implementation evidence, not the fresh external interoperability evidence
 required to accept Gate E.
 
+The production buyer funding boundary is `tos` commit
+`d9d725534cb1a9120b1e49854b360c01f043c22a` and `tos-protocol` commit
+`d1a845eb7808365a413106d075c7c6316be67e27`. The SDK validates one exact
+`tosctl`-signed stablecoin funding message before acquiring its one-way
+broadcast lease, then submits those same bytes without rebuilding or
+re-signing. This closes the implementation item; fresh-buyer acceptance
+evidence remains outstanding.
+
 ## 1. Gate A — Registry protocol freeze
 
 Deliver:
@@ -207,8 +215,8 @@ Deliver:
   dedicated private-containerd template are implemented; a fresh-provider
   onboarding session is still required;
 - 🟡 buyer SDK and wallet budget flow — canonical purchase preflight and the
-  crash-safe bounded funding journal are implemented; the production `tosctl`
-  stablecoin sender and a fresh-buyer working session remain;
+  crash-safe bounded funding journal and production `tosctl` stablecoin sender
+  are implemented; a fresh-buyer working session remains;
 - 🟡 minimal finalized-state Capability index and manifest retrieval — the
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public
@@ -396,8 +404,8 @@ is not implied by Gate C's initial profile.
     and official server bindings are implemented. Next configure the Gate
     against the public test network, harden the public listener boundary, and
     run fresh cross-transport interoperability; then evaluate the optional
-    x402 negotiation adapter. In parallel, deploy and cross-check discovery, add the
-    production `tosctl` stablecoin sender, and run the fresh
-    provider/buyer sessions from `docs/GATE_E_PROVIDER_ONBOARDING.md` and
+    x402 negotiation adapter. In parallel, deploy and cross-check discovery
+    and run the fresh provider/buyer sessions from
+    `docs/GATE_E_PROVIDER_ONBOARDING.md` and
     `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
     independently and is not being claimed by this work.

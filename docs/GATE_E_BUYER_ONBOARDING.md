@@ -2,9 +2,9 @@
 
 ## Status
 
-The buyer SDK and wallet-budget foundation is implemented. This is not Gate E
-acceptance: a fresh buyer must still complete the purchase from public
-documentation with a production TOS stablecoin sender, and the same session
+The buyer SDK, wallet-budget foundation, and production `tosctl` stablecoin
+sender are implemented. This is not Gate E acceptance: a fresh buyer must
+still complete the purchase from public documentation, and the same session
 must include the fresh-provider sale required by the Gate.
 
 ## Authority and custody boundary
@@ -35,6 +35,9 @@ must include the fresh-provider sale required by the Gate.
    the exact code hash and data to be finalized in `awaiting_funding` state.
 6. Call `FundPurchase` with a durable retry key. Immediately before wallet use,
    the SDK reconstructs every commitment and repeats all authoritative reads.
+   The production sender asks `tosctl` to build and sign once, validates the
+   exact signed BOC before acquiring the broadcast lease, and then broadcasts
+   those same bytes without rebuilding or re-signing.
 7. Treat the stablecoin sender result as ambiguous until the exact escrow and
    amount are finalized. Continue to Receipt and settlement only from that
    finalized funded state.
@@ -59,14 +62,17 @@ procedure.
 
 - buyer safety boundary: `tos-protocol/pkg/buyersdk`
 - Go guide: `tos-protocol/docs/buyer-sdk.md`
+- exact prepared-message broadcast boundary: `tos` commit
+  `d9d725534cb1a9120b1e49854b360c01f043c22a`
+- production `tosctl` funding adapter: `tos-protocol` commit
+  `d1a845eb7808365a413106d075c7c6316be67e27`
 - canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and
   `docs/STABLECOIN_ESCROW_TVM_V1.md`
 - external commercial lifecycle: `docs/GATE_D_EXTERNAL_PILOT.md`
 
-Before the buyer item can be complete, provide a production adapter that sends
-the exact wallet transfer through `tosctl`, then run a fresh-buyer session with
-no source edits, hidden database changes, developer-only instructions, or key
-material outside custody. Record release commits, network/genesis tuple,
+Before the buyer item can be complete, run a fresh-buyer session with no source
+edits, hidden database changes, developer-only instructions, or key material
+outside custody. Record release commits, network/genesis tuple,
 Capability/version, manifest digest, Quote commitment, escrow, exact asset and
 amount, budget policy, funding transaction, finalized checkpoint, Receipt, and
 settlement. Never record tokens, mnemonics, private keys, or wallet seeds.
