@@ -575,7 +575,8 @@ is not implied by Gate C's initial profile.
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes
     gross Agent value, provider revenue, job counts, unique buyers, success and
-    refund rates, settlement latency, active offerings, rankings, coverage, and
+    refund rates, settlement latency, active Registry supply, rankings,
+    coverage, and
     separately labelled operational availability. The finalized transaction
     index, deterministic aggregator, protobuf/Connect export, frozen vectors,
     and independent-indexer comparison are not implemented.
