@@ -1,0 +1,35 @@
+{
+  "schema": "atos.native.production-readiness-evidence.v1",
+  "network": {
+    "network_id": "REQUIRED",
+    "genesis_root_hash": "sha256:REQUIRED",
+    "genesis_file_hash": "sha256:REQUIRED"
+  },
+  "release": {
+    "atos_spec_commit": "REQUIRED",
+    "tos_protocol_commit": "REQUIRED",
+    "atos_commit": "REQUIRED",
+    "tos_ai_commit": "REQUIRED",
+    "contract_code_hashes": [],
+    "signed_manifest_digest": "sha256:REQUIRED",
+    "reproducible_builds_match": false
+  },
+  "quorum": {
+    "endpoints": [],
+    "strict_majority": 0,
+    "endpoint_diversity_verified": false,
+    "finality_incident_drill": "REQUIRED"
+  },
+  "controls": {
+    "custody_restore_drill": "REQUIRED",
+    "relay_budget_drill": "REQUIRED",
+    "load_and_dos_report": "REQUIRED",
+    "stablecoin_reconciliation": "REQUIRED",
+    "monitoring_alert_drill": "REQUIRED",
+    "gateway_failure_drill": "REQUIRED",
+    "provider_failure_drill": "REQUIRED",
+    "refund_and_client_recovery_drill": "REQUIRED"
+  },
+  "operator_signatures": [],
+  "verdict": "NOT_ACCEPTED_TEMPLATE"
+}

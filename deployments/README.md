@@ -85,3 +85,8 @@ the resulting bundle with `native-safe-handoff-check` against at least three
 validator endpoints and an absolute durable checkpoint path. The checker must
 be run while the original Gateway is unavailable; its JSON output is the
 machine-readable handoff evidence attached to the independent operator record.
+
+Gate G evidence must use `production-readiness-evidence.template.json` as its
+starting shape. A template is never an acceptance record; it must bind exact
+release commits, contract hashes, endpoint diversity, drills, reconciliation,
+and operator signatures.

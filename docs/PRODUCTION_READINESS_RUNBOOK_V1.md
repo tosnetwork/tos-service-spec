@@ -95,3 +95,8 @@ the Gate D/F lifecycle while injecting gateway failure, provider failure,
 endpoint disagreement, refund, key recovery, storage loss, and budget limits.
 This document is the operational baseline; it is not evidence that those
 external exercises have occurred.
+
+`deployments/production-readiness-evidence.template.json` fixes the machine-
+readable evidence shape. It must remain a template until every `REQUIRED`
+field is replaced, two reproducible builds match, and each operator signs the
+multi-operator exercise record.
