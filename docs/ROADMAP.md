@@ -274,8 +274,10 @@ Deliver:
   are implemented and have been revalidated end to end against live finalized
   state; a fresh same-host buyer used new custody to purchase the newly
   published software-work Capability for 25,000,000 atomic `tUSDT`, recorded
-  in `deployments/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; an
-  externally operated buyer working session remains;
+  in `deployments/local-gate-e-fresh-buyer-purchase-2026-08-15.json`; its
+  canonical Receipt subsequently authorized the exact 25,000,000-atomic
+  settlement at a later finalized checkpoint; an externally operated buyer
+  working session remains;
 - 🟡 minimal finalized-state Capability index and manifest retrieval — the
   bounded derived catalog, fresh-finality listing, canonical content store,
   protobuf service, and gateway handlers are implemented; a clean public

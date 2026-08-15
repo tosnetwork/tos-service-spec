@@ -44,9 +44,14 @@
   "escrow": {
     "address": "0:57beed8a9c994024e0f2b86cb579fc747c976d44af6a6f15d4e17763ced7bba3",
     "code_hash": "tvm-cell-sha256:c9df2f743534978ad5b521aab8c09c081ff56769769c00ee9e68eac7c681a685",
-    "final_status": "funded",
+    "funding_status": "funded",
     "funded_atomic": "25000000",
-    "finalized_checkpoint": 155530
+    "funded_checkpoint": 155530,
+    "final_status": "release_pending",
+    "settled_atomic": "25000000",
+    "receipt_commitment": "tvm-cell-sha256:b55da771bc37e4e82b552937b2ec6e7484abcdcd21e78c112d15b61e49a3f15b",
+    "release_query_id": "1786769323",
+    "settlement_checkpoint": 155799
   },
   "budget_journal": {
     "intent_identity": "sha256:b2e7c14f61a8723195185696d96d28837a915e0e82be316ce67cb8f0d8e981dc",
@@ -56,5 +61,5 @@
     "max_per_purchase_atomic": "50000000",
     "max_total_atomic": "250000000"
   },
-  "verdict": "PASS_LOCAL_FRESH_PROVIDER_AND_BUYER_FUNDING"
+  "verdict": "PASS_LOCAL_FRESH_PROVIDER_BUYER_AND_RECEIPT_SETTLEMENT"
 }
