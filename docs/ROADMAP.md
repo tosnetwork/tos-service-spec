@@ -625,15 +625,3 @@ is not implied by Gate C's initial profile.
     set-commitment digests, and the Registry supply snapshot; the
     separately-labelled operational-availability signals; the canonical
     protobuf/Connect export; and the independent-indexer comparison.
-19. 🟡 **FreeCity first society application:**
-    `docs/FREECITY_APPLICATION_V1.md` now defines the non-normative application
-    profile and authority mapping for FreeCity as the first human-and-Agent city
-    built on TOS Network. The profile adds no protocol surface and preserves the
-    machine-checkable software-work wedge. Implementation and acceptance remain
-    pending. The next application tasks are a read-only finalized Agent and
-    Capability projection, provenance-labelled city events, and one
-    current-domain testnet collaboration from Quote Proposal through Accepted
-    Quote, escrow, OpenFox or `tos-ai` execution, canonical Receipt, settlement,
-    and independent resolution. This item cannot claim completion before the
-    relevant Gate C, D, and E current-domain evidence exists, and it cannot
-    claim an open recurring economy before Gate F.
