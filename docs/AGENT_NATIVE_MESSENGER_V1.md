@@ -163,28 +163,34 @@ profiles should follow only after their prerequisites are accepted.
 
 ### 5.3 Messenger components that must be developed
 
-| Messenger component | Status |
-|---|---:|
-| M0-R measured reachability study and route-strategy decision | ⬜ To be developed |
-| Messaging Endpoint delegation schema and verifier | ⬜ To be developed |
-| Messaging Contact Descriptor and DHT locator profile | ⬜ To be developed |
-| One-to-one application-layer E2EE | ⬜ To be developed |
-| Multi-device session and key-rotation model | ⬜ To be developed |
-| Single-writer durable conversation store and replay journal | ⬜ To be developed |
-| Delivery, storage, application, and optional read acknowledgements | ⬜ To be developed |
-| Encrypted offline Mailbox Relay | ⬜ To be developed |
-| Multi-Relay redundancy and failover | ⬜ To be developed |
-| Private group encryption and membership epochs | ⬜ To be developed |
-| Public Agent channels over Overlay with history synchronization | ⬜ To be developed |
-| Messenger-specific encrypted attachment protocol | ⬜ To be developed |
-| OpenFox `tos-messenger` channel adapter | ⬜ To be developed |
-| Agent message policy engine and prompt-injection firewall | ⬜ To be developed |
-| First-contact admission policy and sybil resistance | ⬜ To be developed |
-| Agent Packet-to-Execution-Gate adapter and three-transport replay tests | ⬜ To be developed |
-| Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed |
-| Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked |
-| Cross-implementation positive vectors and adversarial corpus | ⬜ To be developed |
-| Independent multi-operator interoperability evidence | ⬜ To be developed |
+Status and evidence below reflect the `tos-messenger` incubation repository,
+whose `docs/ROADMAP.md` tracks the implementation against this list. A row is
+✅ only when the behaviour is implemented **and** tested end to end; a primitive
+or contract-and-refutation harness without the closed behaviour is 🟡 with the
+gap named. None of this counts as gate evidence (Section 3).
+
+| Messenger component | Status | Evidence and gap |
+|---|---:|---|
+| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe` (UDP and ADNL collectors), `cmd/tos-reachability*`; the study itself needs ≥3 operators and real networks and has not been run |
+| Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr` |
+| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory`; checked against the encoding rules as read, not against a live TOS DHT encoder |
+| One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` and its conformance refutation harness; no suite is selected, which is a freeze decision |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/admission` (a revoked device is refused); the descriptor-fetch path is test-driven, with no live transport to fetch over |
+| Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
+| Delivery, storage, application, and optional read acknowledgements | 🟡 Partial | DeliveryAck and ApplicationAck codecs (`pkg/payload`) with durable delivery, application, and read state (`pkg/eventlog`); the StoredAck Relay protocol and a ReadAck wire profile do not exist |
+| Encrypted offline Mailbox Relay | ⬜ To be developed | a transport path, ordered after M0-R; needs a Mailbox Relay |
+| Multi-Relay redundancy and failover | ⬜ To be developed | — |
+| Private group encryption and membership epochs | 🟡 Partial | `tos-messenger` `pkg/room` (membership epochs, durable ledger, admission enforcement) and `pkg/group` (group-key contract and refutation harness); no group-key scheme is selected or implemented, and the harness checks protocol structure, not secrecy |
+| Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
+| Messenger-specific encrypted attachment protocol | ⬜ To be developed | `artifact.*` payload shapes reference content by digest only |
+| OpenFox `tos-messenger` channel adapter | ⬜ To be developed | needs a transport first |
+| Agent message policy engine and prompt-injection firewall | 🟡 Partial | `tos-messenger` `pkg/firewall` (action policy evaluator) and the authenticated owner-decision queue (`pkg/localapi`, `pkg/eventlog`); OpenFox provenance enforcement and wallet/tool-adapter enforcement do not exist |
+| First-contact admission policy and sybil resistance | 🟡 Partial | `tos-messenger` `pkg/admission` consults a contact policy and the gate honours it; the economic bond and sybil parameters are open |
+| Agent Packet-to-Execution-Gate adapter and three-transport replay tests | ⬜ To be developed | needs a transport |
+| Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed | — |
+| Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked | Expansion Gate |
+| Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` — positive vectors plus a decode- and verify-layer adversarial corpus, each self-verifying; no second implementation exists to check against |
+| Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
 ## 6. Goals and non-goals
 
