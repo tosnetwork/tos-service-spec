@@ -107,6 +107,11 @@ refine these rules but cannot contradict them.
   controls for Gate G.
 - [Agent Packet V1](docs/AGENT_PACKET_V1.md) defines chain-authenticated
   off-chain Agent-to-Agent packets with replay protection.
+- [Decentralized Agent-Native Messenger V1](docs/AGENT_NATIVE_MESSENGER_V1.md)
+  is an incubation architecture for identity-bound encrypted Agent sessions,
+  measured route selection, offline Mailbox Relays, rooms, and OpenFox
+  integration. It is not a frozen `tos_service_v1` surface, does not reorder
+  roadmap gates, and cannot be cited as gate acceptance evidence.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
 - [Mobile TOS Service Client V1](docs/MOBILE_TOS_SERVICE_CLIENT_V1.md) defines the shared
