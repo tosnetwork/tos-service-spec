@@ -431,6 +431,24 @@ must reuse the existing authority objects.
 
 **Status: ⬜ Locked.** Gate F has not demonstrated recurring paid demand.
 
+### 8.1 Incubation designs
+
+An incubation design may be drafted and reviewed before its gate opens, so that
+the authority and reuse questions are settled early. It carries no gate status,
+consumes no gate capacity, and may not be cited as acceptance evidence for any
+gate item.
+
+- [Decentralized Agent-Native Messenger V1](AGENT_NATIVE_MESSENGER_V1.md)
+  describes an off-chain messaging plane for human-to-Agent and Agent-to-Agent
+  communication over the existing DHT, ADNL, RLDP, Overlay, and TOS Sites
+  primitives, reusing finalized Agent identity, delegation digests, and the
+  Quote, escrow, Receipt, and settlement objects rather than introducing a
+  second authority. **Status: ⬜ Incubation.** Its own M0 protocol freeze has
+  not started, its cryptographic suites are unselected, and its milestone
+  ordering depends on a reachability measurement that has not been performed.
+  Its Mailbox Relay and attachment storage service profiles are expansion work
+  under this gate and inherit the lock above.
+
 ## 9. Work ordering rules
 
 - Registry mutations require finalized typed-state authority first.
@@ -442,6 +460,8 @@ must reuse the existing authority objects.
 - Open federation follows one conforming gateway and one real transaction path.
 - Off-chain Agent packets require finalized sender/recipient identity and
   replay protection; transport discovery never becomes semantic authority.
+- Incubation designs may be written before their gate opens, but they never
+  reorder gate work and never supply gate evidence.
 - Expansion follows recurring paid use.
 
 ## 10. Immediate work
