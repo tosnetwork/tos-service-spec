@@ -599,17 +599,32 @@ is not implied by Gate C's initial profile.
     `docs/MOBILE_TOS_SERVICE_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
     paid application session remain after the protocol/SDK work; these apps
     must reuse the finalized Native lifecycle and cannot create parallel facts.
-18. ⬜ **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
+18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes
     gross Agent value, provider receipts, job counts, unique buyer wallets,
     terminal release and refund rates, settlement latency, active Registry
     supply, rankings,
     coverage, and
-    separately labelled operational availability. The finalized transaction
-    and historical Registry indexes, provider anti-spoofing attribution,
-    deterministic aggregator, protobuf/Connect export, frozen vectors, and
-    independent-indexer comparison are not implemented.
+    separately labelled operational availability. The **deterministic
+    network-level aggregator** is implemented in `tos-service-protocol`
+    `pkg/economic` (commit `f6639b6`): it consumes the verification layer's
+    verified job records and computes, per exact asset over a half-open
+    window, released cash flow and its attributed / unattributed /
+    attribution-unresolved partition with the value identity, the
+    accepted / funded / released / attributed / refunded counts, the unique
+    buyer, quote-named-provider, and attributed-provider counts, the terminal
+    release and refund rates (floor parts-per-million, null on a zero
+    denominator), and funding-to-terminal median and nearest-rank p95
+    latency — with 256-bit overflow invalidation, per-asset separation, and
+    deterministic ordering, covered by unit tests and a frozen input→output
+    vector. **Still unimplemented:** the finalized transaction and historical
+    Registry indexes and the terminal-chain and provider anti-spoofing
+    attribution that produce the verified job records (these need a live
+    chain); the per-Agent and per-Capability metrics, rankings, coverage and
+    set-commitment digests, and the Registry supply snapshot; the
+    separately-labelled operational-availability signals; the canonical
+    protobuf/Connect export; and the independent-indexer comparison.
 19. 🟡 **FreeCity first society application:**
     `docs/FREECITY_APPLICATION_V1.md` now defines the non-normative application
     profile and authority mapping for FreeCity as the first human-and-Agent city
