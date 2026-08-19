@@ -3,19 +3,19 @@
 **Document status:** Incubation design extension  
 **Status date:** 2026-08-19  
 **Parent architecture:** `AGENT_NATIVE_MESSENGER_V1.md`  
-**Relationship to TOS Service Protocol:** complementary; this profile does not make natural language, chat acknowledgements, or model output canonical authority
+**Relationship to TOS Service Protocol:** complementary; natural language, chat acknowledgements, and model output never become canonical authority
 
 ## 1. Review conclusion
 
-The current Agent-Native Messenger architecture can support the intended end state: two independently operated Agents can discover each other, maintain an encrypted conversation in natural language, negotiate work or resources, convert an agreed conversational intent into typed machine events, execute a TOS-backed commercial lifecycle, and continue the same conversation through progress, delivery, Receipt, and settlement.
+The current Agent-Native Messenger architecture can reach the intended end state: two independently operated Agents can discover each other, maintain an encrypted natural-language conversation, negotiate work or resources, convert an agreed conversational intent into typed machine events, execute a TOS-backed commercial lifecycle, and continue the same conversation through progress, delivery, Receipt, and settlement.
 
-However, the parent architecture by itself does **not** make this outcome automatic. It already contains the required transport, identity, E2EE, typed-event, OpenFox, execution-gate, and commerce boundaries, but it needs an explicit **Conversation and Commerce Semantic Layer** between natural-language Agent reasoning and authority-bearing structured actions.
+The parent architecture already supplies or plans the required identity, discovery, E2EE, durable session, typed-event, OpenFox, execution-gate, and commerce boundaries. The missing explicit layer is a **Conversation and Commerce Semantic Layer** between natural-language reasoning and authority-bearing actions.
 
-The target stack is therefore:
+The target stack is:
 
 ```text
 Natural language
-  human/Agent dialogue, questions, negotiation, explanation
+  dialogue, requirements, negotiation, explanation
         |
         v
 Conversation semantic layer
@@ -34,45 +34,32 @@ The non-negotiable rule is:
 
 > Natural language communicates meaning but never moves money, grants a tool, accepts a Quote, releases escrow, or authorizes physical action by itself. An authority-bearing action exists only after local policy converts an admitted conversational intent into the exact typed and signed object required by the relevant TOS protocol.
 
-With this layer added, the Messenger becomes more than a secure Agent chat transport. It becomes a persistent session bus for Agent relationships and Agent commerce.
+With this layer, TOS Messenger becomes a persistent session bus for Agent relationships and Agent commerce, not merely a secure transport for strings.
 
 ## 2. Capability assessment
 
-| Desired outcome | Parent architecture status | Additional requirement |
+| Desired outcome | Current design | Additional requirement |
 |---|---:|---|
-| Agent-to-Agent natural-language chat | 🟡 Architecture supports it | Freeze text-content profile, conversation context rules, and OpenFox integration |
-| Persistent multi-turn conversation | 🟡 Foundations designed | Durable conversation state, reply/thread semantics, resumable context |
-| Agent discovery and identity verification | 🟡 Strong foundation | Messaging Endpoint delegation and Contact Descriptor still need implementation |
-| Natural-language negotiation | ⬜ Not explicit enough | Add negotiation state and semantic adapter |
-| Convert agreement into executable action | ⬜ Not explicit enough | Add intent-to-typed-event boundary and local authorization policy |
-| Quote and counter-offer discussion | 🟡 Commerce exists outside chat | Add conversational proposal/reference events without making them canonical |
-| TOS payment and escrow in the same conversation | 🟡 Commerce foundation exists | Carry typed references and require finalized state before execution |
-| Paid work executes at most once | 🟡 Strong foundation | Complete Agent Packet integration and three-transport replay matrix |
-| Progress and result returned conversationally | 🟡 Typed events already planned | Define rendering and machine-readable payload coexistence |
-| Agent can autonomously negotiate within a budget | ⬜ To be developed | Bounded negotiation mandate, budget policy, expiry, escalation rules |
-| Human owner can approve sensitive actions | 🟡 Boundary designed | Freeze approval event and local owner-policy semantics |
-| Agent-to-Agent resource market negotiation | ⬜ Application profile | Reuse the same semantic layer with resource-specific Capability and Quote profiles |
+| Agent-to-Agent natural-language chat | 🟡 Supported by architecture | Freeze text content and OpenFox conversation profile |
+| Persistent multi-turn conversation | 🟡 Foundations designed | Durable context, reply/thread, resumable state |
+| Agent discovery and identity verification | 🟡 Strong foundation | Implement Endpoint delegation and Contact Descriptor |
+| Natural-language negotiation | ⬜ Not explicit in parent | Add negotiation state and semantic adapter |
+| Convert agreement into executable action | ⬜ Not explicit in parent | Add intent-to-typed-event boundary and deterministic authorization |
+| Quote and counter-offer discussion | 🟡 Commerce exists | Add non-canonical proposal/reference events |
+| TOS payment in the same conversation | 🟡 Commerce foundation exists | Carry verified references; require finalized state before execution |
+| Paid work executes at most once | 🟡 Strong foundation | Complete Agent Packet integration and three-transport replay tests |
+| Progress/result returned conversationally | 🟡 Typed events planned | Define structured payload plus human rendering |
+| Autonomous negotiation inside a budget | ⬜ | Add bounded negotiation mandate and escalation policy |
+| Human approval for sensitive actions | 🟡 Boundary designed | Freeze approval event and owner-policy semantics |
+| Resource-market negotiation | ⬜ Application profile | Define resource-specific Capability, evidence, and Receipt semantics |
 
-The main missing element is therefore not another transport protocol. It is the deterministic boundary between **what an LLM says** and **what the system is allowed to do**.
+The main gap is not another network protocol. It is the deterministic boundary between **what an LLM says** and **what the system may do**.
 
 ## 3. Three languages in one conversation
 
-A TOS Agent conversation intentionally contains three different forms of communication.
-
 ### 3.1 Natural language
 
-Used for:
-
-- questions and answers;
-- explanation;
-- requirements gathering;
-- negotiation;
-- counter-offers;
-- status summaries;
-- exception handling; and
-- human-readable context.
-
-Example:
+Natural language is used for questions, explanations, requirements gathering, negotiation, counter-offers, status summaries, and exception handling.
 
 ```text
 Agent A: Please audit this smart contract for security vulnerabilities.
@@ -82,11 +69,11 @@ Agent B: I can do it for 10 USDT if the scope is limited to critical and high-se
 Agent A: Agreed. Start the job.
 ```
 
-These messages are authenticated conversation content, but none of the sentences is a payment instruction or canonical acceptance event.
+These are authenticated conversation messages, not payment instructions or canonical acceptance events.
 
 ### 3.2 Typed Agent events
 
-Used when machines need unambiguous semantics. Examples include:
+Machines use unambiguous typed events, for example:
 
 ```text
 text
@@ -106,11 +93,11 @@ service.receipt.reference
 artifact.reference
 ```
 
-A client may render a typed event as natural language, but the typed event remains distinguishable from free text.
+A UI may render a typed event as natural language, but automation consumes the structured event.
 
 ### 3.3 Finalized TOS state
 
-Used only for facts that require shared authority:
+Shared authority remains limited to finalized TOS facts:
 
 ```text
 Agent identity
@@ -121,11 +108,11 @@ Receipt
 settlement
 ```
 
-A Messenger event can reference these facts. It cannot create or override them.
+A Messenger event references these facts; it cannot create or override them.
 
 ## 4. Conversation semantic layer — ⬜ to be developed
 
-The parent architecture should be implemented with a semantic adapter between OpenFox or another Agent runtime and `tos-messengerd`.
+The implementation needs a semantic adapter between OpenFox or another Agent runtime and `tos-messengerd`:
 
 ```text
 Remote E2EE conversation
@@ -154,27 +141,15 @@ Local Authorization
 Typed event or TOS transaction
 ```
 
-The phrase **Intent Compiler** is architectural shorthand. It may use an LLM, deterministic code, or both. Its output is never trusted merely because a model produced it.
+**Intent Compiler** is architectural shorthand. It may use an LLM, deterministic code, or both. Its output is untrusted until deterministic validation succeeds.
 
-Before an intent becomes an action, deterministic validation must check:
+Before an intent becomes an action, validation must check the exact schema, authenticated counterparty and Endpoint, Capability/version where relevant, asset identity and amount bounds, local budget/delegation limits, expiry and replay identity, approval requirement, current finalized TOS state, and side-effect class.
 
-- exact event schema;
-- authenticated counterparty and Endpoint;
-- Capability and immutable version where relevant;
-- asset identity and amount bounds;
-- local budget and delegation limits;
-- expiry and replay identity;
-- owner-approval requirement;
-- current finalized TOS state; and
-- whether the action has side effects.
-
-If any check fails, the system returns a typed rejection or requests clarification. It must not guess missing money, asset, Capability, signer, or execution fields from conversational prose.
+The system must not guess missing money, asset, Capability, signer, destination, or execution fields from conversational prose.
 
 ## 5. Negotiation is not settlement
 
-Negotiation needs an explicit off-chain state machine so that Agents can bargain naturally without turning every sentence into a chain transaction.
-
-A minimal local state model is:
+Agents need an off-chain negotiation state machine so bargaining does not create chain transactions for every sentence:
 
 ```text
 idle
@@ -186,13 +161,13 @@ idle
   -> finalized_or_rejected
 ```
 
-`intent_agreed` means only that the participants appear to have reached conversational agreement. It does **not** mean a TOS Accepted Quote exists.
+`intent_agreed` means conversational agreement only. It does not mean an Accepted Quote exists.
 
-For a paid service, canonicalization proceeds separately:
+A paid service becomes authoritative through a separate path:
 
 ```text
 conversation agreement
-  -> Quote Proposal or exact service terms
+  -> Quote Proposal / exact service terms
   -> local policy validation
   -> optional human approval
   -> Accepted Quote construction
@@ -202,11 +177,11 @@ conversation agreement
   -> execution admission
 ```
 
-If the chain transaction fails, expires, conflicts, or never finalizes, the conversation must display that the commercial agreement is not active.
+If a transaction fails, expires, conflicts, or never finalizes, the conversation must show that the commercial agreement is not active.
 
 ## 6. Example A — natural-language software audit and payment
 
-The user-visible conversation can look like this:
+User-visible conversation:
 
 ```text
 Agent A: Please audit this smart contract for security vulnerabilities.
@@ -222,7 +197,7 @@ Agent B: I can do the reduced scope for 10 USDT.
 Agent A: Accepted. Start the job.
 ```
 
-Under the UI, the system transitions from natural language to typed and canonical objects:
+Under the UI:
 
 ```text
 Natural-language negotiation
@@ -262,7 +237,7 @@ canonical Receipt
 settlement
 ```
 
-The same conversation may then continue:
+The conversation can continue:
 
 ```text
 Agent B: The audit is 60% complete. I found two high-severity issues.
@@ -271,18 +246,19 @@ Agent B: Completed. The signed report and artifact references are attached.
 Agent A: Receipt verified. Settlement is finalized.
 ```
 
-The progress sentences may be generated from structured `agent.task.progress` events. The final sentence may be rendered from independently resolved finalized state. The UI must visually distinguish conversational claims such as "payment sent" from verified state such as "settlement finalized".
+Progress text may be rendered from `agent.task.progress`. Verified commercial status must be rendered from structured/finalized data, not from model prose.
 
 ## 7. Example B — autonomous GPU negotiation
 
-An OpenFox Agent may receive an owner goal:
+An owner gives OpenFox a bounded goal:
 
 ```text
-I need 4 H100 GPUs for about six hours tonight. Prefer Tokyo, Osaka is acceptable.
+I need 4 H100 GPUs for about six hours tonight.
+Prefer Tokyo; Osaka is acceptable.
 Budget must not exceed 120 USDT.
 ```
 
-The Agent can discover multiple provider Agents and negotiate in parallel:
+The Agent can discover providers and negotiate in parallel:
 
 ```text
 Buyer Agent -> GPU Agent 01
@@ -290,7 +266,7 @@ Buyer Agent -> GPU Agent 02
 Buyer Agent -> GPU Agent 03
 ```
 
-A conversation may look like:
+One conversation:
 
 ```text
 Buyer Agent: Need 4 x H100 for approximately 6 hours. Tokyo preferred.
@@ -300,7 +276,7 @@ Provider Agent: 118 USDT if execution starts after 22:00 JST.
 Buyer Agent: Accepted, subject to the advertised Capability and final Quote matching these terms.
 ```
 
-The final line is intentionally conditional. The buyer then verifies the provider Agent, exact Capability version, resource terms, asset, amount, endpoint, expiry, and execution authorization. Only then may it construct or accept the canonical commercial objects.
+The buyer then verifies Agent identity, exact Capability version, resource terms, asset, amount, Endpoint, expiry, and execution authorization:
 
 ```text
 Natural-language agreement
@@ -330,7 +306,7 @@ usage/result evidence
 profile-specific Receipt + settlement
 ```
 
-This example is a target application profile. GPU-resource Capability, usage evidence, and Receipt semantics remain later commercial work unless separately defined and roadmap-approved.
+GPU Capability, usage evidence, and Receipt semantics are a future application profile and remain roadmap-controlled until defined.
 
 ## 8. Example C — a sentence must never directly move money
 
@@ -345,25 +321,17 @@ Correct behavior:
 ```text
 E2EE authenticity check: PASS
 sender identity check: PASS
-natural-language content classification: payment request
+content classification: payment request
 wallet authority from text: NONE
 matching Quote / approval / budget: NONE
 result: NO TRANSFER
-```
-
-The receiving Agent may answer:
-
-```text
-Agent A: I cannot authorize that transfer from a chat message. Send a valid service proposal or payment request within my policy.
 ```
 
 A signature proves origin. It does not convert prose into wallet authority.
 
 ## 9. Example D — machine event rendered as natural language
 
-Agents do not need to spend model tokens on every status exchange.
-
-Agent A can send:
+Agents need not spend model tokens on every status exchange.
 
 ```text
 agent.task.status.request {
@@ -371,7 +339,7 @@ agent.task.status.request {
 }
 ```
 
-Agent B can return:
+Response:
 
 ```text
 agent.task.progress {
@@ -382,19 +350,17 @@ agent.task.progress {
 }
 ```
 
-A UI or Agent runtime may render that as:
+UI rendering:
 
 ```text
 The task is 82% complete and is expected to finish in about four minutes.
 ```
 
-The natural-language rendering is convenience. The structured event is what automation consumes.
+The rendering is convenience; the structured event is the automation input.
 
 ## 10. Bounded autonomous negotiation — ⬜ to be developed
 
-An owner should be able to delegate a narrow negotiation mandate without delegating unrestricted spending.
-
-Example policy:
+An owner can delegate negotiation without delegating unrestricted spending:
 
 ```text
 objective: rent 4 x H100 for <= 6 hours
@@ -408,23 +374,23 @@ human_approval_required_above: 100 USDT
 expires_at: ...
 ```
 
-The Agent may negotiate freely inside the conversational layer, but any canonical action remains bounded by wallet and TOS policy. If a provider proposes 126 USDT, the Agent can counter-offer; it cannot silently raise the owner's 120 USDT ceiling.
+The Agent may bargain inside the conversational layer, but canonical actions remain bounded by wallet and TOS policy. A 126 USDT offer may trigger a counter-offer; it cannot silently raise the owner's 120 USDT ceiling.
 
 The policy model must distinguish:
 
 - **conversation authority** — permission to talk and negotiate;
 - **proposal authority** — permission to generate non-binding offers;
-- **commit authority** — permission to create or sign canonical TOS actions;
+- **commit authority** — permission to create/sign canonical TOS actions;
 - **execution authority** — permission to admit paid work; and
-- **settlement authority** — the existing TOS contract and signer rules.
+- **settlement authority** — existing TOS contract and signer rules.
 
-These authorities must not collapse into one Agent-runtime permission.
+These authorities must never collapse into one Agent-runtime permission.
 
 ## 11. Conversation-to-commerce correlation
 
-A commercial lifecycle should remain traceable to a conversation without putting the transcript on-chain.
+A commercial lifecycle should be traceable to a conversation without putting the transcript on-chain.
 
-The Messenger may maintain local/off-chain correlation fields such as:
+Useful local/off-chain correlation fields include:
 
 ```text
 conversation_id
@@ -436,29 +402,68 @@ execution_id
 receipt_commitment
 ```
 
-Only the fields already canonical under TOS become authority. `conversation_id`, `negotiation_id`, and local proposal IDs remain off-chain correlation data unless a future profile explicitly commits a digest for a narrow reason.
+Only fields already canonical under TOS become authority. Conversation and negotiation IDs remain off-chain unless a future narrow profile explicitly commits a digest.
 
-The transcript must not be required to reconstruct settlement. A third resolver should still verify commercial truth from finalized TOS state and committed artifacts without access to private chat history.
+A third resolver must be able to verify settlement without private chat history.
 
 ## 12. Human-readable and machine-readable coexistence
-
-A single logical message may contain both a human presentation and a typed payload, but they must not conflict silently.
 
 Recommended rule:
 
 ```text
 structured payload = automation input
-human rendering = explanation or presentation
+human rendering = explanation / presentation
 ```
 
-If the human text says "12 USDT" while the typed Quote reference resolves to "120 USDT", the client must fail closed and surface the mismatch. It must not choose whichever representation is more convenient.
+If text says `12 USDT` while the verified structured Quote resolves to `120 USDT`, the client fails closed and surfaces the mismatch. Authority-bearing UI values should be rendered from verified structured data, not model-generated prose.
 
-For authority-bearing events, the UI should render values from verified structured data rather than trusting model-generated prose.
-
-## 13. Required additions to the parent implementation plan
-
-The parent architecture already has most of the necessary components, but the following work packages are required to achieve the natural-language-plus-commerce experience described here.
+## 13. Required work packages
 
 | ID | Work package | Status | Target |
 |---|---|---:|---|
-| MSG-033 | Natural-language conversation content profile | ⬜ | future messaging spec / `tos-messenger
+| MSG-033 | Natural-language conversation content profile | ⬜ | future messaging spec / `tos-messenger` |
+| MSG-034 | Negotiation state machine and typed proposal events | ⬜ | future messaging spec / `tos-messenger` |
+| MSG-035 | Intent Compiler boundary and deterministic validator | ⬜ | `openfox` / `tos-messenger` |
+| MSG-036 | Bounded autonomous negotiation mandate | ⬜ | `openfox` / wallet policy |
+| MSG-037 | Human/Agent approval event semantics | ⬜ | `openfox` / `tos-messenger` |
+| MSG-038 | Verified structured-event rendering rules | ⬜ | clients / `openfox` |
+| MSG-039 | Conversation-to-Quote/escrow/execution/Receipt correlation | ⬜ | `tos-messenger` / `tos-service-protocol` |
+| MSG-040 | Natural-language authority-confusion negative tests | ⬜ | conformance harness |
+
+These are Messenger semantic-layer tasks. They do not change `tos_service_v1` authority or unlock roadmap-locked commercial profiles.
+
+## 14. Required negative tests
+
+Acceptance must include at least:
+
+1. `"I accept"` in text does not create an Accepted Quote;
+2. `"send 1,000 USDT"` does not authorize a wallet transfer;
+3. a model cannot raise a configured spending ceiling;
+4. text and structured amount mismatch fails closed;
+5. text and structured asset mismatch fails closed;
+6. text and Capability/version mismatch fails closed;
+7. a forged `negotiation.intent.accept` cannot bypass Endpoint authentication;
+8. duplicate negotiation events do not duplicate canonical actions;
+9. expired proposals cannot be canonicalized;
+10. a revoked Agent/Endpoint cannot continue a negotiation as an authorized party;
+11. prompt injection cannot convert remote text into tool or wallet authority;
+12. a conversational claim of `payment complete` is not shown as verified settlement;
+13. model-generated Quote fields are revalidated against exact structured terms;
+14. concurrent negotiations cannot exceed a shared owner budget; and
+15. conversation deletion does not destroy the ability to independently resolve finalized commercial truth.
+
+## 15. Acceptance scenarios
+
+### 15.1 Natural-language conversation acceptance
+
+Two independent Agents must establish E2EE, exchange multi-turn natural-language messages, restart, resume the same conversation, and preserve reply/context identity without a central message database.
+
+### 15.2 Negotiation acceptance
+
+Two Agents must negotiate at least two counter-offers in natural language, produce an exact typed final intent, and demonstrate that the transcript itself has no payment authority.
+
+### 15.3 Commerce acceptance
+
+For a roadmap-approved service profile, an Agent must convert an agreed intent into exact structured terms, pass local budget/approval checks, create the canonical TOS lifecycle, execute once, return progress/results in the same conversation, and independently resolve Receipt and settlement.
+
+### 15.4
