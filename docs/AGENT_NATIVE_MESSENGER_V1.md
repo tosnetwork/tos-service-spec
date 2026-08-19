@@ -93,13 +93,14 @@ accepted.
 | ADNL peer, channel, address, proxy, and tunnel primitives | ✅ | `tos/adnl` | Direct node transport and network-level routing primitives |
 | RLDP and RLDP2 reliable transfer | ✅ | `tos/rldp`, `tos/rldp2` | Reliable transfer of larger envelopes, history segments, descriptors, and attachments |
 | Overlay broadcast primitives | ✅ | `tos/overlay`, including simple, FEC, Plumtree, and two-step broadcast implementations | Future public channels and Relay mesh distribution |
-| TOS Sites and RLDP HTTP proxy primitives | ✅ | `tos/ton-http-proxy`, `tos/rldp-http-proxy`, and TOS Core documentation | Serve signed descriptors, prekey bundles, encrypted attachments, and public room history |
+| TOS Sites and RLDP HTTP proxy primitives | ✅ | `tos/rldp-http-proxy` (including `DNSResolver` and `PeerCapabilityRouting`) and `tos/doc/TosSites.md` | Serve signed descriptors, prekey bundles, encrypted attachments, and public room history |
+| Generic HTTP stack and simple HTTP proxy | ✅ | `tos/http` (`toshttp` library and the `http-proxy` executable) | Bootstrap and fallback HTTP transport only. This proxy links neither ADNL nor RLDP and is not a TOS Sites component |
 | Agent Packet V1 signing and strict wire codec | ✅ | `tos-service-protocol/pkg/agentpacket` | Reuse for independently signed task/control packets and optional Accepted Quote binding |
 | Signed Contact Card reference implementation | ✅ | `tos-service-protocol/pkg/agentpacket/contact.go` | Bootstrap HTTPS discovery and provide migration input for a richer Messaging Contact Descriptor |
 | Finalized Agent verification for packets | ✅ | `tos-service-protocol/pkg/agentpacket` | Reject unknown, revoked, or unauthorized senders before application delivery |
 | A2A and MCP execution adapters | ✅ | `tos-ai/pkg/a2aadapter`, `tos-ai/pkg/mcpadapter` | Preserve standard task and tool semantics inside a Messenger conversation |
-| Shared cross-transport Native Execution Gate | ✅ | `tos-ai` and `NATIVE_EXECUTION_GATE_V1.md` | Prevent one funded purchase from executing twice when submitted over different transports |
-| Bounded execution, content-addressed artifacts, and at-most-once job journal | ✅ | `tos-ai` | Execute paid work safely after Messenger policy and finalized escrow checks |
+| Shared cross-transport Native Execution Gate | ✅ | `tos-service-protocol/pkg/executiongate` (implementation), `tos-ai/pkg/adapterinterop` (A2A, MCP, and Agent Packet contend for one purchase slot in `interop_test.go`), and `NATIVE_EXECUTION_GATE_V1.md` | Prevent one funded purchase from executing twice when submitted over different transports. A Messenger transport is a new adapter in front of this existing gate, never a second admission path |
+| Bounded execution, content-addressed artifacts, and at-most-once job journal | ✅ | `tos-ai/pkg/executor`, `tos-ai/pkg/artifactstore` (SHA-256 addressing re-verified on read), and `tos-ai/pkg/softwarework/journal.go` with `tos-ai/internal/dirlock` | Execute paid work safely after Messenger policy and finalized escrow checks. The journal plus directory-lock pattern is the reuse candidate for the Messenger replay journal |
 | OpenFox always-on runtime and existing human IM channels | ✅ | `tosnetwork/openfox` | First Agent runtime and human bridge for the Messenger |
 
 ### 4.2 Partially implemented foundations
@@ -107,7 +108,7 @@ accepted.
 | Foundation | Status | What exists | What is still missing |
 |---|---:|---|---|
 | Agent Packet as a general chat envelope | 🟡 | Sender/recipient Agent IDs, mandatory Capability ID, nonce, sequence, payload digest, signature, optional Quote commitment, and strict JSON | No conversation or room identity, no application E2EE, no multi-device model, no delivery ACK model, and no ordinary-chat profile without a Capability |
-| Agent Packet replay protection | 🟡 | Reference `ReplayGuard` rejects repeated `sender_agent_id + nonce` during process lifetime | The current reference guard is in-memory; a production Messenger needs an atomic durable replay and deduplication journal that survives restart and multi-process deployment |
+| Agent Packet replay protection | 🟡 | Reference `ReplayGuard` in `tos-service-protocol/pkg/agentpacket` rejects repeated `sender_agent_id + nonce` during process lifetime, using an in-process mutex and map | The current reference guard is in-memory; a production Messenger needs an atomic durable replay and deduplication journal that survives restart and multi-process deployment. This must not be written from scratch: `tos-ai/pkg/softwarework/journal.go` already implements a crash-safe, cross-process claim journal over `internal/dirlock`, and is the extraction candidate for MSG-006 |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, or key-rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
 | Overlay for rooms | 🟡 | Broadcast and peer-management primitives exist | No Messenger room identity, membership state, roles, encryption epochs, moderation, history synchronization, or room-level conformance tests |
@@ -120,6 +121,7 @@ accepted.
 
 | Messenger component | Status |
 |---|---:|
+| Measured direct-ADNL reachability matrix and transport-strategy gate | ⬜ To be developed |
 | Messaging Endpoint delegation schema and verifier | ⬜ To be developed |
 | Messaging Contact Descriptor and DHT locator profile | ⬜ To be developed |
 | One-to-one application-layer end-to-end encryption | ⬜ To be developed |
@@ -133,6 +135,7 @@ accepted.
 | Messenger-specific encrypted attachment protocol | ⬜ To be developed |
 | OpenFox `tos-messenger` channel adapter | ⬜ To be developed |
 | Agent message policy engine and prompt-injection firewall | ⬜ To be developed |
+| First contact cost, inbox admission policy, and sybil resistance | ⬜ To be developed |
 | Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed |
 | Relay/attachment Capability and bounded service-payment profiles | ⬜ To be developed |
 | Cross-implementation positive vectors and adversarial corpus | ⬜ To be developed |
@@ -475,6 +478,41 @@ interoperability and controlled fallback. HTTPS must not become the only route
 or the source of Agent authority. Redirects, origins, response sizes, timeouts,
 and credentials remain bounded.
 
+### 10.5 Reachability measurement gate — ⬜ to be developed
+
+The transport strategy above assumes that direct ADNL is the normal path and
+that Mailbox Relays cover an offline minority. That assumption is currently
+unmeasured, and the entire milestone ordering depends on it.
+
+Before the transport strategy is frozen, the project must produce a measured
+reachability matrix for direct ADNL session establishment between two
+independently operated hosts:
+
+| Scenario | Required measurement |
+|---|---|
+| Both endpoints on public addresses | success rate, session setup latency |
+| One endpoint behind consumer NAT | success rate, latency, fallback rate |
+| Both endpoints behind consumer NAT | success rate, latency, fallback rate |
+| One or both behind carrier-grade NAT | success rate, latency, fallback rate |
+| Mobile network endpoint | success rate, latency, session survival across network change |
+| Low-cost edge device endpoint | success rate, latency, resource cost |
+
+Each cell must report the sample size, the observed direct-connection success
+rate, and the share of sessions that required an ADNL proxy/tunnel, a Mailbox
+Relay, or the bounded HTTPS fallback.
+
+The result changes the architecture rather than merely documenting it:
+
+- if direct establishment succeeds for most consumer-NAT pairs, Mailbox Relays
+  remain an availability feature and may stay in M2;
+- if it does not, Mailbox Relays and the ADNL proxy/tunnel service become the
+  primary delivery path, not a fallback, and their reliability, quotas, abuse
+  controls, and economics must be pulled forward into M1 and M2 accordingly.
+
+This measurement must be completed and recorded before the M1 acceptance
+statement can claim a working direct path. A laboratory result between two
+public hosts does not satisfy this gate.
+
 ## 11. Application-layer end-to-end encryption
 
 **Status: ⬜ To be developed.**
@@ -504,7 +542,13 @@ not a choice implied by this architecture document.
 
 For private groups, the project should select a reviewed group key-management
 protocol with membership epochs and post-removal confidentiality rather than
-fan-out of one long-lived shared key.
+fan-out of one long-lived shared key. The default candidate is **MLS
+(RFC 9420)**, which already provides membership epochs, forward secrecy,
+post-compromise security, and authenticated add/remove operations at group
+scale. It is recorded here as the option to beat rather than as a frozen
+choice: an alternative may be selected in M0, but only with a written
+justification against MLS. Leaving this decision unnamed is what allows it to
+drift into an ad hoc construction, which section 11 already prohibits.
 
 ## 12. Messaging event model
 
@@ -686,6 +730,49 @@ identifiers, key rotation, batching, bounded padding, and optional sender
 privacy. The first version must document which metadata remains visible rather
 than claiming perfect traffic-analysis resistance.
 
+### 14.1 First contact cost and sybil resistance — ⬜ to be developed
+
+Relay quotas and rate limits protect Relay operators. They do not protect
+recipients. In an Agent-native network the sender population is not bounded by
+human attention: a large number of Agents can address a large number of other
+Agents at close to zero marginal cost, and every delivered event consumes
+recipient policy evaluation, storage, and potentially model tokens.
+
+This is a first-class design element rather than a Relay implementation detail,
+because it is the one defence that a transport-only or Relay-only messenger
+cannot express. Existing Agent identity and settlement objects allow first
+contact from an unknown Agent to carry a bounded, refundable economic cost:
+
+- a recipient publishes an inbox admission policy in its Messaging Contact
+  Descriptor, including whether unsolicited first contact requires a bond or a
+  bounded prepayment, and the amount;
+- an unknown sender attaches a reference to a finalized commitment satisfying
+  that policy before its first event is admitted;
+- acceptance by the recipient releases or refunds the commitment, and the
+  sender is added to a local contact allowance so subsequent events are free;
+- a recipient rejection or an expiry resolves the commitment according to the
+  published policy; and
+- known contacts, prior counterparties, and Agents already bound by an Accepted
+  Quote bypass the requirement entirely.
+
+Requirements and boundaries:
+
+- the cost applies to first contact from an unknown sender, never per message
+  in an established conversation, and never to replies;
+- the mechanism must not become a second payment authority. It references
+  finalized TOS state under the existing Capability, Quote, escrow, and
+  settlement model, and a Messenger acknowledgement never settles it;
+- a recipient must be able to set the amount to zero, and the resulting
+  open-inbox mode must remain a supported configuration;
+- the policy must be enforceable on both the direct path and the Mailbox Relay
+  path, so a Relay cannot be used to bypass admission; and
+- it must degrade safely: a sender that cannot satisfy the policy is rejected
+  with a typed error, not silently dropped.
+
+The amount model, the refund and forfeiture rules, the abuse cases where a
+recipient could farm bonds by rejecting legitimate senders, and the interaction
+with allow-listed human bridges are M0 freeze decisions.
+
 ## 15. Rooms and channels
 
 ### 15.1 Private rooms — ⬜ to be developed
@@ -705,6 +792,30 @@ Private rooms require:
 Room membership should remain off-chain by default. A room may optionally bind
 an on-chain organization or Capability, but doing so must not publish private
 conversation state.
+
+**Transport decision — ⬜ to be frozen in M0.** TOS Core already implements a
+private-membership primitive for Overlays: `tos/overlay/overlay.h` exposes
+`add_certificate` and `update_member_certificate` over `OverlayMemberCertificate`.
+It is deliberately **not** selected for private rooms in this draft, for two
+reasons:
+
+1. Overlay membership is visible to the peers that forward traffic, so a
+   private room carried on an Overlay would leak its membership graph to
+   infrastructure that is not a member of the conversation. Private room
+   membership is listed as prohibited Relay-visible data in section 7.
+2. Overlay broadcast delivers to a mesh, whereas group encryption epochs need
+   per-device delivery so that a removed device provably stops receiving
+   later epochs.
+
+The default for private rooms is therefore per-device fan-out over the same
+one-to-one sessions defined in section 11, with group key management providing
+the epoch boundary. The cost of this choice is that sender bandwidth grows with
+member-device count, which sets a practical initial room-size limit and is why
+maximum initial room size is an M0 freeze decision.
+
+If a later revision reverses this choice, it must state how Overlay membership
+metadata exposure is mitigated. Overlay remains the selected transport for
+public channels in section 15.2, where membership is not confidential.
 
 ### 15.2 Public Agent channels — 🟡 Overlay primitive implemented; product pending
 
@@ -974,12 +1085,19 @@ Deliver:
 - direct ADNL transport plus bounded HTTPS development fallback;
 - application E2EE;
 - durable local event and replay journals;
-- text and basic typed Agent events; and
-- OpenFox local IPC prototype.
+- text and basic typed Agent events;
+- OpenFox local IPC prototype; and
+- the measured reachability matrix required by section 10.5.
 
 Accept when two independently operated Agents exchange encrypted messages,
 restart both processes, resend duplicates, rotate one Endpoint key, and recover
-without a central Gateway or message database.
+without a central Gateway or message database, **and** when the reachability
+matrix has been published with sample sizes for every scenario in section 10.5.
+Both endpoints being publicly addressable does not satisfy the second
+condition. If the matrix shows that direct establishment fails for most
+consumer-NAT or carrier-grade-NAT pairs, M2 scope is revised before it starts,
+because the Mailbox Relay is then the primary delivery path rather than a
+fallback.
 
 ### M2 — Offline Mailbox and multi-Relay failover
 
@@ -989,9 +1107,27 @@ Deliver `tos-mailboxd`, opaque mailbox identifiers, bounded encrypted storage,
 Stored/Delivery/Application ACKs, two-Relay redundancy, retention, quotas,
 abuse controls, and crash recovery.
 
+Deliver in addition a **minimal** paid Relay path, rather than deferring all
+Relay economics to M7: one Mailbox Relay Capability, one bounded Quote covering
+a storage quota for a period, and usage accounting against that quota. The full
+profile set, operator accounting, and independent auditability remain M7 work.
+The reason for pulling this forward is that Relay storage is the first bounded,
+verifiable, low-compute service the ecosystem can actually sell, and a Messenger
+whose Relays are free until the final milestone spends most of its development
+cycle with no economic loop and therefore no demonstrated differentiation from a
+transport-only messenger.
+
+Low-cost physical edge AI nodes are the intended first supply side for this
+service. Storage and forwarding of bounded opaque ciphertext is within their
+resource envelope, requires no model execution, and benefits from their
+always-on posture. Section 17.3 constrains what a Messenger event may do to
+such a node; this milestone additionally makes such a node a candidate seller.
+
 Accept when a recipient remains offline, receives the message after reconnect,
-processes it once despite duplicate Relay delivery, and continues after one
-Relay is removed.
+processes it once despite duplicate Relay delivery, continues after one Relay is
+removed, and one Relay operator has been paid for storage through the existing
+Capability, Quote, escrow, and Receipt path without any per-message on-chain
+transaction.
 
 ### M3 — OpenFox, A2A, MCP, and commercial execution
 
@@ -1059,7 +1195,7 @@ is required.
 | MSG-003 | Contact Descriptor and DHT locator profile | future messaging spec | ⬜ |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
 | MSG-005 | One-to-one E2EE profile and vectors | future messaging spec | ⬜ |
-| MSG-006 | Durable event, replay, and retry journal | `tos-messenger` | ⬜ |
+| MSG-006 | Durable event, replay, and retry journal | `tos-messenger` | ⬜ extract from `tos-ai/pkg/softwarework/journal.go` and `internal/dirlock` |
 | MSG-007 | Relay Envelope and Messaging Event codec | `tos-messenger` | ⬜ |
 | MSG-008 | Direct ADNL and RLDP transport integration | `tos-messenger` | 🟡 primitives exist |
 | MSG-009 | HTTPS bootstrap/fallback adapter | `tos-messenger` | 🟡 Agent Packet HTTP adapter exists |
@@ -1082,6 +1218,8 @@ is required.
 | MSG-026 | Relay and storage Capability profiles | `tos-service-spec` | ⬜ |
 | MSG-027 | Cross-implementation conformance harness | multiple | ⬜ |
 | MSG-028 | Independent multi-operator acceptance deployment | deployments and runbooks | ⬜ |
+| MSG-029 | Reachability measurement matrix and transport-strategy gate | `tos-messenger` / deployments | ⬜ blocks M1 acceptance |
+| MSG-030 | First contact cost, inbox admission policy, and sybil resistance | `tos-service-spec` / `tos-messenger` | ⬜ |
 
 ## 23. Minimum viable demonstration
 
@@ -1111,7 +1249,13 @@ Minimum acceptance conditions:
 - changing or disabling one Relay does not change Agent identity;
 - the task cannot execute twice through A2A, MCP, or Agent Packet retries;
 - delivery acknowledgements are visibly distinct from the commercial Receipt;
-- the result Artifact is content-addressed and verified; and
+- the result Artifact is content-addressed and verified;
+- first contact between the two previously unknown Agents satisfies the
+  recipient's published inbox admission policy from section 14.1, and the
+  commitment is released or refunded on acceptance;
+- if a Mailbox Relay is used, its operator is paid for bounded storage through
+  the existing Capability and Quote path, with no per-message on-chain
+  transaction; and
 - a third party reconstructs Quote, escrow, Receipt, and settlement without the
   original Gateway or private Messenger database.
 
@@ -1135,7 +1279,16 @@ Minimum acceptance conditions:
 9. Remote messages cannot bypass the Native Execution Gate or local physical
    safety controls.
 10. Every Relay and Gateway is replaceable without changing Agent identity,
-    session authority, or commercial truth.
+    session authority, or commercial truth. Mobile push notification is the
+    known exception and must be described as such: on iOS and Android the
+    platform push service is not replaceable by the project or the owner. It is
+    therefore restricted to a contentless wake-up hint that carries no
+    plaintext, no session key, no sender or conversation identity, and no
+    commercial state, and message content remains end-to-end encrypted and is
+    fetched over the ordinary Messenger paths after wake-up. This residual
+    centralization must be documented in the same explicit way that section 14
+    requires residual traffic-analysis exposure to be documented, and it must
+    never be described publicly as a fully decentralized delivery path.
 11. No feature is marked implemented without code, tests, and the acceptance
     evidence required for that layer.
 
@@ -1146,13 +1299,22 @@ developed/frozen**:
 
 - exact one-to-one E2EE cryptographic suite and library;
 - hybrid post-quantum key-establishment migration schedule;
-- group encryption protocol and maximum initial room size;
+- group encryption protocol and maximum initial room size, where MLS (RFC 9420)
+  is the recorded default candidate and any alternative requires a written
+  justification against it;
+- private room transport, confirming or reversing the per-device fan-out
+  default in section 15.1 and the decision not to use Overlay member
+  certificates for confidential membership;
+- first contact cost parameters from section 14.1: amount model, refund and
+  forfeiture rules, recipient-side abuse mitigation, and enforcement on the
+  Mailbox Relay path;
 - Messaging Endpoint and Device identifier derivation;
 - DHT key derivation, update rule, and locator size bounds;
 - prekey publication, replenishment, and equivocation detection;
 - durable store format and multi-process locking contract;
 - Mailbox Relay sender privacy, quota token, and anti-spam model;
-- push notification privacy for iOS and Android;
+- push notification privacy for iOS and Android, within the contentless
+  wake-up constraint recorded in invariant 10;
 - public channel ordering and moderation policy;
 - private-history backup and recovery model;
 - attachment retention and deletion guarantees;
