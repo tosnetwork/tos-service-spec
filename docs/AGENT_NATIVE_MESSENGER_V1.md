@@ -173,13 +173,13 @@ gap named. None of this counts as gate evidence (Section 3).
 |---|---:|---|
 | M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/echo phases, filtering observations, tunnel fallback, and native-sidecar cross-checks; mobility/reliable-transfer coverage and the ≥3-operator real-network study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr` |
-| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory`; checked against the encoding rules as read, not against a live TOS DHT encoder |
+| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory`, including the route-neutral refresh manager (re-resolution, deadlines, invalidation, revocation recheck, driven through interfaces/fakes); no production DHT/descriptor adapters and no live TOS DHT encoder test |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the default `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` candidate and clears its fourteen-property refutation harness; owner ratification, independent cryptographic review, and second-implementation consumption remain freeze gates |
-| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/admission` (a revoked device is refused); the descriptor-fetch path is test-driven, with no live transport to fetch over |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/directory` (refresh manager), `pkg/admission` (a revoked device is refused); production DHT/descriptor adapters and daemon wiring wait on the post-M0-R network path |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
-| Delivery, storage, application, and optional read acknowledgements | 🟡 Partial | DeliveryAck and ApplicationAck codecs (`pkg/payload`) with durable delivery, application, and read state (`pkg/eventlog`); the StoredAck Relay protocol and a ReadAck wire profile do not exist |
-| Encrypted offline Mailbox Relay | ⬜ To be developed | a transport path, ordered after M0-R; needs a Mailbox Relay |
-| Multi-Relay redundancy and failover | ⬜ To be developed | — |
+| Delivery, storage, application, and optional read acknowledgements | 🟡 Partial | DeliveryAck and ApplicationAck codecs (`pkg/payload`) with durable delivery, application, and read state (`pkg/eventlog`); the StoredAck Relay protocol is implemented and vectored (`pkg/mailbox`, `internal/vectors`); a ReadAck wire profile does not exist |
+| Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage, signed StoredAck issuance, dedupe/conflict detection, retention, quotas, list/delete and recovery tests; retrieval authentication, the network listener, and the transport binding are ordered after M0-R |
+| Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant`: distinct pinned Relay identities and exact signed ACKs meet a redundancy threshold; live independently operated Relay failover evidence is missing |
 | Private group encryption and membership epochs | 🟡 Partial | `tos-messenger` `pkg/room` implements membership epochs, durable rollback/gap enforcement, and admission enforcement; MLS 1.0 / TreeKEM is selected and `pkg/group` provides the contract/refutation floor, but the two-clock TOS-MLS profile, per-device leaf-key authority, library adapter, persistence, vectors, and room-authority rule are not implemented or frozen |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | ⬜ To be developed | `artifact.*` payload shapes reference content by digest only |
@@ -191,6 +191,44 @@ gap named. None of this counts as gate evidence (Section 3).
 | Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked | Expansion Gate |
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
+
+### 5.4 Scenario acceptance
+
+The tables above track parts; the Messenger is accepted by scenarios. The two
+canonical scenarios below define what "agents can talk" means for this
+architecture, and each names the exact dependency chain still standing between
+the implemented parts and a conversation. A scenario is ✅ only when the whole
+flow runs end to end on a real network between independently operated agents,
+and nothing in it counts as gate evidence until then (Section 3).
+
+**S1 — Two OpenFox agents discover each other and hold a one-to-one
+conversation.** Already standing: Agent/Endpoint/Device identity; descriptor
+and locator formats with the route-neutral refresh manager; the default
+one-to-one E2EE candidate and its vectors; envelopes, payload codecs, and the
+durable delivery stores; the conversation-to-commerce path riding the same
+events. The blocking chain, in dependency order: (1) the multi-operator M0-R
+study produces a route finding — Section 11 forbids building the transport
+first; (2) the production transport that finding selects, over the native
+stack; (3) owner ratification freezes the one-to-one E2EE suite; (4)
+production DHT/descriptor adapters wired into the daemon; (5) the OpenFox
+`tos-messenger` channel adapter.
+
+**S2 — Three OpenFox agents converse in a private room, the third member
+invited by a membership-epoch transition.** Already standing beyond S1:
+membership epochs with durable rollback and gap enforcement; admission-gate
+membership refusal; the MLS 1.0 selection with the group contract and
+refutation harness; the route-neutral Mailbox store for offline
+KeyPackage/Welcome delivery. Blocking, beyond everything S1 lacks: (6) the
+TOS-MLS v1 profile implemented against the two-clock model with canonical
+encodings and adversarial vectors; (7) the room-authority decision recorded
+and enforced; (8) KeyPackage/Welcome delivery bound to real Relay retrieval,
+which itself waits on the post-M0-R transport binding.
+
+Links (1), (3), and (7) are, respectively, an external-operator dependency and
+two owner freeze decisions; every other link is buildable code in the
+incubation repository or in the OpenFox runtime once its predecessors land.
+`tos-messenger/docs/ROADMAP.md` tracks both scenarios under "Scenario
+acceptance".
 
 ## 6. Goals and non-goals
 
