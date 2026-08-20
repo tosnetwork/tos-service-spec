@@ -1,7 +1,7 @@
 # TOS Decentralized Agent-Native Messenger Architecture
 
 **Document status:** Incubation architecture and implementation inventory  
-**Status date:** 2026-08-19  
+**Status date:** 2026-08-20
 **Candidate protocol family:** `tos.messaging.*`  
 **Relationship to TOS Service Protocol:** complementary; this document does not change the authority model or normative schema of `tos_service_v1`
 
@@ -152,10 +152,10 @@ profiles should follow only after their prerequisites are accepted.
 | Agent Packet as a general chat envelope | 🟡 | Sender/recipient Agent IDs, mandatory Capability ID, nonce, sequence, payload digest, signature, optional Quote commitment, and strict JSON | No conversation or room identity, application E2EE, multi-device model, delivery ACK model, or ordinary-chat profile without a Capability |
 | Agent Packet replay protection | 🟡 | Reference `ReplayGuard` uses an in-process mutex and map to reject repeated `sender_agent_id + nonce` while the process lives | Durable replay state across restart is missing |
 | Agent Packet execution-gate integration | 🟡 | Agent Packet can carry a signed commercially bound payload | No production Agent Packet-to-Execution-Gate adapter and no three-transport A2A/MCP/Agent Packet replay matrix exist |
-| Reusable local journal pattern | 🟡 | `softwarework.Journal` is durable and crash-safe for one process that exclusively owns its directory | It is not a concurrent cross-process claim store; Messenger-specific event, ACK, retry, expiry, and compaction semantics remain undefined |
+| Reusable local journal pattern | ✅ | `softwarework.Journal` supplied the original durability pattern; `tos-messenger/pkg/eventlog` now implements the Messenger-specific sole-writer event, ACK, replay, retry, expiry, session, device, room, approval, mandate, budget, and negotiation state | It deliberately remains a single-process store rather than a concurrent cross-process claim database |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, admission policy, or rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
-| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist | No Messenger room identity, MLS state, roles, moderation, history synchronization, or room-level conformance tests exist |
+| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` now supplies Messenger room identity/membership epochs and `pkg/group/conformance` the group-key refutation floor | No MLS state, roles, moderation, history synchronization, Overlay integration, or end-to-end encrypted-room test exists |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md` | A production TOS Messenger channel, durable conversation integration, and fresh OpenFox buyer/provider session are missing |
 | Mobile TOS clients | 🟡 | Owner-controlled mobile service-client architecture is documented | Messenger session storage, best-effort push wake-up, multi-device keys, room UI, and messaging conformance are missing |
@@ -171,16 +171,16 @@ gap named. None of this counts as gate evidence (Section 3).
 
 | Messenger component | Status | Evidence and gap |
 |---|---:|---|
-| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe` (UDP and ADNL collectors), `cmd/tos-reachability*`; the study itself needs ≥3 operators and real networks and has not been run |
+| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/echo phases, filtering observations, tunnel fallback, and native-sidecar cross-checks; mobility/reliable-transfer coverage and the ≥3-operator real-network study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr` |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory`; checked against the encoding rules as read, not against a live TOS DHT encoder |
-| One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` and its conformance refutation harness; no suite is selected, which is a freeze decision |
+| One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the default `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` candidate and clears its fourteen-property refutation harness; owner ratification, independent cryptographic review, and second-implementation consumption remain freeze gates |
 | Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/admission` (a revoked device is refused); the descriptor-fetch path is test-driven, with no live transport to fetch over |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | 🟡 Partial | DeliveryAck and ApplicationAck codecs (`pkg/payload`) with durable delivery, application, and read state (`pkg/eventlog`); the StoredAck Relay protocol and a ReadAck wire profile do not exist |
 | Encrypted offline Mailbox Relay | ⬜ To be developed | a transport path, ordered after M0-R; needs a Mailbox Relay |
 | Multi-Relay redundancy and failover | ⬜ To be developed | — |
-| Private group encryption and membership epochs | 🟡 Partial | `tos-messenger` `pkg/room` (membership epochs, durable ledger, admission enforcement) and `pkg/group` (group-key contract and refutation harness); no group-key scheme is selected or implemented, and the harness checks protocol structure, not secrecy |
+| Private group encryption and membership epochs | 🟡 Partial | `tos-messenger` `pkg/room` implements membership epochs, durable rollback/gap enforcement, and admission enforcement; MLS 1.0 / TreeKEM is selected and `pkg/group` provides the contract/refutation floor, but the two-clock TOS-MLS profile, per-device leaf-key authority, library adapter, persistence, vectors, and room-authority rule are not implemented or frozen |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | ⬜ To be developed | `artifact.*` payload shapes reference content by digest only |
 | OpenFox `tos-messenger` channel adapter | ⬜ To be developed | needs a transport first |
@@ -189,7 +189,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Agent Packet-to-Execution-Gate adapter and three-transport replay tests | ⬜ To be developed | needs a transport |
 | Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed | — |
 | Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked | Expansion Gate |
-| Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` — positive vectors plus a decode- and verify-layer adversarial corpus, each self-verifying; no second implementation exists to check against |
+| Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
 ## 6. Goals and non-goals
@@ -311,7 +311,7 @@ Finalized TOS state remains the sole canonical authority for:
 No DHT record, Contact Descriptor, Relay receipt, chat history, push
 notification, Gateway response, or local database may override these facts.
 
-### 7.2 Messaging plane — ⬜ to be developed
+### 7.2 Messaging plane — 🟡 route-independent foundations implemented
 
 `tos-messengerd` should own:
 
@@ -325,6 +325,14 @@ notification, Gateway response, or local database may override these facts.
 - typed event validation;
 - local trust, approval, and rate policy; and
 - an authenticated owner-private API for Agent runtimes and clients.
+
+`tos-messenger` now implements the route-independent core of this plane:
+identity and descriptor verification, the default one-to-one E2EE candidate,
+durable event/session/device/room/negotiation state, typed payload validation,
+admission and action policy, and authenticated owner/runtime Unix-socket APIs.
+Transport routing, Relay selection/failover, attachment encryption, MLS group
+state, and runtime/client integrations remain open, so the plane as a product
+is still partial.
 
 ### 7.3 Network adapter — 🟡 primitives exist; product API pending
 
@@ -370,12 +378,12 @@ The permanent identity is the finalized TOS `AgentID`. Existing bounded,
 weighted Ed25519 policies, purpose separation, revocation, recovery, and
 delegation digests remain unchanged.
 
-### 9.2 Messaging Endpoint identity — ⬜ to be developed
+### 9.2 Messaging Endpoint identity — ✅ implemented
 
 A Messaging Endpoint is an online service authorized by an Agent. It is not the
 Agent itself and must be independently replaceable and revocable.
 
-A provisional `MessagingEndpointDelegationV1` should contain at least:
+The implemented `MessagingEndpointDelegationV1` contains:
 
 ```text
 schema
@@ -407,17 +415,29 @@ Root Agent controller keys remain in a wallet or dedicated signer. An online
 Endpoint key may authenticate descriptors and sessions but must not
 implicitly control Agent policy, Capabilities, escrow, or funds.
 
-### 9.3 Device identity — ⬜ to be developed
+### 9.3 Device identity — 🟡 model and revocation enforcement implemented
 
 Each OpenFox host, mobile client, desktop client, or edge terminal should have a
 separate Device ID and device key authorized by one Messaging Endpoint. Device
 addition and removal must trigger session or group-key changes where required.
 
-### 9.4 Session keys — ⬜ to be developed
+`tos-messenger/pkg/e2ee` implements signed per-device prekey sets, monotonic
+device-set succession, permanent revocation tombstones, deterministic
+per-device-pair sessions, and event fan-out; `pkg/eventlog` persists the set and
+`pkg/admission` refuses a revoked device. Automatic descriptor discovery and
+refresh is still missing, and MLS leaf-key authorization remains profile work.
+
+### 9.4 Session keys — 🟡 default candidate implemented, not frozen
 
 Session keys are ephemeral application-layer keys derived through an audited
 asynchronous handshake. They are not published on-chain and are not reused as
 Agent, Capability, wallet, or execution keys.
+
+The default one-to-one candidate is implemented as an endpoint-authenticated,
+X3DH-shaped X25519 handshake followed by HKDF/HMAC-SHA-256,
+AES-256-GCM, and a persisted Double Ratchet. Deterministic wire and adversarial
+vectors exist. Owner ratification, independent review, and a second
+implementation are still required before its identifier is frozen.
 
 ## 10. Discovery and addressing
 
@@ -427,9 +447,9 @@ The current Contact Card proves that a live Agent controller authorized one
 HTTPS endpoint for a bounded period. It is useful for bootstrap, QR, and file
 exchange, but it is insufficient for a decentralized multi-device Messenger.
 
-### 10.2 Messaging Contact Descriptor — ⬜ to be developed
+### 10.2 Messaging Contact Descriptor — 🟡 schema and verifier implemented
 
-A provisional `MessagingContactDescriptorV1` should contain:
+The implemented `MessagingContactDescriptorV1` contains:
 
 ```text
 schema
@@ -459,7 +479,7 @@ current finalized Agent and delegation state.
 represent open, invite-only, allow-listed, proof-limited, or future economically
 bonded first contact. The descriptor itself does not create payment authority.
 
-### 10.3 DHT locator profile — ⬜ over ✅ DHT primitives
+### 10.3 DHT locator profile — 🟡 implemented profile over ✅ DHT primitives
 
 DHT locates a current descriptor; it does not store chat history. A bounded DHT
 value should contain only retrieval and verification material, for example:
@@ -479,7 +499,7 @@ The complete descriptor and prekey bundle may be fetched through TOS Sites,
 RLDP, HTTPS, QR, a local file, or another authenticated rendezvous path. Every
 path must produce the same digest-authenticated bytes.
 
-### 10.4 Resolution algorithm — ⬜ to be developed
+### 10.4 Resolution algorithm — 🟡 verification half implemented
 
 A client should:
 
@@ -495,10 +515,16 @@ A client should:
 A stale DHT value may cause temporary unavailability, but it must never restore
 a revoked Endpoint or change Agent identity.
 
+`tos-messenger/pkg/directory` implements strict descriptor/locator codecs,
+signature and lifetime checks, DHT key/update rules, digest binding, and
+republish validation. It has not been exercised against a live TOS DHT encoder,
+and the automatic stale-resolution, refresh, and revocation loop is still open.
+
 ## 11. M0-R reachability study and route-strategy gate
 
-**Status: ⬜ To be developed. This blocks M1 scope freeze and implementation
-start, not merely M1 acceptance.**
+**Status: 🟡 Measurement and decision tooling implemented; the real study is
+not run. This blocks M1 scope freeze and implementation start, not merely M1
+acceptance.**
 
 The architecture must not assume that direct ADNL is the normal path before it
 is measured under consumer and mobile network conditions. The study must be
@@ -610,7 +636,8 @@ HTTPS must not become identity or payment authority.
 
 ## 13. Application-layer end-to-end encryption
 
-**Status: ⬜ To be developed.**
+**Status: 🟡 Default one-to-one candidate implemented and vectored; owner
+ratification and independent review remain open.**
 
 ADNL or TLS protects one transport connection. It does not provide complete
 Messenger E2EE when ciphertext is stored by a Relay, routed through a Proxy,
@@ -632,20 +659,23 @@ Implementations must use reviewed libraries and standardized constructions.
 They must not invent a new cipher, MAC, signature, ratchet, or group key
 schedule.
 
-### 13.1 Private-group default candidate
+### 13.1 Private-group selected construction
 
-MLS, RFC 9420, is the default candidate to beat for private groups because it
+MLS 1.0, RFC 9420 / TreeKEM, is the selected construction for private groups
+because it
 provides membership epochs, forward secrecy, post-compromise security, and
 authenticated add/remove operations under an untrusted delivery-service model.
-An alternative may be selected only after a written comparison against MLS.
 
-This architecture does not claim that MLS is implemented or frozen. The exact
-suite, library, credential mapping, external-sender policy, recovery model, and
-multi-device model remain M0 decisions.
+This selection does not freeze a TOS-MLS wire profile. Cipher suite `0x0001`,
+one device per leaf, separate logical room and MLS epochs, and untrusted Relay
+carriage are selected profile details, while the reviewed library, per-device
+LeafNode signing-key authority, BasicCredential and group-id canonical bytes,
+persistence/recovery, room-authority rule, vectors, and second-implementation
+evidence remain open.
 
 ## 14. Messaging event model
 
-### 14.1 Outer Relay Envelope — ⬜ to be developed
+### 14.1 Outer Relay Envelope — ✅ implemented
 
 A Relay should see only the minimum resource and routing information required
 to store ciphertext:
@@ -671,7 +701,7 @@ Its exact verifier and privacy properties are M0 decisions.
 The Relay Envelope is not an Agent signature, payment Receipt, or proof that an
 application accepted the message.
 
-### 14.2 Inner Messaging Event — ⬜ to be developed
+### 14.2 Inner Messaging Event — ✅ implemented
 
 After decryption, the recipient obtains a typed event such as:
 
@@ -702,7 +732,7 @@ The normal authentication mechanism is the E2EE session. High-value control
 events may additionally carry an independently verifiable Agent or delegated
 Endpoint signature.
 
-### 14.3 Initial event kinds — ⬜ to be developed
+### 14.3 Initial event kinds — ✅ implemented
 
 ```text
 text
@@ -733,6 +763,12 @@ room.message
 Unknown event kinds must not be interpreted as tools, approvals, payments, or
 side-effect authority by default.
 
+`tos-messenger/pkg/envelope` implements strict Relay Envelope and Messaging
+Event codecs, content-addressed Event IDs, event-class delegation checks, local-
+only authority kinds, and size/lifetime bounds. `pkg/payload` provides a strict,
+canonical typed codec for every registered event kind, including the A2A/MCP
+opaque wrappers and room, acknowledgement, artifact, and service references.
+
 ### 14.4 Relationship to Agent Packet V1 — 🟡 reuse, not replacement
 
 Agent Packet V1 remains a compact, independently signed packet with optional
@@ -754,7 +790,7 @@ No Messenger schema should be added as a second canonical object family inside
 
 ## 15. Local storage, delivery, ordering, and acknowledgements
 
-### 15.1 Single-writer local-store decision — frozen for the first implementation
+### 15.1 Single-writer local-store decision — ✅ implemented for the first implementation
 
 The first implementation uses one `tos-messengerd` process as the **sole writer
 for one local state directory**.
@@ -771,6 +807,13 @@ This decision matches the strongest reusable evidence available today:
 Those packages do **not** implement a shared multi-process claim store. The
 Messenger may reuse their durability and ownership patterns, but it needs its
 own event, retry, ACK, expiry, compaction, and migration state machine.
+
+`tos-messenger/pkg/eventlog` now provides that Messenger-specific single-writer
+journal, including private-directory ownership, durable inbound claims,
+application leases, outbound retries and expiry, session commit ordering,
+device and room ledgers, owner approvals, mandates, budgets, and negotiation
+recovery. It deliberately remains a sole-writer store rather than a shared
+multi-process database.
 
 If a future release requires active-active writers on one host, it must define a
 new transactional store, atomic uniqueness constraints, crash recovery, and
@@ -841,7 +884,7 @@ Relay delivery is collapsed by durable Event ID deduplication.
 The first release must document visible metadata rather than claim perfect
 traffic-analysis resistance.
 
-### 16.1 First-contact admission and sybil resistance — ⬜ to be developed
+### 16.1 First-contact admission and sybil resistance — 🟡 mechanism implemented; policy profile open
 
 Relay quotas protect Relay operators; they do not protect recipients. Agents
 can generate contacts faster than humans can evaluate them, and each admitted
@@ -895,6 +938,12 @@ on-chain sender bond when the envelope carries no verifiable admission proof.
 Economic first contact is **not** mandatory for the first Messenger demo. The
 first demo may use invite-only or allow-listed contact plus bounded rate limits.
 
+`tos-messenger/pkg/admission` now always consults a content-addressed contact
+policy and honours allow, hold-for-owner, satisfy-policy, and deny outcomes;
+`pkg/eventlog` enforces bounded pending and inbound quotas. The concrete
+unknown-sender credential, direct/Relay enforcement parity, anonymous token
+privacy, and any economic Inbox Bond remain open.
+
 ### 16.2 Technical and commercial Relay milestones
 
 The Relay work is split deliberately:
@@ -924,7 +973,7 @@ required contract changes.
 
 ## 17. Rooms and channels
 
-### 17.1 Private rooms — ⬜ to be developed
+### 17.1 Private rooms — 🟡 membership implemented; MLS profile pending
 
 Private rooms require:
 
@@ -939,6 +988,14 @@ Private rooms require:
 - deterministic conflict and recovery behavior.
 
 Room membership remains off-chain by default.
+
+`tos-messenger/pkg/room` implements stable Room IDs, ordered Agent membership
+epochs, and domain-separated membership commitments. `pkg/eventlog` persists
+strict single-step succession with rollback/gap refusal, and `pkg/admission`
+enforces definitive non-membership. `pkg/group` and its conformance harness
+provide the pre-implementation group-key contract. MLS 1.0 is selected, but the
+TOS-MLS adapter, role/authority policy, two-clock state, KeyPackage/Welcome
+persistence, and encrypted room delivery remain open.
 
 #### Room membership is not Overlay membership
 
@@ -1031,7 +1088,7 @@ deduplication, and typed delivery.
 Existing human IM channels may serve as owner-control bridges. They do not
 become TOS identity providers.
 
-### 19.2 Context firewall — ⬜ to be developed
+### 19.2 Context firewall — 🟡 policy and owner boundary implemented; runtime enforcement open
 
 A valid signature proves origin, not safety. Before remote content reaches an
 Agent loop, integration must:
@@ -1048,6 +1105,13 @@ Agent loop, integration must:
 
 Remote text must never grant MCP tools, wallet signing, shell, containerd, file,
 sensor, or actuator authority merely by being signed.
+
+`tos-messenger/pkg/firewall` implements typed provenance, effect ceilings,
+content/instruction separation, mandate limits, and structured action decisions.
+`pkg/localapi` and `pkg/eventlog` implement a bounded owner queue with
+single-use signed challenges and one-shot approval/spend claims. A trusted
+OpenFox wrapper that binds actual model context to provenance, plus wallet and
+tool adapters that execute only through this boundary, do not yet exist.
 
 ### 19.3 Physical AI safety — 🟡 foundation exists; profile pending
 
@@ -1171,10 +1235,16 @@ push a fully decentralized delivery path.
 | `openfox` | Add first `tos-messenger` channel, owner policy, and Agent-loop integration |
 | `android` / `ios` | Add owner-controlled clients after protocol and daemon stability |
 
-### 22.2 New implementation repository — ⬜ to be developed
+### 22.2 New implementation repository — ✅ established
 
 Create `tosnetwork/tos-messenger` rather than putting the runtime in a
 validator, Gateway, or worker repository.
+
+`tosnetwork/tos-messenger` now exists with `cmd/tos-messengerd` and the
+route-independent identity, directory, E2EE, envelope, eventlog, admission,
+policy, local API, room, reachability, and commerce foundations. Transport,
+Mailbox, attachment, bridge, and client packages remain milestone work rather
+than being implied by the repository's existence.
 
 Suggested layout:
 
@@ -1220,7 +1290,7 @@ not a frozen specification.
 - crash-safe single-owner software-work journal patterns; and
 - finalized Quote, escrow, Receipt, and settlement checks.
 
-### 23.2 Required Messenger matrix — ⬜ to be developed
+### 23.2 Required Messenger matrix — 🟡 route-independent core covered
 
 The Messenger cannot be accepted without tests covering at least:
 
@@ -1251,11 +1321,22 @@ The Messenger cannot be accepted without tests covering at least:
 Every positive vector needs an independent encoder, decoder, or verifier. Every
 security-sensitive state transition needs crash and replay tests.
 
+The current `tos-messenger` suite covers strict codecs and malformed inputs,
+finalized delegation and bundle binding, revoked devices and room membership,
+durable replay and crash recovery, exclusive ownership, authenticated owner
+decisions, session commit ordering, E2EE tamper/replay/out-of-order and
+compromise checks, policy escalation, and reachability evidence forgery. The
+live transport, Relay, attachment, MLS, client/push, and three-transport
+execution cases remain open, and no second implementation has consumed the
+committed vectors.
+
 ## 24. Implementation plan
 
 ### M0 — Architecture, threat model, and protocol freeze
 
-**Status: ⬜ To be developed.**
+**Status: 🟡 Route-independent M0 implementation is substantial; protocol
+freeze remains blocked by genesis-hash representation, suite
+ratification/review, and second-implementation evidence.**
 
 Deliver:
 
@@ -1276,7 +1357,8 @@ negative vectors.
 
 ### M0-R — Reachability and route-strategy decision
 
-**Status: ⬜ To be developed; prerequisite for M1 scope freeze and start.**
+**Status: 🟡 Tooling implemented; real multi-operator study not run. This
+remains a prerequisite for M1 scope freeze and start.**
 
 Deliver the study in section 11 with predeclared sample sizes, thresholds,
 network strata, metrics, exact commits, and a resulting direct-first,
@@ -1343,7 +1425,8 @@ reconstructs settlement without a shared private database.
 
 ### M4 — Multi-device and private rooms
 
-**Status: ⬜ To be developed.**
+**Status: 🟡 Device and membership foundations implemented; TOS-MLS and
+room-authority implementation remain open.**
 
 Deliver device authorization and removal, history synchronization, private Room
 membership, selected group encryption, role policy, fan-out limits, and
@@ -1391,36 +1474,36 @@ required.
 
 | ID | Work package | Target repository | Status |
 |---|---|---|---:|
-| MSG-001 | Threat model and invariants | `tos-service-spec` | ⬜ |
-| MSG-002 | Endpoint delegation schema and vectors | `tos-service-spec` / future messaging spec | ⬜ |
-| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | future messaging spec | ⬜ |
+| MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; formal freeze acceptance remains open |
+| MSG-002 | Endpoint delegation schema and vectors | `tos-messenger` / future messaging spec | ✅ strict schema, finalized-state verifier, canonical digest, and vectors implemented |
+| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema, binding, locator codec/key/update rules implemented; live DHT integration and refresh loop missing |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
-| MSG-005 | One-to-one E2EE profile and vectors | future messaging spec | ⬜ |
-| MSG-006 | Sole-writer durable event, replay, retry, and ACK store | `tos-messenger` | ⬜ reuse atomic-file and dirlock patterns; do not claim a shared multi-process store |
-| MSG-007 | Relay Envelope and Messaging Event codec | `tos-messenger` | ⬜ |
+| MSG-005 | One-to-one E2EE profile and vectors | `tos-messenger` / future messaging spec | 🟡 default candidate, conformance harness, and deterministic vectors implemented; ratification, review, and second implementation missing |
+| MSG-006 | Sole-writer durable event, replay, retry, and ACK store | `tos-messenger` | ✅ implemented and crash/replay tested; deliberately not a shared multi-process store |
+| MSG-007 | Relay Envelope and Messaging Event codec | `tos-messenger` | ✅ strict codecs, bounds, content-addressed Event ID, and adversarial tests implemented |
 | MSG-008 | Direct ADNL and RLDP integration | `tos-messenger` | 🟡 primitives exist |
 | MSG-009 | HTTPS bootstrap/fallback adapter | `tos-messenger` | 🟡 Agent Packet HTTP exists |
 | MSG-010 | Encrypted Mailbox Relay | `tos-messenger` | ⬜ |
 | MSG-011 | Multi-Relay selection and failover | `tos-messenger` | ⬜ |
-| MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ⬜ |
+| MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ✅ codecs and durable delivery/application state implemented; StoredAck and ReadAck remain separate work |
 | MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 storage primitives exist |
-| MSG-014 | OpenFox channel and local IPC | `openfox` | ⬜ |
-| MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | ⬜ |
+| MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 authenticated owner/runtime local IPC implemented; OpenFox channel adapter missing |
+| MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | 🟡 action policy, provenance typing, ceilings, and authenticated owner queue implemented; trusted runtime and wallet/tool adapters missing |
 | MSG-016 | A2A event bridge | `tos-messenger` / `tos-ai` | 🟡 A2A execution adapter exists |
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 Agent Packet exists; adapter and replay matrix pending |
-| MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 commerce foundation exists |
-| MSG-020 | Multi-device synchronization | `tos-messenger` | ⬜ |
-| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | ⬜ |
+| MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, and finalized-quote resolver contract implemented; live daemon/wallet path missing |
+| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, durable ledger, and admission enforcement implemented; automatic descriptor refresh/history synchronization missing |
+| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 membership epochs, durable enforcement, and group refutation contract implemented; MLS 1.0 selected but profile implementation and room authority missing |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
 | MSG-024 | Android client | `android` | ⬜ |
 | MSG-025 | iOS client | `ios` | ⬜ |
 | MSG-026 | Relay and storage commercial profiles | `tos-service-spec` | 🔒 Expansion Gate |
-| MSG-027 | Cross-implementation conformance harness | multiple | ⬜ |
+| MSG-027 | Cross-implementation conformance harness | multiple | 🟡 positive/adversarial object and E2EE vectors plus consumer tests exist; no independent implementation evidence |
 | MSG-028 | Independent multi-operator deployment | deployments/runbooks | ⬜ |
-| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | ⬜ blocks M1 scope freeze and implementation start |
-| MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | ⬜ |
+| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | 🟡 signed collector/policy/report tooling implemented; mobility/reliable-transfer coverage and real study missing, so M1 remains blocked |
+| MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | 🟡 policy interface, content-addressed rules, owner hold, and quotas implemented; concrete credential and direct/Relay parity missing |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
@@ -1511,16 +1594,23 @@ their roadmap-approved profiles exist.
 
 The following remain explicitly unresolved:
 
-- exact one-to-one E2EE suite and library;
+- owner ratification and independent review of the implemented default
+  one-to-one E2EE candidate;
 - hybrid post-quantum migration schedule;
-- MLS credential and ciphersuite profile, or justified alternative;
+- the selected MLS 1.0 adaptation's per-device credential, canonical encoding,
+  library, persistence, and room-authority profile; cipher suite `0x0001` is the
+  selected candidate detail but no TOS-MLS wire profile is frozen;
 - maximum initial private-Room member and device counts;
 - whether and when opaque MLS ciphertext uses Overlay distribution;
-- Endpoint and Device identifier derivation;
-- DHT key derivation, update rule, and locator bounds;
+- ratification of the implemented Endpoint identifier derivation and the
+  remaining per-device MLS key-authority model;
+- ratification and live-network validation of the implemented DHT key,
+  signature-update rule, and locator bounds;
 - prekey publication, replenishment, and equivocation detection;
-- durable store schema, migrations, compaction, and recovery;
-- IPC authentication and client authorization;
+- durable-store migration and long-term compaction policy beyond the
+  implemented crash/recovery contract;
+- deployment key custody and client authorization around the implemented
+  signed owner/runtime IPC boundary;
 - Mailbox sender privacy, quota token, and abuse policy;
 - non-economic first-contact modes and admission-token privacy;
 - whether an economic Inbox Bond is ever justified;
