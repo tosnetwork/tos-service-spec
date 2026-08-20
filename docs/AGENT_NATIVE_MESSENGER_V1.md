@@ -183,7 +183,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Private group encryption and membership epochs | 🟡 Partial | `pkg/room` implements durable logical membership; the TOS-MLS application candidate adds explicit room/MLS clocks, endpoint-authorised per-device Leaf/KeyPackage publication with candidate vectors, device succession → Add/Remove/Update, and durable opaque state/KeyPackage/Welcome/commit ancestry (`pkg/group`, `pkg/eventlog`). OpenMLS suite `0x0001` and one current authority Agent are selected. Still open: Driver integration/review, BasicCredential/group-id freeze, signed authority-transfer enforcement, cryptographic MLS/Relay evidence, review, and second implementation |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, expiry/resume policy, strict Event binding and vectors. A private crash-safe local ciphertext store now adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart recovery, local deletion and fail-closed expired/unreferenced GC without persisting keys or plaintext metadata. Authenticated remote storage, locator SSRF policy, remote deletion/retention guarantees, sandbox/scanner and live transfer remain open; commercial storage remains locked |
-| OpenFox `tos-messenger` channel adapter | ⬜ To be developed | needs a transport first |
+| OpenFox `tos-messenger` channel adapter | 🟡 Partial | OpenFox now has a native `tos_messenger_lab` channel plus a three-Agent executable acceptance run; `tos-messenger/pkg/labgroup` supplies authenticated deterministic rooms, bounded durable messages and restart-safe cursors over an owner-private Unix socket. The path is explicitly plaintext/same-host and supplies no production transport, E2EE, MLS, discovery, or gate evidence |
 | Agent message policy engine and prompt-injection firewall | 🟡 Partial | `tos-messenger` `pkg/firewall` (action policy evaluator) and the authenticated owner-decision queue (`pkg/localapi`, `pkg/eventlog`); owner/policy tool grants now require a runtime idempotency key, bind it durably to the first Action ID, and are claimed once. OpenFox provenance enforcement and wallet/tool-adapter enforcement do not exist |
 | First-contact admission policy and sybil resistance | 🟡 Partial | The v1 default is selected: allow-list known contacts, one-time invite token, otherwise owner hold, applied before durable acceptance on direct and Relay paths. `pkg/admission` supplies the generic mechanism and quotas. Invite-token encoding, daemon configuration, and direct/Relay parity tests remain; PoW is deferred pending abuse measurements and Inbox Bonds stay Expansion-Gate locked |
 | Agent Packet-to-Execution-Gate adapter and three-transport replay tests | 🟡 Partial | `tos-messenger` carries exact Agent Packet V1 bytes under `agent.packet`, reuses finalized protocol verification, binds packet/Event sender and the live local recipient, and durably claims sender+nonce with pending recovery; `tos-ai/pkg/agentpacketadapter` owns the Native Execution Gate mapping. Daemon/live transport and the concurrent three-transport matrix remain open |
@@ -192,8 +192,9 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `5419070`): the component inventory is **3/20 ✅**, with
-12/20 🟡, 4/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
+Progress snapshot (2026-08-20, audited through `tos-messenger` `d284f44` and
+OpenFox `402e21ed`): the component inventory is **3/20 ✅**, with
+13/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
@@ -212,25 +213,33 @@ and locator formats, explicit finalized delegation/policy bootstrap plus
 production DHT/HTTPS refresh owned by daemon config v4; the approved
 one-to-one E2EE construction and its vectors;
 envelopes, payload codecs, and durable delivery stores; the conversation-to-
-commerce path riding the same events. The blocking chain, in dependency order:
+commerce path riding the same events; and an OpenFox-native local acceptance
+channel that proves room-addressed bus integration and restart cursors without
+claiming a production route. The blocking chain, in dependency order:
 (1) live independently operated discovery evidence; (2) the multi-operator
 M0-R study produces a route finding —
 Section 11 forbids building the transport
 first; (3) the production transport that finding selects, over the native
 stack; (4) independent E2EE review and second-language vector evidence; and
-(5) the OpenFox `tos-messenger` channel adapter.
+(5) replacement of the plaintext local carrier by the daemon-backed production
+OpenFox adapter.
 
 **S2 — Three OpenFox agents converse in a private room, the third member
 invited by a membership-epoch transition.** Already standing beyond S1:
 membership epochs with durable rollback and gap enforcement; admission-gate
 membership refusal; the MLS 1.0 selection; the two-clock application adapter,
 per-device leaf authority, candidate vectors, succession plan and durable
-KeyPackage/Welcome/commit state; the route-neutral Mailbox store. Blocking,
+KeyPackage/Welcome/commit state; the route-neutral Mailbox store; and a
+three-OpenFox local process demonstration in which all members receive and
+reply, including a successful restart run. That demonstration is static,
+plaintext founding membership, not S2 acceptance. Blocking,
 beyond everything S1 lacks: (6) a reviewed RFC 9420 Driver plus cryptographic
 MLS conformance and independent evidence; (7) canonical BasicCredential and
 group-id bytes under the decided network representation; (8) the selected
 single-authority rule and signed transfer enforced; (9) KeyPackage/Welcome delivery bound to real Relay
 retrieval, which itself waits on the post-M0-R transport binding.
+The local acceptance loop must additionally be replaced by a cryptographic
+third-member room-epoch invitation before it contributes to S2.
 
 The M0-R study and independent evidence need external operators/reviewers;
 every other link is buildable code once its predecessors land. Canonical
@@ -1337,7 +1346,7 @@ attachment is not automatically a software-work Artifact or Receipt input.
 
 ## 19. Agent runtime and prompt-injection boundary
 
-### 19.1 OpenFox integration — ⬜ Messenger adapter pending
+### 19.1 OpenFox integration — 🟡 local acceptance adapter implemented
 
 OpenFox should be the first Agent runtime:
 
@@ -1356,6 +1365,31 @@ deduplication, and typed delivery.
 
 Existing human IM channels may serve as owner-control bridges. They do not
 become TOS identity providers.
+
+OpenFox now implements a `tos_messenger_lab` channel against
+`tos-messenger/pkg/labgroup`. Three independent channel instances can create a
+deterministic room, exchange messages through the ordinary OpenFox message bus,
+reply to the room, persist per-room cursors, and continue after restart. The
+carrier binds Agent IDs to test credentials, rejects non-members, durably
+deduplicates client submissions, and listens only on a mode `0600` Unix socket.
+
+This is deliberately an acceptance seam, not a shortcut around Sections 11–13:
+it carries plaintext on one host, does not use the Messenger daemon event/E2EE
+path, and supplies no S1/S2 gate evidence. The production adapter still has to
+consume typed Messaging Events over authenticated local IPC while the daemon
+owns discovery, encryption, post-M0-R transport, storage, and deduplication.
+
+The implementation snapshot is `tos-messenger` commit `d284f44` and OpenFox
+commit `402e21ed`. `tos-messenger` passed `make verify`, including the race
+suite, the ADNL target, and full build. OpenFox passed its complete `make check`
+under the repository-pinned Go/linter versions and a post-fix scoped lint/test
+run for the new channel and demo. Two consecutive process launches reused the
+same durable hub and OpenFox cursor directory, returned `ok: true`, and selected
+the same room
+`room_3a930b4ad5f021e6ccb84390cf070afa0a06f762ec5f1d34056e0cf47d909e60`;
+each transcript contained the creator message and one reply from each peer.
+This is local integration and restart evidence only, not independent or
+cryptographic acceptance evidence.
 
 ### 19.2 Context firewall — 🟡 policy and owner boundary implemented; runtime enforcement open
 
@@ -1686,7 +1720,8 @@ governing roadmap permits the profile.
 
 ### M3 — OpenFox, A2A, MCP, Agent Packet, and commercial execution
 
-**Status: 🟡 execution foundations; Messenger integration ⬜.**
+**Status: 🟡 execution foundations plus a local OpenFox group-chat acceptance
+adapter; production Messenger integration remains open.**
 
 Deliver OpenFox channel, context firewall, typed A2A/MCP events, Agent Packet
 carriage, Agent Packet execution-gate adapter, Quote/escrow references, result
@@ -1761,7 +1796,7 @@ required.
 | MSG-011 | Multi-Relay selection and failover | `tos-messenger` | 🟡 distinct pinned Relay keys and exact ACK threshold implemented; live independent-operator failover evidence pending |
 | MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ✅ distinct Stored/Delivery/Application/optional Read profiles and durable state implemented |
 | MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 cryptographic chunk/manifest/E2EE-reference core, vectors, and crash-safe bounded local ciphertext storage/fetch/lease deletion/GC implemented; authenticated remote storage, SSRF controls, remote guarantees, sandbox/scanner and live transfer pending |
-| MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 authenticated owner/runtime local IPC implemented; OpenFox channel adapter missing |
+| MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 authenticated owner/runtime daemon IPC exists; OpenFox `pkg/channels/tosmessengerlab`, `cmd/openfox-messenger-lab-demo`, and `tos-messenger/pkg/labgroup` now prove native group bus integration, authenticated membership, durable messages, idempotency and restart cursors over a local Unix socket. The lab path is plaintext and bypasses daemon E2EE/transport, so the production adapter remains open |
 | MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | 🟡 action policy, provenance typing, ceilings, authenticated owner queue, and crash-safe one-shot spend/tool grants implemented; trusted runtime provenance and wallet/tool adapters missing |
 | MSG-016 | A2A event bridge | `tos-messenger` / `tos-ai` | 🟡 A2A execution adapter exists |
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
@@ -1800,6 +1835,13 @@ Human owner
   -> typed Agent event
   -> durable restart and duplicate recovery
 ```
+
+Before that public gate, the repository now has a deliberately non-qualifying
+local precursor: three OpenFox channel instances create one deterministic room,
+fan out an opening message, return two peer replies, and repeat after restart
+through an owner-private Unix-socket carrier. The executable labels its mode
+`local-unix-plaintext-lab`; it proves runtime integration and nothing about
+discovery, route choice, E2EE, MLS, independent operation, or Relay opacity.
 
 Minimum technical acceptance:
 
