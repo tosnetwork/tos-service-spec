@@ -180,7 +180,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage plus scoped Endpoint→capability authentication with Relay/mailbox binding, separate deposit/read/delete permissions, exact operation-body commitments, bounded signed requests, and durable restart-safe nonce claims; signed StoredAck, dedupe/conflict detection, retention, quotas, list/delete, positive vectors, and decode/verify adversarial cases also exist. The finalized-state adapter, network listener, amplification policy, and transport binding remain open |
 | Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant`: distinct pinned Relay identities and exact signed ACKs meet a redundancy threshold; live independently operated Relay failover evidence is missing |
-| Private group encryption and membership epochs | 🟡 Partial | `31d4851` supplies signed single-authority membership/transfer. `fdb94a5` adds pinned OpenMLS `0.8.1` suite `0x0001` behind a bounded one-request sidecar plus a crash-safe Go controller: exact BasicCredential/leaf-key and group/epoch binding, founder/join/Add/Remove/replacement, PrivateMessages, Commit-reference derivation, same-epoch ratchet and commit CAS, persist-before-output, three-member bidirectional encryption and full journal/process restart are tested. Wrong AAD, authority substitution, Welcome/application replay, stale state and removed-member send fail closed. Still open: remaining no-past/no-future/PCS/exporter/forgery vectors, real Relay catch-up, independent review, and second implementation |
+| Private group encryption and membership epochs | 🟡 Partial | `31d4851` supplies signed single-authority membership/transfer. `50c104a` adds pinned OpenMLS `0.8.1` suite `0x0001` behind a bounded one-request sidecar plus a crash-safe Go controller: exact BasicCredential/leaf-key and group/epoch binding, founder/join/Add/Remove/replacement/self-update, PrivateMessages, exporter, Commit-reference derivation, same-epoch ratchet and commit CAS, persist-before-output, three-member bidirectional encryption and full journal/process restart are tested. No-past/no-future secrecy, exporter agreement/label separation, explicit PCS, and wrong AAD, forged Commit, authority substitution, Welcome/application replay and stale-state refusal are covered. Still open: real Relay/OpenFox catch-up, independent review, and second implementation |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, expiry/resume policy, strict Event binding and vectors. A private crash-safe local ciphertext store now adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart recovery, local deletion and fail-closed expired/unreferenced GC without persisting keys or plaintext metadata. Authenticated remote storage, locator SSRF policy, remote deletion/retention guarantees, sandbox/scanner and live transfer remain open; commercial storage remains locked |
 | OpenFox `tos-messenger` channel adapter | 🟡 Partial | The local `tos_messenger_lab` channel plus `tos-messenger/pkg/labgroup` provide the restart-safe three-Agent plaintext acceptance run. OpenFox `7fe6ec10` adds a separate production receive channel: it claims authenticated/admitted daemon events, independently verifies metadata, Event IDs and canonical text, and publishes stable IDs plus typed provenance. It remains receive-only pending daemon-owned outbound construction, the selected post-M0-R transport, E2EE/MLS conversion, and real-network evidence |
@@ -192,7 +192,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `fdb94a5` and
+Progress snapshot (2026-08-20, audited through `tos-messenger` `50c104a` and
 OpenFox `7fe6ec10`): the component inventory is **5/20 ✅**, with
 11/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
@@ -231,13 +231,14 @@ enforcement; signed adjacent-epoch authority transfer; admission-gate
 membership refusal; the MLS 1.0 selection; the two-clock application adapter,
 raw-genesis BasicCredential/group-id candidate vectors, per-device leaf authority,
 succession plan and durable KeyPackage/Welcome/commit/ratchet state; pinned
-OpenMLS founding, sequential third-member join, replacement/removal, encrypted
-bidirectional messages and full process/journal restart; the route-neutral Mailbox store; and a
+OpenMLS founding, sequential third-member join, replacement/removal/self-update,
+no-past/no-future secrecy, exporter separation, encrypted bidirectional messages
+and full process/journal restart; the route-neutral Mailbox store; and a
 three-OpenFox local process demonstration in which all members receive and
 reply, including a successful restart run. That demonstration is static,
 plaintext founding membership, not S2 acceptance. Blocking,
-beyond everything S1 lacks: (6) remaining cryptographic MLS conformance,
-independent Driver review and second-implementation evidence; (7) KeyPackage/Welcome delivery bound to real Relay
+beyond everything S1 lacks: (6) independent Driver review and
+second-implementation evidence; (7) KeyPackage/Welcome delivery bound to real Relay
 retrieval, which itself waits on the post-M0-R transport binding.
 The local OpenFox acceptance loop must additionally be wired to the implemented
 cryptographic third-member transition before it contributes to S2.
@@ -920,7 +921,7 @@ one device per leaf, separate logical room and MLS epochs, and untrusted Relay
 carriage are selected profile details. The application-side two-clock adapter,
 distinct endpoint-authorised per-device LeafNode/KeyPackage profile, succession
 planner, candidate vectors, and crash-safe opaque state/KeyPackage/Welcome/
-commit persistence are implemented. `fdb94a5` integrates pinned OpenMLS `0.8.1`
+commit persistence are implemented. `50c104a` integrates pinned OpenMLS `0.8.1`
 behind a bounded one-request process Driver for suite `0x0001`; a Go controller
 checks the actual group/epoch, derives randomized Commit references, CASes both
 commit and same-epoch ratchet state, and persists before exposing output. One
@@ -928,9 +929,10 @@ current authority Agent serializes
 membership with an explicit signed single-step transfer. `31d4851` specifies
 the raw-genesis BasicCredential/group-id candidate bytes and vectors and
 enforces current-Endpoint-signed membership plus finalized-delegation-bound
-transfer durably. Three-member founding/join/replacement/removal, encrypted
-bidirectional messages and full process/journal restart are tested. Independent
-Driver review, remaining cryptographic/Relay evidence, candidate-vector
+transfer durably. Three-member founding/join/replacement/removal/self-update,
+no-past/no-future secrecy, exporter agreement/separation, forged-Commit refusal,
+encrypted bidirectional messages and full process/journal restart are tested.
+Independent Driver review, real Relay evidence, candidate-vector
 consumption, and a second implementation remain open.
 
 ## 14. Messaging event model
@@ -1282,10 +1284,11 @@ authority transfer, and Relay order never supplies authority. OpenMLS suite
 Driver; raw-genesis BasicCredential/group-id bytes and signed authority are
 checked at the boundary. `eventlog.MLSController` persists each Commit or
 send/receive ratchet before returning output. The test matrix covers three
-members, sequential join, replacement/removal, bidirectional encryption,
-wrong-AAD/replay/authority-substitution refusal, and full restart. Independent
-Driver review, role policy, the remaining PCS/no-past/no-future/exporter
-vectors, real Relay delivery/catch-up, and independent vector consumption
+members, sequential join, replacement/removal/self-update, bidirectional
+encryption, no-past/no-future secrecy, exporter agreement/separation,
+wrong-AAD/forged-Commit/replay/authority-substitution refusal, explicit PCS,
+and full restart. Independent Driver review, role policy, real Relay
+delivery/catch-up, and independent vector consumption
 remain open.
 
 #### Room membership is not Overlay membership
@@ -1437,13 +1440,14 @@ lint reported zero issues, a fixture produced by `tos-messenger` cross-checked
 the independent Event/payload decoder, and the complete OpenFox `make check`
 again passed including all modules, Web lint, and docs lint.
 
-Messenger `fdb94a5` is the cryptographic private-room follow-on. Its pinned
+Messenger `50c104a` is the cryptographic private-room follow-on. Its pinned
 OpenMLS `0.8.1` sidecar and Go controller passed the complete `make verify`
 gate: race suite, ADNL target, Rust tests, Go↔Rust integration, and full build.
 The integration creates three real MLS members, joins them across sequential
 commits, exchanges messages in both directions, replaces one member device,
-removes another, rejects wrong AAD/authority substitution/Welcome and message
-replay, closes all three private journals, and resumes encrypted exchange after
+removes another, performs a PCS self-update, checks exporter separation and
+no-past/no-future secrecy, rejects a forged Commit, wrong AAD, authority
+substitution, Welcome and message replay, closes all three private journals, and resumes encrypted exchange after
 restart. This is local cryptographic and crash-consistency evidence; it is not
 real Relay/OpenFox or independent interoperability evidence.
 
@@ -1882,7 +1886,7 @@ required.
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
 | MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v5 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, and production DHT/HTTPS refresh implemented; stock-command operator-resource assembly, history synchronization, cross-observer fork exchange, and live evidence missing |
-| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 `31d4851` implements signed room authority/transfer; `fdb94a5` integrates pinned OpenMLS `0.8.1` suite `0x0001` through a bounded process Driver and persist-before-output controller. Exact credential/leaf and group/epoch checks, founder/join/Add/Remove/replacement, PrivateMessages, commit/ratchet CAS, three-member bidirectional chat, adversarial refusal and full restart are tested. Remaining conformance/PCS/exporter vectors, real Relay/OpenFox catch-up, independent review, and second implementation remain open |
+| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 `31d4851` implements signed room authority/transfer; `50c104a` integrates pinned OpenMLS `0.8.1` suite `0x0001` through a bounded process Driver and persist-before-output controller. Exact credential/leaf and group/epoch checks, founder/join/Add/Remove/replacement/self-update, PrivateMessages, exporter, commit/ratchet CAS, three-member bidirectional chat, no-past/no-future secrecy, explicit PCS, adversarial refusal and full restart are tested. Real Relay/OpenFox catch-up, independent review, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
 | MSG-024 | Android client | `android` | ⬜ |
@@ -1895,7 +1899,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `fdb94a5` and OpenFox `7fe6ec10`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `50c104a` and OpenFox `7fe6ec10`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
@@ -2024,8 +2028,7 @@ The following remain explicitly unresolved or require external evidence:
 - hybrid post-quantum migration schedule;
 - independent consumption of the selected MLS 1.0 adaptation's candidate
   BasicCredential/group-id vectors, independent review of the integrated
-  OpenMLS Driver/process/snapshot boundary, remaining cryptographic evidence,
-  and wire freeze;
+  OpenMLS Driver/process/snapshot boundary and wire freeze;
 - maximum initial private-Room member and device counts;
 - whether and when opaque MLS ciphertext uses Overlay distribution;
 - ratification of the implemented Endpoint identifier derivation and the
