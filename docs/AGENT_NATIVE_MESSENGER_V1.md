@@ -180,7 +180,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `bd07dee` implements the runnable seam over the route-neutral crash-safe opaque store and scoped Endpoint→capability authentication: a finalized-state authority rereads and checks the exact delegation commitment on every operation; `pkg/mailboxapi` and `tos-mailboxd` add strict 2 MiB request/16 MiB response service frames, an eight-envelope amplification ceiling, private Unix listener/client, signed StoredAck, durable restart-safe nonce claims, quotas, list/delete, vectors, and adversarial cases. The post-M0-R public transport binding and independent operator evidence remain open |
 | Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant` plus `mailboxapi.DepositClient` exercise distinct pinned Relay identities across separate service listeners: exact signed ACKs meet 2-of-2, one stopped listener permits only an explicit 1-of-2 threshold, and an unmet 2-of-2 fails. Live independently operated Relay failover evidence is missing |
-| Private group encryption and membership epochs | 🟡 Partial | `a4922ab` adds typed `room.moderation` and a durable moderation ledger over the existing bounded administrator/moderator roles: per-target `hide`/`restore` revisions never delete immutable Events; hidden queued messages do not reach runtimes, while rollback/gap, ordinary-member, stale-role and damaged-state cases fail closed. Pinned OpenMLS supplies its secrecy/PCS corpus, sequential invitations, per-Agent state owners, encrypted OpenFox chat, bounded capacity, and two independently keyed durable Mailbox stores with exact 2-of-2 StoredAcks and offline catch-up. Still open: applied-history UI retraction, authenticated independently operated network Relay evidence after M0-R, independent review, and second implementation |
+| Private group encryption and membership epochs | 🟡 Partial | `a4922ab` adds typed `room.moderation` and a durable moderation ledger over the existing bounded administrator/moderator roles; `4541a19` wires that ledger into production admission, re-verifies the current finalized authority delegation, applies each monotonic decision before queueing, and excludes hidden queued targets. Per-target `hide`/`restore` revisions never delete immutable Events, while rollback/gap, ordinary-member, stale-role and damaged-state cases fail closed. Pinned OpenMLS supplies its secrecy/PCS corpus, sequential invitations, per-Agent state owners, encrypted OpenFox chat, bounded capacity, and two independently keyed durable Mailbox stores with exact 2-of-2 StoredAcks and offline catch-up. Still open: applied-history UI retraction, authenticated independently operated network Relay evidence after M0-R, independent review, and second implementation |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, expiry/resume policy, strict Event binding and vectors. A private crash-safe local ciphertext store now adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart recovery, local deletion and fail-closed expired/unreferenced GC without persisting keys or plaintext metadata. Authenticated remote storage, locator SSRF policy, remote deletion/retention guarantees, sandbox/scanner and live transfer remain open; commercial storage remains locked |
 | OpenFox `tos-messenger` channel adapter | 🟡 Partial | `tos-messenger` `9219ddb` and OpenFox `a8f0e633` run three channels through three private OpenMLS proxies and an opaque local Relay: sequential third-member invitation, bidirectional replies, tamper refusal, Relay plaintext/private-state exclusion and full restart are tested. OpenFox `42221c02` independently consumes canonical production `room.message`; Messenger `030b9c3` and OpenFox `37b3197b` add strict daemon-owned direct/room event construction and authenticated reply submission with operator-bound conversation/room/session/recipient routes, durable content/route idempotency, stable Event IDs across restart, and substitution refusal. The selected post-M0-R transport binding and independently operated real-network evidence remain open |
@@ -192,19 +192,20 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `030b9c3` and
+Progress snapshot (2026-08-20, audited through `tos-messenger` `4541a19` and
 OpenFox `37b3197b`): the component inventory is **5/20 ✅**, with
 11/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
-Weighted implementation completion is now **about 68% (bounded estimate
-66–71%)**, up from the prior approximately 66% audit. The increase is the
+Weighted implementation completion is now **about 69% (bounded estimate
+67–72%)**, up from the prior approximately 68% audit. The increase is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
 role/moderation policy, production OpenFox room-message consumption, and
 runnable authenticated Mailbox service boundary, followed by daemon-owned
-outbound construction and authenticated OpenFox reply submission; it is not a
-status promotion of an entire component row. Product readiness is approximately **52%**: local users
+outbound construction, authenticated OpenFox reply submission, and production
+moderation admission; it is not a status promotion of an entire component row.
+Product readiness is approximately **53%**: local users
 can exercise real encrypted group behaviour, while public discovery/transport,
 independent operation and wire-freeze evidence remain the dominant gates.
 
@@ -1299,7 +1300,14 @@ wrong-AAD/forged-Commit/replay/authority-substitution refusal, explicit PCS,
 and full restart. The bounded private-room role policy grants only epoch-bound
 administrator/moderator powers, persists monotonic revisions, and invalidates
 them after membership change. Typed moderation decisions now hide or restore
-queued targets without deleting their immutable Events. Applied-history UI
+queued targets without deleting their immutable Events. Production admission
+re-verifies the persisted current-authority delegation against finalized Agent
+state and applies a valid monotonic decision before queue publication. A crash
+between those operations is safe because exact moderation replay is idempotent;
+an unchecked moderation Event can never enter the runtime queue. RoomRecord v3
+persists that authority snapshot. Existing v2 room records lack it and therefore
+fail closed until the operator resynchronizes or recreates the room instead of
+silently trusting unverifiable authority. Applied-history UI
 retraction, independent Driver review, real Relay delivery/catch-up, and independent vector consumption
 remain open.
 
@@ -1519,6 +1527,17 @@ accepted opening `daemon-owned outbound cycle acceptance 2026-08-20T23:45Z`
 and returned one reply from Bob and Carol in
 `local-unix-openmls-ciphertext-relay` mode; an exact plaintext scan of the
 durable Relay record was clean.
+
+Messenger `4541a19` closes the production moderation-admission gap. The daemon
+now requires ordinary admission (including any first-contact invite) to succeed,
+loads and re-verifies the current room authority delegation against finalized
+Agent state, and applies the signed role/revision decision before the Event can
+be accepted into the runtime queue. Integration tests admit a target, hide it,
+prove it absent from `ListPending`, and refuse a revision gap. The full
+Messenger `make verify` gate passed, including the race suite, ADNL target,
+Rust/OpenMLS tests and full build. This does not yet retract a target already
+persisted in an OpenFox conversation; that remains the next explicit client
+work item.
 
 Messenger `7004f7b` adds the route-neutral redundant-delivery composition
 vector. Two separately keyed and persisted Mailbox stores must both sign the
@@ -1972,7 +1991,7 @@ required.
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
 | MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v5 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, and production DHT/HTTPS refresh implemented; stock-command operator-resource assembly, history synchronization, cross-observer fork exchange, and live evidence missing |
-| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 Signed room authority/transfer, bounded epoch-bound roles, and auditable queued-message `hide`/`restore` are durable and tested; pinned OpenMLS supplies secrecy/PCS, encrypted OpenFox chat through per-Agent state owners, bounded capacity, and 2-of-2 independently keyed Mailbox offline catch-up across two PCS epochs. Applied-history UI retraction, authenticated independently operated network Relay evidence, independent review, and second implementation remain open |
+| MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 Signed room authority/transfer, bounded epoch-bound roles, and auditable queued-message `hide`/`restore` are durable and tested; production admission re-verifies finalized authority and applies moderation before queue publication. Pinned OpenMLS supplies secrecy/PCS, encrypted OpenFox chat through per-Agent state owners, bounded capacity, and 2-of-2 independently keyed Mailbox offline catch-up across two PCS epochs. RoomRecord v2 requires resynchronization into fail-closed v3. Applied-history UI retraction, authenticated independently operated network Relay evidence, independent review, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
 | MSG-024 | Android client | `android` | ⬜ |
@@ -1985,7 +2004,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `030b9c3` and OpenFox `37b3197b`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `4541a19` and OpenFox `37b3197b`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
