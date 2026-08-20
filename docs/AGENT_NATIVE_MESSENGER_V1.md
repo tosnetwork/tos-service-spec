@@ -173,9 +173,9 @@ gap named. None of this counts as gate evidence (Section 3).
 |---|---:|---|
 | M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/echo phases, filtering observations, tunnel fallback, and native-sidecar cross-checks; mobility/reliable-transfer coverage and the ≥3-operator real-network study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
-| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory`, including the route-neutral refresh manager (re-resolution, deadlines, invalidation, revocation recheck, driven through interfaces/fakes); no production DHT/descriptor adapters and no live TOS DHT encoder test |
+| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` `pkg/directory` includes the route-neutral refresh manager and a production locator adapter over pinned `tosutils-go/adnl/dht`. Lookup/publication use the exact native TL key, signature update rule, two native Ed25519 signature layers, bounded TTL, and the inner Endpoint signature; tests cross-check the live TL encoder and substitutions. A bounded descriptor/prekey object source, daemon peer wiring, and live multi-node DHT evidence remain |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
-| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/directory` (refresh manager), `pkg/admission` (a revoked device is refused); production DHT/descriptor adapters and daemon wiring wait on the post-M0-R network path |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` (succession, per-pair sessions, fan-out), `pkg/eventlog` (durable device ledger), `pkg/directory` (refresh manager and native DHT locator operation), `pkg/admission` (a revoked device is refused); the descriptor/prekey object source and daemon peer wiring remain open, while message transport still waits on M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage plus scoped Endpoint→capability authentication with Relay/mailbox binding, separate deposit/read/delete permissions, exact operation-body commitments, bounded signed requests, and durable restart-safe nonce claims; signed StoredAck, dedupe/conflict detection, retention, quotas, list/delete, positive vectors, and decode/verify adversarial cases also exist. The finalized-state adapter, network listener, amplification policy, and transport binding remain open |
@@ -192,7 +192,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `ea0ebb3`): the component inventory is **3/20 ✅**, with
+Progress snapshot (2026-08-20, audited through `tos-messenger` `b82e829`): the component inventory is **3/20 ✅**, with
 12/20 🟡, 4/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -208,15 +208,16 @@ and nothing in it counts as gate evidence until then (Section 3).
 
 **S1 — Two OpenFox agents discover each other and hold a one-to-one
 conversation.** Already standing: Agent/Endpoint/Device identity; descriptor
-and locator formats with the route-neutral refresh manager; the default
-approved one-to-one E2EE construction and its vectors; envelopes, payload codecs, and the
-durable delivery stores; the conversation-to-commerce path riding the same
-events. The blocking chain, in dependency order: (1) the multi-operator M0-R
-production DHT/descriptor adapters wired into the daemon; (2) the multi-operator M0-R
-study produces a route finding — Section 11 forbids building the transport
+and locator formats, production TOS DHT locator operation, and the route-neutral
+refresh manager; the approved one-to-one E2EE construction and its vectors;
+envelopes, payload codecs, and durable delivery stores; the conversation-to-
+commerce path riding the same events. The blocking chain, in dependency order:
+(1) a bounded descriptor/prekey object source plus daemon peer wiring and live
+DHT evidence; (2) the multi-operator M0-R study produces a route finding —
+Section 11 forbids building the transport
 first; (3) the production transport that finding selects, over the native
-stack; (4) independent E2EE review and second-language vector evidence; (5) the OpenFox
-`tos-messenger` channel adapter.
+stack; (4) independent E2EE review and second-language vector evidence; and
+(5) the OpenFox `tos-messenger` channel adapter.
 
 **S2 — Three OpenFox agents converse in a private room, the third member
 invited by a membership-epoch transition.** Already standing beyond S1:
@@ -228,7 +229,7 @@ beyond everything S1 lacks: (6) a reviewed RFC 9420 Driver plus cryptographic
 MLS conformance and independent evidence; (7) canonical BasicCredential and
 group-id bytes under the decided network representation; (8) the selected
 single-authority rule and signed transfer enforced; (9) KeyPackage/Welcome delivery bound to real Relay
-retrieval,
+retrieval, which itself waits on the post-M0-R transport binding.
 which itself waits on the post-M0-R transport binding.
 
 The M0-R study and independent evidence need external operators/reviewers;
@@ -474,8 +475,9 @@ per-device-pair sessions, and event fan-out; `pkg/eventlog` persists the set and
 `pkg/admission` refuses a revoked device. `pkg/directory` provides the
 route-neutral refresh manager and finalized-revocation recheck, while
 `pkg/group` implements endpoint-authorized per-device MLS Leaf/KeyPackage
-publication. Production DHT/descriptor adapters, daemon wiring for directory
-refresh, and a reviewed MLS Driver remain open.
+publication. The production TOS DHT locator operation exists; the bounded
+descriptor/prekey object source, daemon peer wiring, and reviewed MLS Driver
+remain open.
 
 ### 9.4 Session keys — 🟡 construction approved and implemented, not frozen
 
@@ -530,21 +532,28 @@ current finalized Agent and delegation state.
 represent open, invite-only, allow-listed, proof-limited, or future economically
 bonded first contact. The descriptor itself does not create payment authority.
 
-### 10.3 DHT locator profile — 🟡 implemented profile over ✅ DHT primitives
+### 10.3 DHT locator profile — 🟡 production locator operation implemented
 
 DHT locates a current descriptor; it does not store chat history. A bounded DHT
-value should contain only retrieval and verification material, for example:
+value contains only bounded retrieval and verification material:
 
 ```text
-schema
-network_domain_digest
-agent_id_digest
 messaging_endpoint_id
 descriptor_digest
 descriptor_locator
+issued_at
 expires_at
 endpoint_signature
 ```
+
+`tos-messenger/pkg/directory.TOSDHT` now bridges this compact locator to the
+pinned `tosutils-go/adnl/dht` client. It independently checks the requested
+native TL key/name/index, Ed25519 owner hash, `dht.updateRule.signature`, native
+key-description and value signatures, outer TTL/size bounds, and the inner
+Endpoint signature. Publication requires the exact delegated Endpoint private
+key, caps each native cache value at one hour inside the 3660-second network
+bound, and checks the returned key and positive replica count. Longer-lived
+inner locators are republished in freshly signed outer values.
 
 The complete descriptor and prekey bundle may be fetched through TOS Sites,
 RLDP, HTTPS, QR, a local file, or another authenticated rendezvous path. Every
@@ -570,8 +579,10 @@ a revoked Endpoint or change Agent identity.
 signature and lifetime checks, DHT key/update rules, digest binding, and
 republish validation. Its refresh manager drives re-resolution, deadlines,
 invalidation, prekey verification, and finalized revocation rechecks through
-bounded interfaces. Production DHT/descriptor adapters and a live TOS DHT
-encoder test remain open.
+bounded interfaces. The production DHT locator operation and live TL encoder
+cross-check now exist. A bounded descriptor/prekey object source, out-of-band
+delegation bootstrap, daemon peer wiring, and live multi-node DHT evidence
+remain open; none chooses the post-M0-R message route.
 
 ## 11. M0-R reachability study and route-strategy gate
 
@@ -1579,7 +1590,7 @@ required.
 |---|---|---|---:|
 | MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; formal freeze acceptance remains open |
 | MSG-002 | Endpoint delegation schema and vectors | `tos-messenger` / future messaging spec | ✅ strict schema, finalized-state verifier, canonical digest, vectors, and fail-closed daemon startup/outbound-class enforcement implemented |
-| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema, binding, locator codec/key/update rules, and route-neutral refresh manager implemented; production DHT/descriptor adapters and live DHT encoder evidence missing |
+| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema/binding, route-neutral refresh manager, production native DHT locator lookup/publication, live TL key cross-check, and substitution tests implemented; bounded descriptor/prekey object source, daemon peer wiring, and live multi-node evidence missing |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
 | MSG-005 | One-to-one E2EE profile and vectors | `tos-messenger` / future messaging spec | 🟡 construction approved; candidate, conformance harness, and deterministic vectors implemented; independent review and second-language evidence missing before wire freeze |
 | MSG-006 | Sole-writer durable event, replay, retry, and ACK store | `tos-messenger` | ✅ implemented and crash/replay tested; deliberately not a shared multi-process store |
@@ -1610,7 +1621,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `ea0ebb3`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `b82e829`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, and MSG-012;
 the remaining rows keep their precise implemented sub-results and named gates.
 
