@@ -173,9 +173,9 @@ gap named. None of this counts as gate evidence (Section 3).
 |---|---:|---|
 | M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/echo phases, filtering observations, tunnel fallback, and native-sidecar cross-checks; mobility/reliable-transfer coverage and the ≥3-operator real-network study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
-| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now assembles the route-neutral chain in daemon config v3: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
+| Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now assembles the route-neutral chain in daemon config v4: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
-| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` now separates device-local private prekey generations from the Endpoint's public-only complete-set aggregation; durably fixes each generation roster/window and collects only matching Endpoint-signed public contributions; exposes a separate bounded device API that reveals only the public plan/aggregate progress and automatically finalizes the exact complete roster; and implements coordinated replenishment, exact retry, old-secret expiry/pruning, permanent revocation, rollback/equivocation classification, a protected immutable HTTPS object sink, ordered prekey → Descriptor → signed-locator activation, and native-DHT envelope publication through a verified isolated Endpoint signer. `pkg/directory` and `pkg/daemon` also run finalized delegation/policy → native DHT → bounded HTTPS peer refresh; `pkg/admission` refuses revoked devices. Daemon configuration/third-listener wiring and publication scheduling, history synchronization, and live evidence remain open, while message transport still waits on M0-R |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` separates device-local private prekey generations from the Endpoint's public-only complete-set aggregation; daemon config v4 explicitly fixes the roster/suite/cadence and owns a third capability-separated listener; startup creates or recovers the public plan, repairs interrupted finalization, preserves live partial material, rotates finalized generations at the configured horizon, and replaces expired partial generations. The bounded device API reveals only public plan/aggregate progress and admits matching Endpoint-signed contributions. Coordinated replenishment, exact retry, old-secret expiry/pruning, permanent revocation, rollback/equivocation classification, protected immutable HTTPS objects, ordered prekey → Descriptor → signed-locator activation, and signer-backed native-DHT envelopes are tested. Scheduling finalized objects onto the HTTPS/native-DHT sinks, history synchronization, cross-observer fork exchange, and live evidence remain open, while message transport still waits on M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage plus scoped Endpoint→capability authentication with Relay/mailbox binding, separate deposit/read/delete permissions, exact operation-body commitments, bounded signed requests, and durable restart-safe nonce claims; signed StoredAck, dedupe/conflict detection, retention, quotas, list/delete, positive vectors, and decode/verify adversarial cases also exist. The finalized-state adapter, network listener, amplification policy, and transport binding remain open |
@@ -192,7 +192,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `d4040e8`): the component inventory is **3/20 ✅**, with
+Progress snapshot (2026-08-20, audited through `tos-messenger` `850e3f4`): the component inventory is **3/20 ✅**, with
 12/20 🟡, 4/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -209,7 +209,7 @@ and nothing in it counts as gate evidence until then (Section 3).
 **S1 — Two OpenFox agents discover each other and hold a one-to-one
 conversation.** Already standing: Agent/Endpoint/Device identity; descriptor
 and locator formats, explicit finalized delegation/policy bootstrap plus
-production DHT/HTTPS refresh owned by daemon config v3; the approved
+production DHT/HTTPS refresh owned by daemon config v4; the approved
 one-to-one E2EE construction and its vectors;
 envelopes, payload codecs, and durable delivery stores; the conversation-to-
 commerce path riding the same events. The blocking chain, in dependency order:
@@ -509,6 +509,25 @@ JSON, canonical bundle bytes, and immediate complete-set finalization are
 tested. Shared socket mechanics were moved below the owner/runtime API so this
 third principal does not inherit either authority.
 
+Daemon configuration v4 states this public publication policy independently
+from discovery and message transport. `none` may carry no unused publication
+fields. `prekeys` explicitly fixes a distinct socket, canonical 1–16-device
+roster containing the installation's device, frozen suite identifier, bounded
+generation lifetime, positive replenishment horizon, and a check interval no
+longer than that horizon. There are no silent security-policy defaults.
+
+The daemon planner owns only public records and has neither a signer nor a
+private-key store. Startup durably creates a plan when none exists and repairs
+a complete-but-unfinalized crash window. A partial live plan is preserved even
+after entering its replenishment horizon; discarding submitted material before
+expiry would let scheduling revoke a device silently. A finalized plan rotates
+at the horizon, while an incomplete plan is replaced only after expiry. An
+expired record may be read structurally to schedule replacement but is never
+treated as current authority; live contributions are reauthenticated under the
+current finalized delegation. Damaged state fails closed. The third listener
+participates in the same open/run/close lifecycle as runtime and owner sockets,
+and all three are forbidden anywhere beneath the locked state directory.
+
 A routine rotation retains that same device's prior answering material through
 signed expiry because a sender may already have fetched it. Removing a device
 instead drops only that device's current and retired secrets before recording
@@ -533,9 +552,9 @@ This is the signed-prekey lifecycle selected for the existing v1 construction,
 not a hidden one-time-prekey extension. Native DHT key-description and value
 signatures now use a `crypto.Signer`; the pinned DHT client immediately verifies
 each returned Ed25519 signature before network use, so the Endpoint private key
-need not enter the publishing process. Daemon configuration/lifecycle wiring
-for the separate device API, generation planning, and publication scheduling
-remain open; centralizing device secrets is not an acceptable shortcut.
+need not enter the publishing process. Scheduling a finalized generation onto
+the existing HTTPS and native-DHT sinks remains open; centralizing device
+secrets is not an acceptable shortcut.
 Independently operated publication and cross-observer fork exchange also remain
 evidence gaps. No canonical signed preimage changed in this implementation
 round; the new local API has an explicit v1 request/response schema.
@@ -661,7 +680,7 @@ loopback, link-local, multicast, unspecified, or carrier-grade NAT address.
 A compromised origin can therefore deny discovery but cannot replace the
 locator-committed descriptor or descriptor-committed signed prekeys.
 
-Daemon configuration schema `tos.messaging.daemon-config.v3` states discovery
+Daemon configuration schema `tos.messaging.daemon-config.v4` states discovery
 independently from transport. Production mode pins a bounded local DHT global
 configuration and a finite explicit peer set. Each peer maps its Agent ID to a
 delegation file and strict `tos.messaging.descriptor-policy.v1` file. This is
@@ -1712,7 +1731,7 @@ required.
 |---|---|---|---:|
 | MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; formal freeze acceptance remains open |
 | MSG-002 | Endpoint delegation schema and vectors | `tos-messenger` / future messaging spec | ✅ strict schema, finalized-state verifier, canonical digest, vectors, and fail-closed daemon startup/outbound-class enforcement implemented |
-| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema/binding, per-Agent committed policy retrieval, explicit finalized delegation/policy bootstrap, daemon config v3 lifecycle wiring, production native DHT lookup/publication, verified bootstrap nodes, bare/prefixed network boundary, bounded SSRF-resistant HTTPS retrieval, durable admission, vectors, substitution and scheduled-revocation tests implemented; live independently operated multi-node evidence missing |
+| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema/binding, per-Agent committed policy retrieval, explicit finalized delegation/policy bootstrap, daemon config v4 lifecycle wiring, production native DHT lookup/publication, verified bootstrap nodes, bare/prefixed network boundary, bounded SSRF-resistant HTTPS retrieval, durable admission, vectors, substitution and scheduled-revocation tests implemented; live independently operated multi-node evidence missing |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
 | MSG-005 | One-to-one E2EE profile and vectors | `tos-messenger` / future messaging spec | 🟡 construction approved; candidate, conformance harness, and deterministic vectors implemented; independent review and second-language evidence missing before wire freeze |
 | MSG-006 | Sole-writer durable event, replay, retry, and ACK store | `tos-messenger` | ✅ implemented and crash/replay tested; deliberately not a shared multi-process store |
@@ -1729,7 +1748,7 @@ required.
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
-| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private prekey generations, fixed-roster durable public-contribution collection, separate strict device submission API, public-only Endpoint aggregation, coordinated complete-set replenishment, isolated Endpoint signing, retained-key expiry/pruning, immediate per-device revocation, classified rollback/equivocation, protected immutable HTTPS prekey/Descriptor publication, ordered signed-locator activation, signer-backed native-DHT envelope publication, durable peer ledger, admission enforcement, and daemon-managed finalized bootstrap plus production DHT/HTTPS refresh implemented; daemon generation configuration/third-listener wiring and publication scheduling, history synchronization, cross-observer fork exchange, and live evidence missing |
+| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private prekey generations, fixed-roster durable public-contribution collection, separate strict device submission API, daemon config v4 generation policy, third-listener lifecycle, restart-safe public planner/finalization, public-only Endpoint aggregation, coordinated complete-set replenishment, isolated Endpoint signing, retained-key expiry/pruning, immediate per-device revocation, classified rollback/equivocation, protected immutable HTTPS prekey/Descriptor publication, ordered signed-locator activation, signer-backed native-DHT envelopes, durable peer ledger, admission enforcement, and production DHT/HTTPS peer refresh implemented; scheduling finalized objects onto publication sinks, history synchronization, cross-observer fork exchange, and live evidence missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 MLS 1.0/OpenMLS suite `0x0001` and one current authority Agent selected; membership plus the two-clock authority/persistence/succession adapter are implemented. Driver integration/review, canonical group identity, signed-transfer enforcement, cryptographic evidence, Relay catch-up, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
@@ -1743,7 +1762,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `d4040e8`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `850e3f4`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, and MSG-012;
 the remaining rows keep their precise implemented sub-results and named gates.
 
@@ -1871,9 +1890,9 @@ The following remain explicitly unresolved or require external evidence:
   remaining per-device MLS key-authority model;
 - ratification and live-network validation of the implemented DHT key,
   signature-update rule, and locator bounds;
-- daemon generation configuration/lifecycle wiring for the separate device API
-  and native-DHT publication scheduling without centralizing device secrets, plus live
-  independently operated publication and cross-observer fork exchange;
+- scheduling finalized generations onto HTTPS/native-DHT publication sinks
+  without centralizing device secrets, plus live independently operated
+  publication and cross-observer fork exchange;
 - durable-store migration and long-term compaction policy beyond the
   implemented crash/recovery contract;
 - deployment key custody and client authorization around the implemented
