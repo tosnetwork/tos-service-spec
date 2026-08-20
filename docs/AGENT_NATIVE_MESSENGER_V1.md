@@ -1472,6 +1472,15 @@ ratchet. Messenger `make verify` and OpenFox's complete `make check` (all Go
 modules, Web lint/tests and docs lint) passed. This remains local acceptance,
 not independent real-Relay or second-implementation evidence.
 
+The same commits are installed as enabled user services on the acceptance
+host: `tos-messenger-openfox-mls-relay.service` plus separate Alice, Bob and
+Carol proxy services. The previous plaintext lab service is disabled. All four
+reported `active/running` with `NRestarts=0`; an installed-binary acceptance
+round returned `ok: true` with the expected three-line transcript, and the
+durable Relay state again contained none of the submitted plaintext. This is
+operational continuity evidence for the local seam, with no claim of
+independent operators or public-network availability.
+
 ### 19.2 Context firewall — ✅ runtime, tool, custody, and authenticated ingress enforced
 
 A valid signature proves origin, not safety. Before remote content reaches an
