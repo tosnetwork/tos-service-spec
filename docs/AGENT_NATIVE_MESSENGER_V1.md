@@ -178,8 +178,8 @@ gap named. None of this counts as gate evidence (Section 3).
 | Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` separates device-local private prekey generations from public-only complete-set aggregation; daemon config v5 fixes roster/suite/cadence and owns a third capability-separated listener; startup recovers plans/finalization and never discards live partial material. `directory.GenerationPublisher` and `daemon.OpenWithGenerationPublisher` now schedule the exact durable generation through prekey object → content-addressed Descriptor → signed inner locator → native DHT, using deterministic renewal buckets and a strict external Endpoint signer client. Replenishment, retry, expiry/pruning, revocation, rollback/equivocation, dependency failure, signer/authority substitution, and native-DHT envelopes are tested. Stock-command assembly of operator HTTPS/DHT/policy/signer resources, history synchronization, cross-observer fork exchange, and live evidence remain open, while message transport still waits on M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
-| Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage plus scoped Endpoint→capability authentication with Relay/mailbox binding, separate deposit/read/delete permissions, exact operation-body commitments, bounded signed requests, and durable restart-safe nonce claims; signed StoredAck, dedupe/conflict detection, retention, quotas, list/delete, positive vectors, and decode/verify adversarial cases also exist. The finalized-state adapter, network listener, amplification policy, and transport binding remain open |
-| Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant`: distinct pinned Relay identities and exact signed ACKs meet a redundancy threshold; live independently operated Relay failover evidence is missing |
+| Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `bd07dee` implements the runnable seam over the route-neutral crash-safe opaque store and scoped Endpoint→capability authentication: a finalized-state authority rereads and checks the exact delegation commitment on every operation; `pkg/mailboxapi` and `tos-mailboxd` add strict 2 MiB request/16 MiB response service frames, an eight-envelope amplification ceiling, private Unix listener/client, signed StoredAck, durable restart-safe nonce claims, quotas, list/delete, vectors, and adversarial cases. The post-M0-R public transport binding and independent operator evidence remain open |
+| Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant` plus `mailboxapi.DepositClient` exercise distinct pinned Relay identities across separate service listeners: exact signed ACKs meet 2-of-2, one stopped listener permits only an explicit 1-of-2 threshold, and an unmet 2-of-2 fails. Live independently operated Relay failover evidence is missing |
 | Private group encryption and membership epochs | 🟡 Partial | `4ea94c3` adds bounded administrator/moderator roles whose revisions bind the exact membership epoch/digest and current finalized authority, persist across restart, and fail closed after removal; signed single-authority membership/transfer was already implemented. `50c104a` implements the pinned OpenMLS `0.8.1` cryptographic/controller core and its secrecy/PCS corpus. `9219ddb` adds sequential invitations, per-Agent state owners, encrypted OpenFox chat, tamper/retry/restart acceptance; `2d4b0c6` enforces the bounded v1 capacity profile; `7004f7b` composes real PrivateMessages and two PCS epochs with two independently keyed durable Mailbox stores, exact 2-of-2 StoredAcks, offline catch-up and Relay secret-exclusion scans. Still open: moderation-event effects, authenticated independently operated network Relay evidence after M0-R, independent review, and second implementation |
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, expiry/resume policy, strict Event binding and vectors. A private crash-safe local ciphertext store now adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart recovery, local deletion and fail-closed expired/unreferenced GC without persisting keys or plaintext metadata. Authenticated remote storage, locator SSRF policy, remote deletion/retention guarantees, sandbox/scanner and live transfer remain open; commercial storage remains locked |
@@ -192,16 +192,17 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `4ea94c3` and
+Progress snapshot (2026-08-20, audited through `tos-messenger` `bd07dee` and
 OpenFox `a8f0e633`): the component inventory is **5/20 ✅**, with
 11/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
-Weighted implementation completion is now **about 62% (bounded estimate
-60–65%)**, up from the prior approximately 56% audit. The increase is the
+Weighted implementation completion is now **about 64% (bounded estimate
+62–67%)**, up from the prior approximately 56% audit. The increase is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
-role policy, not a status promotion of an entire component row. Product readiness is approximately **44%**: local users
+role policy and runnable authenticated Mailbox service boundary, not a status
+promotion of an entire component row. Product readiness is approximately **47%**: local users
 can exercise real encrypted group behaviour, while public discovery/transport,
 independent operation and wire-freeze evidence remain the dominant gates.
 
@@ -1816,8 +1817,9 @@ Gateway or message database under the route strategy selected by M0-R.
 
 ### M2-T — Technical offline Mailbox and multi-Relay failover
 
-**Status: 🟡 Route-neutral store, scoped operation authentication, and
-redundancy core implemented; finalized-state adapter and network service
+**Status: 🟡 Route-neutral store, scoped operation authentication,
+finalized-state adapter, bounded private service listener/client and local
+redundancy/failure core implemented; public transport and independent operation
 pending.**
 
 Deliver `tos-mailboxd`, opaque mailbox IDs, bounded encrypted storage,
@@ -1916,8 +1918,8 @@ required.
 | MSG-007 | Relay Envelope and Messaging Event codec | `tos-messenger` | ✅ strict codecs, bounds, content-addressed Event ID, and adversarial tests implemented |
 | MSG-008 | Direct ADNL and RLDP integration | `tos-messenger` | 🟡 primitives exist |
 | MSG-009 | HTTPS bootstrap/fallback adapter | `tos-messenger` | 🟡 bounded production HTTPS descriptor/prekey discovery exists with strict same-origin publication, public-only DNS pinning, no proxies/redirects, and digest binding; HTTPS message delivery/fallback remains post-M0-R and unimplemented |
-| MSG-010 | Encrypted Mailbox Relay | `tos-messenger` | 🟡 crash-safe route-neutral opaque store, scoped Endpoint→capability grants, operation/body-bound requests, durable nonce claims, signed StoredAck, quotas/retention, vectors, adversarial cases, and recovery implemented; finalized-state adapter, authenticated listener, amplification policy, and transport binding pending |
-| MSG-011 | Multi-Relay selection and failover | `tos-messenger` | 🟡 distinct pinned Relay keys and exact ACK threshold implemented; live independent-operator failover evidence pending |
+| MSG-010 | Encrypted Mailbox Relay | `tos-messenger` | 🟡 crash-safe opaque store, finalized delegation adapter, scoped grants, operation/body-bound requests, strict bounded service protocol, private listener/client, durable nonce claims, signed StoredAck, quotas/retention, vectors, adversarial cases, and recovery implemented; post-M0-R public transport binding and independent operation pending |
+| MSG-011 | Multi-Relay selection and failover | `tos-messenger` | 🟡 distinct pinned Relay keys and exact ACK thresholds run across separate service listeners; 2-of-2, explicit 1-of-2 degradation and unmet-threshold refusal are tested; live independent-operator failover evidence pending |
 | MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ✅ distinct Stored/Delivery/Application/optional Read profiles and durable state implemented |
 | MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 cryptographic chunk/manifest/E2EE-reference core, vectors, and crash-safe bounded local ciphertext storage/fetch/lease deletion/GC implemented; authenticated remote storage, SSRF controls, remote guarantees, sandbox/scanner and live transfer pending |
 | MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 `9219ddb`/`a8f0e633` implement encrypted three-OpenFox local IPC with separate MLS state owners, an opaque Relay, durable exact retries, tamper refusal and full restart; the separate production adapter claims daemon events, independently checks Event ID/canonical text, and supplies stable message IDs. Outbound daemon construction, selected transport binding, and real-network evidence remain |
@@ -1940,7 +1942,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `4ea94c3` and OpenFox `a8f0e633`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `bd07dee` and OpenFox `a8f0e633`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
