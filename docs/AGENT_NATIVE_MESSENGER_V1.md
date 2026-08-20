@@ -175,7 +175,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now assembles the route-neutral chain in daemon config v3: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
-| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` `pkg/e2ee` supplies succession, per-pair sessions, fan-out and strict bundle-set publication; `pkg/eventlog` now supplies both the durable peer device ledger and a crash-safe local complete-set prekey publisher with horizon replenishment, signer isolation, old-secret expiry/pruning, immediate revoked-device key removal, and rollback/equivocation classification; `pkg/directory` and `pkg/daemon` run finalized delegation/policy → native DHT → bounded HTTPS peer refresh; `pkg/admission` refuses revoked devices. Production local object-sink/descriptor activation, history synchronization, and live publication/discovery evidence remain open, while message transport still waits on M0-R |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` now separates device-local private prekey generations from the Endpoint's public-only complete-set aggregation; implements coordinated replenishment, exact retry, old-secret expiry/pruning, permanent revocation, rollback/equivocation classification, a protected immutable HTTPS object sink, and ordered prekey → Descriptor → signed-locator activation. `pkg/directory` and `pkg/daemon` also run finalized delegation/policy → native DHT → bounded HTTPS peer refresh; `pkg/admission` refuses revoked devices. Daemon device-contribution collection and native-DHT publication through an isolated Endpoint signer, history synchronization, and live evidence remain open, while message transport still waits on M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `pkg/mailbox`: route-neutral crash-safe opaque storage plus scoped Endpoint→capability authentication with Relay/mailbox binding, separate deposit/read/delete permissions, exact operation-body commitments, bounded signed requests, and durable restart-safe nonce claims; signed StoredAck, dedupe/conflict detection, retention, quotas, list/delete, positive vectors, and decode/verify adversarial cases also exist. The finalized-state adapter, network listener, amplification policy, and transport binding remain open |
@@ -488,25 +488,41 @@ both conflicting set digests when it observes one. Older watermarks remain
 rollback failures; the existing equal-watermark pure-retirement exception adds
 no material and only removes authority.
 
-The exact signed bundle-set bytes and opaque private answering material are
-atomically durable before a content-addressed object sink can receive them.
-Endpoint signatures are requested through a narrow Ed25519 `crypto.Signer` and
-verified before persistence; the publisher does not require exportable
-Endpoint private-key bytes. The object is made available before a descriptor
-may name its digest. A routine rotation retains a still-current device's prior
-answering material through signed expiry because a sender may already have
-fetched it. Removing a device instead drops all of that device's current and
-retired answering material in the tombstone transition, so cached prekeys
-cannot restore bootstrap authority. Expired material is logically pruned;
+Private answering material is not Endpoint publication state. Each device
+generates and atomically stores only its own opaque secret and signed public
+contribution. The Endpoint's separate aggregation ledger accepts already
+signed public bundles, verifies one coordinated window and complete-set
+succession, and is tested not to contain any private-material field. Endpoint
+signatures use a narrow Ed25519 `crypto.Signer` and are verified before
+persistence.
+
+A routine rotation retains that same device's prior answering material through
+signed expiry because a sender may already have fetched it. Removing a device
+instead drops only that device's current and retired secrets before recording
+its local tombstone; the public aggregation ledger permanently tombstones its
+Device ID. Cached prekeys cannot restore bootstrap authority, while another
+device's secret state is unaffected. Expired material is logically pruned;
 secure deletion of filesystem blocks and snapshots remains a deployment
-property. Live retired secrets and permanent tombstones are bounded, and a
-full bound refuses rotation rather than silently forgetting authority history.
+property. Per-device retired generations and public tombstones are bounded,
+and a full bound refuses transition rather than forgetting live authority.
+
+The production static HTTPS sink writes immutable prekey objects and
+content-addressed Descriptors under fixed same-origin paths. It rejects
+alternate bundle ordering under one order-independent set digest, symlink or
+writable directory substitution, conflicting bytes, and damaged objects; it
+syncs and atomically installs exact retries. Descriptor activation validates
+and signs the complete graph before mutation, writes prekeys first, Descriptor
+second, and returns the signed inner locator only after both dependencies are
+durable. A failed step leaves at most unreachable immutable objects, not an
+authoritative dangling pointer.
 
 This is the signed-prekey lifecycle selected for the existing v1 construction,
-not a hidden one-time-prekey extension. Production daemon content-sink choice,
-Endpoint-authorized descriptor activation, independently operated publication,
-and cross-observer fork exchange remain open. No canonical preimage or wire
-schema changed in this implementation round.
+not a hidden one-time-prekey extension. Daemon collection of contributions from
+independently custodied devices and native-DHT publication without exporting
+the Endpoint signer remain open; centralizing device secrets is not an
+acceptable shortcut. Independently operated publication and cross-observer
+fork exchange also remain evidence gaps. No canonical preimage or wire schema
+changed in this implementation round.
 
 ### 9.4 Session keys — 🟡 construction approved and implemented, not frozen
 
@@ -595,6 +611,20 @@ origin at:
 ```text
 /.well-known/tos-messenger/prekeys/<lowercase-sha256-hex>.json
 ```
+
+New signed Descriptors are immutable on that origin at:
+
+```text
+/.well-known/tos-messenger/descriptors/<lowercase-sha256-hex>.json
+```
+
+The DHT locator names the exact content-addressed Descriptor URL, avoiding a
+window in which a mutable path serves new bytes while the DHT still commits the
+old digest. The production write side validates both object addresses, requires
+sorted device order for the otherwise order-independent prekey-set digest,
+atomically installs exact bytes without overwrite, and makes the signed locator
+available to its caller only after prekeys and Descriptor are durable in that
+order.
 
 The strict `tos.messaging.prekey-bundle-set.v1` JSON wrapper contains 1–16
 existing signed per-device bundle objects and is bounded to 128 KiB. It is a
@@ -1680,7 +1710,7 @@ required.
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
-| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, strict bundle-set/policy publication, crash-safe local complete-set prekey generation/replenishment, isolated Endpoint signing, exact object-sink publication, retained-key expiry/pruning, immediate revoked-device key removal, classified rollback/equivocation, durable peer ledger, admission enforcement, and daemon-managed finalized bootstrap plus production DHT/HTTPS refresh implemented; production local sink/descriptor activation, history synchronization, cross-observer fork exchange, and live deployment evidence missing |
+| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private prekey generations, public-only Endpoint aggregation, coordinated complete-set replenishment, isolated Endpoint signing, retained-key expiry/pruning, immediate per-device revocation, classified rollback/equivocation, protected immutable HTTPS prekey/Descriptor publication, ordered signed-locator activation, durable peer ledger, admission enforcement, and daemon-managed finalized bootstrap plus production DHT/HTTPS refresh implemented; daemon device-contribution collection, isolated-signer native-DHT publication, history synchronization, cross-observer fork exchange, and live evidence missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 MLS 1.0/OpenMLS suite `0x0001` and one current authority Agent selected; membership plus the two-clock authority/persistence/succession adapter are implemented. Driver integration/review, canonical group identity, signed-transfer enforcement, cryptographic evidence, Relay catch-up, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
@@ -1694,7 +1724,7 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-20, audited through `tos-messenger` `25783b0`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-20, audited through `tos-messenger` `d0d0d4e`): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, and MSG-012;
 the remaining rows keep their precise implemented sub-results and named gates.
 
@@ -1822,8 +1852,9 @@ The following remain explicitly unresolved or require external evidence:
   remaining per-device MLS key-authority model;
 - ratification and live-network validation of the implemented DHT key,
   signature-update rule, and locator bounds;
-- production prekey object-sink and Endpoint-authorized descriptor activation,
-  plus live independently operated publication and cross-observer fork exchange;
+- daemon device-contribution collection and native-DHT publication without
+  centralizing device secrets or exporting the Endpoint signer, plus live
+  independently operated publication and cross-observer fork exchange;
 - durable-store migration and long-term compaction policy beyond the
   implemented crash/recovery contract;
 - deployment key custody and client authorization around the implemented
