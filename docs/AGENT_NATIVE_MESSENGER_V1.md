@@ -150,16 +150,16 @@ profiles should follow only after their prerequisites are accepted.
 | Foundation | Status | What exists | What is still missing |
 |---|---:|---|---|
 | Agent Packet as a general chat envelope | 🟡 | Sender/recipient Agent IDs, mandatory Capability ID, nonce, sequence, payload digest, signature, optional Quote commitment, and strict JSON | No conversation or room identity, application E2EE, multi-device model, delivery ACK model, or ordinary-chat profile without a Capability |
-| Agent Packet replay protection | 🟡 | Reference `ReplayGuard` uses an in-process mutex and map to reject repeated `sender_agent_id + nonce` while the process lives | Durable replay state across restart is missing |
-| Agent Packet execution-gate integration | 🟡 | Agent Packet can carry a signed commercially bound payload | No production Agent Packet-to-Execution-Gate adapter and no three-transport A2A/MCP/Agent Packet replay matrix exist |
+| Agent Packet replay protection | ✅ | `tos-messenger/pkg/agentpacketbridge` verifies the exact Agent Packet bytes and durably claims `sender_agent_id + nonce`, including pending-state restart recovery | Live transport coverage remains part of the broader bridge work, not this replay primitive |
+| Agent Packet execution-gate integration | 🟡 | `tos-ai/pkg/agentpacketadapter` owns the Native Execution Gate mapping, and `tos-messenger/pkg/agentpacketbridge` supplies verified, replay-safe input | Daemon/live-transport integration and the concurrent three-transport A2A/MCP/Agent Packet replay matrix remain open |
 | Reusable local journal pattern | ✅ | `softwarework.Journal` supplied the original durability pattern; `tos-messenger/pkg/eventlog` now implements the Messenger-specific sole-writer event, ACK, replay, retry, expiry, session, device, room, approval, mandate, budget, and negotiation state | It deliberately remains a single-process store rather than a concurrent cross-process claim database |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, admission policy, or rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
-| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` now supplies Messenger room identity/membership epochs and `pkg/group/conformance` the group-key refutation floor | No MLS state, roles, moderation, history synchronization, Overlay integration, or end-to-end encrypted-room test exists |
+| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity/membership epochs, while `pkg/group` and `pkg/eventlog` implement the TOS-MLS application adapter and durable opaque MLS state | A reviewed RFC 9420 Driver, room authority, roles, moderation, history synchronization, Overlay integration, and an end-to-end encrypted-room test remain open |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md` | A production TOS Messenger channel, durable conversation integration, and fresh OpenFox buyer/provider session are missing |
 | Mobile TOS clients | 🟡 | Owner-controlled mobile service-client architecture is documented | Messenger session storage, best-effort push wake-up, multi-device keys, room UI, and messaging conformance are missing |
-| Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist | A private Messenger attachment format, encryption policy, retention, authorization, scanning, and garbage collection are missing |
+| Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist; `tos-messenger/pkg/attachments` adds the private encrypted format and a crash-safe bounded local ciphertext store with retention and garbage collection | Authenticated remote storage, locator/SSRF policy, remote deletion guarantees, sandbox/scanner integration, and live transfer remain open |
 
 ### 5.3 Messenger components that must be developed
 
@@ -191,6 +191,11 @@ gap named. None of this counts as gate evidence (Section 3).
 | Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked | Expansion Gate |
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
+
+Progress snapshot (2026-08-20): the component inventory is **3/20 ✅**, with
+12/20 🟡, 4/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
+sub-results without being promoted to ✅ before the whole stated behaviour is
+implemented and tested end to end.
 
 ### 5.4 Scenario acceptance
 
@@ -454,7 +459,7 @@ Root Agent controller keys remain in a wallet or dedicated signer. An online
 Endpoint key may authenticate descriptors and sessions but must not
 implicitly control Agent policy, Capabilities, escrow, or funds.
 
-### 9.3 Device identity — 🟡 model and revocation enforcement implemented
+### 9.3 Device identity — 🟡 model, refresh, and revocation enforcement implemented
 
 Each OpenFox host, mobile client, desktop client, or edge terminal should have a
 separate Device ID and device key authorized by one Messaging Endpoint. Device
@@ -463,8 +468,11 @@ addition and removal must trigger session or group-key changes where required.
 `tos-messenger/pkg/e2ee` implements signed per-device prekey sets, monotonic
 device-set succession, permanent revocation tombstones, deterministic
 per-device-pair sessions, and event fan-out; `pkg/eventlog` persists the set and
-`pkg/admission` refuses a revoked device. Automatic descriptor discovery and
-refresh is still missing, and MLS leaf-key authorization remains profile work.
+`pkg/admission` refuses a revoked device. `pkg/directory` provides the
+route-neutral refresh manager and finalized-revocation recheck, while
+`pkg/group` implements endpoint-authorized per-device MLS Leaf/KeyPackage
+publication. Production DHT/descriptor adapters, daemon wiring for directory
+refresh, and a reviewed MLS Driver remain open.
 
 ### 9.4 Session keys — 🟡 default candidate implemented, not frozen
 
@@ -538,7 +546,7 @@ The complete descriptor and prekey bundle may be fetched through TOS Sites,
 RLDP, HTTPS, QR, a local file, or another authenticated rendezvous path. Every
 path must produce the same digest-authenticated bytes.
 
-### 10.4 Resolution algorithm — 🟡 verification half implemented
+### 10.4 Resolution algorithm — 🟡 verifier and route-neutral refresh loop implemented
 
 A client should:
 
@@ -556,8 +564,10 @@ a revoked Endpoint or change Agent identity.
 
 `tos-messenger/pkg/directory` implements strict descriptor/locator codecs,
 signature and lifetime checks, DHT key/update rules, digest binding, and
-republish validation. It has not been exercised against a live TOS DHT encoder,
-and the automatic stale-resolution, refresh, and revocation loop is still open.
+republish validation. Its refresh manager drives re-resolution, deadlines,
+invalidation, prekey verification, and finalized revocation rechecks through
+bounded interfaces. Production DHT/descriptor adapters and a live TOS DHT
+encoder test remain open.
 
 ## 11. M0-R reachability study and route-strategy gate
 
@@ -660,12 +670,19 @@ A production service still needs:
 - deployment and recovery runbooks; and
 - independent multi-operator tests.
 
-### 12.4 Offline Mailbox path — ⬜ to be developed
+### 12.4 Offline Mailbox path — 🟡 route-neutral storage implemented; network path pending
 
 If direct delivery is unavailable, the sender deposits the same application
 ciphertext with one or more recipient-selected Relays. The recipient pulls or
 is awakened by a best-effort push hint, verifies and decrypts locally, commits
 the Event ID, and acknowledges delivery.
+
+`tos-messenger/pkg/mailbox` implements the crash-safe opaque store, signed
+StoredAck, dedupe/conflict handling, quotas, retention, exact content-matched
+deletion primitives, recovery tests, and distinct-Relay
+redundancy thresholds.
+Retrieval authentication, the Relay listener, transport binding, push hints,
+and independent-operator failover evidence remain open after M0-R.
 
 ### 12.5 HTTPS fallback — 🟡 bootstrap only
 
@@ -901,7 +918,8 @@ No transport or Messenger ACK is a TOS Receipt or settlement authorization.
 
 ## 16. Encrypted Mailbox Relay
 
-**Technical status: ⬜ To be developed. Commercial profile: 🔒 Roadmap-locked.**
+**Technical status: 🟡 Route-neutral storage and redundancy core implemented;
+network service pending. Commercial profile: 🔒 Roadmap-locked.**
 
 A decentralized Messenger still requires servers when recipients are offline.
 Decentralization means Relays are replaceable and cannot read messages or own
@@ -1014,7 +1032,7 @@ required contract changes.
 
 ## 17. Rooms and channels
 
-### 17.1 Private rooms — 🟡 membership implemented; MLS profile pending
+### 17.1 Private rooms — 🟡 membership and TOS-MLS application adapter implemented
 
 Private rooms require:
 
@@ -1034,9 +1052,12 @@ Room membership remains off-chain by default.
 epochs, and domain-separated membership commitments. `pkg/eventlog` persists
 strict single-step succession with rollback/gap refusal, and `pkg/admission`
 enforces definitive non-membership. `pkg/group` and its conformance harness
-provide the pre-implementation group-key contract. MLS 1.0 is selected, but the
-TOS-MLS adapter, role/authority policy, two-clock state, KeyPackage/Welcome
-persistence, and encrypted room delivery remain open.
+provide the group-key contract and TOS-MLS application candidate: separate
+room/MLS clocks, endpoint-authorized per-device Leaf/KeyPackage publication,
+device succession to Add/Remove/Update, and durable opaque state,
+KeyPackage/Welcome, and commit ancestry. A reviewed RFC 9420 Driver,
+BasicCredential/group-id freeze, role/room-authority policy, cryptographic and
+Relay evidence, independent review, and encrypted room delivery remain open.
 
 #### Room membership is not Overlay membership
 
@@ -1087,7 +1108,8 @@ Overlay success is not proof of publisher authority or payment state.
 
 ## 18. Attachments and artifacts
 
-**Status: 🟡 Messenger cryptographic profile implemented; storage and content-safety integration pending.**
+**Status: 🟡 Messenger cryptographic profile and bounded local ciphertext
+storage implemented; remote storage and content-safety integration pending.**
 
 Private attachments are encrypted before upload. The content address commits to
 ciphertext; the decryption key and plaintext metadata remain inside the E2EE
@@ -1108,10 +1130,14 @@ The profile must define:
 core: bounded AES-256-GCM chunks with unique nonces and bound AAD,
 ordered ciphertext manifests/content addresses, secret E2EE References,
 optional plaintext-digest disclosure, safe display metadata, expiry, resume
-planning, and recipient size/media policy. It returns inert authenticated bytes
-without decompressing, parsing, rendering, or scanning them. Remote deletion/
-GC guarantees, locator fetch and SSRF policy, sandbox/scanner enforcement, and
-live interrupted-transfer evidence remain open.
+planning, and recipient size/media policy. Its private crash-safe local store
+adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart
+recovery, local deletion, and fail-closed expired/unreferenced garbage
+collection without persisting keys or plaintext metadata. It returns inert
+authenticated bytes without decompressing, parsing, rendering, or scanning
+them. Authenticated remote storage, remote deletion/retention guarantees,
+locator fetch and SSRF policy, sandbox/scanner enforcement, and live
+interrupted-transfer evidence remain open.
 
 `tos-ai` artifact primitives may be reused at library level, but a Messenger
 attachment is not automatically a software-work Artifact or Receipt input.
@@ -1527,7 +1553,7 @@ required.
 |---|---|---|---:|
 | MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; formal freeze acceptance remains open |
 | MSG-002 | Endpoint delegation schema and vectors | `tos-messenger` / future messaging spec | ✅ strict schema, finalized-state verifier, canonical digest, vectors, and fail-closed daemon startup/outbound-class enforcement implemented |
-| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema, binding, locator codec/key/update rules implemented; live DHT integration and refresh loop missing |
+| MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema, binding, locator codec/key/update rules, and route-neutral refresh manager implemented; production DHT/descriptor adapters and live DHT encoder evidence missing |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
 | MSG-005 | One-to-one E2EE profile and vectors | `tos-messenger` / future messaging spec | 🟡 default candidate, conformance harness, and deterministic vectors implemented; ratification, review, and second implementation missing |
 | MSG-006 | Sole-writer durable event, replay, retry, and ACK store | `tos-messenger` | ✅ implemented and crash/replay tested; deliberately not a shared multi-process store |
@@ -1544,7 +1570,7 @@ required.
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
-| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, durable ledger, and admission enforcement implemented; automatic descriptor refresh/history synchronization missing |
+| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, durable ledger, admission enforcement, and route-neutral descriptor refresh implemented; production directory adapters and history synchronization missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` | 🟡 MLS 1.0 selected; membership plus the two-clock authority/persistence/succession adapter are implemented. Reviewed Driver, cryptographic evidence, Relay catch-up, room authority, review and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
@@ -1557,6 +1583,10 @@ required.
 | MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | 🟡 policy interface, content-addressed rules, owner hold, and quotas implemented; concrete credential and direct/Relay parity missing |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
+
+Work-package progress (2026-08-20): **4/32 ✅**, 21/32 🟡, 4/32 ⬜,
+and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, and MSG-012;
+the remaining rows keep their precise implemented sub-results and named gates.
 
 ## 26. Minimum viable demonstration
 
