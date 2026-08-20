@@ -1511,6 +1511,14 @@ complete `make check` passed all modules, lint, Web tests/lint and docs lint.
 No production daemon was launched on the acceptance host because it has no
 real finalized-chain configuration or selected live transport; static test
 authority is not substituted for that missing operational prerequisite.
+After installing the current Messenger/OpenFox acceptance binaries and
+restarting all four user services, Relay, Alice, Bob and Carol reported
+`active/running` with `NRestarts=0`. Room
+`room_2f58a0e48fd6ff8f52653abc51cf3b87762f604a7af903bed5a110d8073d4fd5`
+accepted opening `daemon-owned outbound cycle acceptance 2026-08-20T23:45Z`
+and returned one reply from Bob and Carol in
+`local-unix-openmls-ciphertext-relay` mode; an exact plaintext scan of the
+durable Relay record was clean.
 
 Messenger `7004f7b` adds the route-neutral redundant-delivery composition
 vector. Two separately keyed and persisted Mailbox stores must both sign the
