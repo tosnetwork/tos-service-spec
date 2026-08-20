@@ -184,7 +184,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Public Agent channels over Overlay with history synchronization | ⬜ To be developed | — |
 | Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, expiry/resume policy, strict Event binding and vectors. A private crash-safe local ciphertext store now adds pre-write lease/object/byte/retention quotas, hash-checked fetch, restart recovery, local deletion and fail-closed expired/unreferenced GC without persisting keys or plaintext metadata. Authenticated remote storage, locator SSRF policy, remote deletion/retention guarantees, sandbox/scanner and live transfer remain open; commercial storage remains locked |
 | OpenFox `tos-messenger` channel adapter | 🟡 Partial | OpenFox now has a native `tos_messenger_lab` channel plus a three-Agent executable acceptance run; `tos-messenger/pkg/labgroup` supplies authenticated deterministic rooms, bounded durable messages and restart-safe cursors over an owner-private Unix socket. The path is explicitly plaintext/same-host and supplies no production transport, E2EE, MLS, discovery, or gate evidence |
-| Agent message policy engine and prompt-injection firewall | 🟡 Partial | `tos-messenger` `pkg/firewall` (action policy evaluator) and the authenticated owner-decision queue (`pkg/localapi`, `pkg/eventlog`); owner/policy tool grants now require a runtime idempotency key, bind it durably to the first Action ID, and are claimed once. OpenFox provenance enforcement and wallet/tool-adapter enforcement do not exist |
+| Agent message policy engine and prompt-injection firewall | 🟡 Partial | `tos-messenger` supplies the action evaluator and authenticated owner queue. OpenFox `fbb052df` now derives and durably retains non-model-controlled context provenance, classifies all built-in/MCP/hardware/message/sub-Agent tools, fails closed on unknown or incomplete lineage, waits for owner decisions, and consumes tool grants once. Its custody wrapper commits exact quote/asset/mandate terms before funding and protects settlement key use. Remaining: the production Messenger channel must populate authenticated origins, and production buyer construction must make the custody wrapper mandatory |
 | First-contact admission policy and sybil resistance | 🟡 Partial | The v1 default is selected: allow-list known contacts, one-time invite token, otherwise owner hold, applied before durable acceptance on direct and Relay paths. `pkg/admission` supplies the generic mechanism and quotas. Invite-token encoding, daemon configuration, and direct/Relay parity tests remain; PoW is deferred pending abuse measurements and Inbox Bonds stay Expansion-Gate locked |
 | Agent Packet-to-Execution-Gate adapter and three-transport replay tests | 🟡 Partial | `tos-messenger` carries exact Agent Packet V1 bytes under `agent.packet`, reuses finalized protocol verification, binds packet/Event sender and the live local recipient, and durably claims sender+nonce with pending recovery; `tos-ai/pkg/agentpacketadapter` owns the Native Execution Gate mapping. Daemon/live transport and the concurrent three-transport matrix remain open |
 | Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed | — |
@@ -192,8 +192,8 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-20, audited through `tos-messenger` `d284f44` and
-OpenFox `402e21ed`): the component inventory is **3/20 ✅**, with
+Progress snapshot (2026-08-20, audited through `tos-messenger` `9b55c76` and
+OpenFox `fbb052df`): the component inventory is **3/20 ✅**, with
 13/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -1391,7 +1391,14 @@ each transcript contained the creator message and one reply from each peer.
 This is local integration and restart evidence only, not independent or
 cryptographic acceptance evidence.
 
-### 19.2 Context firewall — 🟡 policy and owner boundary implemented; runtime enforcement open
+OpenFox commit `fbb052df` is the follow-on context-firewall snapshot. Its full
+`make check` passed under Go 1.25.12 and golangci-lint 2.10.1; focused
+authorization, Messenger-client, tool, Agent, and service-bridge tests passed,
+the new concurrency paths passed the race detector, and focused lint reported
+zero issues. The stripped OpenFox executable grew from 52,766,908 to 52,819,198
+bytes (+52,290 bytes, about 0.10%).
+
+### 19.2 Context firewall — 🟡 runtime/tool/custody enforcement implemented; production ingress/composition open
 
 A valid signature proves origin, not safety. Before remote content reaches an
 Agent loop, integration must:
@@ -1412,9 +1419,23 @@ sensor, or actuator authority merely by being signed.
 `tos-messenger/pkg/firewall` implements typed provenance, effect ceilings,
 content/instruction separation, mandate limits, and structured action decisions.
 `pkg/localapi` and `pkg/eventlog` implement a bounded owner queue with
-single-use signed challenges and one-shot approval/spend claims. A trusted
-OpenFox wrapper that binds actual model context to provenance, plus wallet and
-tool adapters that execute only through this boundary, do not yet exist.
+single-use signed challenges and one-shot approval/spend claims. OpenFox commit
+`fbb052df` adds the trusted runtime half: authenticated origin metadata is kept
+out of model-provider payloads but persisted with session history; the entire
+durable context is folded into action provenance; missing, legacy, summarized,
+conflicting, or oversized lineage fails closed. Built-in, MCP, hardware,
+messaging, skill, and sub-Agent tools are effect-classified and checked before
+execution, with a runtime-derived SHA-256 invocation key, bounded owner polling,
+and a single `actions.claim`. `servicebridge.AuthorizedCustodySigner` likewise
+commits complete quote, network, asset, decimal amount, mandate, and provenance
+before funding, and routes settlement signing through `key-use`.
+
+The integration deliberately selects the local daemon API rather than a Go
+library dependency: Messenger and OpenFox pin different toolchains, and policy
+must have one authority outside the Agent process. Production composition is
+still incomplete in two named places: the production Messenger channel must
+set the authenticated origin after daemon admission, and the buyer constructor
+must make the custody wrapper unavoidable rather than optional injection.
 
 ### 19.3 Physical AI safety — 🟡 foundation exists; profile pending
 
@@ -1720,8 +1741,9 @@ governing roadmap permits the profile.
 
 ### M3 — OpenFox, A2A, MCP, Agent Packet, and commercial execution
 
-**Status: 🟡 execution foundations plus a local OpenFox group-chat acceptance
-adapter; production Messenger integration remains open.**
+**Status: 🟡 execution foundations, local OpenFox group-chat acceptance, and
+runtime tool/custody enforcement implemented; production Messenger ingestion
+and buyer composition remain open.**
 
 Deliver OpenFox channel, context firewall, typed A2A/MCP events, Agent Packet
 carriage, Agent Packet execution-gate adapter, Quote/escrow references, result
@@ -1797,7 +1819,7 @@ required.
 | MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ✅ distinct Stored/Delivery/Application/optional Read profiles and durable state implemented |
 | MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 cryptographic chunk/manifest/E2EE-reference core, vectors, and crash-safe bounded local ciphertext storage/fetch/lease deletion/GC implemented; authenticated remote storage, SSRF controls, remote guarantees, sandbox/scanner and live transfer pending |
 | MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 authenticated owner/runtime daemon IPC exists; OpenFox `pkg/channels/tosmessengerlab`, `cmd/openfox-messenger-lab-demo`, and `tos-messenger/pkg/labgroup` now prove native group bus integration, authenticated membership, durable messages, idempotency and restart cursors over a local Unix socket. The lab path is plaintext and bypasses daemon E2EE/transport, so the production adapter remains open |
-| MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | 🟡 action policy, provenance typing, ceilings, authenticated owner queue, and crash-safe one-shot spend/tool grants implemented; trusted runtime provenance and wallet/tool adapters missing |
+| MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | 🟡 policy/ceilings, authenticated owner queue, crash-safe one-shot grants, OpenFox durable runtime provenance, classified pre-execution tool enforcement, bounded owner wait, and exact-term custody/key-use wrappers implemented. Production authenticated-event ingestion and mandatory buyer-wrapper composition remain |
 | MSG-016 | A2A event bridge | `tos-messenger` / `tos-ai` | 🟡 A2A execution adapter exists |
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, and `tos-ai` Gate adapter exist; daemon/live transport and concurrent three-transport matrix pending |
