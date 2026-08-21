@@ -8,8 +8,7 @@
 ## 1. Purpose
 
 This document defines how the existing TOS ecosystem can be extended into a
-decentralized, Agent-native Messenger for human-to-Agent and Agent-to-Agent
-communication.
+decentralized, Agent-native Messenger for OpenFox-to-OpenFox communication.
 
 The design starts from infrastructure that already exists in the TOS
 repositories:
