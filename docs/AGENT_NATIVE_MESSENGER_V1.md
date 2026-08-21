@@ -1550,6 +1550,14 @@ content is absent from provider-facing history and from the action-authority
 lineage; a hide conservatively aborts a running turn in that room. An authorized
 restore recovers the immutable stored content. OpenFox's complete `make check`
 passed all Go modules and tests, lint, Web backend/frontend checks and docs lint.
+The rebuilt installed acceptance client then sent
+`moderation retraction cycle acceptance 2026-08-21T00:18Z` in room
+`room_2f58a0e48fd6ff8f52653abc51cf3b87762f604a7af903bed5a110d8073d4fd5`;
+Bob and Carol each returned an acknowledgement in
+`local-unix-openmls-ciphertext-relay` mode. The exact plaintext was absent from
+the durable Relay file, and Relay/Alice/Bob/Carol remained `active/running`
+with `NRestarts=0`. This is local encrypted process evidence, not public-network
+or independent-operator evidence.
 
 Messenger `7004f7b` adds the route-neutral redundant-delivery composition
 vector. Two separately keyed and persisted Mailbox stores must both sign the
