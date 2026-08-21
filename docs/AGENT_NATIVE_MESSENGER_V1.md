@@ -447,6 +447,31 @@ count. An exact mode-`0600` Relay-state scan found none of the opening/reply
 plaintext and no `reply_to_event_id` field. This remains same-host operational
 evidence, not independent-operator or selected-public-route evidence.
 
+After attachment/content-admission main `463c43f`, the deployed Messenger
+Relay and MLS proxy were rebuilt from a clean detached clone rather than the
+previous `182f5c4+dirty` binary. Go build metadata now records exact revision
+`463c43f15a810e960c38689abf6445bead8b5715` with `vcs.modified=false`;
+the installed `tos-messenger-lab-group`, `tos-messenger-openfox-mls`, and
+release OpenMLS driver SHA-256 values are respectively
+`c96d90e363135bb079ea6fe28caee64c47fcbf1d2d4931f6ce2de77e6d1ae7e2`,
+`b817e0f8bc854583c2a2c7bca52ba34fe8f8a3f341927f084d31b82904a29543`
+and `371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`.
+OpenFox remains exact clean revision
+`f4087f63af98478de2b57749b24adcef1e43a442`. A complete restart left all seven
+units `active/running` with `NRestarts=0` and the three health responses bound
+the same Room ID and expected AgentLoop owners. Alice opening
+`msg_3f0c66e6f21f227c050914c8147a6f7a8d27ea0dd93c8780325cf86ff506476e`
+produced exactly Bob
+`msg_3ae3a35b5ab827bd1950c5bc7854928da5f957f140e3eb326bc546ceb86e1b0c`
+and Carol
+`msg_aa6bbed13c196aca4c98f53a662a039338652a646abb1623f68cea48db50925f`.
+Both were `openfox-agent-loop` replies bound to the exact opening; all three
+transcripts converged to 78. Exact request retry returned the same opening and
+changed no count. Relay state retained opaque identifiers/ciphertext but no
+probe/reply plaintext or `reply_to_event_id`; Relay, transcript and all seven
+socket files remained mode `0600`. This is current-main same-host regression
+evidence only, not independent/public-network acceptance.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
