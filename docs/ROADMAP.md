@@ -439,8 +439,8 @@ consumes no gate capacity, and may not be cited as acceptance evidence for any
 gate item.
 
 - [Decentralized Agent-Native Messenger V1](AGENT_NATIVE_MESSENGER_V1.md)
-  describes an off-chain messaging plane for human-to-Agent and Agent-to-Agent
-  communication over the existing DHT, ADNL, RLDP, Overlay, and TOS Sites
+  describes an off-chain OpenFox-to-OpenFox messaging plane over the existing
+  DHT, ADNL, RLDP, Overlay, and TOS Sites
   primitives, reusing finalized Agent identity, delegation digests, and the
   Quote, escrow, Receipt, and settlement objects rather than introducing a
   second authority. **Status: ⬜ Incubation.** Its own M0 protocol freeze has
