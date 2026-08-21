@@ -171,7 +171,7 @@ gap named. None of this counts as gate evidence (Section 3).
 
 | Messenger component | Status | Evidence and gap |
 |---|---:|---|
-| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/echo phases, filtering observations, tunnel fallback, and native-sidecar cross-checks; mobility/reliable-transfer coverage and the ≥3-operator real-network study remain open |
+| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/filtering phases, tunnel fallback, and native-sidecar cross-checks. Messenger `5e9d69b` makes the bounded ADNL payload result decision-bearing rather than an unsigned diagnostic: v3 trials sign exact size/outcome/latency, v3 policy identity includes required sizes (necessarily the 8176-byte native maximum), per-cell paired sample floor and operator-balanced success rate, and pairing admits only sizes measured by both halves with AND success and slower-direction latency. Mobility-event execution, RLDP segmentation/interruption/resume/large-envelope coverage, and the ≥3-operator real-network study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now retains the route-neutral chain in daemon config v7: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. Messenger `ba98bc7` makes the stock daemon assemble the protected HTTPS root, native DHT client, committed policy/template and external signer from a separate strict operator document while deriving authority fields from the live finalized delegation. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
@@ -192,14 +192,15 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-21, audited through `tos-messenger` `c19d759`,
+Progress snapshot (2026-08-21, audited through `tos-messenger` `5e9d69b`,
 OpenFox `3fae4f91`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 12/20 🟡, 2/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
-Weighted implementation completion is now **about 95% (bounded estimate
-93–96%)**, up from the prior approximately 94% audit. The cumulative increase is the
+Weighted implementation completion remains **about 95% (bounded estimate
+93–96%)**; this tooling closure stays inside the same band and promotes no
+whole component row. The cumulative increase from the prior approximately 94% audit is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
 role/moderation policy, production OpenFox room-message consumption, and
 runnable authenticated Mailbox service boundary, followed by daemon-owned
@@ -283,6 +284,19 @@ about one second and durable snapshot export/load about 46/13.3 seconds. This
 is local high-end-host evidence; representative low-cost devices, concurrent
 peers and independently administered networks remain required for production
 calibration.
+Messenger `5e9d69b` then closes the M0-R ping-only route-decision gap without
+overclaiming reliable transfer. Endpoint-signed v3 trials retain bounded ADNL
+payload outcomes through the 8176-byte native query maximum; the
+content-addressed v3 policy fixes payloads, paired sample floor, and
+operator-balanced success rate before collection. One-sided results never
+count, either directional failure fails the pair, and latency keeps the slower
+direction. Canonical vectors and decode/verify adversarial cases cover payload
+substitution, duplicates, ordering, and invalid outcome/latency combinations.
+Focused echo tests passed ten consecutive runs, the full ADNL sequence passed
+three consecutive runs, three unchanged-worktree `make verify` runs passed,
+and the remote verify/cross-build/fuzz/vector matrix passed before merge. This
+does not measure mobility or RLDP segmentation/resume and is not the required
+independent multi-operator study, so it promotes no whole component row.
 Product readiness remains
 approximately **70%**: local users can exercise real encrypted group behaviour
 and the public-channel path now has a runnable native discovery/transport
@@ -914,8 +928,8 @@ the post-M0-R message route.
 ## 11. M0-R reachability study and route-strategy gate
 
 **Status: 🟡 Measurement and decision tooling implemented; the real study is
-not run. This blocks M1 scope freeze and implementation start, not merely M1
-acceptance.**
+not run. This blocks M1 route-scope freeze, selected live-transport binding,
+and acceptance; it does not invalidate route-neutral implementation.**
 
 The architecture must not assume that direct ADNL is the normal path before it
 is measured under consumer and mobile network conditions. The study must be
@@ -949,6 +963,9 @@ Every sampled cell must record:
 - p50 and p95 session-establishment latency;
 - p50 and p95 reconnect latency;
 - session survival time;
+- per-predeclared-payload paired ADNL echo attempts, operator-balanced success
+  rate, and p50/p95 round-trip latency, necessarily including the 8176-byte
+  native maximum;
 - failure classification;
 - Proxy/tunnel fallback share;
 - Mailbox Relay fallback share;
@@ -2470,12 +2487,12 @@ required.
 | MSG-026 | Relay and storage commercial profiles | `tos-service-spec` | 🔒 Expansion Gate |
 | MSG-027 | Cross-implementation conformance harness | multiple | 🟡 positive/adversarial object and E2EE vectors plus consumer tests exist; no independent implementation evidence |
 | MSG-028 | Independent multi-operator deployment | deployments/runbooks | ⬜ |
-| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | 🟡 signed collector/policy/report tooling implemented; mobility/reliable-transfer coverage and real study missing, so M1 remains blocked |
+| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | 🟡 signed collector/policy/report tooling implemented; `5e9d69b` upgrades the trial/policy to v3 and makes predeclared bidirectional sized-ADNL evidence through the 8176-byte maximum a direct-route gate, with canonical/adversarial vectors and repeated local/remote green verification. Real mobility events, RLDP segmented/resumable large transfer and the independent multi-operator study remain missing, so M1 route freeze remains blocked |
 | MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | ✅ `3c6a329`: explicit daemon-v5 policy retained by daemon v7, with allow-list/invite/owner-hold and finalized digest check; owner-signed expiring and optionally Agent-scoped 256-bit invites; digest-only persistence; durable one-shot Event binding and restart-safe exact retry; Relay signed-body binding; direct/Relay parity and adversarial tests implemented |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-21, audited through `tos-messenger` `c19d759`, OpenFox `3fae4f91`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-21, audited through `tos-messenger` `5e9d69b`, OpenFox `3fae4f91`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
