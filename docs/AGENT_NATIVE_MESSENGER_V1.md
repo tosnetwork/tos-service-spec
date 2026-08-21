@@ -591,6 +591,20 @@ local evidence but does not provide finalized production membership authority,
 an independently operated Relay, independent review or a second implementation;
 both rows therefore remain 🟡.
 
+The deployed compatibility round then rebuilt the Relay and MLS proxy from a
+clean exact `f0ee6dfc17c6dc012a45147cf098590aa91752ae` tree with
+`vcs.modified=false`; their SHA-256 values are
+`f6165c05e993ed0d3b65ebe2cca1b2504cde7275a67026d8b96d3fad73ca98c1` and
+`29e9c63a219e8dc6b81773d83d09f29cd896f49c732b403248021ed7f1695511`.
+All seven services restarted `active/running` with `NRestarts=0`, proving the
+existing v1 private snapshots still load under the v2-capable binary. Exact
+replay returned opening
+`msg_0234085f7cfa90e9a0f382f84c746704a9c82d0097a9d1f190376aa40b0dc776`
+and the same Bob/Carol AgentLoop replies while every transcript stayed at 84;
+the mode-`0600` Relay state still contained none of their message content.
+This is compatibility and restart evidence for the deployed message-only room;
+the fresh-v2 removal evidence remains the isolated real-driver run above.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
