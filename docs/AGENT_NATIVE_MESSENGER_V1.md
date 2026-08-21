@@ -157,7 +157,7 @@ Expansion-Gate work.
 | Reusable local journal pattern | ✅ | `softwarework.Journal` supplied the original durability pattern; `tos-messenger/pkg/eventlog` now implements the Messenger-specific sole-writer event, ACK, replay, retry, expiry, session, device, room, approval, mandate, budget, and negotiation state | It deliberately remains a single-process store rather than a concurrent cross-process claim database |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, admission policy, or rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
-| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes. Messenger `beaa358` additionally assembles runnable public-channel replicas over native DHT + ADNL Overlay/RLDP with verified history synchronization and restart; `a3c5910` adds deterministic independently re-verifiable TOS Storage Bag snapshots, bounded publication and authority-free BagID hints; `e3ea408` adds bounded stock CLI download/catch-up, full finalized snapshot re-verification and restart-stable locator recovery; `961c02d` proves it across two real same-host Storage daemons and a locally signed DHT; `c19d759` adds protocol-maximum local resource calibration and replaces the production node's repeated whole-history rebuild with a fail-atomic incremental cursor | Independent Driver review, private-room history policy, independently operated/public-network Relay/Overlay/Storage evidence, representative-device/concurrent-peer production calibration and second-implementation review remain open; direct same-Endpoint device history is implemented separately |
+| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, a join-forward-only prior-history policy, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes. Messenger `beaa358` additionally assembles runnable public-channel replicas over native DHT + ADNL Overlay/RLDP with verified history synchronization and restart; `a3c5910` adds deterministic independently re-verifiable TOS Storage Bag snapshots, bounded publication and authority-free BagID hints; `e3ea408` adds bounded stock CLI download/catch-up, full finalized snapshot re-verification and restart-stable locator recovery; `961c02d` proves it across two real same-host Storage daemons and a locally signed DHT; `c19d759` adds protocol-maximum local resource calibration and replaces the production node's repeated whole-history rebuild with a fail-atomic incremental cursor | Independent Driver review, independently operated/public-network Relay/Overlay/Storage evidence, representative-device/concurrent-peer production calibration and second-implementation review remain open; direct same-Endpoint device history is implemented separately |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md`; the production Messenger channel consumes authenticated direct/room input and submits reply semantics to daemon-owned event construction. Messenger `40e06ff`/`dcfca91` and OpenFox `cfa58ee7`/`6ae673bf` add daemon-assembled finalized-Quote verification, make it a mandatory post-funding/pre-dispatch native-buyer gate including crash recovery, and verify the deterministic funded escrow directly without a locator prewrite. OpenFox `755fbf2d` assembles the production buyer's frozen 2-of-3 chain authority graph. Protocol `94d38f8` and OpenFox `8d0bcedf`/`3fae4f91` add exact custody-reviewed escrow deployment and strict `prepare → inspect → deploy-prepare → deploy-broadcast → fund → dispatch → terminal settlement` production commands, durable leases, signed policy verification, Messenger spend/Quote gates and three transports | Fresh independent buyer/provider commerce sessions, selected live transport, and independently reconstructed settlement evidence remain missing |
 | Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist. Messenger main `026b987` adds a route-neutral authenticated remote boundary over the private encrypted format: exact Endpoint-signed per-manifest grants, separate capability/storage keys, operation/body-bound single-use requests, finalized-authority rechecks, durable replay/clock protection, resumable bounded ciphertext transfer, signed storage acknowledgements, strict HTTPS locators and public-only DNS dialing. Messenger main `463c43f` adds a fail-closed Linux Agent-content boundary: an anonymous sealed `memfd` with no persistent pathname, SHA-256-pinned and private-staged scanner/bubblewrap/prlimit executables, networkless/capability-dropped sandboxing, strict all-must-allow verdict binding, and a parser-free UTF-8 text inspector. Messenger `96a30ee`, merged as main `52f367c`, adds `artifact.encrypted` v3 recipient authority, daemon-owned fetch/AEAD/scan admission, and a reserved local API that releases only admitted bounded text without Reference or capability material; OpenFox `cb8080d7`, merged as `ac2475a3`, independently rehashes and durably applies that text. Messenger `13a4f48`, merged as main `4833a2c`, adds daemon-owned restartable outbound AES-GCM streaming, separate externally Endpoint-signed upload/fetch grants, bounded resumable storage and StoredAck-before-delivery ordering; OpenFox `69dce589`, merged as main `40554b6c`, streams only exact registered MediaStore files and receives no storage, retention, key, network or Event authority | Independently operated public TLS transfer and interruption evidence, audited retention behavior, selected production malware scanning and hard resource-isolation evidence, and commercial storage terms remain open; the reference text inspector is neither a general malware product nor a prompt-injection defense, and DeleteAck proves only the named operator's local lease observation, not cryptographic erasure |
@@ -205,7 +205,7 @@ wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
 
 Progress snapshot (2026-08-21, audited through TOS Core main `0aac896`,
-`tos-messenger` main `bb2681a`, OpenFox main `c5746b2a`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+`tos-messenger` main `983117b`, OpenFox main `c5746b2a`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -216,10 +216,12 @@ the denominator does not claim that any external gate was completed. The
 terminal removed-member lifecycle added by Messenger main `bb2681a` and
 OpenFox main `c5746b2a` closes a local runtime correctness gap inside already
 partial private-room/OpenFox rows, so the percentage and component counts do
-not change. The remaining denominator is dominated by independently operated
-transport evidence, external review/approval and a second implementation, not
-Desktop/Web/Android/iOS client work. The authenticated attachment service,
-recipient authority, daemon
+not change. Messenger main `983117b` likewise closes the last local M4 design
+choice—private-room prior history—inside an already partial row without
+claiming external evidence, so the percentage remains unchanged. The remaining
+denominator is dominated by independently operated transport evidence, external
+review/approval and a second implementation, not Desktop/Web/Android/iOS client
+work. The authenticated attachment service, recipient authority, daemon
 admission, OpenFox consumption and outbound streaming closures promote no
 whole component row. Messenger main `4833a2c` and OpenFox main `40554b6c`
 remove both the recipient-fetch/application gap and the local outbound
@@ -667,6 +669,32 @@ reported the same terminal room ID and returned `410` for a new send. The
 disposable state and processes were removed after the assertions. This adds
 exact-main process/restart evidence for terminal membership but remains
 same-host local evidence, so no component or external gate is promoted.
+
+Messenger `6f24c14`, merged as main `983117b`, freezes the remaining local M4
+prior-history choice as join-forward only. Its real OpenMLS integration seals
+content before a device replacement, applies the genuine replacement Commit
+and Welcome, and requires the new leaf to fail decryption; the existing joiner
+no-past test remains. Event-log adversarial coverage separately proves a Room
+ID cannot address direct-history export and a room Event cannot enter an
+imported direct-history segment. Focused export/import tests passed twenty
+runs, the real OpenMLS lifecycle passed ten runs, complete local `make verify`
+passed, and all fifteen remote verify/vector/cross-build/fuzz jobs were green.
+This resolves the local policy decision but supplies no independent Driver
+review, second implementation, or authenticated real-Relay evidence, so M4,
+MSG-020 and MSG-021 remain 🟡.
+
+Although this policy commit changes tests and documentation rather than the
+runtime path, the acceptance host rebuilt both Messenger executables from a
+clean exact `983117b2cb9bf27838306b69c8896dcf204c8c92` clone. The Relay and
+MLS-proxy SHA-256 values are
+`90f7a19be658f1e270f872af9a823ef448cefdd46a69d69454c51b1e42bf331d`
+and `85b4b220aaac3e8c5ccc496b448d7c21f7c32cd46c44537c0930cd013b1c8f53`;
+both report `vcs.modified=false`. Restarting all seven services left each
+`active/running` with `NRestarts=0`. All three OpenFox health responses retained
+the same room and `active_member: true`; exact historical replay returned the
+same opening Event ID, all transcripts remained at 84 with one opening and one
+of each bound reply, the mode-`0600` Relay contained none of their plaintext,
+and the warning journal was empty.
 
 ### 5.4 Scenario acceptance
 
@@ -1463,6 +1491,15 @@ enforces current-Endpoint-signed membership plus finalized-delegation-bound
 transfer durably. Three-member founding/join/replacement/removal/self-update,
 no-past/no-future secrecy, exporter agreement/separation, forged-Commit refusal,
 encrypted bidirectional messages and full process/journal restart are tested.
+The v1 private-room prior-history policy is join-forward only: a new or
+replacement leaf starts at its authenticated Welcome epoch, while an existing
+leaf may catch up ordered opaque ciphertext only for its own membership
+interval. Room plaintext and earlier epoch/exporter secrets are never copied
+to a later leaf. Direct-device history cannot be used as a bypass because its
+export route accepts only `conv_` identifiers and imported segments reject
+room Events. Changing this decision requires a new protocol version and
+separate authority, privacy, retention, moderation-projection and cryptographic
+review.
 Independent Driver review, real Relay evidence, candidate-vector
 consumption, and a second implementation remain open.
 
@@ -1834,6 +1871,22 @@ produces a tombstone, removes action provenance, and cancels an active room
 turn; `restore` recovers the stored original. Independent Driver review, real
 Relay delivery/catch-up, and independent vector consumption
 remain open.
+
+#### Private-room prior history
+
+V1 is join-forward only. An authenticated Welcome defines the earliest epoch
+available to a new or replacement MLS leaf. Existing leaves may perform
+offline catch-up only over ordered opaque traffic from epochs in which they
+were members. There is no room-role, owner, Relay, OpenFox or device-history
+override that copies decrypted room content or old epoch/exporter secrets to a
+later leaf.
+
+The concrete boundary is enforced in both directions. OpenMLS tests require an
+ordinary joiner and a replacement device to fail when opening ciphertext from
+before their respective Welcome/Commit. Direct-device history export cannot
+name a Room ID, and import refuses a segment containing a room Event. This
+closes the v1 policy decision without weakening MLS no-past secrecy; any future
+backfill is a new reviewed protocol version, not a configuration switch.
 
 #### Room membership is not Overlay membership
 
@@ -2899,11 +2952,11 @@ reconstructs settlement without a shared private database.
 ### M4 — Multi-device and private rooms
 
 **Status: 🟡 Device succession/fan-out and owner-authorized direct-device
-history, signed membership/transfer, bounded epoch-bound private roles, queued
+history, join-forward-only private-room history, signed membership/transfer,
+bounded epoch-bound private roles, queued
 and applied-history moderation, pinned OpenMLS suite `0x0001`, and encrypted
 three-OpenFox local acceptance are implemented with crash-safe restart evidence;
-Room prior-history policy, real authenticated Relay transport and independent
-evidence remain.**
+real authenticated Relay transport and independent evidence remain.**
 
 Deliver device authorization and removal, history synchronization, private Room
 membership, selected group encryption, role policy, fan-out limits, and
@@ -2975,6 +3028,13 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
+MSG-020 and MSG-021 implemented sub-results now also include Messenger
+`6f24c14`, merged as main `983117b`: v1 private-room history is explicitly
+join-forward only; both ordinary and replacement Welcome states have no prior
+plaintext authority; direct-device history refuses Room-ID export and room
+Event import. This closes the named local policy choice without changing either
+row's 🟡 status because independent transport and cryptographic evidence remain.
+
 MSG-014's implemented sub-results now also include Messenger `8475ec5` and
 OpenFox `7f5f2196`: canonical MLS-encrypted reply references survive delivery
 to every member and full process restart, exact retries remain stable, changed
@@ -2988,7 +3048,7 @@ closed, and the repeated deployed restart required no automatic recovery.
 MSG identifiers 023–025 are retired from this roadmap rather than retained as
 empty client deliverables. They are not included in the denominator.
 
-Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `f0ee6df`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `983117b`, OpenFox main `c5746b2a`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
