@@ -699,6 +699,33 @@ same opening Event ID, all transcripts remained at 84 with one opening and one
 of each bound reply, the mode-`0600` Relay contained none of their plaintext,
 and the warning journal was empty.
 
+After the Physical AI gate and OpenFox-only scope changes, the acceptance host
+rebuilt from clean exact Messenger main
+`2f16aae418f836cad976bc5f6705f59bf928c702` and OpenFox main
+`5a5624eb1f387dc7bac2d8d069ef2a40579a2e20`. The lab Relay, MLS proxy,
+OpenMLS Driver and Agent binary SHA-256 values are respectively
+`737afc5db610957bfe28d616071ec2aee4274c09615e4da65aa9751af0bac899`,
+`aac81586e63263c1dde659129c8f8f6c8f0932f7b92a112c846aba3cf9130c71`,
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`,
+and `938d85b5e4dd4392bbdb9e58059c9c60d0fcf5e664a103fedf5e2841fa528a81`;
+all three Go binaries report their exact revision with `vcs.modified=false`.
+
+Alice then sent opening
+`msg_540d1671bf9d559f7fef877e6d3fb2b60fd2e43388476eaf0ac60e7353f72a21`
+in the existing room. Bob and Carol produced exactly one real-AgentLoop reply,
+`msg_a3a6aa737f66b25dbc26b6c6ce563b68f213467a0129c6526c536b32f177065e`
+and `msg_27e719ec2b59b2ff3f155bf53e4941d66113b29c351b68012e66f1f745d96ef0`,
+both cryptographically bound to that opening. Each durable transcript advanced
+from 84 to 87 entries. After all seven Relay/proxy/Agent services restarted,
+the three health responses retained one room, `active_member: true`, and
+`reply_mode: agent-loop`; every service was `active/running` with
+`NRestarts=0`. Replaying the same caller request returned the same opening ID,
+left every transcript at 87 with exactly one opening and two bound replies, and
+caused no second Agent turn. The mode-`0600` Relay file contained none of the
+opening or reply plaintext, and the warning-or-higher journal since restart was
+empty. This is current-main same-host encrypted/restart regression evidence;
+it does not satisfy the independent-operator or real-network gates.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
