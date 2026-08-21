@@ -171,7 +171,7 @@ gap named. None of this counts as gate evidence (Section 3).
 
 | Messenger component | Status | Evidence and gap |
 |---|---:|---|
-| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/filtering phases, tunnel fallback, and native-sidecar cross-checks. Messenger `5e9d69b` makes the bounded ADNL payload result decision-bearing rather than an unsigned diagnostic: v3 trials sign exact size/outcome/latency, v3 policy identity includes required sizes (necessarily the 8176-byte native maximum), per-cell paired sample floor and operator-balanced success rate, and pairing admits only sizes measured by both halves with AND success and slower-direction latency. Mobility-event execution, RLDP segmentation/interruption/resume/large-envelope coverage, and the ≥3-operator real-network study remain open |
+| M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/filtering phases, tunnel fallback, and native-sidecar cross-checks. Messenger `182f5c4` upgrades the decision-bearing trial and policy to v4: paired sized ADNL evidence still requires the 8176-byte native maximum, while an exact deterministic 4,000,001-byte RLDPv2 response necessarily spans three 2,000,000-byte FEC parts. After the first decoded part, the collector suppresses observable bidirectional RLDP traffic for the predeclared interval and accepts recovery only when the original `DoQuery` completes with the exact digest and no application retry. Paired per-cell floors and operator-balanced transfer/recovery rates now gate `direct-first`. The protocol-v1 native sidecar has no RLDP command and therefore refuses an RLDP plan rather than claiming a native cross-check. Real mobility-event execution, independently operated real-network RLDP/native evidence, and the ≥3-operator study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now retains the route-neutral chain in daemon config v7: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. Messenger `ba98bc7` makes the stock daemon assemble the protected HTTPS root, native DHT client, committed policy/template and external signer from a separate strict operator document while deriving authority fields from the live finalized delegation. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
@@ -201,7 +201,7 @@ channel-shutdown, gateway-reaper, and test-observation races exposed while
 running the complete repository race gate; this strengthens verification but
 does not promote a component row.
 
-Progress snapshot (2026-08-21, audited through `tos-messenger` `baf3d95`,
+Progress snapshot (2026-08-21, audited through `tos-messenger` `182f5c4`,
 OpenFox `a3ec1c17`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 12/20 🟡, 2/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
@@ -306,6 +306,23 @@ three consecutive runs, three unchanged-worktree `make verify` runs passed,
 and the remote verify/cross-build/fuzz/vector matrix passed before merge. This
 does not measure mobility or RLDP segmentation/resume and is not the required
 independent multi-operator study, so it promotes no whole component row.
+Messenger `182f5c4` then closes the executable RLDP transfer/recovery tooling
+gap without treating a local fault-injection test as a network study. The v4
+trial signs each exact plan and result; its canonical required plan returns
+4,000,001 deterministic bytes in three fixed 2,000,000-byte RLDPv2 FEC parts,
+starts a predeclared 150 ms bidirectional suppression only after one decoded
+part, records actually suppressed protocol messages, and requires the same
+original query to finish with the exact SHA-256 digest. The content-addressed
+v4 policy rejects one-sided evidence, an application retry presented as resume,
+no observable loss, wrong part shape or digest, and a planned outage shorter
+than policy even when scheduler overshoot is longer. Paired cells use AND
+success and the slower latency, and `direct-first` now requires both segmented
+transfer and same-transfer recovery rates. Five consecutive focused end-to-end
+runs passed, followed by repeated complete `make verify` runs and all twelve
+remote verify, vector, cross-build and fuzz jobs. The native sidecar explicitly
+refuses this phase because `tos-adnl-probe/1` has no RLDP command. Real mobility,
+real-network execution, a qualifying native RLDP cross-check, and the independent
+multi-operator study remain missing, so no whole row is promoted.
 Messenger `8475ec5` and OpenFox `7f5f2196` then close the deployed local
 causal-reply gap: content and the canonical reply Event ID share one strict
 MLS-authenticated plaintext frame, retries commit to both, all recipients
@@ -2527,7 +2544,7 @@ required.
 | MSG-026 | Relay and storage commercial profiles | `tos-service-spec` | 🔒 Expansion Gate |
 | MSG-027 | Cross-implementation conformance harness | multiple | 🟡 positive/adversarial object and E2EE vectors plus consumer tests exist; no independent implementation evidence |
 | MSG-028 | Independent multi-operator deployment | deployments/runbooks | ⬜ |
-| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | 🟡 signed collector/policy/report tooling implemented; `5e9d69b` upgrades the trial/policy to v3 and makes predeclared bidirectional sized-ADNL evidence through the 8176-byte maximum a direct-route gate, with canonical/adversarial vectors and repeated local/remote green verification. Real mobility events, RLDP segmented/resumable large transfer and the independent multi-operator study remain missing, so M1 route freeze remains blocked |
+| MSG-029 | Reachability matrix and route-strategy gate | `tos-messenger` / deployments | 🟡 signed collector/policy/report tooling implemented; `182f5c4` upgrades the trial/policy to v4 and makes both predeclared bidirectional sized-ADNL evidence through the 8176-byte maximum and a deterministic three-part 4,000,001-byte RLDPv2 transfer with observable mid-transfer loss and same-query recovery direct-route gates. Canonical/adversarial vectors reject one-sided results, no-loss recovery, application retry, shape/digest substitution and under-planned interruption; repeated local and twelve-job remote verification are green. The protocol-v1 native sidecar refuses RLDP rather than overclaiming it. Real mobility events, independently operated real-network/native RLDP evidence and the multi-operator study remain missing, so M1 route freeze remains blocked |
 | MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | ✅ `3c6a329`: explicit daemon-v5 policy retained by daemon v7, with allow-list/invite/owner-hold and finalized digest check; owner-signed expiring and optionally Agent-scoped 256-bit invites; digest-only persistence; durable one-shot Event binding and restart-safe exact retry; Relay signed-body binding; direct/Relay parity and adversarial tests implemented |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
@@ -2539,7 +2556,7 @@ references fail closed, and Relay state remains opaque. This closes the local
 causal-binding defect found during deployed acceptance; selected transport and
 independent-network evidence still keep MSG-014 🟡.
 
-Work-package progress (2026-08-21, audited through `tos-messenger` `baf3d95`, OpenFox `a3ec1c17`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-21, audited through `tos-messenger` `182f5c4`, OpenFox `a3ec1c17`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
