@@ -593,12 +593,12 @@ is not implied by Gate C's initial profile.
     keys; no Gateway, Managed mode, or arbitrary on-chain message store is
     introduced. Follow-up is integration into a production Agent runtime after
     Gate D/E/F external sessions, not a new consensus feature.
-17. 🟡 **Application-layer product bridge:** the OpenFox buyer/provider
-    integration contract and shared iOS/Android client design are now frozen in
-    `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md` and
-    `docs/MOBILE_TOS_SERVICE_CLIENT_V1.md`. Runtime integration, mobile UX, and a fresh
-    paid application session remain after the protocol/SDK work; these apps
-    must reuse the finalized Native lifecycle and cannot create parallel facts.
+17. 🟡 **OpenFox application-layer product bridge:** the OpenFox buyer/provider
+    integration contract is frozen in `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md`.
+    Runtime integration and a fresh paid OpenFox application session remain
+    after the protocol/SDK work. Desktop/Web, Android, and iOS client products,
+    UI, push integration, packaging, and client acceptance are outside this
+    roadmap and are not part of any completion denominator.
 18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes

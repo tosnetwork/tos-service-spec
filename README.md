@@ -114,8 +114,8 @@ refine these rules but cannot contradict them.
   roadmap gates, and cannot be cited as gate acceptance evidence.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
-- [Mobile TOS Service Client V1](docs/MOBILE_TOS_SERVICE_CLIENT_V1.md) defines the shared
-  iOS/Android discovery, approval, custody, execution, and settlement UX.
+- [Mobile TOS Service Client V1](docs/MOBILE_TOS_SERVICE_CLIENT_V1.md) is an
+  archived reference outside the active OpenFox-only product roadmap.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
   finalized-state-derived Agent GDP, settled receipts, job, wallet,
   reliability, and
