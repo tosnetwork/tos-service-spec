@@ -726,6 +726,36 @@ opening or reply plaintext, and the warning-or-higher journal since restart was
 empty. This is current-main same-host encrypted/restart regression evidence;
 it does not satisfy the independent-operator or real-network gates.
 
+After the scanner-cgroup change, the acceptance host rebuilt the Messenger
+executables and OpenMLS Driver from clean exact Messenger main
+`5f5c8beb2ea941060255ca509a0edd6e37fa14d4`; the unchanged Agent remained a
+clean exact OpenFox main
+`5a5624eb1f387dc7bac2d8d069ef2a40579a2e20` build. Relay, MLS-proxy, Driver and
+Agent SHA-256 values were respectively
+`6f1804bb9fdf6a367cc944577c549e75a13b722ab70e265122926e2c1b84275f`,
+`a6fcc36f867c57b13bbd7ccd562b2fb9b3786268811248d2fed49f16da96c001`,
+`f6e22847ec2336ab3ef4bc9cd8f09382336a70ed666a6d6b9881996b120caefa`,
+and `938d85b5e4dd4392bbdb9e58059c9c60d0fcf5e664a103fedf5e2841fa528a81`;
+all Go binaries reported their exact revision and `vcs.modified=false`.
+
+In room
+`room_2f58a0e48fd6ff8f52653abc51cf3b87762f604a7af903bed5a110d8073d4fd5`,
+Alice sent opening
+`msg_3213ff690a2384fca8b8fd12931413de2ffe9396149068c57e20504775d5f54b`.
+Bob and Carol each produced one real `openfox-agent-loop` reply,
+`msg_0254872765967b12f10671af433bcf9269005560f9ac38f37cb94352804ab3de`
+and `msg_422b5cd5a3cfd9ed86cecc79dcf0f9fa018fc59da16692852d7f37ce1166cde7`;
+both carried the exact opening as `reply_to_event_id`. Every durable transcript
+advanced from 87 to 90 entries. A full seven-service restart retained the room,
+`active_member: true` and `reply_mode: agent-loop`; exact caller-request replay
+returned the same opening ID and left all transcripts at 90 with one occurrence
+of each Event, proving no second Agent turn. All services were `active/running`
+with `NRestarts=0` and successful main status. The mode-`0600` Relay contained
+none of the three plaintext bodies, and the warning-or-higher journal was
+empty. This proves current-main same-host encrypted/restart compatibility after
+the attachment hardening; independent operators and a real network remain
+separate open gates.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
