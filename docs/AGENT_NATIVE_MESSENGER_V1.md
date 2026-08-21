@@ -1776,6 +1776,12 @@ task again. Full tagged OpenFox tests/vet, focused races, nested normal/race/vet
 and docs lint passed. This is an executable production code path, but no fresh
 independently operated buyer/provider/live-node settlement evidence was created,
 so the component remains 🟡.
+The unrelated running group acceptance was rechecked after this change: all
+seven Alice/Bob/Carol Agent/proxy plus Relay user services remained
+`active/running` with `NRestarts=0`; each Agent reported the same
+`room_2f58a0e48fd6ff8f52653abc51cf3b87762f604a7af903bed5a110d8073d4fd5`,
+`reply_mode=agent-loop`, and a 42-entry transcript. Thus the commercial-path
+work did not regress the already running three-OpenFox encrypted group loop.
 OpenFox `7fe6ec10` established that final composition boundary for inbound
 text, and the current adapter extends the same independent verification to
 canonical `room.message`: it binds body/Event Room IDs and the non-zero
