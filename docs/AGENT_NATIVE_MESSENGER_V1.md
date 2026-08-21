@@ -192,7 +192,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-21, audited through `tos-messenger` `cb97f0d`,
+Progress snapshot (2026-08-21, audited through `tos-messenger` `0d5988f`,
 OpenFox `cbe9f51c`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 11/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
@@ -213,7 +213,8 @@ real AgentLoop response path, followed by executing the encrypted three-process
 group acceptance through three actual durable AgentLoop runtimes, followed by
 complete concurrent and ordered three-transport Gate arbitration evidence,
 followed by the typed Messenger-to-OpenFox provider Unix handoff and the
-daemon-owned admitted-event lease/retry/completion assembly; it is not
+daemon-owned admitted-event lease/retry/completion assembly, then the
+owner-authorized funding/wallet escrow-locator write boundary; it is not
 a status promotion of an entire component row. Product readiness is
 approximately **60%**: local users
 can exercise real encrypted group behaviour, while public discovery/transport,
@@ -1818,6 +1819,18 @@ restart, provider-failure, runtime-bypass and full repository gates pass. What
 remains is the selected post-M0-R live inbound transport and independently
 operated evidence; Transport `none` deliberately creates no network route.
 
+Messenger `0d5988f` makes the existing finalized-Quote resolver's local
+commitment→escrow dependency writable by a real owner-side funding/wallet
+workflow without accepting configuration as funding provenance. The new
+owner-only `escrow-locations.record` operation and
+`prepare-escrow-location` offline-signing command bind the exact Quote
+commitment, funded escrow account, and caller-attested Capability class to a
+single-use challenge. Exact funding retries are idempotent; an attempted
+redirect conflicts; the runtime principal cannot write the mapping even with a
+well-formed request. The record survives restart and remains only a locator for
+the subsequent finalized chain read: it does not fund an escrow, prove that a
+transaction occurred, or inject the quote resolver into live execution.
+
 ### 20.4 Session economics
 
 Do not settle per message. Preferred patterns are:
@@ -2138,7 +2151,7 @@ required.
 | MSG-016 | A2A event bridge | `tos-messenger` / `tos-ai` | 🟡 A2A execution adapter exists |
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, `tos-ai` Gate adapter, complete three-transport matrix, and a bounded canonical Messenger→owner-private OpenFox provider socket with independent reverification exist. Messenger `cb97f0d` adds daemon-v6 admitted-event leasing, provider-failure retry, restart-safe dual completion and atomic exclusion from the general model/runtime inbox; selected live inbound transport and independently operated evidence remain pending |
-| MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented; funding/wallet must populate that ledger and the live daemon execution path remains missing |
+| MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented. Messenger `0d5988f` exposes an owner-signed offline prepare/sign/submit operation for a wallet to populate the exact funded commitment/account/class binding; exact retry is idempotent, redirects conflict and runtime writes fail. Real wallet funding, live quote-resolver/execution injection, settlement and live-node evidence remain missing |
 | MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v6 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, and production DHT/HTTPS refresh implemented; stock-command operator-resource assembly, history synchronization, cross-observer fork exchange, and live evidence missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` / `openfox` | 🟡 Signed room authority/transfer, bounded epoch-bound roles, and auditable queued/applied-history `hide`/`restore` are durable and tested; production admission re-verifies finalized authority and applies moderation before queue publication, while OpenFox persists the presentation overlay, tombstones hidden model/UI history, withdraws action lineage and supports restore. Pinned OpenMLS supplies secrecy/PCS, encrypted OpenFox chat through per-Agent state owners, bounded capacity, and 2-of-2 independently keyed Mailbox offline catch-up across two PCS epochs. RoomRecord v2 requires resynchronization into fail-closed v3. Authenticated independently operated network Relay evidence, independent review, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
