@@ -192,8 +192,17 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-21, audited through `tos-messenger` `5e9d69b`,
-OpenFox `3fae4f91`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
+The OpenFox adapter row additionally includes Messenger `8475ec5` and OpenFox
+`7f5f2196`: the reply Event ID is sealed inside a canonical MLS-authenticated
+plaintext frame, restored in every recipient context, and included in the
+exact-retry commitment. Content/reference substitution fails and Relay state
+contains neither field. OpenFox `62c076f0` also removes the async SubTurn,
+channel-shutdown, gateway-reaper, and test-observation races exposed while
+running the complete repository race gate; this strengthens verification but
+does not promote a component row.
+
+Progress snapshot (2026-08-21, audited through `tos-messenger` `baf3d95`,
+OpenFox `a3ec1c17`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 12/20 🟡, 2/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -297,6 +306,16 @@ three consecutive runs, three unchanged-worktree `make verify` runs passed,
 and the remote verify/cross-build/fuzz/vector matrix passed before merge. This
 does not measure mobility or RLDP segmentation/resume and is not the required
 independent multi-operator study, so it promotes no whole component row.
+Messenger `8475ec5` and OpenFox `7f5f2196` then close the deployed local
+causal-reply gap: content and the canonical reply Event ID share one strict
+MLS-authenticated plaintext frame, retries commit to both, all recipients
+recover the same reference, and the Relay receives neither. OpenFox
+`62c076f0` removes three independent async shutdown/completion race classes
+exposed by the full race gate. Messenger passed three consecutive local
+`make verify` runs and its twelve-job remote matrix; OpenFox passed two
+consecutive post-fix full-repository race runs plus vet, docs lint, and build.
+This strengthens the existing local OpenFox component but does not supply the
+selected live route or independent-operator evidence needed for promotion.
 Product readiness remains
 approximately **70%**: local users can exercise real encrypted group behaviour
 and the public-channel path now has a runnable native discovery/transport
@@ -305,14 +324,21 @@ two-daemon real-binary evidence plus protocol-maximum local calibration;
 measured route selection, independently operated/public-network deployment and
 wire-freeze evidence remain the dominant gates.
 
-The live local OpenFox acceptance was rechecked on 2026-08-21 after the history
-work: all seven supervised Agent/proxy/Relay processes were active with zero
-restarts. Alice opening `msg_841d…7f60` produced exactly Bob
-`msg_6e59…d3ee` and Carol `msg_af43…e409`, both bound to that opening; all
-three durable transcripts/cursors converged to 45/50. Reusing the exact request
-ID returned the same opening and added no transcript record. This is same-host
-process/restart evidence, not selected transport or independent-network
-evidence.
+The live local OpenFox acceptance was rechecked on 2026-08-21 after Messenger
+`baf3d95` and OpenFox `a3ec1c17` were installed. All seven supervised
+Agent/proxy/Relay processes were `active/running` with `NRestarts=0`. Alice
+opening `msg_d2e7…efb3` produced exactly Bob `msg_ac0f…58de` and Carol
+`msg_90c3…e20b`; every sender and recipient transcript copy retained an
+authenticated `reply_to_event_id` equal to the opening. Exact retry returned
+the same opening and left all transcript counts at 51, while content
+substitution under that request ID failed. After a complete ordered restart of
+all seven processes, the same retry remained idempotent and a fresh opening
+`msg_3e1d…0f54` produced Bob `msg_3db0…fe23` and Carol `msg_1240…3c6d`, again
+with the same causal reference on every copy; all transcripts converged to 54.
+The Relay file contained none of either opening, either reply, or the
+`reply_to_event_id` field; durable directories/files remained mode `0700`/
+`0600`. This is same-host process/restart evidence, not selected transport or
+independent-network evidence.
 
 ### 5.4 Scenario acceptance
 
@@ -354,8 +380,12 @@ three-OpenFox local process demonstration in which distinct private MLS state
 owners perform sequential invitations and three separately supervised OpenFox
 Agent processes exchange ciphertext through an opaque Relay, reject tampering,
 reply exactly once to an Event-bound probe, and preserve stable retry identity
-through restart. OpenFox `c47a98e0` additionally sends those probes through a
-real durable AgentLoop in every process and proves completed-replay model
+through restart. Messenger `8475ec5` and OpenFox `7f5f2196` additionally put
+the reply reference inside the canonical MLS-authenticated plaintext frame,
+restore it for all recipients and reject content/reference retry substitution
+without exposing the reference to the Relay. OpenFox `c47a98e0` sends those
+probes through a real durable AgentLoop in every process and proves
+completed-replay model
 idempotency. This closes the
 local encrypted acceptance seam but not the public S2 gate. Blocking, beyond
 everything S1 lacks: (6) independent Driver review and second-implementation
@@ -1665,6 +1695,15 @@ before publishing ciphertext or releasing plaintext; the shared Hub persists
 only opaque messages and metadata. Exact retries reuse one ciphertext, and a
 tampered ciphertext does not advance receiver state.
 
+The optional reply Event ID is part of the same strict canonical plaintext
+frame as message content before OpenMLS sealing. It is therefore confidential
+and authenticated with the content, reaches every member identically, and is
+restored into OpenFox's inbound reply context. The retry commitment covers the
+whole frame, so a stable client ID cannot be replayed with different content
+or a different reply target. Pre-frame durable messages remain readable only
+as reply-less migration input; they cannot acquire a reference after the fact.
+The opaque Relay receives only MLS ciphertext and never the reply field.
+
 This is deliberately an acceptance seam, not a shortcut around Sections 11–13:
 it proves local MLS/OpenFox composition and Relay opacity but does not use an
 independently operated network route or the production daemon Event path. The
@@ -2383,7 +2422,8 @@ governing roadmap permits the profile.
 ### M3 — OpenFox, A2A, MCP, Agent Packet, and commercial execution
 
 **Status: 🟡 execution foundations, encrypted local three-AgentLoop OpenFox
-group-chat acceptance, authenticated production ingestion/reply construction,
+group-chat acceptance with recipient-visible authenticated causal replies,
+authenticated production ingestion/reply construction,
 mandatory runtime tool/custody enforcement, and exact finalized-Quote
 pre-dispatch verification plus a concrete finalized-chain buyer authority graph
 and staged prepare/deploy/fund/authorized-dispatch/terminal-settlement commands
@@ -2492,7 +2532,14 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
-Work-package progress (2026-08-21, audited through `tos-messenger` `5e9d69b`, OpenFox `3fae4f91`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+MSG-014's implemented sub-results now also include Messenger `8475ec5` and
+OpenFox `7f5f2196`: canonical MLS-encrypted reply references survive delivery
+to every member and full process restart, exact retries remain stable, changed
+references fail closed, and Relay state remains opaque. This closes the local
+causal-binding defect found during deployed acceptance; selected transport and
+independent-network evidence still keep MSG-014 🟡.
+
+Work-package progress (2026-08-21, audited through `tos-messenger` `baf3d95`, OpenFox `a3ec1c17`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
