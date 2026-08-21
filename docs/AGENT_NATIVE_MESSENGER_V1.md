@@ -174,7 +174,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | M0-R measured reachability study and route-strategy decision | 🟡 Partial | `tos-messenger` `pkg/reachability`, `pkg/probe`, and `cmd/tos-reachability*` implement signed paired evidence, predeclared policy gates, UDP/ADNL collectors, hold/reconnect/filtering phases, tunnel fallback, and native-sidecar cross-checks. Messenger `182f5c4` upgrades the decision-bearing trial and policy to v4: paired sized ADNL evidence still requires the 8176-byte native maximum, while an exact deterministic 4,000,001-byte RLDPv2 response necessarily spans three 2,000,000-byte FEC parts. After the first decoded part, the collector suppresses observable bidirectional RLDP traffic for the predeclared interval and accepts recovery only when the original query completes with the exact digest and no application retry. TOS Core `d6f3d3dd6`/`1bad7f74f` and Messenger `c90c25e` add the equivalent native command: progress is bound to the exact complementary response transfer ID, the dedicated UDP manager counts a real whole-socket loss window, and strict Go decoding rejects shape, digest and success-invariant substitution before signing. Native-native Result and signed-Trial acceptance cover both directions locally. Paired per-cell floors and operator-balanced transfer/recovery rates gate `direct-first`. Real mobility-event execution, independently operated real-network RLDP/native evidence, and the ≥3-operator study remain open |
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now retains the route-neutral chain in daemon config v7: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. Messenger `ba98bc7` makes the stock daemon assemble the protected HTTPS root, native DHT client, committed policy/template and external signer from a separate strict operator document while deriving authority fields from the live finalized delegation. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
-| One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
+| One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v2` construction. Messenger `a0a68c4`/`aab8fbd` (main merge `866b6dc`) applies the decided raw-32-byte genesis representation under explicitly advanced domains/schemas and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
 | Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` separates device-local private prekey generations from public-only complete-set aggregation; daemon config v7 retains the v5 roster/suite/cadence contract and owns a third capability-separated listener; startup recovers plans/finalization and never discards live partial material. `directory.GenerationPublisher` and `daemon.OpenWithGenerationPublisher` schedule the exact durable generation through prekey object → content-addressed Descriptor → signed inner locator → native DHT, using deterministic renewal buckets and a strict external Endpoint signer client. Messenger `ba98bc7` exposes that path through stock `tos-messengerd -publication-operator-config`; `b76376e` adds deterministic bounded cross-observer fork evidence and a stock finalized-authority verifier. Messenger `3bf27ae` adds owner-authorized direct history pages over the existing authenticated device-pair ratchet: only applied inbound/delivered outbound Events are exported, stable cursor/digest chains survive restart, and a daemon-only consumer commits immutable display history outside all Agent/tool/approval/commerce paths. `17cd7f6` adds a three-Event bounded Owner-only read and stock CLI so checkpoint-reachable display state is observable without entering pending/claim or changing application state. Exact retry, target/cursor/signature substitution, roster revocation, delegation-class bypass, chain gaps/damage, recursive/local-only content and room history fail closed. Room/MLS history is deliberately not inferred. Independently operated publication/evidence exchange and live message/history transport remain open pending M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
@@ -204,8 +204,8 @@ observed systemd process-ordering/readiness gap: a bounded, signal-cancelable
 wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
 
-Progress snapshot (2026-08-21, audited through TOS Core `1bad7f74f`,
-`tos-messenger` `c90c25e`, OpenFox `f4087f63`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
+Progress snapshot (2026-08-21, audited through TOS Core main `0aac896`,
+`tos-messenger` main `866b6dc`, OpenFox `f4087f63`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 12/20 🟡, 2/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -349,6 +349,23 @@ collector-manifest crossing, Endpoint signing and `VerifyTrial`. Messenger's
 full `make verify` and its focused race gate passed. This is repeatable
 same-host process evidence, not independent/public-network evidence, so M0-R
 and MSG-029 remain 🟡 and M1 route freeze remains blocked.
+Those native halves are now on their respective main branches through TOS Core
+merge `0aac896` and Messenger merge `5ee8108`; the local and remote green gates
+therefore describe merged code rather than an unmerged sidecar experiment.
+Messenger `a0a68c4`/`aab8fbd` (main merge `866b6dc`) then closes the remaining
+canonical-genesis implementation gap. A shared strict `Hash32` codec appends
+each genesis hash as length-prefixed raw 32 bytes while JSON retains lowercase
+bare hex. Endpoint delegation, Contact Descriptor, Event, prekey, E2EE,
+negotiation, mandate and budget domains/schemas advance instead of silently
+reinterpreting v1 objects; positive and adversarial vectors were regenerated.
+A production-source audit rejects any later textual genesis preimage, and the
+durable journal refuses nonempty unmarked state, substituted/future markers,
+public marker permissions and symlinks before mutation, preventing changed
+Event, mandate or budget identifiers from appearing as a clean state. Local
+`make verify` and all twelve remote verify/vector/cross-build/fuzz jobs passed.
+This removes “apply and version the selected representation” from the M0 gap;
+independent cryptographic review and a qualifying second implementation still
+block protocol freeze, so no whole component row is promoted.
 Messenger `8475ec5` and OpenFox `7f5f2196` then close the deployed local
 causal-reply gap: content and the canonical reply Event ID share one strict
 MLS-authenticated plaintext frame, retries commit to both, all recipients
@@ -391,7 +408,8 @@ process/restart evidence, not selected transport or independent-network
 evidence.
 
 The installed seven-process loop was rechecked once more after TOS Core
-`1bad7f74f`, Messenger `c90c25e` and OpenFox `f4087f63`. The actual enabled
+`1bad7f74f`, Messenger `c90c25e` and OpenFox `f4087f63`; those native changes
+are now merged as TOS Core `0aac896` and Messenger `5ee8108`. The actual enabled
 units are one `tos-messenger-openfox-mls-relay`, three
 `tos-messenger-openfox-mls-{alice,bob,carol}` private proxies and three
 `openfox-messenger-agent-{alice,bob,carol}` AgentLoop processes. All seven
@@ -795,7 +813,7 @@ second, and returns the signed inner locator only after both dependencies are
 durable. A failed step leaves at most unreachable immutable objects, not an
 authoritative dangling pointer.
 
-This is the signed-prekey lifecycle selected for the existing v1 construction,
+This is the signed-prekey lifecycle selected for the existing v2 construction,
 not a hidden one-time-prekey extension. Native DHT key-description and value
 signatures now use a `crypto.Signer`; the pinned DHT client immediately verifies
 each returned Ed25519 signature before network use, so the Endpoint private key
@@ -964,7 +982,7 @@ atomically installs exact bytes without overwrite, and makes the signed locator
 available to its caller only after prekeys and Descriptor are durable in that
 order.
 
-The strict `tos.messaging.prekey-bundle-set.v1` JSON wrapper contains 1–16
+The strict `tos.messaging.prekey-bundle-set.v2` JSON wrapper contains 1–16
 existing signed per-device bundle objects and is bounded to 128 KiB. It is a
 transport wrapper, not a new authority: the descriptor still commits the
 order-independent canonical set of individual bundle digests under the
@@ -2408,9 +2426,10 @@ committed vectors.
 ### M0 — Architecture, threat model, and protocol freeze
 
 **Status: 🟡 Route-independent M0 implementation is substantial. Canonical
-genesis representation and the one-to-one construction are selected; protocol
-freeze remains blocked by applying/versioning that representation everywhere,
-independent cryptographic review, and second-implementation evidence.**
+genesis representation and the one-to-one construction are selected, applied,
+explicitly versioned and covered by regenerated positive/adversarial vectors;
+protocol freeze remains blocked by independent cryptographic review and
+second-implementation evidence.**
 
 Deliver:
 
@@ -2569,7 +2588,7 @@ required.
 
 | ID | Work package | Target repository | Status |
 |---|---|---|---:|
-| MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; formal freeze acceptance remains open |
+| MSG-001 | Threat model and invariants | `tos-service-spec` / `tos-messenger` | 🟡 architecture, implementation invariants, and freeze review exist; canonical raw-genesis preimages are applied under explicit v2/v3 domains with regenerated vectors and fail-closed durable-state generation marking (`866b6dc`); independent review and second-implementation evidence keep formal freeze acceptance open |
 | MSG-002 | Endpoint delegation schema and vectors | `tos-messenger` / future messaging spec | ✅ strict schema, finalized-state verifier, canonical digest, vectors, and fail-closed daemon startup/outbound-class enforcement implemented |
 | MSG-003 | Contact Descriptor, inbox-policy digest, and DHT locator | `tos-messenger` / future messaging spec | 🟡 strict schema/binding, per-Agent committed policy retrieval, explicit finalized delegation/policy bootstrap, daemon config v7 lifecycle wiring, production native DHT lookup/publication, verified bootstrap nodes, bare/prefixed network boundary, bounded SSRF-resistant HTTPS retrieval, durable admission, vectors, substitution and scheduled-revocation tests implemented; live independently operated multi-node evidence missing |
 | MSG-004 | Bounded local TOS network adapter | `tos` / `tos-messenger` | 🟡 primitives exist |
@@ -2612,7 +2631,7 @@ closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
 
-Work-package progress (2026-08-21, audited through TOS Core `1bad7f74f`, `tos-messenger` `c90c25e`, OpenFox `f4087f63`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
+Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `866b6dc`, OpenFox `f4087f63`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
 and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
@@ -2717,7 +2736,7 @@ choice does not mark its implementation or external evidence complete:
 - canonical preimages use both genesis hashes as raw 32-byte values; strict
   JSON uses 64 lowercase bare hex, while `sha256:` is SDK-boundary syntax only;
   an older alternative takes a schema/domain bump, never reinterpretation;
-- `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` is the approved one-to-one
+- `tos.messaging.e2ee.x3dh-aes256gcm-dr.v2` is the approved one-to-one
   construction; independent review and second-language vectors still gate wire
   freeze;
 - the first second consumer is a minimal Rust codec/crypto-vector consumer; it
