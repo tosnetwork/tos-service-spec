@@ -508,6 +508,34 @@ and Relay/transcript state remained mode `0600`. This proves exact-main local
 group continuity only; it is not recipient-attachment public-TLS evidence or
 independent-operator acceptance.
 
+After outbound-attachment merges Messenger `4833a2c` and OpenFox `40554b6c`,
+the installed acceptance binaries were rebuilt from clean detached clones.
+Their Go metadata records those exact full revisions with
+`vcs.modified=false`; the Messenger Relay, Messenger MLS proxy, OpenMLS driver,
+and OpenFox Agent SHA-256 values are respectively
+`e0b7cd07b52eb4463e96affba6d1fdec47e8ee6669b8162daf98e76a27f24e3e`,
+`27cfe8ac8f5b0c02fcf334db32cb75fb6b0f44c7101507ab18f88f086ff6125f`,
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`,
+and `86c0092a927248973f0246073341d014e6eab85782348b4a0387f2eeef881228`.
+All three control health responses bound the expected Agent to the same Room
+ID above and `agent-loop` mode. Alice opening
+`msg_0234085f7cfa90e9a0f382f84c746704a9c82d0097a9d1f190376aa40b0dc776`
+produced exactly Bob
+`msg_5e151af02d856739f446f81dcac0e0da4ea8d313a8c92c206475278b37b9f621`
+and Carol
+`msg_e867441bf862030a61a2e8751c70437cefa6161a9facaa28061c51923a0dc52d`;
+both replies recorded `runtime: openfox-agent-loop` and the exact opening as
+`reply_to_event_id`. Every transcript reached 84 entries. Replaying the caller
+request before restart returned the same opening without changing any count.
+A concurrent restart of the Relay, all three MLS proxies, and all three
+OpenFox processes left every unit `active/running` with `NRestarts=0`; replaying
+the request again returned the same opening, retained one opening and one reply
+per replying Agent, and left all counts at 84. Exact scans of the mode-`0600`
+Relay state found none of the opening or reply plaintext, while Relay,
+transcript, and all seven Unix-socket files remained mode `0600`. This proves
+the OpenFox-only exact-main local build/chat/idempotency/restart/opacity loop;
+it does not satisfy independently operated or selected-public-route evidence.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
