@@ -596,9 +596,8 @@ is not implied by Gate C's initial profile.
 17. 🟡 **OpenFox application-layer product bridge:** the OpenFox buyer/provider
     integration contract is frozen in `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md`.
     Runtime integration and a fresh paid OpenFox application session remain
-    after the protocol/SDK work. Desktop/Web, Android, and iOS client products,
-    UI, push integration, packaging, and client acceptance are outside this
-    roadmap and are not part of any completion denominator.
+    after the protocol/SDK work. OpenFox is the sole application runtime and
+    product surface covered by this roadmap and its completion denominator.
 18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes
