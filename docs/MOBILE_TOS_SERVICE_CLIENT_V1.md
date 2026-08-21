@@ -1,5 +1,10 @@
 # Mobile TOS Service Client V1 (iOS and Android)
 
+> **Archived reference; outside the active product roadmap.** Desktop/Web,
+> Android, and iOS clients are not deliverables or acceptance dependencies of
+> the OpenFox-only Agent-native Messenger. Nothing in this document contributes
+> to that roadmap or its completion percentage.
+
 The iOS and Android applications are owner-controlled Native clients. They
 provide discovery, approval, custody, task status, and settlement receipts;
 they are not Gateway authorities and do not maintain a parallel balance ledger.

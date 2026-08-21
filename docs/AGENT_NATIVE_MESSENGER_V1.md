@@ -86,7 +86,7 @@ TOS should add a dedicated **Messaging Plane** between Agent runtimes and the
 existing networking substrate:
 
 ```text
-Human clients / OpenFox / other Agent runtimes
+                OpenFox Agent runtimes
                        |
                        v
               TOS Messaging Plane
@@ -117,8 +117,10 @@ The first technical product should be an OpenFox-to-OpenFox Messenger with:
 - direct, tunnel, Relay, or bounded HTTPS delivery according to policy; and
 - no dependency on a central Gateway or central message database.
 
-Group rooms, public channels, native mobile clients, and commercial Relay
-profiles should follow only after their prerequisites are accepted.
+Group rooms and public channels may follow their prerequisites. Desktop/Web,
+Android, and iOS Messenger products are explicitly outside this roadmap: the
+only application runtime in scope is OpenFox. Commercial Relay profiles remain
+Expansion-Gate work.
 
 ## 5. Current implementation inventory
 
@@ -158,8 +160,7 @@ profiles should follow only after their prerequisites are accepted.
 | Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes. Messenger `beaa358` additionally assembles runnable public-channel replicas over native DHT + ADNL Overlay/RLDP with verified history synchronization and restart; `a3c5910` adds deterministic independently re-verifiable TOS Storage Bag snapshots, bounded publication and authority-free BagID hints; `e3ea408` adds bounded stock CLI download/catch-up, full finalized snapshot re-verification and restart-stable locator recovery; `961c02d` proves it across two real same-host Storage daemons and a locally signed DHT; `c19d759` adds protocol-maximum local resource calibration and replaces the production node's repeated whole-history rebuild with a fail-atomic incremental cursor | Independent Driver review, private-room history policy, independently operated/public-network Relay/Overlay/Storage evidence, representative-device/concurrent-peer production calibration and second-implementation review remain open; direct same-Endpoint device history is implemented separately |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md`; the production Messenger channel consumes authenticated direct/room input and submits reply semantics to daemon-owned event construction. Messenger `40e06ff`/`dcfca91` and OpenFox `cfa58ee7`/`6ae673bf` add daemon-assembled finalized-Quote verification, make it a mandatory post-funding/pre-dispatch native-buyer gate including crash recovery, and verify the deterministic funded escrow directly without a locator prewrite. OpenFox `755fbf2d` assembles the production buyer's frozen 2-of-3 chain authority graph. Protocol `94d38f8` and OpenFox `8d0bcedf`/`3fae4f91` add exact custody-reviewed escrow deployment and strict `prepare → inspect → deploy-prepare → deploy-broadcast → fund → dispatch → terminal settlement` production commands, durable leases, signed policy verification, Messenger spend/Quote gates and three transports | Fresh independent buyer/provider commerce sessions, selected live transport, and independently reconstructed settlement evidence remain missing |
-| Mobile TOS clients | 🟡 | Owner-controlled mobile service-client architecture is documented | Messenger session storage, best-effort push wake-up, multi-device keys, room UI, and messaging conformance are missing |
-| Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist. Messenger main `026b987` adds a route-neutral authenticated remote boundary over the private encrypted format: exact Endpoint-signed per-manifest grants, separate capability/storage keys, operation/body-bound single-use requests, finalized-authority rechecks, durable replay/clock protection, resumable bounded ciphertext transfer, signed storage acknowledgements, strict HTTPS locators and public-only DNS dialing. Messenger main `463c43f` adds a fail-closed Linux Agent-content boundary: an anonymous sealed `memfd` with no persistent pathname, SHA-256-pinned and private-staged scanner/bubblewrap/prlimit executables, networkless/capability-dropped sandboxing, strict all-must-allow verdict binding, and a parser-free UTF-8 text inspector. Messenger `96a30ee`, merged as main `52f367c`, adds `artifact.encrypted` v3 recipient authority, daemon-owned fetch/AEAD/scan admission, and a reserved local API that releases only admitted bounded text without Reference or capability material; OpenFox `cb8080d7`, merged as `ac2475a3`, independently rehashes and durably applies that text | Independently operated public TLS transfer, audited retention behavior, selected production malware scanning and hard resource-isolation evidence, outbound OpenFox attachment composition, and commercial storage terms remain open; the reference text inspector is neither a general malware product nor a prompt-injection defense, and DeleteAck proves only the named operator's local lease observation, not cryptographic erasure |
+| Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist. Messenger main `026b987` adds a route-neutral authenticated remote boundary over the private encrypted format: exact Endpoint-signed per-manifest grants, separate capability/storage keys, operation/body-bound single-use requests, finalized-authority rechecks, durable replay/clock protection, resumable bounded ciphertext transfer, signed storage acknowledgements, strict HTTPS locators and public-only DNS dialing. Messenger main `463c43f` adds a fail-closed Linux Agent-content boundary: an anonymous sealed `memfd` with no persistent pathname, SHA-256-pinned and private-staged scanner/bubblewrap/prlimit executables, networkless/capability-dropped sandboxing, strict all-must-allow verdict binding, and a parser-free UTF-8 text inspector. Messenger `96a30ee`, merged as main `52f367c`, adds `artifact.encrypted` v3 recipient authority, daemon-owned fetch/AEAD/scan admission, and a reserved local API that releases only admitted bounded text without Reference or capability material; OpenFox `cb8080d7`, merged as `ac2475a3`, independently rehashes and durably applies that text. Messenger `13a4f48`, merged as main `4833a2c`, adds daemon-owned restartable outbound AES-GCM streaming, separate externally Endpoint-signed upload/fetch grants, bounded resumable storage and StoredAck-before-delivery ordering; OpenFox `69dce589`, merged as main `40554b6c`, streams only exact registered MediaStore files and receives no storage, retention, key, network or Event authority | Independently operated public TLS transfer and interruption evidence, audited retention behavior, selected production malware scanning and hard resource-isolation evidence, and commercial storage terms remain open; the reference text inspector is neither a general malware product nor a prompt-injection defense, and DeleteAck proves only the named operator's local lease observation, not cryptographic erasure |
 
 ### 5.3 Messenger components that must be developed
 
@@ -182,12 +183,11 @@ gap named. None of this counts as gate evidence (Section 3).
 | Multi-Relay redundancy and failover | 🟡 Partial | `pkg/mailbox.StoreRedundant` plus `mailboxapi.DepositClient` exercise distinct pinned Relay identities across separate service listeners: exact signed ACKs meet 2-of-2, one stopped listener permits only an explicit 1-of-2 threshold, and an unmet 2-of-2 fails. Live independently operated Relay failover evidence is missing |
 | Private group encryption and membership epochs | 🟡 Partial | `a4922ab` adds typed `room.moderation` and a durable moderation ledger over the existing bounded administrator/moderator roles; `4541a19` wires that ledger into production admission, re-verifies the current finalized authority delegation, applies each monotonic decision before queueing, and excludes hidden queued targets. OpenFox `35bdac89` independently decodes the control, waits for a durable per-session overlay before completing its lease, projects hidden applied history as a tombstone, removes its action lineage, supports restore/restart, and conservatively cancels an active room turn. Per-target revisions never delete immutable Events, while replay/gap, untrusted controls and damaged state fail closed. Pinned OpenMLS supplies its secrecy/PCS corpus, sequential invitations, per-Agent state owners, encrypted OpenFox chat, bounded capacity, and two independently keyed durable Mailbox stores with exact 2-of-2 StoredAcks and offline catch-up. Still open: authenticated independently operated network Relay evidence after M0-R, independent review, and second implementation |
 | Public Agent channels over Overlay with history synchronization | 🟡 Partial | Messenger `a2cd605` adds the route-neutral `pkg/publicchannel` candidate: network/finalized-authority channel IDs; Endpoint-signed publisher/moderator profiles with digest-linked adjacent epochs and fork detection; independently signed content-addressed Events; per-publisher sequence plus cross-publisher causal parents; arrival-order-independent history commitments; immutable moderation projection; exact missing-ID repair; strict bounded profile/Event/head JSON; and adversarial convergence, gap, fork, role and substitution tests. Messenger `e358dfd` adds the private single-writer durable ledger: signed profiles and verified content-addressed Events precede atomic checkpoints, histories may grow but not forget committed Events, and restart cross-checks canonical heads against immutable manifests before re-verifying every Event. Profile/history rollback, equal-epoch fork, damage, orphan objects and concurrent writers fail closed under race tests. `4eb6c9f` freezes and consumes deterministic profile/Event signing bytes, IDs and the convergent head with decode- and verify-layer adversarial mutations. `7c6e43d` adds bounded strict route-neutral fetch: it walks untrusted tips and causal IDs, accounts for every request result, treats Relay unavailability as retryable, independently verifies fetched publisher authority, merges exact replay idempotently, refuses stalled false heads and commits only a complete set reproducing the head. `5eab660` caps each synchronization attempt by authenticated peer count, distinct heads, fetches, bytes and unavailable results; one peer cannot count twice and multi-peer support only prioritizes work, never validity. `14f01b9` binds those objects to the pinned native stack: authenticated ADNL Overlay two-step broadcast carries head/Event hints and RLDP carries strict history fetches; native hop signatures never replace finalized application authority. Messenger `beaa358` corrects the DHT/wire identity boundary—`channel_<sha256>` contains the `pub.overlay` key and its boxed TL hash is the Overlay short ID—and adds `NativeNode` plus runnable `tos-public-channeld`: a separately provisioned ADNL transport identity/address and signed node are published through native TOS DHT, resolved nodes are bounded and rebound to their exact ADNL handshake key, per-peer carriers announce/fetch heads, and only a fully reproduced history commits. A real two-node UDP assembly test covers discovery, empty-to-complete RLDP synchronization and full Gateway/node/store restart. Messenger `a3c5910` adds deterministic canonical TOS Storage Bag snapshots, a bounded no-shell `storage-daemon-cli` publisher, single-writer durable publication receipts, and strict authority-free BagID hints on a separate replay budget. The real UDP node test covers an injected publisher, hint propagation, node/store/mirror restart and exact no-republish; a separate fixture executable proves exact CLI arguments and BagID parsing, but is not a live independently operated storage-daemon. Messenger `e3ea408` adds `SitesCatchUp` and the bounded stock `add-by-hash`/`get` CLI consumer: exact Bag/root/directory status binding precedes strict finalized snapshot re-verification and monotonic ledger commit; durable locator receipts recover the download-before-receipt crash window, refuse alternate-Bag replacement and avoid a second download after restart. A second real-UDP test gives the sender no RLDP history and proves Overlay hint → injected download → verified commit → node/store/catch-up restart; the hermetic process adapter still uses a fixture executable. Messenger `961c02d` adds opt-in same-host real-binary acceptance: two stock daemons use a locally signed DHT, A publishes the verified snapshot, B downloads/re-verifies it, then offline receipt replay succeeds after B stops. That run also fixes the stock uppercase BagID/trailing-directory-slash boundary without relaxing canonical wire hints. Messenger `c19d759` adds a fail-atomic incremental causal fetch cursor and reproducible single-core benchmarks through 65,536 Events; the production node no longer rebuilds/sorts all known Events per response, but still performs complete authority verification and exact head reproduction before commit. Representative-device/concurrent-peer production calibration, independently operated/public-network DHT/Storage failover, independent vector consumption/review and second implementation remain open |
-| Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments`, `pkg/attachmentapi`, `pkg/attachmentadmission`, `tos-attachmentd` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, exact Endpoint→capability→storage authority separation, finalized delegation rechecks, bounded multi-frame upload/fetch/delete, signed StoredAck/DeleteAck, durable nonce and monotonic-clock replay defense, restart-safe store generations, periodic lease/stale-stage GC, strict manifest-bound HTTPS locators and public-only DNS/SSRF policy. Current v3 emission carries one fetch-only grant and its matching capability key inside E2EE; the grant is bound to Event sender/network, manifest, ordered chunks, ciphertext bytes and retention, while v1/v2 remain explicit read-only history. Messenger `96a30ee`, merged as `52f367c`, adds daemon config v8 and local request/response v4/v2: `artifact.encrypted` is absent from the general runtime inbox, `attachments.pending` exposes metadata only, and `attachments.claim` performs exact HTTPS fetch, AEAD opening and every pinned scanner before returning bounded `text/plain`. Startup rehashes bubblewrap, prlimit and scanners before sockets open. Real bubblewrap/prlimit admission, ciphertext tamper, capability/sender/network/chunk/size/retention substitution, runtime-key-leak and race/fuzz tests pass; the final fourteen-job remote matrix is green | Independently operated public TLS/interrupted-transfer evidence, audited retention behavior, a selected production malware scanner/hostile corpus, hard cgroup-level resource plus swap/core-dump evidence, outbound OpenFox attachment composition, and commercial storage remain open; the reference inspector is not a general malware or prompt-injection defense, and deletion is not claimed as cryptographic erasure |
-| OpenFox `tos-messenger` channel adapter | 🟡 Partial | `tos-messenger` `9219ddb` and OpenFox `a8f0e633` run three channels through three private OpenMLS proxies and an opaque local Relay: sequential third-member invitation, bidirectional replies, tamper refusal, Relay plaintext/private-state exclusion and full restart are tested. OpenFox `ed1fcc75` adds one-channel-per-process operation, private mode-`0600` control/transcript state, caller-stable retry IDs, bounded catch-up reply triggers and fail-visible persistence/send errors. OpenFox `c47a98e0` upgrades those three processes to actual AgentLoop routing/session/model response publication with separate private workspaces and a local deterministic provider; lab cursor advancement waits through stable reply/transcript persistence, and exact completed replay skips a second turn. Deployed Alice/Bob/Carol produced one opening plus exactly two `openfox-agent-loop` Event-bound replies; Alice restart retained the same opening and one reply per peer, session files were owner-only, and the Relay plaintext scan remained clean. OpenFox `42221c02` independently consumes canonical production `room.message`; Messenger `030b9c3` and OpenFox `37b3197b` add strict daemon-owned direct/room event construction and authenticated reply submission with operator-bound routes, restart-stable Event IDs, and substitution refusal. OpenFox `35bdac89` adds the authenticated non-model moderation control and durable applied-history retraction boundary. OpenFox `aa6fe1f7` makes ordinary application leases equally durable: the lease completes only after an atomic fsynced Event-ID/content/provenance session record; exact crash replay skips a second model turn, substitution and non-durable history fail closed, busy sessions remain retryable outside volatile steering, and hard abort retains acknowledged input. OpenFox `cb8080d7`, merged as `ac2475a3`, corrects the production consumer to current Event v2 raw-genesis preimages, refuses Event v1 as current input, optionally drains only daemon-admitted attachments, independently rehashes body/scanner evidence, preserves an authenticated `artifact.encrypted` origin and waits for durable Agent-session application before completing the lease. The selected post-M0-R transport binding and independently operated real-network evidence remain open |
+| Messenger-specific encrypted attachment protocol | 🟡 Partial | `pkg/attachments`, `pkg/attachmentapi`, `pkg/attachmentadmission`, `pkg/attachmentops`, `tos-attachmentd` and `artifact.encrypted` implement fresh-key AES-256-GCM chunks, position/shape/metadata AAD, ordered ciphertext manifests, secret E2EE References, exact Endpoint→capability→storage authority separation, finalized delegation rechecks, bounded multi-frame upload/fetch/delete, signed StoredAck/DeleteAck, durable nonce and monotonic-clock replay defense, restart-safe store generations, periodic lease/stale-stage GC, strict manifest-bound HTTPS locators and public-only DNS/SSRF policy. Current v3 emission carries one fetch-only grant and its matching capability key inside E2EE; the grant is bound to Event sender/network, manifest, ordered chunks, ciphertext bytes and retention, while v1/v2 remain explicit read-only history. Messenger `96a30ee`, merged as `52f367c`, adds daemon config v8 and reserved inbound attachment admission. Messenger `13a4f48`, merged as main `4833a2c`, advances local request/response to v5/v3 and adds the outbound transaction: OpenFox plaintext chunks are immediately AES-256-GCM encrypted into mode-`0600` ciphertext-only records with restartable SHA-256 state; a strict operator document pins public storage authority, retention and media bounds; the finalized external Endpoint signer signs distinct upload-only/fetch-only grants; one chunk is uploaded per commit call; and only a verified final StoredAck permits the exact prepared Event to enter the delivery journal. Prepared-only restart, ciphertext-fsync/state-pointer recovery, digest mismatch reset, maximum 512 MiB shape, authority/key substitution, authenticated-store round trip, race and fuzz tests pass; all fifteen remote jobs are green | Independently operated public TLS/interrupted-transfer evidence, audited retention behavior, a selected production malware scanner/hostile corpus, hard cgroup-level resource plus swap/core-dump evidence, and commercial storage remain open; the reference inspector is not a general malware or prompt-injection defense, and deletion is not claimed as cryptographic erasure |
+| OpenFox `tos-messenger` channel adapter | 🟡 Partial | `tos-messenger` `9219ddb` and OpenFox `a8f0e633` run three channels through three private OpenMLS proxies and an opaque local Relay: sequential third-member invitation, bidirectional replies, tamper refusal, Relay plaintext/private-state exclusion and full restart are tested. OpenFox `ed1fcc75` and `c47a98e0` separate the channel owners into supervised OS processes and run an actual durable AgentLoop in each; exact completed replay skips a second model turn. Production direct/room construction, authenticated reply binding, durable moderation, application leases and current Event-v2 verification are implemented. OpenFox `cb8080d7`, merged as `ac2475a3`, optionally drains only daemon-admitted attachments, independently rehashes body/scanner evidence, preserves authenticated provenance and waits for durable Agent-session application. OpenFox `69dce589`, merged as main `40554b6c`, implements `MediaSender.SendMedia`: only registered bounded regular MediaStore files are opened and independently hashed; stable per-part idempotency binds fixed operator route, authenticated input, reply/caption causality, media metadata and plaintext digest; sequential 1 MiB chunks resume from daemon progress; and OpenFox accepts only progress or a canonical daemon-generated Event ID. It never receives storage origin, retention, AEAD/capability keys, locator, network, clock, sender or Event-ID authority. Multi-chunk, exact-retry, caption and protocol-substitution tests plus focused race and full test/vet/docs/build pass. The selected post-M0-R transport binding and independently operated real-network evidence remain open |
 | Agent message policy engine and prompt-injection firewall | ✅ Implemented | `tos-messenger` supplies the action evaluator, authenticated owner queue, and `0541723` online-challenge/offline-sign/online-submit workflow. OpenFox `fbb052df` supplies durable non-model-controlled provenance, fail-closed lineage, classified tool enforcement, owner waits, and one-shot claims; `4736f2c7` makes exact-term custody/key-use wrapping mandatory in the native buyer; `7fe6ec10` supplies independently checked authenticated daemon ingress. Messenger `40e06ff`/`dcfca91` and OpenFox `cfa58ee7`/`6ae673bf` additionally require an exact finalized Accepted Quote after funding and before task dispatch without trusting or persisting the runtime's escrow locator. Plaintext lab messages deliberately receive no such authority |
 | First-contact admission policy and sybil resistance | ✅ Implemented | `tos-messenger` `3c6a329`: daemon config v5 explicitly derives the finalized policy digest from its allow-list/rosters and bounds; owner-signed offline invite creation returns a random 256-bit bearer while only a domain-separated digest persists; the first authenticated sender/Event claim is crash-safe and exact-retry idempotent; Relay deposits sign the opaque token; direct/Relay parity and malformed, expired, spent, scope and substitution cases are tested. The recommended v1 rule is known contacts + invite introduction + owner hold otherwise. PoW remains deferred pending abuse measurements and Inbox Bonds stay Expansion-Gate locked |
 | Agent Packet-to-Execution-Gate adapter and three-transport replay tests | 🟡 Partial | `tos-messenger` carries exact Agent Packet V1 bytes under `agent.packet`, verifies finalized authority, binds packet/Event sender and live recipient, and durably claims sender+nonce with pending recovery. The complete concurrent/ordered transport matrix proves one Gate permits one runner execution. A proxy-free bounded Unix receiver sends only canonical Packet bytes to an owner-private OpenFox provider socket; OpenFox independently reverifies finalized authority before its existing adapter reaches that Gate. Messenger `cb97f0d` now leases admitted packets in the daemon, retries provider failure, completes both durable claims after acceptance, survives restart without re-execution, and atomically excludes the kind from runtime listing/direct claim, so Packet bytes cannot enter AgentLoop/model text. Live inbound transport and independent-operation evidence remain open |
-| Native desktop, Web, iOS, and Android Messenger clients | ⬜ To be developed | — |
 | Relay, attachment, history, and inbox-bond commercial profiles | 🔒 Roadmap-locked | Expansion Gate |
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
@@ -205,19 +205,24 @@ wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
 
 Progress snapshot (2026-08-21, audited through TOS Core main `0aac896`,
-`tos-messenger` main `52f367c`, OpenFox `ac2475a3`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
-12/20 🟡, 2/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
+`tos-messenger` main `8d939e6`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
-Weighted implementation completion is now **about 96% (bounded estimate
-94–97%)**; the authenticated attachment service, recipient authority, daemon
-admission and OpenFox consumption closures promote no whole component row.
-Messenger main `52f367c` and OpenFox main `ac2475a3` remove the previously
-named recipient-fetch/application gap: real sandbox/tamper tests, independent
-Event-v2 consumption, two local Messenger `make verify` runs, the fourteen-job
-remote matrix, and complete OpenFox test/vet/docs/build plus focused race all
-pass. Public TLS/operator evidence and production scanning remain outside that
+Weighted implementation completion for the OpenFox-only scope is now **about
+98% (bounded estimate 96–99%)**; removing native product-client delivery from
+the denominator does not claim that any external gate was completed. The
+authenticated attachment service, recipient authority, daemon
+admission, OpenFox consumption and outbound streaming closures promote no
+whole component row. Messenger main `4833a2c` and OpenFox main `40554b6c`
+remove both the recipient-fetch/application gap and the local outbound
+attachment-composition gap. Real sandbox/tamper tests, independent Event-v2
+consumption, restartable ciphertext-only streaming, prepared-only crash
+recovery, exact completed retry, a local Messenger `make verify`, all fifteen
+remote jobs including the new `attachmentops` fuzz target, and complete
+OpenFox test/vet/docs/build plus focused race all pass. Public TLS/operator
+evidence, production scanning and commercial storage remain outside that
 claim. The cumulative increase from the prior approximately 94% audit is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
 role/moderation policy, production OpenFox room-message consumption, and
@@ -601,15 +606,14 @@ The Messenger must not:
 - claim that Agent Packet already provides a complete Messenger;
 - expose controller, wallet, executor, or hardware-custody keys to the
   Messenger;
-- put blockchain consensus in a physical AI real-time control loop; or
-- claim mobile push is decentralized, reliable, or part of message authority.
+- put blockchain consensus in a physical AI real-time control loop.
 
 ## 7. System architecture
 
 ```mermaid
 flowchart TB
-    Humans[Human clients and existing IM bridges]
-    Agents[OpenFox and other Agent runtimes]
+    Channels[Existing owner-control and human-channel bridges]
+    Agents[OpenFox Agent runtimes]
 
     subgraph Messaging[New TOS Messaging Plane]
         Daemon[tos-messengerd: sole local writer]
@@ -645,7 +649,7 @@ flowchart TB
         Artifacts[Content-addressed artifacts]
     end
 
-    Humans --> Daemon
+    Channels --> Daemon
     Agents --> Daemon
     Daemon --> Store
     Daemon --> Policy
@@ -695,15 +699,15 @@ notification, Gateway response, or local database may override these facts.
 - attachment encryption and retrieval;
 - typed event validation;
 - local trust, approval, and rate policy; and
-- an authenticated owner-private API for Agent runtimes and clients.
+- an authenticated owner-private API for OpenFox and owner tooling.
 
 `tos-messenger` now implements the route-independent core of this plane:
 identity and descriptor verification, the default one-to-one E2EE candidate,
 durable event/session/device/room/negotiation state, typed payload validation,
 admission and action policy, and authenticated owner/runtime Unix-socket APIs.
-Transport routing, Relay selection/failover, attachment encryption, MLS group
-state, and runtime/client integrations remain open, so the plane as a product
-is still partial.
+The route-neutral Relay, attachment, MLS group, OpenFox runtime and restart
+paths are implemented. Route selection and independently operated production
+evidence remain open, so the plane as a public-network product is still partial.
 
 ### 7.3 Network adapter — 🟡 primitives exist; product API pending
 
@@ -788,8 +792,8 @@ implicitly control Agent policy, Capabilities, escrow, or funds.
 
 ### 9.3 Device identity — 🟡 model, refresh, and revocation enforcement implemented
 
-Each OpenFox host, mobile client, desktop client, or edge terminal should have a
-separate Device ID and device key authorized by one Messaging Endpoint. Device
+Each OpenFox host or edge terminal should have a separate Device ID and device
+key authorized by one Messaging Endpoint. Device
 addition and removal must trigger session or group-key changes where required.
 
 `tos-messenger/pkg/e2ee` implements signed per-device prekey sets, monotonic
@@ -1093,7 +1097,7 @@ never overwritten into the configured one.
 
 ### 10.4 Resolution algorithm — 🟡 verifier and route-neutral refresh loop implemented
 
-A client should:
+A resolving peer should:
 
 1. resolve the Agent and live delegation digests from finalized TOS state;
 2. obtain candidate Messaging Contact Descriptors;
@@ -1141,7 +1145,7 @@ The study must use a stratified matrix rather than one laboratory pair:
 | Carrier network | consumer ISP NAT, carrier-grade NAT, mobile carrier NAT |
 | UDP policy | allowed, rate-limited, and blocked environments |
 | Network mobility | Wi-Fi to mobile, mobile to Wi-Fi, address change, sleep/wake |
-| Endpoint class | server, desktop, low-cost ARM/RISC-V edge device, mobile device |
+| Endpoint class | server, workstation, low-cost ARM/RISC-V edge device, mobile-network OpenFox host |
 | Mapping assistance | none, static port mapping, and any supported discovery/traversal mechanism |
 
 Low-cost hardware is a cross-cutting endpoint dimension, not a substitute for a
@@ -1422,8 +1426,8 @@ No Messenger schema should be added as a second canonical object family inside
 The first implementation uses one `tos-messengerd` process as the **sole writer
 for one local state directory**.
 
-OpenFox, CLI, desktop, Web, and owner-control processes use authenticated local
-IPC. They do not open or mutate the Messenger database directly.
+OpenFox, CLI, and owner-control processes use authenticated local IPC. They do
+not open or mutate the Messenger database directly.
 
 This decision matches the strongest reusable evidence available today:
 
@@ -1609,7 +1613,7 @@ one approved Relay Capability
 ```
 
 It should not begin with per-byte metering, availability proofs, or
-operator-self-reported usage as settlement authority. Those belong to M7.
+operator-self-reported usage as settlement authority. Those belong to M6.
 
 The existing software-work Receipt and escrow do not automatically become a
 Relay Lease Receipt or Relay Lease escrow. A Relay profile needs its own frozen
@@ -1850,7 +1854,7 @@ its path spelling.
 
 The locator is exactly
 `https://<canonical-public-host>/.well-known/tos-messenger/attachments/<manifest>`.
-The client ignores environment proxies, refuses redirects, compression,
+The HTTPS adapter ignores environment proxies, refuses redirects, compression,
 userinfo, ports, query/fragment/path variants and noncanonical host spelling,
 resolves DNS itself, rejects the whole answer set if any address is non-public,
 and dials the checked IP with TLS bound to the original hostname. New
@@ -1916,15 +1920,47 @@ releases no content. The same change corrects the independent production
 Event consumer to Event v2 raw-32-byte genesis preimages and explicitly
 refuses historical Event v1 as current input.
 
+Messenger `13a4f48`, merged as main `4833a2c`, and OpenFox `69dce589`,
+merged as main `40554b6c`, close the local outbound attachment gap. Local
+request/response schemas advance to v5/v3. OpenFox's production `MediaSender`
+accepts only one to sixteen registered MediaStore parts, opens an exact bounded
+regular non-symlink file, independently hashes that descriptor, and commits a
+stable per-part intent over the operator-fixed route, authenticated source
+Event, reply/caption causality, media metadata and plaintext digest. It streams
+sequential 1 MiB chunks and accepts only monotonic progress or the daemon's
+canonical Event ID; no storage origin, retention, key, locator, network, clock,
+sender or Event authority crosses into OpenFox.
+
+The daemon immediately AES-256-GCM encrypts each chunk and fsyncs only a
+mode-`0600` ciphertext record plus restartable SHA-256 state. A ciphertext-fsync
+crash before the state pointer advances is reconciled from that record. After
+the complete plaintext digest matches, an externally custodied finalized
+Endpoint signer signs distinct upload-only and fetch-only grants against the
+operator-pinned public HTTPS storage key and retention. Each commit uploads at
+most one chunk with a fresh one-use request nonce. The exact Event is prepared
+before storage I/O but enters the delivery journal only after the final signed
+StoredAck verifies. A prepared-only restart resumes the durable transaction;
+only a queued composition is reported complete. Exact completed retry returns
+the original Event ID without another encryption, signature or upload, and the
+daemon removes the upload key/outbox secrets after queueing.
+
+The real authenticated-store integration uses a private Unix carrier to prove
+encryption, two-chunk interruption, restart, ACK-before-queue, fetch/decrypt and
+exact retry ordering. Maximum-shape tests prove a 512 MiB/512-chunk grant fits
+the external signer and Event bounds. Local `make verify`, focused race tests,
+OpenFox's full test/vet/docs/build gate and all fifteen Messenger remote jobs,
+including the new `attachmentops` fuzz target, pass. This is executable local
+protocol evidence, not independently operated public-TLS or wide-area evidence.
+
 The `memfd` boundary does not prove that plaintext can never reach swap or a
 privileged crash dump; production hosts need an explicit encrypted-swap/no-swap
 and core-dump policy. This is deliberately not a general malware scanner,
 parser-safety claim,
 prompt-injection defense, or hard cgroup/RSS/process isolation. OpenFox does
-not yet compose or upload outbound attachments. Independently operated public
-TLS and interrupted wide-area evidence, audited retention behavior, a selected
-production scanner and representative hostile corpus, hard resource-isolation
-evidence and commercial terms remain open.
+compose and upload outbound attachments through the daemon-owned boundary, but
+independently operated public TLS and interrupted wide-area evidence, audited
+retention behavior, a selected production scanner and representative hostile
+corpus, hard resource-isolation evidence and commercial terms remain open.
 
 `tos-ai` artifact primitives may be reused at library level, but a Messenger
 attachment is not automatically a software-work Artifact or Receipt input.
@@ -1936,7 +1972,7 @@ attachment is not automatically a software-work Artifact or Receipt input.
 OpenFox should be the first Agent runtime:
 
 ```text
-OpenFox and local clients
+OpenFox and owner tooling
    |
    | authenticated owner-private IPC
    v
@@ -1978,7 +2014,7 @@ outbound discovery and the post-M0-R transport binding remain outside the lab.
 The production path is no longer receive-only: it accepts only replies whose
 context names the exact authenticated Messenger Event being answered and whose
 chat has an operator-configured conversation/room/session/recipient route.
-OpenFox submits message semantics through local API v4 `outbox.compose`; the
+OpenFox submits message semantics through local API v5 `outbox.compose`; the
 daemon supplies its finalized Agent/Endpoint/Device identity, network tuple,
 clock, kind, payload schema and content-addressed Event ID. Before queueing, a
 single-writer composition record binds the first complete event and route to a
@@ -2170,7 +2206,7 @@ content is absent from provider-facing history and from the action-authority
 lineage; a hide conservatively aborts a running turn in that room. An authorized
 restore recovers the immutable stored content. OpenFox's complete `make check`
 passed all Go modules and tests, lint, Web backend/frontend checks and docs lint.
-The rebuilt installed acceptance client then sent
+The rebuilt installed acceptance driver then sent
 `moderation retraction cycle acceptance 2026-08-21T00:18Z` in room
 `room_2f58a0e48fd6ff8f52653abc51cf3b87762f604a7af903bed5a110d8073d4fd5`;
 Bob and Carol each returned an acknowledgement in
@@ -2465,28 +2501,16 @@ New Relay, storage, history, or inbox-bond services must define their own
 profile-specific objective result and Receipt semantics. They cannot relabel a
 software-work Receipt.
 
-## 21. Mobile push boundary
+## 21. Product-client scope
 
-**Status: ⬜ client integration pending.**
-
-Apple and Android push services are a known non-replaceable platform dependency
-for timely background wake-up. They are restricted to a contentless hint that
-contains no:
-
-- plaintext;
-- session key;
-- sender Agent or Device identity;
-- conversation or Room identity;
-- Quote, escrow, Receipt, or settlement state; or
-- action authority.
-
-Push is a latency optimization, not a delivery-correctness mechanism. Push may
-be delayed, rate-limited, coalesced, or lost. The client must recover through
-ordinary Messenger synchronization when the user opens the app, a permitted
-background task runs, or another network activity occurs.
-
-The project must disclose this residual centralization and must not call mobile
-push a fully decentralized delivery path.
+Desktop/Web, Android, and iOS Messenger applications are not deliverables of
+this design or roadmap. The product boundary is OpenFox-to-OpenFox messaging;
+CLI and owner-control surfaces exist only to provision, authorize, observe, and
+operate OpenFox endpoints. Wire formats remain implementation-neutral, so a
+separate future project may build a client without changing Messenger
+authority, but no client code, UI, push integration, app-store packaging, or
+client acceptance evidence contributes to this roadmap or its completion
+percentage.
 
 ## 22. Repository and process boundaries
 
@@ -2500,7 +2524,6 @@ push a fully decentralized delivery path.
 | `tos-service-gateway` | Optional derived discovery or HTTPS routing; no message-history or identity authority |
 | `tos-ai` | Preserve bounded execution, artifacts, A2A/MCP adapters, and Native Execution Gate integration |
 | `openfox` | Add first `tos-messenger` channel, owner policy, and Agent-loop integration |
-| `android` / `ios` | Add owner-controlled clients after protocol and daemon stability |
 
 ### 22.2 New implementation repository — ✅ established
 
@@ -2510,8 +2533,8 @@ validator, Gateway, or worker repository.
 `tosnetwork/tos-messenger` now exists with `cmd/tos-messengerd` and the
 route-independent identity, directory, E2EE, envelope, eventlog, admission,
 policy, local API, room, reachability, and commerce foundations. Transport,
-Mailbox, attachment, bridge, and client packages remain milestone work rather
-than being implied by the repository's existence.
+Mailbox, attachment, and bridge packages remain milestone work rather than
+being implied by the repository's existence.
 
 Suggested layout:
 
@@ -2568,7 +2591,7 @@ The Messenger cannot be accepted without tests covering at least:
 5. duplicate, reordered, delayed, expired, and cross-Relay messages;
 6. crash during send, store, pull, decrypt, application delivery, and ACK;
 7. exclusive single-writer ownership and rejection of a second local writer;
-8. authenticated IPC from multiple local clients to the sole writer;
+8. authenticated IPC from multiple local OpenFox or owner principals to the sole writer;
 9. malicious Relay deletion, withholding, reordering, and duplication;
 10. oversized envelopes, attachments, decompression bombs, and parser abuse;
 11. group member removal and inability to decrypt later epochs;
@@ -2581,9 +2604,8 @@ The Messenger cannot be accepted without tests covering at least:
 18. message ACK presented as a forged TOS Receipt;
 19. finality disagreement and network-domain mismatch;
 20. offline edge-node reconnect and bounded reconciliation;
-21. remote physical-control attempts outside local policy;
-22. lost, delayed, or duplicated mobile push hints; and
-23. inbox-policy bypass attempts on direct and Relay paths.
+21. remote physical-control attempts outside local policy; and
+22. inbox-policy bypass attempts on direct and Relay paths.
 
 Every positive vector needs an independent encoder, decoder, or verifier. Every
 security-sensitive state transition needs crash and replay tests.
@@ -2593,10 +2615,10 @@ finalized delegation and bundle binding, revoked devices and room membership,
 durable replay and crash recovery, exclusive ownership, authenticated owner
 decisions, session commit ordering, E2EE tamper/replay/out-of-order and
 compromise checks, policy escalation, reachability evidence forgery, and a real
-three-member OpenMLS lifecycle with restart. The live transport, Relay,
-attachment, remaining MLS conformance, client/push, and three-transport
-execution cases remain open, and no second implementation has consumed the
-committed vectors.
+three-member OpenMLS lifecycle with restart. Selected live-transport,
+independently operated Relay/public-attachment, remaining MLS conformance, and
+independent three-transport execution evidence remain open, and no second
+implementation has consumed the committed vectors.
 
 ## 24. Implementation plan
 
@@ -2737,19 +2759,7 @@ failover.
 Accept when independent nodes converge on valid events despite one malicious or
 unavailable Relay and reject unauthorized publishers.
 
-### M6 — Native clients
-
-**Status: ⬜ To be developed.**
-
-Deliver Web/desktop, Android, and iOS clients with secure key storage,
-background recovery, QR/contact import, owner approvals, rooms, attachments,
-and independent finality checks for commercial events.
-
-Accept when changing Gateway or Mailbox Relay does not change identity, keys,
-conversation authority, or payment interpretation, and when push loss does not
-lose messages.
-
-### M7 — Full Relay and storage economics
+### M6 — Full Relay and storage economics
 
 **Status: 🔒 Roadmap-locked.**
 
@@ -2777,8 +2787,8 @@ required.
 | MSG-010 | Encrypted Mailbox Relay | `tos-messenger` | 🟡 crash-safe opaque store, finalized delegation adapter, scoped grants, operation/body-bound requests, strict bounded service protocol, private listener/client, durable nonce claims, signed StoredAck, quotas/retention, vectors, adversarial cases, and recovery implemented; post-M0-R public transport binding and independent operation pending |
 | MSG-011 | Multi-Relay selection and failover | `tos-messenger` | 🟡 distinct pinned Relay keys and exact ACK thresholds run across separate service listeners; 2-of-2, explicit 1-of-2 degradation and unmet-threshold refusal are tested; live independent-operator failover evidence pending |
 | MSG-012 | Delivery/Application ACK state machine | `tos-messenger` | ✅ distinct Stored/Delivery/Application/optional Read profiles and durable state implemented |
-| MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 cryptographic chunk/manifest/E2EE-reference core plus authenticated remote storage are implemented in Messenger main `026b987`: exact per-manifest grants; independent Endpoint/capability/storage keys; finalized delegation recheck per operation; body-bound one-use requests; durable nonce, monotonic-clock and generation defenses; bounded resumable multi-frame upload/fetch/delete; signed StoredAck/DeleteAck; periodic expiry/stale-stage GC; exact HTTPS locator and public-only DNS/SSRF policy. Main `463c43f` adds fail-closed `OpenForAgent` with sealed `memfd`, private-staged SHA-256-pinned scanner/bubblewrap/prlimit inodes, networkless/capability-dropped sandboxing, bounded all-must-allow verdicts and a parser-free UTF-8 inspector. Messenger `96a30ee`, merged as main `52f367c`, advances `artifact.encrypted` to v3: one E2EE-carried fetch-only grant/key is exactly bound to Event sender/network, manifest, ordered chunks, bytes and retention; v1/v2 are read-only. Daemon config v8 and local request/response v4/v2 reserve the raw Event from the general runtime, rehash all executables before sockets open, fetch and authenticate exact ciphertext, run every scanner, and return only bounded admitted `text/plain` plus content/scanner evidence. Real sandbox/tamper, authority substitution, key-leak, race/fuzz and all fourteen remote jobs pass. Still pending: independently operated public TLS/interrupted-transfer and audited retention evidence, a production malware scanner/hostile corpus, hard cgroup plus swap/core-dump evidence, outbound OpenFox attachment composition, and commercial terms. The reference inspector is not a general malware or prompt-injection defense; DeleteAck is not erasure proof |
-| MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 encrypted three-OpenFox local IPC has separate MLS state owners, an opaque Relay, durable exact retries, tamper refusal and full restart. OpenFox `ed1fcc75` runs the three channel owners as separately supervised OS processes; `c47a98e0` further runs a real AgentLoop in each process with private durable workspaces, delayed cursor application, stable Event-bound replies and model-idempotent completed replay. A deployed round retained one opening and exactly two `openfox-agent-loop` peer replies after Alice restart without Relay plaintext. The production adapter claims daemon events, independently checks Event ID and canonical `text`/`room.message`/`room.moderation`, binds room identity/epoch, publishes typed group input, and durably retracts moderated applied history and authority without sending controls to the model. OpenFox `aa6fe1f7` holds ordinary leases until exact Event-ID/content/provenance session application is fsynced, makes crash replay model-idempotent, refuses substitution/non-durable history, keeps busy input outside volatile steering, and protects local history with owner-only modes. OpenFox `7fd3ac11` carries that verified origin through the real AgentLoop response and binds the final reply to the current Event, making strict channel `Send` validation effective end to end. OpenFox `cb8080d7`, merged as main `ac2475a3`, consumes current Messenger Event v2 with raw 32-byte genesis preimages, refuses historical v1 as current input, optionally drains only daemon-admitted attachments, independently rehashes body/scanner evidence, publishes an authenticated `artifact.encrypted` origin, and waits for durable session application before lease completion. Selected transport binding and real-network evidence remain |
+| MSG-013 | Encrypted attachment profile | `tos-messenger` | 🟡 cryptographic chunk/manifest/E2EE-reference core plus authenticated remote storage are implemented in Messenger main `026b987`: exact per-manifest grants; independent Endpoint/capability/storage keys; finalized delegation recheck per operation; body-bound one-use requests; durable nonce, monotonic-clock and generation defenses; bounded resumable multi-frame upload/fetch/delete; signed StoredAck/DeleteAck; periodic expiry/stale-stage GC; exact HTTPS locator and public-only DNS/SSRF policy. Main `463c43f` adds fail-closed `OpenForAgent` with sealed `memfd`, private-staged SHA-256-pinned scanner/bubblewrap/prlimit inodes, networkless/capability-dropped sandboxing, bounded all-must-allow verdicts and a parser-free UTF-8 inspector. Messenger `96a30ee`, merged as main `52f367c`, advances `artifact.encrypted` to v3 and reserves daemon-owned recipient admission. Messenger `13a4f48`, merged as main `4833a2c`, advances local request/response to v5/v3 and adds daemon-owned outbound streaming: ciphertext-only restart state, exact plaintext-digest commitment, external finalized Endpoint signing, distinct upload/fetch keys, resumable one-chunk storage calls, verified StoredAck-before-queue, prepared-only crash recovery, exact completed retry and post-queue secret cleanup. Real authenticated-store, maximum-shape, sandbox/tamper, authority substitution, key-leak, race/fuzz and all fifteen remote jobs pass. Still pending: independently operated public TLS/interrupted-transfer and audited retention evidence, a production malware scanner/hostile corpus, hard cgroup plus swap/core-dump evidence, and commercial terms. The reference inspector is not a general malware or prompt-injection defense; DeleteAck is not erasure proof |
+| MSG-014 | OpenFox channel and local IPC | `openfox` / `tos-messenger` | 🟡 encrypted three-OpenFox local IPC has separate MLS state owners, an opaque Relay, durable exact retries, tamper refusal and full restart. OpenFox `ed1fcc75` runs the three channel owners as separately supervised OS processes; `c47a98e0` further runs a real AgentLoop in each process with private durable workspaces, delayed cursor application, stable Event-bound replies and model-idempotent completed replay. A deployed round retained one opening and exactly two `openfox-agent-loop` peer replies after Alice restart without Relay plaintext. The production adapter claims daemon events, independently checks Event ID and canonical `text`/`room.message`/`room.moderation`, binds room identity/epoch, publishes typed group input, and durably retracts moderated applied history and authority without sending controls to the model. OpenFox `aa6fe1f7` and `7fd3ac11` hold leases through exact durable session application and preserve authenticated origin through the real AgentLoop response. OpenFox `cb8080d7`, merged as main `ac2475a3`, consumes current Event v2, drains only daemon-admitted attachments and independently rehashes body/scanner evidence. OpenFox `69dce589`, merged as main `40554b6c`, adds outbound `MediaSender`: exact registered file descriptors, stable route/origin/reply/media/digest idempotency, sequential 1 MiB resume, shared-caption causality and canonical daemon Event results, while every storage/key/network/Event authority stays in Messenger. Multi-chunk, retry, substitution, focused race and full test/vet/docs/build pass. Selected transport binding and real-network evidence remain |
 | MSG-015 | Context firewall and approval policy | `openfox` / `tos-messenger` | ✅ policy/ceilings, authenticated owner queue and offline-signing CLI, crash-safe one-shot grants, durable runtime provenance, production authenticated ingress, classified pre-execution tools, bounded owner wait, mandatory exact-term native-buyer custody/key-use wrapping, and post-funding finalized-Quote verification before dispatch implemented and tested |
 | MSG-016 | A2A event bridge | `tos-messenger` / `tos-ai` | 🟡 A2A execution adapter exists |
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
@@ -2787,9 +2797,6 @@ required.
 | MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v8 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, production DHT/HTTPS refresh, `ba98bc7` stock-command operator-resource assembly, and `b76376e` deterministic two-Descriptor cross-observer fork evidence/stock verification are implemented. `3bf27ae` adds bounded Owner-signed direct-device history export, restart-stable cursor/digest paging, delegation/roster enforcement, idempotent pair-session queueing and daemon-only immutable display import; `17cd7f6` adds bounded Owner-only observation with no application lease. Room history is refused rather than weakening MLS no-past secrecy. Independently operated publication/evidence exchange and live transport/catch-up evidence remain missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` / `openfox` | 🟡 Signed room authority/transfer, bounded epoch-bound roles, and auditable queued/applied-history `hide`/`restore` are durable and tested; production admission re-verifies finalized authority and applies moderation before queue publication, while OpenFox persists the presentation overlay, tombstones hidden model/UI history, withdraws action lineage and supports restore. Pinned OpenMLS supplies secrecy/PCS, encrypted OpenFox chat through per-Agent state owners, bounded capacity, and 2-of-2 independently keyed Mailbox offline catch-up across two PCS epochs. RoomRecord v2 requires resynchronization into fail-closed v3. Authenticated independently operated network Relay evidence, independent review, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 TOS Overlay exists; Messenger `a2cd605` adds the route-neutral `pkg/publicchannel` candidate with finalized publisher/moderator authority, digest-linked profile succession/fork detection, signed content-addressed Events, causal/per-publisher ordering, immutable moderation projection, convergent history heads and exact missing-ID repair. `e358dfd` adds a single-writer crash-safe local profile/Event/history ledger with immutable-before-pointer ordering, monotonic histories, restart re-verification and rollback/fork/damage refusal. `4eb6c9f` adds deterministic signing/ID/head vectors and five decode/verify adversarial cases. `7c6e43d` adds strict bounded recursive tip/parent fetch, exact response partitioning, retryable unavailability, fetched-authority checks, idempotent merge and full-head reproduction before commit. `5eab660` adds authenticated per-attempt peer/head/fetch/byte/unavailable ceilings and distinct-peer work prioritization without granting consensus authority. `14f01b9` adds the pinned native ADNL Overlay/RLDP carrier, application-authority rechecks, symmetric resource ceilings and real two-Gateway UDP teardown/restart evidence. `beaa358` adds the correct `pub.overlay` key→short-ID derivation, native-DHT address/signed-node publication and discovery, exact ADNL key rebinding, per-peer carrier lifecycle, automatic verified history commit and a runnable strict `tos-public-channeld`; real two-node UDP discovery/sync plus full durable restart run in `make verify`. `a3c5910` adds strict deterministic Storage Bag snapshots, a no-shell bounded CLI publisher, single-writer durable receipts and authority-free BagID hints with isolated replay accounting; native UDP integration proves injected publication/hint propagation and restart no-republish, while a fixture executable verifies the CLI boundary. `e3ea408` adds bounded stock CLI Bag download/catch-up, exact returned status/path binding, strict finalized snapshot verification, durable crash-recoverable locator receipts, alternate-Bag refusal and restart no-redownload. A second real-UDP test proves Sites-only Overlay hint → injected download → verified commit and full node/store/catch-up restart without RLDP history; the hermetic CLI download test remains a process fixture. `961c02d` adds opt-in acceptance across two real same-host daemons and a locally signed DHT, proves publish/download/strict verification/offline receipt replay, and normalizes stock uppercase BagID plus the exact trailing directory slash without relaxing wire canonicality. `c19d759` adds a fail-atomic incremental fetch cursor and repeatable 1/256/1,024/4,096/65,536-Event resource benchmarks; local maximum discovery is about one second and Storage export/load about 46/13.3 seconds, while final complete verification remains mandatory. Independently operated/public-network Storage evidence, representative-device/concurrent-peer calibration, multi-operator failover, independent vector consumption/review and second implementation remain |
-| MSG-023 | Desktop/Web client | selected client repository | ⬜ |
-| MSG-024 | Android client | `android` | ⬜ |
-| MSG-025 | iOS client | `ios` | ⬜ |
 | MSG-026 | Relay and storage commercial profiles | `tos-service-spec` | 🔒 Expansion Gate |
 | MSG-027 | Cross-implementation conformance harness | multiple | 🟡 positive/adversarial object and E2EE vectors plus consumer tests exist; no independent implementation evidence |
 | MSG-028 | Independent multi-operator deployment | deployments/runbooks | ⬜ |
@@ -2808,8 +2815,11 @@ closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
 
-Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `52f367c`, OpenFox `ac2475a3`, and `tos-ai` `a9928de`): **6/32 ✅**, 19/32 🟡, 4/32 ⬜,
-and 3/32 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
+MSG identifiers 023–025 are retired from this roadmap rather than retained as
+empty client deliverables. They are not included in the denominator.
+
+Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `8d939e6`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
 ## 26. Minimum viable demonstration
@@ -2844,11 +2854,10 @@ Minimum technical acceptance:
 - identity and Endpoint delegation are checked from finalized TOS state;
 - Relay or Proxy, if used, cannot decrypt content;
 - both daemons survive restart without duplicate application events;
-- a second local writer is rejected and local clients use authenticated IPC;
+- a second local writer is rejected and OpenFox or owner tooling uses authenticated IPC;
 - changing or disabling one Relay does not change Agent identity;
 - delivery ACKs are visibly distinct from TOS Receipts;
 - invite-only, allow-listed, or open bounded first-contact policy is enforced;
-- push loss does not lose a message; and
 - no central Gateway or private shared message database is required.
 
 A later commercial demonstration may add:
@@ -2900,9 +2909,7 @@ their roadmap-approved profiles exist.
     Relay Lease or Inbox Bond profile.
 14. Every Relay and Gateway is replaceable without changing identity, session
     authority, or commercial truth.
-15. Mobile push is a best-effort contentless wake-up exception, not a
-    decentralized or reliable delivery authority.
-16. No feature is marked implemented without code, tests, and acceptance
+15. No feature is marked implemented without code, tests, and acceptance
     evidence required for that layer.
 
 ## 28. Closed decisions and remaining M0 questions
@@ -2955,12 +2962,11 @@ The following remain explicitly unresolved or require external evidence:
   portable two-Descriptor proof without centralizing device secrets;
 - durable-store migration and long-term compaction policy beyond the
   implemented crash/recovery contract;
-- deployment key custody and client authorization around the implemented
-  signed owner/runtime IPC boundary;
+- deployment key custody and OpenFox/owner-tool authorization around the
+  implemented signed local IPC boundary;
 - Mailbox sender privacy, quota token, and abuse policy;
 - one-time invite-token encoding and admission-token privacy;
 - whether an economic Inbox Bond is ever justified;
-- mobile push privacy and recovery behavior;
 - public-channel measured abuse/resource calibration and independently operated
   convergence/Storage/failover evidence;
 - private-history backup and recovery;
