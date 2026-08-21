@@ -552,6 +552,24 @@ transcript, and all seven Unix-socket files remained mode `0600`. This proves
 the OpenFox-only exact-main local build/chat/idempotency/restart/opacity loop;
 it does not satisfy independently operated or selected-public-route evidence.
 
+After the RLDP interruption repair merged as Messenger main `0698b31`, the
+deployed Relay and MLS proxy were rebuilt once more from a clean exact-main
+tree; both Go binaries record that full revision with `vcs.modified=false`.
+Their SHA-256 values are respectively
+`77969d0dab70ddc05d4b2b781e8da0a932b2d1c1822f88837da8e8591638a1e1` and
+`e725a6b2b5f11c5fad0d335dd1da96d28a113612628eec51c250b58550901351`;
+the unchanged OpenMLS driver and exact OpenFox `40554b6c` Agent remain
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4` and
+`86c0092a927248973f0246073341d014e6eab85782348b4a0387f2eeef881228`.
+A seven-service restart left every unit `active/running` with `NRestarts=0`.
+Replaying the same caller request returned opening
+`msg_0234085f7cfa90e9a0f382f84c746704a9c82d0097a9d1f190376aa40b0dc776`,
+retained the exact Bob/Carol causal replies above, and left all three
+transcripts at 84 entries. The Relay state remained mode `0600` and contained
+none of the opening or reply message content. This reachability-only rebuild
+adds current-runtime regression evidence; it promotes no row and remains
+same-host rather than independent/public-network acceptance.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
