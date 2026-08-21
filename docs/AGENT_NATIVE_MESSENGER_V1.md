@@ -205,7 +205,7 @@ wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
 
 Progress snapshot (2026-08-21, audited through TOS Core main `0aac896`,
-`tos-messenger` main `8d939e6`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+`tos-messenger` main `0698b31`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -360,6 +360,22 @@ collector-manifest crossing, Endpoint signing and `VerifyTrial`. Messenger's
 full `make verify` and its focused race gate passed. This is repeatable
 same-host process evidence, not independent/public-network evidence, so M0-R
 and MSG-029 remain 🟡 and M1 route freeze remains blocked.
+Messenger `bf49b6a`, merged as main `0698b31`, then removes a scheduler-sensitive
+false measurement in the in-process RLDP fault injector. Repeated full-package
+testing reproduced a completed 4,000,001-byte transfer with zero suppressed
+messages because the old collector polled client-wide cumulative decoded bytes
+and started a quiet 150 ms timer that could expire before another packet was
+due. The replacement arms before the one `DoQuery`, requires an exact
+2,000,000-byte part boundary, and starts the window by dropping the first
+inbound symbol of the following part. RLDP cannot emit that symbol until the
+preceding part was decoded and acknowledged, so the trigger is bound to the
+current transfer and observable loss is constructive rather than scheduler
+luck. Unit tests cover trigger, continued suppression, expiry, disarm and
+overlap refusal. The final end-to-end recovery path passed 10 then 30
+consecutive runs, the complete `pkg/probe` suite passed three consecutive
+runs, focused race/vet and full `make verify` passed, and all fifteen remote
+verify/vector/cross-build/fuzz jobs were green. This strengthens the evidence
+gate but contributes no real-network sample; M0-R and MSG-029 remain 🟡.
 Those native halves are now on their respective main branches through TOS Core
 merge `0aac896` and Messenger merge `5ee8108`; the local and remote green gates
 therefore describe merged code rather than an unmerged sidecar experiment.
@@ -2846,7 +2862,7 @@ closed, and the repeated deployed restart required no automatic recovery.
 MSG identifiers 023–025 are retired from this roadmap rather than retained as
 empty client deliverables. They are not included in the denominator.
 
-Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `8d939e6`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `0698b31`, OpenFox `40554b6c`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
