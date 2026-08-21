@@ -117,10 +117,9 @@ The first technical product should be an OpenFox-to-OpenFox Messenger with:
 - direct, tunnel, Relay, or bounded HTTPS delivery according to policy; and
 - no dependency on a central Gateway or central message database.
 
-Group rooms and public channels may follow their prerequisites. Desktop/Web,
-Android, and iOS Messenger products are explicitly outside this roadmap: the
-only application runtime in scope is OpenFox. Commercial Relay profiles remain
-Expansion-Gate work.
+Group rooms and public channels may follow their prerequisites. OpenFox is the
+only application runtime and product surface in scope. Commercial Relay
+profiles remain Expansion-Gate work.
 
 ## 5. Current implementation inventory
 
@@ -211,8 +210,9 @@ sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
 Weighted implementation completion for the OpenFox-only scope is now **about
-98% (bounded estimate 96–99%)**; removing native product-client delivery from
-the denominator does not claim that any external gate was completed. The
+98% (bounded estimate 96–99%)**. This denominator contains only the protocol,
+daemon, Relay, storage and OpenFox runtime work defined here; it does not claim
+that any external gate was completed. The
 terminal removed-member lifecycle added by Messenger main `bb2681a` and
 OpenFox main `c5746b2a` closes a local runtime correctness gap inside already
 partial private-room/OpenFox rows, so the percentage and component counts do
@@ -220,8 +220,8 @@ not change. Messenger main `983117b` likewise closes the last local M4 design
 choice—private-room prior history—inside an already partial row without
 claiming external evidence, so the percentage remains unchanged. The remaining
 denominator is dominated by independently operated transport evidence, external
-review/approval and a second implementation, not Desktop/Web/Android/iOS client
-work. The authenticated attachment service, recipient authority, daemon
+review/approval and a second implementation. The authenticated attachment
+service, recipient authority, daemon
 admission, OpenFox consumption and outbound streaming closures promote no
 whole component row. Messenger main `4833a2c` and OpenFox main `40554b6c`
 remove both the recipient-fetch/application gap and the local outbound
@@ -2724,16 +2724,13 @@ New Relay, storage, history, or inbox-bond services must define their own
 profile-specific objective result and Receipt semantics. They cannot relabel a
 software-work Receipt.
 
-## 21. Product-client scope
+## 21. OpenFox-only product scope
 
-Desktop/Web, Android, and iOS Messenger applications are not deliverables of
-this design or roadmap. The product boundary is OpenFox-to-OpenFox messaging;
-CLI and owner-control surfaces exist only to provision, authorize, observe, and
-operate OpenFox endpoints. Wire formats remain implementation-neutral, so a
-separate future project may build a client without changing Messenger
-authority, but no client code, UI, push integration, app-store packaging, or
-client acceptance evidence contributes to this roadmap or its completion
-percentage.
+The product boundary is OpenFox-to-OpenFox messaging. CLI and owner-control
+surfaces exist only to provision, authorize, observe, and operate OpenFox
+endpoints. Messenger wire formats remain implementation-neutral, but this
+design, its work packages, acceptance evidence, and completion percentage cover
+only the OpenFox runtime and its supporting messaging services.
 
 ## 22. Repository and process boundaries
 
@@ -3044,9 +3041,6 @@ independent-network evidence still keep MSG-014 🟡. OpenFox `f4087f63` also
 closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
-
-MSG identifiers 023–025 are retired from this roadmap rather than retained as
-empty client deliverables. They are not included in the denominator.
 
 Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `983117b`, OpenFox main `c5746b2a`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;

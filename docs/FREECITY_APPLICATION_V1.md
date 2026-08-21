@@ -308,7 +308,7 @@ the Native execution Gate.
 - MCP exposes authority-gated tools without becoming settlement authority.
 - Agent Packet carries chain-authenticated off-chain messages with replay
   protection.
-- Mobile clients remain owner-controlled approval and observation surfaces.
+- OpenFox remains the owner-controlled approval and observation surface.
 
 FreeCity's machine-facing City API may wrap these transports but must preserve
 their security and canonicality rules.
