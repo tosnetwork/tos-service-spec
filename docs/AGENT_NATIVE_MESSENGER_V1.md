@@ -155,7 +155,7 @@ profiles should follow only after their prerequisites are accepted.
 | Reusable local journal pattern | ✅ | `softwarework.Journal` supplied the original durability pattern; `tos-messenger/pkg/eventlog` now implements the Messenger-specific sole-writer event, ACK, replay, retry, expiry, session, device, room, approval, mandate, budget, and negotiation state | It deliberately remains a single-process store rather than a concurrent cross-process claim database |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, admission policy, or rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
-| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes | Independent Driver review, history synchronization, and real Relay/Overlay integration remain open |
+| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes | Independent Driver review, room/public-channel history synchronization, and real Relay/Overlay integration remain open; direct same-Endpoint device history is implemented separately |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md`; the production Messenger channel consumes authenticated direct/room input and submits reply semantics to daemon-owned event construction. Messenger `40e06ff`/`dcfca91` and OpenFox `cfa58ee7`/`6ae673bf` add daemon-assembled finalized-Quote verification, make it a mandatory post-funding/pre-dispatch native-buyer gate including crash recovery, and verify the deterministic funded escrow directly without a locator prewrite. OpenFox `755fbf2d` assembles the production buyer's frozen 2-of-3 chain authority graph. Protocol `94d38f8` and OpenFox `8d0bcedf`/`3fae4f91` add exact custody-reviewed escrow deployment and strict `prepare → inspect → deploy-prepare → deploy-broadcast → fund → dispatch → terminal settlement` production commands, durable leases, signed policy verification, Messenger spend/Quote gates and three transports | Fresh independent buyer/provider commerce sessions, selected live transport, and independently reconstructed settlement evidence remain missing |
 | Mobile TOS clients | 🟡 | Owner-controlled mobile service-client architecture is documented | Messenger session storage, best-effort push wake-up, multi-device keys, room UI, and messaging conformance are missing |
@@ -175,7 +175,7 @@ gap named. None of this counts as gate evidence (Section 3).
 | Messaging Endpoint delegation schema and verifier | ✅ Implemented | `tos-messenger` `pkg/identity`, `pkg/tosaddr`; production daemon startup now builds the upstream strict-majority finalized Agent resolver, verifies its exact local delegation before opening either socket, and enforces the resulting outbound event-class grant |
 | Messaging Contact Descriptor and DHT locator profile | 🟡 Partial | `tos-messenger` now retains the route-neutral chain in daemon config v7: bounded explicit Agent→delegation and descriptor-policy files are reread and checked against finalized commitments, followed by the production native DHT locator, hardened HTTPS descriptor/prekey source, strict per-Agent policy stage, and durable device admission. Messenger `ba98bc7` makes the stock daemon assemble the protected HTTPS root, native DHT client, committed policy/template and external signer from a separate strict operator document while deriving authority fields from the live finalized delegation. DHT bootstrap verification, file substitution, policy substitution, network-representation conversion, scheduled finalized revocation rechecks, lifecycle cleanup, vectors, and adversarial cases are tested. Live independently operated multi-node discovery evidence remains |
 | One-to-one application-layer E2EE | 🟡 Partial | `tos-messenger` `pkg/e2ee` implements and vectors the approved `tos.messaging.e2ee.x3dh-aes256gcm-dr.v1` construction and clears its fourteen-property refutation harness; independent cryptographic review and second-language consumption remain wire-freeze gates |
-| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` separates device-local private prekey generations from public-only complete-set aggregation; daemon config v7 retains the v5 roster/suite/cadence contract and owns a third capability-separated listener; startup recovers plans/finalization and never discards live partial material. `directory.GenerationPublisher` and `daemon.OpenWithGenerationPublisher` schedule the exact durable generation through prekey object → content-addressed Descriptor → signed inner locator → native DHT, using deterministic renewal buckets and a strict external Endpoint signer client. Messenger `ba98bc7` exposes that path through stock `tos-messengerd -publication-operator-config`: strict public-only resources are bound to the independently finalized delegation before network or filesystem mutation, and private Endpoint key bytes remain outside the daemon. Messenger `b76376e` adds deterministic bounded cross-observer fork evidence plus a stock finalized-authority assemble/verify tool: two Endpoint-signed Descriptor→complete-set chains are required, while pure retirement, ordered rotation, future issuance and observer-controlled authority are refused. Replenishment, retry, expiry/pruning, revocation, rollback/equivocation, dependency failure, signer/authority substitution, native-DHT envelopes, operator-config substitution and portable fork verification are tested. History synchronization and independently operated publication/evidence exchange remain open, while message transport still waits on M0-R |
+| Multi-device session and key-rotation model | 🟡 Partial | `tos-messenger` separates device-local private prekey generations from public-only complete-set aggregation; daemon config v7 retains the v5 roster/suite/cadence contract and owns a third capability-separated listener; startup recovers plans/finalization and never discards live partial material. `directory.GenerationPublisher` and `daemon.OpenWithGenerationPublisher` schedule the exact durable generation through prekey object → content-addressed Descriptor → signed inner locator → native DHT, using deterministic renewal buckets and a strict external Endpoint signer client. Messenger `ba98bc7` exposes that path through stock `tos-messengerd -publication-operator-config`; `b76376e` adds deterministic bounded cross-observer fork evidence and a stock finalized-authority verifier. Messenger `3bf27ae` adds owner-authorized direct history pages over the existing authenticated device-pair ratchet: only applied inbound/delivered outbound Events are exported, stable cursor/digest chains survive restart, and a daemon-only consumer commits immutable display history outside all Agent/tool/approval/commerce paths. Exact retry, target/cursor/signature substitution, roster revocation, delegation-class bypass, chain gaps/damage, recursive/local-only content and room history fail closed. Room/MLS history is deliberately not inferred. Independently operated publication/evidence exchange and live message/history transport remain open pending M0-R |
 | Single-writer durable conversation store and replay journal | ✅ Implemented | `tos-messenger` `pkg/eventlog` |
 | Delivery, storage, application, and optional read acknowledgements | ✅ Implemented | Distinct strict StoredAck, DeliveryAck, ApplicationAck, and optional ReadAck profiles exist; durable delivery/application/read state is separate from Relay storage, and no ACK is a TOS Receipt (`pkg/mailbox`, `pkg/payload`, `pkg/eventlog`, `internal/vectors`) |
 | Encrypted offline Mailbox Relay | 🟡 Partial | `tos-messenger` `bd07dee` implements the runnable seam over the route-neutral crash-safe opaque store and scoped Endpoint→capability authentication: a finalized-state authority rereads and checks the exact delegation commitment on every operation; `pkg/mailboxapi` and `tos-mailboxd` add strict 2 MiB request/16 MiB response service frames, an eight-envelope amplification ceiling, private Unix listener/client, signed StoredAck, durable restart-safe nonce claims, quotas, list/delete, vectors, and adversarial cases. The post-M0-R public transport binding and independent operator evidence remain open |
@@ -192,14 +192,14 @@ gap named. None of this counts as gate evidence (Section 3).
 | Cross-implementation positive vectors and adversarial corpus | 🟡 Partial | `tos-messenger` `internal/vectors` provides positive vectors plus decode- and verify-layer adversarial corpora, and `pkg/e2ee/testdata` adds deterministic positive/adversarial suite vectors; all are self-verifying, but no second implementation has consumed them |
 | Independent multi-operator interoperability evidence | ⬜ To be developed | needs a second implementation |
 
-Progress snapshot (2026-08-21, audited through `tos-messenger` `b76376e`,
+Progress snapshot (2026-08-21, audited through `tos-messenger` `3bf27ae`,
 OpenFox `3fae4f91`, and `tos-ai` `a9928de`): the component inventory is **5/20 ✅**, with
 11/20 🟡, 3/20 ⬜, and 1/20 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
 
-Weighted implementation completion is now **about 86% (bounded estimate
-84–88%)**, up from the prior approximately 82% audit. The increase is the
+Weighted implementation completion is now **about 87% (bounded estimate
+85–89%)**, up from the prior approximately 86% audit. The cumulative increase is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
 role/moderation policy, production OpenFox room-message consumption, and
 runnable authenticated Mailbox service boundary, followed by daemon-owned
@@ -228,7 +228,11 @@ authorized three-transport dispatch and terminal settlement recovery; it is not
 an entire component-row promotion. Messenger `ba98bc7` additionally closes the
 stock public-generation resource assembly gap without importing Endpoint
 private keys or configurable identity authority, and `b76376e` adds portable
-cross-observer fork proof and a finalized-authority stock verifier. Product readiness is
+cross-observer fork proof and a finalized-authority stock verifier. Messenger
+`3bf27ae` further closes route-neutral direct-device history export/import with
+owner-signed paging, stable restart cursors, immutable display-only storage and
+daemon-only consumption over the existing Double Ratchet; it does not claim
+room-history authority or live-network delivery. Product readiness remains
 approximately **67%**: local users
 can exercise real encrypted group behaviour, while public discovery/transport,
 independent operation and wire-freeze evidence remain the dominant gates.
@@ -642,6 +646,37 @@ issuance remains refused. Independently operated publication and evidence
 exchange remain deployment gaps. No canonical signed preimage changed in this
 implementation round; both new operator/evidence documents have explicit v1
 schemas.
+
+Messenger `3bf27ae` implements direct-conversation history synchronization
+between two current Devices of the same Endpoint. First principles select the
+existing authenticated one-to-one Event/Double Ratchet transport: a parallel
+X25519/AEAD history envelope would duplicate key derivation, nonce, associated-
+data and rotation semantics without adding authority. The typed
+`device.history.segment` Event belongs to delegation class `device.sync`; its
+source identity, same-Endpoint recipient and symmetric device-pair session are
+daemon-derived. Export is an Owner-only local operation whose single-use
+Ed25519 decision covers target Device, Conversation, sequence, predecessor
+digest, stable `(created_at_unix,event_id)` cursor, page bound, idempotency key
+and expiry. The OpenFox runtime cannot request, list, claim or apply it.
+
+Only admitted/applied inbound Events and durably delivered outbound Events are
+eligible. Pending, held, rejected, queued, local-only, recursive-history and
+Room Events are excluded. A segment contains at most 16 Events and 96 KiB of
+canonical Event bytes, and one source-target-conversation chain is bounded to
+4096 segments. The receiver requires both Devices in its sorted configured
+roster, checks the outer authenticated identity/network/conversation against
+the body, then stores canonical Event objects immutably. Ordered manifests are
+committed before a checkpoint; queries follow only checkpoint-reachable
+objects, deduplicate Event IDs, and fail closed on gaps, substitutions, damage
+or restart conflicts. Imported history is display-only and never enters the
+Agent loop, tools, approvals, Agent Packet Gate, or commerce adapters.
+
+Room/MLS history remains explicitly out of scope for this v1 payload. A new MLS
+leaf has no right to past epoch secrets, so importing plaintext room history
+would silently invent a join-history policy. That work stays open until current
+room authority freezes an explicit policy. Remote transport and independent
+catch-up/restart evidence likewise remain gated by M0-R; local durable
+construction is not reported as public delivery.
 
 ### 9.4 Session keys — 🟡 construction approved and implemented, not frozen
 
@@ -2206,10 +2241,12 @@ reconstructs settlement without a shared private database.
 
 ### M4 — Multi-device and private rooms
 
-**Status: 🟡 Device, signed membership/transfer, bounded epoch-bound private
-roles, queued and applied-history moderation, pinned OpenMLS suite `0x0001`, and
-encrypted three-OpenFox local acceptance implemented with crash-safe restart
-evidence; real authenticated Relay transport and independent evidence remain.**
+**Status: 🟡 Device succession/fan-out and owner-authorized direct-device
+history, signed membership/transfer, bounded epoch-bound private roles, queued
+and applied-history moderation, pinned OpenMLS suite `0x0001`, and encrypted
+three-OpenFox local acceptance are implemented with crash-safe restart evidence;
+Room prior-history policy, real authenticated Relay transport and independent
+evidence remain.**
 
 Deliver device authorization and removal, history synchronization, private Room
 membership, selected group encryption, role policy, fan-out limits, and
@@ -2276,7 +2313,7 @@ required.
 | MSG-017 | MCP event bridge | `tos-messenger` / `tos-ai` | 🟡 MCP execution adapter exists |
 | MSG-018 | Agent Packet carriage and Execution Gate adapter | `tos-messenger` / `tos-service-protocol` / `tos-ai` | 🟡 exact E2EE carriage, finalized verification, durable nonce replay recovery, `tos-ai` Gate adapter, complete three-transport matrix, and a bounded canonical Messenger→owner-private OpenFox provider socket with independent reverification exist. Messenger `cb97f0d` adds admitted-event leasing retained by daemon v7, provider-failure retry, restart-safe dual completion and atomic exclusion from the general model/runtime inbox; selected live inbound transport and independently operated evidence remain pending |
 | MSG-019 | Quote/escrow/Receipt reference profile | `tos-messenger` / `tos-service-protocol` | 🟡 typed terms, mandates, budgets, durable negotiation, resolver contract, concrete finalized-chain quote resolver, and a crash-safe one-time commitment→escrow/class ledger implemented. Messenger `0d5988f` keeps the owner-signed digest-only locator path. Messenger `40e06ff`/`dcfca91` assembles the resolver in daemon v7 and exposes exact read-only verification of a directly supplied funded escrow without persisting runtime authority; OpenFox `cfa58ee7`/`6ae673bf` maps the complete protocol terms/address and makes verification mandatory after finalized funding and before dispatch, including recovery. Protocol `94d38f8` and OpenFox `755fbf2d`/`8d0bcedf`/`3fae4f91` add the concrete frozen 2-of-3 chain buyer stack, owner-private budget/checkpoint/purchase journals, exact custody-reviewed escrow deployment, Messenger-authorized funding, three-transport verified dispatch and terminal settlement recovery. Commitment/address/account/provider/network/term/StateInit/message/policy/task substitution, redirects, missing authority and bypasses fail closed. Independent buyer/provider settlement and live-node evidence remain missing |
-| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v7 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, production DHT/HTTPS refresh, `ba98bc7` stock-command operator-resource assembly, and `b76376e` deterministic two-Descriptor cross-observer fork evidence/stock verification implemented; history synchronization and independently operated publication/evidence exchange remain missing |
+| MSG-020 | Multi-device synchronization | `tos-messenger` | 🟡 succession, revocation, per-pair sessions, fan-out, device-local private generations, fixed-roster public collection, strict device API, config v7 planner/third listener, restart finalization, complete-set replenishment, isolated and externally verified Endpoint signing, expiry/pruning, rollback/equivocation, deterministic durable-generation → immutable HTTPS objects → signed locator → native-DHT scheduling, peer ledger/admission, production DHT/HTTPS refresh, `ba98bc7` stock-command operator-resource assembly, and `b76376e` deterministic two-Descriptor cross-observer fork evidence/stock verification are implemented. `3bf27ae` adds bounded Owner-signed direct-device history export, restart-stable cursor/digest paging, delegation/roster enforcement, idempotent pair-session queueing and daemon-only immutable display import; room history is refused rather than weakening MLS no-past secrecy. Independently operated publication/evidence exchange and live transport/catch-up evidence remain missing |
 | MSG-021 | Private Room protocol and MLS comparison | `tos-messenger` / `openfox` | 🟡 Signed room authority/transfer, bounded epoch-bound roles, and auditable queued/applied-history `hide`/`restore` are durable and tested; production admission re-verifies finalized authority and applies moderation before queue publication, while OpenFox persists the presentation overlay, tombstones hidden model/UI history, withdraws action lineage and supports restore. Pinned OpenMLS supplies secrecy/PCS, encrypted OpenFox chat through per-Agent state owners, bounded capacity, and 2-of-2 independently keyed Mailbox offline catch-up across two PCS epochs. RoomRecord v2 requires resynchronization into fail-closed v3. Authenticated independently operated network Relay evidence, independent review, and second implementation remain open |
 | MSG-022 | Public channel Overlay integration | `tos-messenger` / `tos` | 🟡 Overlay exists |
 | MSG-023 | Desktop/Web client | selected client repository | ⬜ |
