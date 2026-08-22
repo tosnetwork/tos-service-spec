@@ -206,9 +206,15 @@ canonical Heads now single-flight across authenticated peers, pending work is
 bounded to 256 public-data candidates, same-Head failure selects one connected
 fallback, and stale completion, disconnect, replay, key substitution,
 overflow, and close paths fail safely under race and complete remote gates.
+Messenger main `b4dadb2` now proves that result at the live carrier boundary:
+two independently keyed providers and one empty `NativeNode` run over three
+real local UDP Gateways; while the first RLDP request is held, the identical
+Head from the second carrier yields one active and one pending candidate,
+exactly one served fetch, one durable commit and an empty scheduler afterward.
+The proof passed 20 consecutive runs without adding a production hook.
 
 Progress snapshot (2026-08-22, audited through TOS Core main `0aac896`,
-`tos-messenger` main `9b91e1b`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+`tos-messenger` main `b4dadb2`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -222,7 +228,10 @@ OpenFox main `c5746b2a` closes a local runtime correctness gap inside already
 partial private-room/OpenFox rows, so the percentage and component counts do
 not change. Messenger main `9b91e1b` likewise removes duplicate same-Head
 public-channel synchronization work inside an already partial row, so it does
-not promote the row or raise the rounded percentage. Messenger main `983117b`
+not promote the row or raise the rounded percentage. Messenger main `b4dadb2`
+strengthens that row's same-host carrier evidence without closing any external
+gate, so the counts and rounded estimate again remain unchanged. Messenger
+main `983117b`
 likewise closes the last local M4 design
 choice—private-room prior history—inside an already partial row without
 claiming external evidence, so the percentage remains unchanged. Messenger
@@ -370,6 +379,18 @@ failure, replay, queue-overflow, substitution and shutdown cases pass focused
 race tests and the complete local and fifteen-job remote gates. This removes
 same-Head amplification inside one node but does not claim public-network
 capacity, Byzantine consensus, or route freeze.
+Messenger main `b4dadb2` closes the remaining local evidence seam between that
+scheduler model and the native carrier. Its three-node non-race integration
+test establishes two independently keyed providers and one empty client over
+real UDP ADNL/Overlay/RLDP carriers. Both providers receive the same verified
+history only after carrier assembly; the first real RLDP request is held while
+the second carrier broadcasts the identical canonical Head. The client must
+show exactly one active and one pending candidate, the providers must serve one
+fetch in total, and release must produce one verified durable commit and no
+remaining work. Twenty consecutive runs, the complete package/race gates,
+`make test-adnl`, local `make verify`, and all fifteen remote jobs pass. This
+remains same-host carrier evidence, not independently operated/public-network
+capacity or fault evidence.
 Messenger `5e9d69b` then closes the M0-R ping-only route-decision gap without
 overclaiming reliable transfer. Endpoint-signed v3 trials retain bounded ADNL
 payload outcomes through the 8176-byte native query maximum; the
@@ -932,6 +953,28 @@ same opening and left every count at 105. Every unit remained
 plaintext and all seven warning-or-higher journals were empty. This proves that
 the public-channel scheduler change did not regress the exact-main OpenFox
 group-chat closure, but remains same-host evidence.
+
+After the native three-node single-flight proof merged as Messenger main
+`b4dadb2cece2389f252c243fde36c3efe280582f`, the installed Relay and MLS proxy
+reported that exact revision with `vcs.modified=false`; OpenFox remained exact
+main `b2e140a28078b0c838ab38e726973427b931ab49`. Installed Relay, proxy,
+OpenMLS Driver and OpenFox SHA-256 values were respectively
+`a0496ecdc77cdd653bdce2eeb0cb39341c69a33cb4482529311a54648dc82713`,
+`d33340cf54740ea3df777d615492c4a3cd002d1ec99f4f746910fe4cb9aa80f4`,
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`,
+and `7a0ab29e79042b6d2028d15de9d17bdc8312ce21ba70c5e6b5dd6bd02ad5756f`.
+
+Alice sent opening
+`msg_61992d11c3e5d71a9d325149fd6eca72f211697508dfc793d668a89ab18e6202`;
+Bob and Carol produced exactly one `openfox-agent-loop` reply each,
+`msg_02b5e95da6cc613fec41748e6a4f2211e28ded8e743cb8eef21f8442c390f33f`
+and `msg_45db5ed712b2d0b1b79289c911909e4719fc71698ee90b18c49cc80784489717`,
+both bound to the opening. All three transcripts advanced from 105 to 108.
+Exact online replay and replay after a full seven-service restart returned the
+same opening and left every count at 108. Every unit remained
+`active/running` with `NRestarts=0`; the mode-`0600` Relay held no probe
+plaintext and all seven warning-or-higher journals were empty. This is an
+exact-main OpenFox regression proof, not independent-network evidence.
 
 ### 5.4 Scenario acceptance
 
@@ -3325,8 +3368,9 @@ its crash-safe ledger, a live native ADNL Overlay/RLDP carrier, runnable
 native-DHT multi-peer node assembly, deterministic TOS Storage Bag
 publication/hints, bounded stock CLI download/catch-up, same-host two-daemon
 real-binary acceptance, protocol-maximum local resource calibration, and a
-1/8/32-peer same-host strict-path calibration and exact-Head synchronization
-single-flight with bounded failover are implemented;
+1/8/32-peer same-host strict-path calibration, exact-Head synchronization
+single-flight with bounded failover, and a real three-Gateway/two-provider
+single-flight carrier proof are implemented;
 representative-device/public-network concurrent calibration and independent
 public-network/Storage evidence remain open.**
 
@@ -3393,6 +3437,13 @@ canonical candidate. Focused race tests, complete local `make verify`, and all
 fifteen remote jobs pass. MSG-022 remains 🟡 because public-network calibration,
 independent operation, multi-operator failover, vector consumption/review, and
 a second implementation remain external gates.
+Messenger main `b4dadb2` additionally exercises MSG-022 through three real
+local UDP Gateways: one empty `NativeNode` receives one exact Head from each of
+two independently keyed providers while the first RLDP request is held. The
+test requires one active/one pending candidate, one served fetch in total, one
+verified durable commit and an empty scheduler, passes 20 consecutive runs and
+all fifteen remote jobs, and adds no production hook. This strengthens local
+carrier evidence without satisfying any independent/public-network gate.
 
 2026-08-22 progress note for MSG-013/MSG-014: Messenger main `f58dfa3`
 implements immutable named scanner-engine/signature resources, strict
@@ -3434,7 +3485,7 @@ closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
 
-Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `9b91e1b`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `b4dadb2`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
