@@ -365,6 +365,30 @@ Primary repository: `tos-messenger`; thin caller change: `OpenFox`.
   conflict and model-route-substitution cases; and
 - prove loopback/queue behavior without claiming production delivery.
 
+Status on 2026-08-22: **implementation complete; local acceptance complete**.
+`tos-messenger` commits `af8ef48`, `242097d`, `1649e68`, `542f283`, and
+`ce552e8` retain exact verified prekeys, persist daemon-owned asynchronous
+sessions, create one independently sealed/retried copy per verified device,
+apply ordinary admission through an atomic Event+ratchet commit, and derive
+replies from authenticated inbound Events. Local API v10 exposes
+`messages.send-direct` and `messages.reply-direct`; neither operation can
+represent an OpenFox-selected Endpoint, Device, Session or route. The full
+`make verify` gate passed, including race, ADNL/RLDP, Rust/OpenMLS and build.
+
+OpenFox commit `9e241774` sends high-level recipient intent directly to that
+boundary and replies from authenticated Event origin without a preconfigured
+direct route. Focused channel and configuration tests pass. Its repository-wide
+Go test remains environment-blocked by the missing system `libolm` headers;
+this is an existing optional Matrix build dependency, not a Messenger test
+failure.
+
+`TestTwoIndependentDaemonsExchangeEncryptedDirectMessages` uses separate
+AgentIDs, Endpoint keys, DeviceIDs and durable journals with the real candidate
+X25519/AES-256-GCM double-ratchet suite. It proves first message, ordinary
+admission, reply and retry idempotency five consecutive times. This is same-host
+loopback evidence only. It does not satisfy M0-R, production-carrier or
+independent-operator acceptance.
+
 ### Phase B — M0-R and production transport
 
 Primary repository: `tos-messenger`; modify `tos` only for a proven missing
@@ -481,12 +505,14 @@ This slice is intentionally smaller than session cryptography or transport
 selection. It establishes the identity-continuity boundary that both later
 bootstrap and OpenFox proactive send require, without pre-deciding M0-R.
 
-Implementation evidence: `tos-messenger` commit `219ed91` adds local API v9
+Initial implementation evidence: `tos-messenger` commit `219ed91` adds local API v9
 `conversations.ensure-direct`, the AgentID-keyed durable record, monotonic
 finalized-directory evidence, restart/idempotency/alias-transfer/rotation and
 route-substitution tests. Its full `make verify` passed on 2026-08-22. The
-operation reports only `transport-pending`; pair-session creation and a
-production transport remain Phase A/B work.
+That initial operation reported only `transport-pending`. The Phase A status
+record above supersedes its then-open pair-session and OpenFox integration
+gaps. A production transport remains Phase B work and cannot be selected
+without a qualifying M0-R route-decision report.
 
 ## 11. Design review record
 

@@ -2716,28 +2716,30 @@ independently operated network route or the production daemon Event path. The
 separate production receive adapter consumes typed Messaging Events over
 authenticated local IPC while the daemon owns admission and deduplication;
 outbound discovery and the post-M0-R transport binding remain outside the lab.
-The production path is no longer receive-only: it accepts authenticated replies whose
-context names the exact authenticated Messenger Event being answered and whose
-chat has an operator-configured conversation/room/session/recipient route.
-It also accepts a typed proactive `recipient` intent from the AgentLoop message
-tool. Local API v8 `contacts.resolve` canonicalizes `.tos` or validates an
-explicit AgentID, after which OpenFox uses only an operator-owned direct route
-keyed by that AgentID. Local API v8 `outbox.compose` carries the canonical
-AgentID as a daemon-verified route assertion. OpenFox submits message semantics; the
-daemon supplies its finalized Agent/Endpoint/Device identity, network tuple,
-clock, kind, payload schema and content-addressed Event ID. Before queueing, a
-single-writer composition record binds the first complete event and route to a
-canonical idempotency key. Exact retries after restart return the original
-Event ID; changed content, identity, network or recipient fails closed. With
-`transport: none` the message remains durably queued and is never reported as
-network-delivered.
+The production adapter now accepts route-free proactive recipient intent and
+authenticated direct replies. Local API v10 `messages.send-direct` accepts only
+an AgentID/`.tos` input, text semantics, expiry and runtime-generated
+idempotency; `messages.reply-direct` accepts only an authenticated source Event
+and reply semantics. The daemon canonicalizes AgentID, refreshes finalized
+directory evidence, chooses verified Endpoint/Device sets, creates or reuses
+deterministic pair sessions, fans one logical Event out into independently
+sealed device copies, and applies the ordinary admission policy through a
+recoverable Event+ratchet transaction. OpenFox cannot submit EndpointID,
+DeviceID, SessionID or route fields on either operation. Alias reassignment
+therefore affects a new lookup only and cannot retarget an established Event,
+session or reply.
 
-This proactive path deliberately reuses an established AgentID route/session.
-Generic new-contact session bootstrap and the selected live transport remain
-open work; `.tos` does not bypass either gate. The daemon-owned first-contact
-state machine, M0-R-dependent transport phase and OpenFox autonomous economy
-integration are sequenced in
+`transport: none` still leaves copies durably queued and never reports network
+delivery. The selected live transport remains gated on M0-R. The daemon-owned
+first-contact state machine, M0-R-dependent transport phase and OpenFox
+autonomous economy integration are sequenced in
 [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
+
+Phase A evidence is `tos-messenger` commits `af8ef48`, `242097d`, `1649e68`,
+`542f283`, and `ce552e8`, plus OpenFox `9e241774`. Messenger's full
+`make verify` passed on 2026-08-22. The two-daemon real-suite loopback covers
+first contact, reply and idempotent retry across separate identities and state
+directories; it is not public-network or independent-operator evidence.
 
 The implementation snapshot is `tos-messenger` commit `d284f44` and OpenFox
 commit `402e21ed`. `tos-messenger` passed `make verify`, including the race
