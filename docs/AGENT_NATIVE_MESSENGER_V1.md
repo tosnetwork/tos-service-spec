@@ -3535,7 +3535,21 @@ supervisor/restart acceptance described above. MSG-014 remains 🟡 because this
 is a same-host operator-local deployment, not selected-route or independent
 multi-operator evidence.
 
-Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `b4dadb2`, OpenFox main `163058f4`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+The seven-unit composition was rebuilt and redeployed again on 2026-08-22 from
+Messenger main `8566051` and OpenFox main `6b997b63`, after the DNS contact
+resolver and reviewed upstream fallback-chain merge. Alice's Event
+`msg_61e4b1b4f1c1ca6177a25a7f9b79aa98a0bb55e2bb44747ebe63287fe3d0617c`
+received exactly one independently produced AgentLoop reply from Bob and Carol.
+After restarting the opaque Relay, all three private MLS proxies and all three
+OpenFox AgentLoop processes together, an exact retry returned the same Event
+and every transcript retained exactly the same three unique IDs. The mode-0600
+Relay state contained none of the submitted plaintext. Exact binary hashes and
+the limitation to same-host/local-route evidence are recorded in
+`tos-messenger/docs/evidence/OPENFOX_GROUP_LATEST_MAIN_2026-08-22.md`. This is
+fresh runnable/restart evidence for MSG-014, but it does not change the 🟡
+status: selected-route and independent-operator evidence remain absent.
+
+Work-package progress (2026-08-22, audited through TOS Core main `a16e1cac3`, `tos-messenger` main `8566051`, OpenFox main `6b997b63`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
