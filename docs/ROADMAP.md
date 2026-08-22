@@ -609,13 +609,7 @@ is not implied by Gate C's initial profile.
     Runtime integration and a fresh paid OpenFox application session remain
     after the protocol/SDK work. OpenFox is the sole application runtime and
     product surface covered by this roadmap and its completion denominator.
-18. ⬜ **Optional OpenFox direct Gifts:** the identity, custody, dedicated
-    Gift-vault, claim/refund, Messenger-carriage and acceptance design is
-    specified in `docs/OPENFOX_AGENT_GIFTS_V1.md`. Gifts are disabled by
-    default, ordinary chat remains free, and no implementation or acceptance
-    evidence exists yet. Group and random-share red packets are explicitly
-    deferred to a later versioned profile.
-19. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
+18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes
     gross Agent value, provider receipts, job counts, unique buyer wallets,
