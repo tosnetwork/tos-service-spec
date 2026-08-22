@@ -106,7 +106,8 @@ authoritative buyer journal. OpenFox `129ec08d`/`d3a64104` and
 execute the opened descriptor, pass pinned configuration by descriptor, scrub
 ambient environment, and require production provider signer custody. Protocol
 `3809bb7` supplies the reviewed prepare/sign/apply Capability and immutable
-manifest publication command. These close local implementation items only;
+manifest publication command; `22eed2a` requires its private Gateway credential
+to be operator-owned. These close local implementation items only;
 the external Gate D/E parties and finalized live settlement evidence remain
 mandatory.
 

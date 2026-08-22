@@ -470,7 +470,9 @@ anonymous file descriptor and inherit no ambient process environment. OpenFox
 `d3a64104` requires `tosctl` execution-signer custody in the production
 provider. Protocol `3809bb7` adds restartable reviewed Capability publication:
 deterministic prepare, external controller signature, exact finalized publish,
-then immutable manifest admission. Automatic spend remains opt-in only.
+then immutable manifest admission; `22eed2a` additionally requires the Gateway
+credential file to be owned by the running operator identity. Automatic spend
+remains opt-in only.
 
 ### Phase E — independent acceptance
 
@@ -494,7 +496,9 @@ replies derive exclusively from authenticated daemon Events. OpenFox
 a two-transcript verifier and the public-TLS two-host runbook. The verifier
 requires exact cross-host Event/content equality, canonical authenticated peer
 AgentIDs, reply causality and two durable run epochs, but deliberately cannot
-infer operator independence. Use
+infer operator independence. OpenFox `13eb5ba8` further requires the initiating
+transcript to carry a proactive recipient intent, preventing an unrelated
+reply chain from being presented as discovery/bootstrap evidence. Use
 [`OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md`](OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md)
 for the external record. No repository process may mark Phase E externally
 accepted until unrelated operators actually publish that evidence.

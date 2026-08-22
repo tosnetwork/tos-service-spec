@@ -228,8 +228,8 @@ exactly one served fetch, one durable commit and an empty scheduler afterward.
 The proof passed 20 consecutive runs without adding a production hook.
 
 Progress snapshot (2026-08-22, audited through TOS Core main `c845c4693`,
-`tos-messenger` Phase A/B head `13b5ccc`, OpenFox main `d3a64104`,
-`tos-service-protocol` provider/opportunity head `3809bb7`, and `tos-ai` main
+`tos-messenger` main `13b5ccc`, OpenFox main `13eb5ba8`,
+`tos-service-protocol` main `22eed2a`, and `tos-ai` main
 `a1126e4`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
@@ -2753,9 +2753,11 @@ discovery, exact policy-gated Quote/purchase projection, at-most-once
 funding/dispatch/Receipt/settlement recovery, hardened descriptor-pinned
 `tosctl` custody, required production signer custody and reviewed automatic
 Capability/manifest publication. Phase E runtime/evidence tooling is OpenFox
-`3a82ae94` and `2bbb9434`: two independently deployable real AgentLoop
+`3a82ae94`, `2bbb9434`, and `13eb5ba8`: two independently deployable real AgentLoop
 processes, durable restart epochs and exact cross-transcript Event/reply
-verification. External operators have not yet produced the signed record, so
+verification whose initiating side must also prove proactive recipient intent.
+Protocol `22eed2a` closes the publication-token ownership check. External
+operators have not yet produced the signed record, so
 MSG-028 and all corresponding acceptance gates remain open.
 
 The implementation snapshot is `tos-messenger` commit `d284f44` and OpenFox
