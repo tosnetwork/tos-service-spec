@@ -795,7 +795,36 @@ second Agent turn. All three health responses retained the same room,
 search found none of the opening/reply plaintext, and the warning-or-higher
 journal was empty. This verifies synchronized exact-main deployment and group
 continuity after the v5 boundary change; it is still same-host evidence and is
-not the missing real-ClamAV corpus or independent-network acceptance.
+not the missing representative hostile corpus or independent-network
+acceptance.
+
+After signed-ClamAV acceptance merged as Messenger main
+`ecdcedbcd35eafa6f6ae236c3fd9292a3aa9244e`, the host rebuilt the Relay, MLS
+proxy and OpenMLS Driver and retained OpenFox main
+`b2e140a28078b0c838ab38e726973427b931ab49`. The installed SHA-256 values are
+respectively
+`bf6c616c952b6c634f39dbab70081dd8f34ffc5f254ea2826169f1130d338438`,
+`5af46fc6693e8088307ec6b4ac2fba1d6a818b63166b2f7689e2ca677ef933cc`,
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`,
+and
+`7a0ab29e79042b6d2028d15de9d17bdc8312ce21ba70c5e6b5dd6bd02ad5756f`.
+All Go binaries report their exact full main revision and
+`vcs.modified=false`.
+
+In the same room, Alice sent opening
+`msg_a64e60f33c9d401d438e008bfee85c5fc57857bc81c205f1c04a4a77152f966e`.
+Bob and Carol each produced exactly one real `openfox-agent-loop` reply,
+`msg_a8b05c1bf2685c80146b45e8dbc4dd830c72c14a98514319f6a3b0df49e4b821`
+and `msg_05ff8a170eacb08bb6f98ad364aeb27acf869db1a04b785a6a7981cd8274df8e`;
+both bind the opening as `reply_to_event_id`. Every transcript advanced from
+93 to 96. Exact replay before and after full seven-service restarts returned
+the same opening ID, kept all counts at 96 and caused no second Agent turn.
+All health responses retained the room, `active_member: true` and
+`reply_mode: agent-loop`; all services remain `active/running` with
+`NRestarts=0`. The mode-`0600` Relay contains none of the new opening plaintext
+and the warning-or-higher journal is empty. This re-proves exact-main local
+OpenFox group chat after the scanner change; public-network and independent
+operator evidence remain separate gates.
 
 ### 5.4 Scenario acceptance
 
