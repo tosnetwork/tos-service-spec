@@ -201,6 +201,20 @@ does not promote a component row. OpenFox `f4087f63` additionally closes the
 observed systemd process-ordering/readiness gap: a bounded, signal-cancelable
 wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
+OpenFox main `163058f4` additionally makes that seven-process local loop
+reproducible: one fail-closed installer renders the Relay, three owner-private
+OpenMLS proxies and three AgentLoop systemd-user units, emits explicit
+bootstrap/activation argument arrays without invoking a shell or supervisor,
+and preserves exact credentials and units on retry. The Relay alone receives
+all three mode-`0600` credentials; each proxy and matching OpenFox process
+receives only its own derived credential file. Unit and credential
+substitution, symlink directory boundaries, partial MLS bootstrap, public or
+duplicate credentials and unsafe paths fail closed. Capability-bounding
+directives are deliberately excluded because the target unprivileged user
+manager rejected the required `capset`; actual supervisor start, not syntax
+verification alone, is the acceptance boundary. This closes a local
+deployment/credential-isolation gap but supplies no independent operator or
+selected-network evidence.
 The public-channel row additionally includes Messenger main `9b91e1b`: exact
 canonical Heads now single-flight across authenticated peers, pending work is
 bounded to 256 public-data candidates, same-Head failure selects one connected
@@ -214,7 +228,7 @@ exactly one served fetch, one durable commit and an empty scheduler afterward.
 The proof passed 20 consecutive runs without adding a production hook.
 
 Progress snapshot (2026-08-22, audited through TOS Core main `0aac896`,
-`tos-messenger` main `b4dadb2`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+`tos-messenger` main `b4dadb2`, OpenFox main `163058f4`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -234,8 +248,11 @@ gate, so the counts and rounded estimate again remain unchanged. Messenger
 main `983117b`
 likewise closes the last local M4 design
 choice—private-room prior history—inside an already partial row without
-claiming external evidence, so the percentage remains unchanged. Messenger
-main `083c202` and OpenFox main `5a5624eb` close the route-neutral Physical AI
+claiming external evidence, so the percentage remains unchanged. OpenFox main
+`163058f4` also leaves the rounded estimate unchanged: it turns
+the existing seven-process loop into a least-privilege, idempotently installable
+deployment but supplies no independent operator or selected public route.
+Messenger main `083c202` and OpenFox main `5a5624eb` close the route-neutral Physical AI
 profile inside the already-complete MSG-015 context-firewall package; this adds
 no component or work-package row and therefore also leaves the percentage and
 counts unchanged. Messenger main `f58dfa3` and OpenFox main `b2e140a2` close a
@@ -975,6 +992,34 @@ same opening and left every count at 108. Every unit remained
 `active/running` with `NRestarts=0`; the mode-`0600` Relay held no probe
 plaintext and all seven warning-or-higher journals were empty. This is an
 exact-main OpenFox regression proof, not independent-network evidence.
+
+After reproducible deployment merged as OpenFox main
+`163058f4d5107fac21ea1714a3a4a356d78c7f94`, the exact-main Agent and new
+installer SHA-256 values were respectively
+`df6f2d9160f7b3223f6093bfa43eb4ca0940296c4c6d978225bb43fa03e93d2c`
+and `21d9ef41ce5bd4cde048b82984a1b4e18089caeaddc85d26867e23a315a5ecf0`;
+the installed Messenger Relay/proxy/Driver remained the exact values above.
+An installer retry reported all three derived credentials and all seven units
+unchanged with no bootstrap required. Process-environment inspection exposed
+only variable names: the Relay had Alice/Bob/Carol, while every proxy and
+OpenFox process had exactly its matching one. All four credential files were
+mode `0600`, private state/workspace directories were mode `0700`, and unit
+syntax plus actual target-supervisor start passed.
+
+Alice then sent opening
+`msg_7fcce795e2c0a2abb56a3856056d6c315ed8abd508dc062acffced5af79f0440`;
+Bob and Carol produced exactly one real `openfox-agent-loop` reply each,
+`msg_a87f4db67ee5c112b337079a9be6be6c7286ffe4a3ad2c1d20ca0b31b9b111b6`
+and `msg_1585f5b6a30f0483039248fc07c6d472421e3c78f3bb00261dbb27e3b9ce0a9b`,
+both bound to that opening. All transcripts advanced from 111 to 114. A full
+seven-service stop/start followed by exact request replay returned the same
+opening and kept every count at 114; every unit was `active/running` with
+`NRestarts=0`, warning-or-higher journals were empty, and Relay state contained
+no probe plaintext. OpenFox's complete local `make check`, focused normal,
+race, vet and exact-package lint passed. PR #8 emitted no GitHub Actions run,
+so no remote OpenFox gate is claimed. This closes reproducibility and local
+credential isolation only; independent operators and the selected real
+network remain open.
 
 ### 5.4 Scenario acceptance
 
@@ -3484,8 +3529,13 @@ independent-network evidence still keep MSG-014 🟡. OpenFox `f4087f63` also
 closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
+OpenFox main `163058f4` further adds the fail-closed seven-unit installer,
+per-Agent credential files, idempotent plan/install output and actual
+supervisor/restart acceptance described above. MSG-014 remains 🟡 because this
+is a same-host operator-local deployment, not selected-route or independent
+multi-operator evidence.
 
-Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `b4dadb2`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `b4dadb2`, OpenFox main `163058f4`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
