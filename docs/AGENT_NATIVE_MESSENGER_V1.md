@@ -1299,6 +1299,41 @@ The permanent identity is the finalized TOS `AgentID`. Existing bounded,
 weighted Ed25519 policies, purpose separation, revocation, recovery, and
 delegation digests remain unchanged.
 
+#### `.tos` recipient aliases — ✅ canonicalization boundary implemented
+
+`.tos` names are human-readable aliases for discovering an Agent. Resolution
+terminates at the canonical AgentID. All messaging, authorization, endpoint
+delegation, device/prekey/session state, conversation and room membership,
+mandate, quote, escrow/payment, receipt, replay and policy semantics thereafter
+bind to AgentID and the existing TOS identity/delegation hierarchy. A name is
+optional display metadata only; it is not a second messaging identity.
+
+The production boundary is:
+
+```text
+AgentLoop recipient intent (`alice.tos` or canonical AgentID)
+  -> tos-messengerd contacts.resolve
+  -> finalized DNS MESSENGER evidence when the input is `.tos`
+  -> canonical AgentID
+  -> existing delegation / DHT / Contact Descriptor / device / prekey chain
+  -> existing AgentID-bound route, session and delivery machinery
+```
+
+OpenFox/model output cannot choose EndpointID, DeviceID, SessionID, ADNL
+address, Relay authority or identity delegation. For proactive delivery over
+an already established direct route, OpenFox selects an operator route keyed
+by the resolved AgentID and the daemon re-resolves that explicit AgentID and
+checks the selected Endpoint before composition. The alias is absent from the
+compose request and all durable protocol authority. A runtime-generated,
+recipient-neutral delivery-intent ID is combined with the resolved AgentID only
+after canonicalization to derive the durable idempotency key; the alias cannot
+become replay authority indirectly.
+
+A later transfer or reassignment of a `.tos` name MUST NOT retarget an existing
+contact, conversation, session, mandate, approval or payment relationship.
+Re-resolution affects only new name lookups. Existing state remains bound to
+the AgentID obtained when that state was established.
+
 ### 9.2 Messaging Endpoint identity — ✅ implemented
 
 A Messaging Endpoint is an online service authorized by an Agent. It is not the
@@ -2681,10 +2716,14 @@ independently operated network route or the production daemon Event path. The
 separate production receive adapter consumes typed Messaging Events over
 authenticated local IPC while the daemon owns admission and deduplication;
 outbound discovery and the post-M0-R transport binding remain outside the lab.
-The production path is no longer receive-only: it accepts only replies whose
+The production path is no longer receive-only: it accepts authenticated replies whose
 context names the exact authenticated Messenger Event being answered and whose
 chat has an operator-configured conversation/room/session/recipient route.
-OpenFox submits message semantics through local API v6 `outbox.compose`; the
+It also accepts a typed proactive `recipient` intent from the AgentLoop message
+tool. Local API v8 `contacts.resolve` canonicalizes `.tos` or validates an
+explicit AgentID, after which OpenFox uses only an operator-owned direct route
+keyed by that AgentID. Local API v8 `outbox.compose` carries the canonical
+AgentID as a daemon-verified route assertion. OpenFox submits message semantics; the
 daemon supplies its finalized Agent/Endpoint/Device identity, network tuple,
 clock, kind, payload schema and content-addressed Event ID. Before queueing, a
 single-writer composition record binds the first complete event and route to a
@@ -2692,6 +2731,10 @@ canonical idempotency key. Exact retries after restart return the original
 Event ID; changed content, identity, network or recipient fails closed. With
 `transport: none` the message remains durably queued and is never reported as
 network-delivered.
+
+This proactive path deliberately reuses an established AgentID route/session.
+Generic new-contact session bootstrap and the selected live transport remain
+open work; `.tos` does not bypass either gate.
 
 The implementation snapshot is `tos-messenger` commit `d284f44` and OpenFox
 commit `402e21ed`. `tos-messenger` passed `make verify`, including the race
@@ -3504,6 +3547,21 @@ required.
 | MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | ✅ `3c6a329`: explicit daemon-v5 policy retained by daemon v9, with allow-list/invite/owner-hold and finalized digest check; owner-signed expiring and optionally Agent-scoped 256-bit invites; digest-only persistence; durable one-shot Event binding and restart-safe exact retry; Relay signed-body binding; direct/Relay parity and adversarial tests implemented |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
+
+2026-08-22 progress note for MSG-014: the audited pre-change state had a safe
+in-process `.tos` resolver in Messenger but no runtime operation and no
+proactive AgentID Messenger path in OpenFox. The implemented follow-up adds
+local API v8 `contacts.resolve`, daemon-config v10 authenticated Native DNS,
+the AgentLoop message tool's high-level `recipient` argument, canonical
+AgentID-keyed direct routes and daemon-side AgentID-to-Endpoint revalidation.
+Tests cover alias-only resolution input, rejection of model-selected route
+fields, explicit canonical output, endpoint substitution and name transfer
+affecting only a later lookup. The alias is never a session, conversation,
+policy, replay, mandate, payment, receipt or room key; the durable idempotency
+key is derived only after resolution and commits the canonical AgentID.
+MSG-014 remains 🟡:
+proactive send currently requires an existing operator-established direct
+route/session, and real delivery still requires the post-M0-R transport.
 
 2026-08-22 progress note for MSG-022: Messenger main `9b91e1b` adds an
 exact-canonical-Head single-flight scheduler to `NativeNode`. At most one peer

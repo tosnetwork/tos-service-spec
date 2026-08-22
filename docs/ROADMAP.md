@@ -443,10 +443,17 @@ gate item.
   DHT, ADNL, RLDP, Overlay, and TOS Sites
   primitives, reusing finalized Agent identity, delegation digests, and the
   Quote, escrow, Receipt, and settlement objects rather than introducing a
-  second authority. **Status: ⬜ Incubation.** Its own M0 protocol freeze has
-  not started, its cryptographic suites are unselected, and its milestone
-  ordering depends on a reachability measurement that has not been performed.
-  Its Mailbox Relay and attachment storage service profiles are expansion work
+  second authority. **Status: 🟡 Incubation implementation in progress.** M0
+  primitives, reviewed cryptographic suites, daemon-owned Contact Descriptor
+  discovery, and an AgentID-first OpenFox proactive-send boundary now have
+  repository implementation and tests. A `.tos` input is resolved once to a
+  finalized canonical AgentID; the alias never becomes messaging, session,
+  routing, authorization, commerce, or receipt authority. The current proactive
+  path still requires an operator-established direct route/session, and live
+  arbitrary first-contact transport plus the M0-R reachability evidence remain
+  incomplete. This status is incubation evidence only: it does not open the
+  expansion gate, reorder Gate D--F work, or establish product acceptance.
+  Mailbox Relay and attachment storage service profiles remain expansion work
   under this gate and inherit the lock above.
 
 ## 9. Work ordering rules
