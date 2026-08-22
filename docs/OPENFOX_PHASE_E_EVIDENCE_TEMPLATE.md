@@ -56,6 +56,8 @@ private keys, prekey private material or wallet secrets.
 
 - Alice transcript SHA-256: TODO
 - Bob transcript SHA-256: TODO
+- Alice signed operator-attestation SHA-256: TODO
+- Bob signed operator-attestation SHA-256: TODO
 - Initial recipient input (`.tos` or AgentID): TODO
 - Canonical recipient AgentID: TODO
 - Initial Event ID: TODO
@@ -69,11 +71,20 @@ Required command:
 
 ```text
 openfox-messenger-evidence -left alice.json -right bob.json \
+  -left-attestation alice-attestation.json \
+  -right-attestation bob-attestation.json \
   -require-restart-agent agent_<bob>
 ```
 
-The transcript verifier proves consistency, not operator independence. Each
-operator signs its own transcript digest, public endpoint and run interval.
+Each `tos.openfox.messenger-operator-attestation.v1` document binds the exact
+transcript digest, canonical AgentID, public Messenger endpoint, network and
+genesis tuple, OpenFox/Messenger commits, binary/configuration digests and a
+bounded run interval. The verifier checks both Ed25519 signatures and requires
+distinct asserted operators, sites, endpoints and attestation keys. These are
+authenticated assertions, not proof of real-world independence. The reviewer
+must independently confirm the named operators/sites and sign the complete
+record. The canonical preparation and external-signing procedure is in the
+OpenFox two-host runbook; private signing material never enters OpenFox.
 
 ## 6. Commercial lifecycle evidence (when claimed)
 

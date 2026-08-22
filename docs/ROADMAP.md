@@ -635,7 +635,8 @@ is not implied by Gate C's initial profile.
     direct messaging, a strict Descriptor-bound HTTPS fallback, observe-only
     finalized opportunity discovery, opt-in policy-gated commerce, hardened
     custody/provider publication, a production OpenFox Messenger runner, strict
-    transcript verifier and two-host runbook are merged and locally green.
+    transcript verifier, canonical signed operator attestations and two-host
+    runbook are merged and locally green.
     OpenFox submits only recipient/reply intent, while Messenger owns
     canonicalization, verified device sessions, fan-out, admission, durable
     cryptography and transport authority. The item remains 🟡 because the M0-R

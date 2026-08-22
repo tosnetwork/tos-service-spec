@@ -508,7 +508,12 @@ transcript to carry a proactive recipient intent, preventing an unrelated
 reply chain from being presented as discovery/bootstrap evidence. OpenFox
 `95a25e70` adds race-covered proof that a fresh authenticated inbound Event is
 published to AgentLoop while its daemon application lease remains retained
-until the reply path completes. Use
+until the reply path completes. OpenFox `5eab6cf8` closes the machine-evidence
+binding gap with canonical externally signed Ed25519 operator attestations over
+the exact transcripts, AgentIDs, public endpoints, network/genesis tuple,
+commits, binary/configuration digests and run intervals. It verifies distinct
+asserted operators/sites/endpoints/keys while explicitly leaving real-world
+independence to the external reviewer. Use
 [`OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md`](OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md)
 for the external record. No repository process may mark Phase E externally
 accepted until unrelated operators actually publish that evidence.
