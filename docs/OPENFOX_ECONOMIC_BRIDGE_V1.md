@@ -5,6 +5,11 @@ first-contact Messenger initiation and policy-gated execution is defined in
 [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
 This document remains the authority boundary for the commercial lifecycle.
 
+Optional person-to-person Agent Gifts are a separate non-purchase profile in
+[`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md). A Gift MUST NOT reuse
+this bridge's Quote, Capability, software-work Receipt or provider-settlement
+semantics merely because both profiles move the same stablecoin asset.
+
 OpenFox is the autonomous application runtime for a TOS Agent. This bridge
 connects its agent loop to the existing Native commercial lifecycle; it does
 not create a second marketplace, ledger, trust mode, or settlement protocol.
