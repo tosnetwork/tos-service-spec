@@ -100,6 +100,9 @@ refine these rules but cannot contradict them.
 - [Public Errors V1](docs/PUBLIC_ERRORS_V1.md) freezes typed Connect error and
   retry dispositions, including mandatory resolution after ambiguous mutation
   outcomes.
+- [TOS DNS Alias Boundary V1](docs/DNS_ALIAS_V1.md) maps `.tos` Agent,
+  Capability, and Messenger aliases into freshly verified Native object IDs
+  without creating name-based authority.
 - [Native Execution Gate V1](docs/NATIVE_EXECUTION_GATE_V1.md) defines the
   shared finalized-chain and atomic cross-transport admission boundary.
 - [Production Readiness Runbook V1](docs/PRODUCTION_READINESS_RUNBOOK_V1.md)
