@@ -71,6 +71,12 @@ message ChainReference {
   uint64 finalized_checkpoint = 6;
 }
 
+message TOSAccountAddressV1 {
+  int32 workchain = 1;
+  // Exactly 32 bytes.
+  bytes account_id = 2;
+}
+
 message ControllerV1 {
   // Exactly ed25519:<lowercase 32-byte-public-key-hex>. Native v1 does not
   // depend on an off-chain alias table to reconstruct controller identity.
@@ -242,6 +248,59 @@ message ResolveNativeStateResponse {
   NativeStateV1 state = 2;
 }
 
+enum DNSAliasKindV1 {
+  DNS_ALIAS_KIND_V1_UNSPECIFIED = 0;
+  DNS_ALIAS_KIND_V1_AGENT = 1;
+  DNS_ALIAS_KIND_V1_CAPABILITY = 2;
+  // A Messenger alias resolves to an Agent, never directly to an endpoint.
+  DNS_ALIAS_KIND_V1_MESSENGER = 3;
+}
+
+enum DNSProvenanceV1 {
+  DNS_PROVENANCE_V1_UNSPECIFIED = 0;
+  // Independently verified agreement of a strict majority of configured TOS
+  // endpoints. This is deliberately not named or represented as a proof.
+  DNS_PROVENANCE_V1_QUORUM_AGREED = 1;
+}
+
+message DNSCheckpointV1 {
+  int32 workchain = 1;
+  int64 shard = 2;
+  uint64 sequence = 3;
+  bytes root_hash = 4; // exactly 32 bytes
+  bytes file_hash = 5; // exactly 32 bytes
+  uint64 generation_unix_seconds = 6;
+}
+
+message DNSLifecycleV1 {
+  uint64 auction_end_unix_seconds = 1;
+  uint64 last_fill_up_unix_seconds = 2;
+  uint64 renewal_deadline_unix_seconds = 3;
+}
+
+message ResolveDNSAliasRequest {
+  RequestContext context = 1;
+  // Canonical lowercase ASCII .tos name, at most 126 bytes.
+  string name = 2;
+  DNSAliasKindV1 kind = 3;
+}
+
+message ResolveDNSAliasResponse {
+  string canonical_name = 1;
+  DNSAliasKindV1 kind = 2;
+  string category_hash = 3;
+  TOSAccountAddressV1 resolved_account = 4;
+  string native_object_id = 5;
+  // Fresh finalized typed state after deterministic address/code/object-ID
+  // re-derivation. Messenger aliases contain Agent state.
+  NativeStateV1 native_state = 6;
+  DNSCheckpointV1 checkpoint = 7;
+  DNSLifecycleV1 lifecycle = 8;
+  DNSProvenanceV1 provenance = 9;
+  // Root, Collection, Domain Item, then any delegated resolvers; 3..8.
+  repeated TOSAccountAddressV1 resolver_path = 10;
+}
+
 // Contract identities are network-relative. NetworkDomain supplies the
 // network/genesis binding; the account tuple and exact code bind the asset.
 message TOSContractIdentityV1 {
@@ -377,6 +436,12 @@ message RequestQuoteProposalResponse {
 service NativeService {
   rpc SubmitNativeAction(SubmitNativeActionRequest) returns (SubmitNativeActionResponse);
   rpc ResolveNativeState(ResolveNativeStateRequest) returns (ResolveNativeStateResponse);
+}
+
+// DNSAliasService is a bounded, read-only convenience boundary. It cannot
+// register, bid for, renew, mutate, or authorize use of a name.
+service DNSAliasService {
+  rpc ResolveDNSAlias(ResolveDNSAliasRequest) returns (ResolveDNSAliasResponse);
 }
 
 // CapabilityDiscoveryService stores no canonical fact. Clients must compare

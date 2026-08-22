@@ -8,6 +8,7 @@ The public Native API is the Connect service generated from
 ```text
 tos.service.v1.NativeService/SubmitNativeAction
 tos.service.v1.NativeService/ResolveNativeState
+tos.service.v1.DNSAliasService/ResolveDNSAlias
 tos.service.v1.CapabilityDiscoveryService/ListCapabilities
 tos.service.v1.CapabilityDiscoveryService/SearchCapabilities
 tos.service.v1.CapabilityDiscoveryService/PublishSoftwareWorkManifest
@@ -33,6 +34,12 @@ canonical Native service. `ListCapabilities`, `SearchCapabilities`, and
 `RequestQuoteProposal` requires `native:read`; it returns provider-supplied
 non-canonical terms and never accepts them for the buyer.
 These permissions control transport and storage use only.
+
+`ResolveDNSAlias` requires `native:read`. It is the bounded read-only alias
+boundary defined by [`DNS_ALIAS_V1.md`](DNS_ALIAS_V1.md). A successful response
+contains the raw account, re-derived Native object ID and typed state, lifecycle,
+resolver path, and quorum-finalized checkpoint. It never makes the alias an
+authorization or permits DNS mutation.
 
 ## Submit semantics
 
