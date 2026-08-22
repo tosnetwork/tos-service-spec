@@ -117,6 +117,9 @@ refine these rules but cannot contradict them.
   roadmap gates, and cannot be cited as gate acceptance evidence.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
+- [OpenFox Direct Signed Agent Gifts V1](docs/OPENFOX_AGENT_GIFTS_V1.md) defines
+  the native-TOS-only authenticated address exchange and recipient-broadcast
+  signed BOC Gift flow.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
   finalized-state-derived Agent GDP, settled receipts, job, wallet,
   reliability, and

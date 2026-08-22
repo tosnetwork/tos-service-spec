@@ -10,19 +10,20 @@ Optional person-to-person Agent Gifts are a separate non-purchase profile in
 this bridge's Quote, Capability, software-work Receipt, or provider-settlement
 semantics merely because both profiles move value.
 
-The Direct Signed Gift profile creates no per-Gift Vault or escrow. It supports
-exactly one asset per Gift: either native TOS or one deployment-allowlisted
-TOS-network stablecoin. Recipient custody returns one E2EE, one-time destination
-ticket; sender custody then constructs and signs one exact time-limited
-standard-wallet BOC under the selected asset profile. The recipient may relay
-those unchanged bytes but cannot redirect the signed transfer.
+The Direct Signed Gift profile creates no Receiver Profile, Gift delegation,
+receive ticket, per-Gift Vault, or escrow. V1 supports native TOS only. Inside
+an existing authenticated direct E2EE conversation, the sender asks the
+recipient for one TOS address. Sender custody then constructs and signs one
+exact time-limited standard-wallet BOC transferring native TOS to that returned
+address. The recipient may submit those unchanged bytes but cannot redirect the
+signed transfer.
 
 Funds remain spendable by the sender until the BOC executes, so the UI must not
 call an unbroadcast Gift funded, locked, or guaranteed. If it expires, no refund
 is needed because no transfer occurred. If it succeeds, payment is recognized
-only from finalized asset-specific destination credit. Before broadcast, the
-BOC and Agent relationship remain inside E2EE; after execution, transparent TOS
-state still exposes wallet, amount, and timing information.
+only from finalized exact destination credit. Before broadcast, the address
+exchange, BOC, and Agent relationship remain inside E2EE; after execution,
+transparent TOS state still exposes wallet, amount, and timing information.
 
 Native TOS support in the Gift profile is strictly non-purchase semantics. It
 does not make native TOS a provider-service price or settlement asset under the
