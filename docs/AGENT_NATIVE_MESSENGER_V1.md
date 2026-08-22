@@ -763,6 +763,34 @@ empty. This proves current-main same-host encrypted/restart compatibility after
 the attachment hardening; independent operators and a real network remain
 separate open gates.
 
+After scanner-resource/local-response-v5 merges Messenger main
+`f58dfa32b9a9a23e6720bf85eaefe170f8a773d6` and OpenFox main
+`b2e140a28078b0c838ab38e726973427b931ab49`, the acceptance host rebuilt and
+installed the Relay, MLS proxy, OpenMLS Driver and OpenFox Agent. Their SHA-256
+values are respectively
+`4ff2259af9529ced95342bcb5f50c280ee0809703234461fa7ff70d77e746ff8`,
+`7c4697ab7191e8f0d57e7c8df9d1e5e4b727d637500d16655dfa56f01c87413c`,
+`1755dfbf9803c915a17c41ca6974e6c075445613a46dfad21e23bdd9cf7b0f12`,
+and `7a0ab29e79042b6d2028d15de9d17bdc8312ce21ba70c5e6b5dd6bd02ad5756f`.
+Both Go repositories are recorded at the exact full main revision with
+`vcs.modified=false`.
+
+In the same room, Alice sent opening
+`msg_0d0048e55ab716a64e1ff4af78a1c274e787f6621fc64d9c1bef9ce054c514da`.
+Bob and Carol each produced exactly one real `openfox-agent-loop` reply,
+`msg_05a3de43e3f8a3a5f4c1ea828bd64440bcb09895afc1291a2724cd81ce78bf7b`
+and `msg_da816893908d8f74977cfba90c006a559e5cd29456aef0cb513a3ea204ab46c2`;
+both bind the exact opening as `reply_to_event_id`. Every transcript advanced
+from 90 to 93 entries. Exact replay before and after a full seven-service
+restart returned the same opening ID, left all counts at 93, and caused no
+second Agent turn. All three health responses retained the same room,
+`active_member: true` and `reply_mode: agent-loop`; every service remained
+`active/running` with `NRestarts=0`. The Relay file remained mode `0600`, exact
+search found none of the opening/reply plaintext, and the warning-or-higher
+journal was empty. This verifies synchronized exact-main deployment and group
+continuity after the v5 boundary change; it is still same-host evidence and is
+not the missing real-ClamAV corpus or independent-network acceptance.
+
 ### 5.4 Scenario acceptance
 
 The tables above track parts; the Messenger is accepted by scenarios. The two
@@ -3197,7 +3225,7 @@ closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
 
-Work-package progress (2026-08-21, audited through TOS Core main `0aac896`, `tos-messenger` main `5f5c8be`, OpenFox main `5a5624eb`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `f58dfa3`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
