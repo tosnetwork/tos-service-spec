@@ -1,10 +1,13 @@
 # OpenFox Autonomous Messenger and Economy Implementation Plan
 
-**Status (2026-08-22):** Phases A, C and D implementation complete; Phase B
-descriptor-bound HTTPS fallback and local TLS acceptance complete; Phase E
-deployment/evidence tooling complete. The M0-R route decision and genuinely
-independent public-network/operator execution remain external evidence gates,
-not unfinished local code and not Gate D--G acceptance evidence.
+**Status (2026-08-22):** the scoped Phase A--E repository implementation and
+local test work is complete. Phase B includes a deployable Descriptor-bound
+HTTPS fallback and local TLS acceptance; Phase E includes the production
+runner, verifier, two-host runbook and blank evidence record. This is **100%
+implementation completion, not 100% production acceptance**. The M0-R route
+decision and genuinely independent public-network/operator execution remain
+external evidence gates, not unfinished local code and not Gate D--G
+acceptance evidence.
 
 **Related specifications:**
 
@@ -179,12 +182,16 @@ conversation, endpoint, device, prekey generation or network input fails
 closed. The optional invite is runtime/owner-supplied authorization material,
 not model-visible text or a model-selected route.
 
-The inventory distinction is explicit: the finalized discovery chain is
-production-wired today, but pair-session initiation/acceptance and fan-out have
-no production caller, the daemon admits only `transport: none`, and the
-dispatcher has no production sender. Session bootstrap, device-cryptographic
-wiring and any loopback acceptance harness are new deliverables; they are not
-described as reuse of an existing production path.
+The implementation now wires the finalized discovery chain, retained verified
+prekeys, pair-session initiation/acceptance, per-device fan-out and admission
+into daemon-owned `messages.send-direct` and `messages.reply-direct`
+operations. The dispatcher supports strict Descriptor-bound HTTPS transport as
+a deployable fallback in addition to queue-only/test behavior. OpenFox's normal
+`message` tool can submit a `.tos` or AgentID recipient intent, and the Phase E
+runner exercises the same production channel boundary. None of those callers
+can represent Endpoint, Device, Session or route authority. The M0-R study must
+still select the final production carrier; the HTTPS fallback and local TLS
+tests do not manufacture that external decision.
 
 ### 4.3 Durable identity continuity
 
@@ -380,10 +387,10 @@ represent an OpenFox-selected Endpoint, Device, Session or route. The full
 
 OpenFox commit `9e241774` sends high-level recipient intent directly to that
 boundary and replies from authenticated Event origin without a preconfigured
-direct route. Focused channel and configuration tests pass. Its repository-wide
-Go test remains environment-blocked by the missing system `libolm` headers;
-this is an existing optional Matrix build dependency, not a Messenger test
-failure.
+direct route. The normal AgentLoop `message` tool accepts only `channel`,
+`recipient` and content at this proactive boundary. The complete tagged local
+gate (`go test -tags goolm ./cmd/... ./pkg/...`, vet and command builds) passes;
+the native Messenger and evidence packages also pass focused race tests.
 
 `TestTwoIndependentDaemonsExchangeEncryptedDirectMessages` uses separate
 AgentIDs, Endpoint keys, DeviceIDs and durable journals with the real candidate
@@ -498,7 +505,10 @@ requires exact cross-host Event/content equality, canonical authenticated peer
 AgentIDs, reply causality and two durable run epochs, but deliberately cannot
 infer operator independence. OpenFox `13eb5ba8` further requires the initiating
 transcript to carry a proactive recipient intent, preventing an unrelated
-reply chain from being presented as discovery/bootstrap evidence. Use
+reply chain from being presented as discovery/bootstrap evidence. OpenFox
+`95a25e70` adds race-covered proof that a fresh authenticated inbound Event is
+published to AgentLoop while its daemon application lease remains retained
+until the reply path completes. Use
 [`OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md`](OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md)
 for the external record. No repository process may mark Phase E externally
 accepted until unrelated operators actually publish that evidence.
@@ -549,9 +559,9 @@ so an unfrozen Messenger carrier cannot block or weaken Gate D/E evidence.
 - no automatic spending merely because an LLM assigned a high score; and
 - no Gate D--G completion claim from implementation or same-host evidence.
 
-## 10. First implementation slice
+## 10. Completed first implementation slice
 
-The first code slice after design review is Phase A's route-independent durable
+The first code slice after design review was Phase A's route-independent durable
 direct-conversation boundary in `tos-messenger`, plus a local API operation and
 tests. It must accept only recipient intent, resolve to AgentID, create or reuse
 an AgentID-keyed conversation record atomically, return no low-level routing
@@ -561,14 +571,15 @@ This slice is intentionally smaller than session cryptography or transport
 selection. It establishes the identity-continuity boundary that both later
 bootstrap and OpenFox proactive send require, without pre-deciding M0-R.
 
-Initial implementation evidence: `tos-messenger` commit `219ed91` adds local API v9
+Initial implementation evidence: `tos-messenger` commit `219ed91` added local API v9
 `conversations.ensure-direct`, the AgentID-keyed durable record, monotonic
 finalized-directory evidence, restart/idempotency/alias-transfer/rotation and
-route-substitution tests. Its full `make verify` passed on 2026-08-22. The
-That initial operation reported only `transport-pending`. The Phase A status
+route-substitution tests. Its full `make verify` passed on 2026-08-22. That
+initial operation reported only `transport-pending`. The Phase A status
 record above supersedes its then-open pair-session and OpenFox integration
-gaps. A production transport remains Phase B work and cannot be selected
-without a qualifying M0-R route-decision report.
+gaps. Phase B now provides the deployable strict HTTPS fallback, while final
+carrier selection remains dependent on a qualifying M0-R route-decision
+report.
 
 ## 11. Design review record
 

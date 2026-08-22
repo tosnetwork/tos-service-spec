@@ -631,13 +631,18 @@ is not implied by Gate C's initial profile.
     observe-only opportunity scheduler, policy-gated commercial state machine
     and independent acceptance sequence are specified in
     `docs/OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`.
-    Phase A route-independent direct messaging is implemented: OpenFox submits
-    only recipient/reply intent, while Messenger owns canonicalization, verified
-    device sessions, fan-out, admission and durable crypto transitions. A
-    two-daemon real-suite loopback passes, but M0-R-selected production transport,
-    observe-only opportunity scheduling, policy-gated commerce and a fresh paid
-    independent OpenFox session remain. OpenFox is the sole application runtime
-    and product surface covered by this roadmap and its completion denominator.
+    The scoped Phase A--E repository implementation is complete: route-free
+    direct messaging, a strict Descriptor-bound HTTPS fallback, observe-only
+    finalized opportunity discovery, opt-in policy-gated commerce, hardened
+    custody/provider publication, a production OpenFox Messenger runner, strict
+    transcript verifier and two-host runbook are merged and locally green.
+    OpenFox submits only recipient/reply intent, while Messenger owns
+    canonicalization, verified device sessions, fan-out, admission, durable
+    cryptography and transport authority. The item remains 🟡 because the M0-R
+    multi-operator route decision and a fresh independently operated public-
+    network Messenger/paid session are external acceptance gates. OpenFox is
+    the sole application runtime and product surface covered by this roadmap
+    and its completion denominator.
 18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes

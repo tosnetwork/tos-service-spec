@@ -228,7 +228,7 @@ exactly one served fetch, one durable commit and an empty scheduler afterward.
 The proof passed 20 consecutive runs without adding a production hook.
 
 Progress snapshot (2026-08-22, audited through TOS Core main `c845c4693`,
-`tos-messenger` main `13b5ccc`, OpenFox main `13eb5ba8`,
+`tos-messenger` main `13b5ccc`, OpenFox main `95a25e70`,
 `tos-service-protocol` main `22eed2a`, and `tos-ai` main
 `a1126e4`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
@@ -2753,7 +2753,7 @@ discovery, exact policy-gated Quote/purchase projection, at-most-once
 funding/dispatch/Receipt/settlement recovery, hardened descriptor-pinned
 `tosctl` custody, required production signer custody and reviewed automatic
 Capability/manifest publication. Phase E runtime/evidence tooling is OpenFox
-`3a82ae94`, `2bbb9434`, and `13eb5ba8`: two independently deployable real AgentLoop
+`3a82ae94`, `2bbb9434`, `13eb5ba8`, and `95a25e70`: two independently deployable real AgentLoop
 processes, durable restart epochs and exact cross-transcript Event/reply
 verification whose initiating side must also prove proactive recipient intent.
 Protocol `22eed2a` closes the publication-token ownership check. External
@@ -3675,9 +3675,21 @@ but it does not change the 🟡 status: selected-route, public-network,
 independent-operator, independent OpenMLS review and second-implementation
 evidence remain absent.
 
-Work-package progress (2026-08-22, audited through TOS Core main `c845c4693`,
-`tos-messenger` main `a9a1051`, OpenFox main `aa02f93e`, and `tos-ai` main
-`a1126e4`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜, and 3/29 🔒. The ✅ packages are
+The OpenFox Phase A--E implementation slice was subsequently audited through
+`tos-messenger` main `13b5ccc`, OpenFox main `95a25e70`,
+`tos-service-protocol` main `22eed2a`, and `tos-service-spec` main `48bbfcd`.
+It adds daemon-owned direct bootstrap/reply, strict Descriptor-bound HTTPS,
+finalized opportunity observation, policy-gated purchase/provider flows,
+hardened external custody, reviewed provider publication, a production
+Messenger AgentLoop runner, strict cross-transcript evidence verification and
+the independent two-host runbook. The scoped repository implementation and
+local tests are complete. MSG-014 and the other affected work packages remain
+🟡 because independently operated public-network execution and the M0-R route
+decision are evidence gates, not repository checkboxes.
+
+Work-package progress (2026-08-22, with the broader inventory audited through
+TOS Core main `c845c4693` and `tos-ai` main `a1126e4`): **6/29 ✅**, 19/29 🟡,
+1/29 ⬜, and 3/29 🔒. The ✅ packages are
 MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030; the remaining rows
 keep their precise implemented sub-results and named gates.
 
