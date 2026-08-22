@@ -97,6 +97,19 @@ stablecoin wallet, and funded amount from the three-node chain at checkpoint
 idempotency evidence; the documented fresh-buyer acceptance session remains
 outstanding.
 
+The OpenFox autonomous orchestration implementation is recorded in
+[`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
+OpenFox `8d52b817`, `42268bd3`, and `ab356fc1` add bounded observe-only
+finalized discovery and an opt-in policy-gated projection onto the existing
+authoritative buyer journal. OpenFox `129ec08d`/`d3a64104` and
+`tos-service-protocol` `284fc3a` pin autonomous `tosctl` executable identity,
+execute the opened descriptor, pass pinned configuration by descriptor, scrub
+ambient environment, and require production provider signer custody. Protocol
+`3809bb7` supplies the reviewed prepare/sign/apply Capability and immutable
+manifest publication command. These close local implementation items only;
+the external Gate D/E parties and finalized live settlement evidence remain
+mandatory.
+
 Gateway-local Capability search is defined in `tos-service-spec` commit
 `c3ed72086798275021e1a45964f3b7d6d9d3eb5c`, implemented in `tos-service-protocol`
 commit `f3223ed7f9ceca54fd03298ce60aabd666b1e76c`, and exposed by `tos-service-gateway` commit
@@ -584,7 +597,9 @@ is not implied by Gate C's initial profile.
     demand. In parallel, deploy and cross-check discovery
     and run the fresh provider/buyer sessions from
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
-    `docs/GATE_E_BUYER_ONBOARDING.md`. Gate D external acceptance continues
+    `docs/GATE_E_BUYER_ONBOARDING.md`. The combined OpenFox record may use
+    `docs/OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md`, but only when all stated
+    independent roles actually sign it. Gate D external acceptance continues
     independently and is not being claimed by this work.
 15. 🟡 **Active Gate F external acceptance only:** client-side federated Capability search,
     exact-digest manifest failover, complete-preimage Quote Proposal exchange,

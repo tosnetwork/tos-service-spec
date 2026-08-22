@@ -1,7 +1,10 @@
 # OpenFox Autonomous Messenger and Economy Implementation Plan
 
-**Status:** design reviewed; Phase A implementation started; not Gate D--G
-acceptance evidence
+**Status (2026-08-22):** Phases A, C and D implementation complete; Phase B
+descriptor-bound HTTPS fallback and local TLS acceptance complete; Phase E
+deployment/evidence tooling complete. The M0-R route decision and genuinely
+independent public-network/operator execution remain external evidence gates,
+not unfinished local code and not Gate D--G acceptance evidence.
 
 **Related specifications:**
 
@@ -400,6 +403,18 @@ native primitive.
 - prove two independently operated OpenFox instances can discover, bootstrap,
   exchange messages, restart and recover.
 
+Status on 2026-08-22: **deployable fallback implementation and local TLS
+acceptance complete; final M0-R selection and independent evidence open**.
+`tos-messenger` commit `13b5ccc` binds the daemon transport interface to a
+strict Descriptor-selected HTTPS fallback. The carrier accepts only public
+port-443 exact-path URLs from verified Contact Descriptors, disables proxies
+and redirects, pins checked public DNS answers, requires TLS, and accepts only
+an exact Endpoint-signed durable acknowledgement bound to Event, session,
+Endpoint, Device and ciphertext digest. Two independent daemon identities,
+state owners and ratchets exchange over real local TLS in tests, and full
+`make verify` passes. This does not pre-select the final native route or replace
+the required multi-operator reachability study.
+
 ### Phase C — observe-only opportunity loop
 
 Primary repository: `OpenFox`.
@@ -414,6 +429,13 @@ Primary repository: `OpenFox`.
 - prohibit Quote acceptance, custody or execution in this phase; and
 - test malicious Gateway ranking, rollback, cross-network and manifest
   substitution.
+
+Status on 2026-08-22: **implementation and local tests complete**. OpenFox
+`8d52b817` adds the bounded scheduler, strict durable candidate journal,
+multi-Gateway hint aggregation and independent finalized Capability/manifest
+verification behind a private Unix coordinator. The AgentLoop surface is
+read-only and cannot request a Quote, custody action or execution. Protocol
+`5248a15` exposes the finalized Capability verifier used by the coordinator.
 
 ### Phase D — policy-gated commercial loop
 
@@ -435,6 +457,21 @@ Primary repository: `OpenFox`; reuse `tos-service-protocol`, `tos-ai` and
 - keep automatic paid mode disabled until operator configuration explicitly
   enables an accepted policy.
 
+Status on 2026-08-22: **implementation and local tests complete; external paid
+acceptance open**. OpenFox `42268bd3` and `ab356fc1` implement the immutable
+opportunity-to-`PurchaseKey` projection and policy-gated coordinator over the
+existing authoritative buyer journal. It validates multi-Gateway Quotes,
+owner-signed spending policy and Messenger mandate, deploys/funds at most once,
+dispatches A2A/MCP/Agent Packet through one shared execution Gate, verifies the
+canonical Receipt and resolves finalized release/refund state. OpenFox
+`129ec08d` and protocol `284fc3a` pin the enrolled `tosctl` inode/size/SHA-256,
+recheck it at every call, execute the opened descriptor, pass pinned config by
+anonymous file descriptor and inherit no ambient process environment. OpenFox
+`d3a64104` requires `tosctl` execution-signer custody in the production
+provider. Protocol `3809bb7` adds restartable reviewed Capability publication:
+deterministic prepare, external controller signature, exact finalized publish,
+then immutable manifest admission. Automatic spend remains opt-in only.
+
 ### Phase E — independent acceptance
 
 Evidence repository: `tos-service-spec`.
@@ -446,6 +483,21 @@ Evidence repository: `tos-service-spec`.
 - full restart and original-Gateway loss recovery; and
 - a published record binding configs, artifacts, network checkpoints and exact
   repository commits.
+
+Status on 2026-08-22: **runnable Messenger and commerce acceptance surfaces and
+strict evidence tooling complete; independent execution not yet performed**.
+OpenFox `3a82ae94` runs a real production `tos_messenger` channel and AgentLoop
+as one independently restartable process with an owner-private control socket
+and transcript. It accepts only recipient intent and message content; direct
+replies derive exclusively from authenticated daemon Events. OpenFox
+`2bbb9434` adds process-run identities, restart-safe applied-reply deduplication,
+a two-transcript verifier and the public-TLS two-host runbook. The verifier
+requires exact cross-host Event/content equality, canonical authenticated peer
+AgentIDs, reply causality and two durable run epochs, but deliberately cannot
+infer operator independence. Use
+[`OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md`](OPENFOX_PHASE_E_EVIDENCE_TEMPLATE.md)
+for the external record. No repository process may mark Phase E externally
+accepted until unrelated operators actually publish that evidence.
 
 The commerce half may count toward roadmap item 17 and Gate D/E external
 acceptance only when it independently satisfies those gates' operator,
