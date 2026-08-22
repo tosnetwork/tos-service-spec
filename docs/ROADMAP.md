@@ -602,6 +602,10 @@ is not implied by Gate C's initial profile.
     Gate D/E/F external sessions, not a new consensus feature.
 17. 🟡 **OpenFox application-layer product bridge:** the OpenFox buyer/provider
     integration contract is frozen in `docs/OPENFOX_ECONOMIC_BRIDGE_V1.md`.
+    The responsibility split, first-contact Messenger dependency, bounded
+    observe-only opportunity scheduler, policy-gated commercial state machine
+    and independent acceptance sequence are specified in
+    `docs/OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`.
     Runtime integration and a fresh paid OpenFox application session remain
     after the protocol/SDK work. OpenFox is the sole application runtime and
     product surface covered by this roadmap and its completion denominator.
