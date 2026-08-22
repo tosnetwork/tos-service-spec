@@ -202,8 +202,8 @@ observed systemd process-ordering/readiness gap: a bounded, signal-cancelable
 wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
 
-Progress snapshot (2026-08-21, audited through TOS Core main `0aac896`,
-`tos-messenger` main `5f5c8be`, OpenFox main `5a5624eb`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+Progress snapshot (2026-08-22, audited through TOS Core main `0aac896`,
+`tos-messenger` main `f58dfa3`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -221,7 +221,13 @@ claiming external evidence, so the percentage remains unchanged. Messenger
 main `083c202` and OpenFox main `5a5624eb` close the route-neutral Physical AI
 profile inside the already-complete MSG-015 context-firewall package; this adds
 no component or work-package row and therefore also leaves the percentage and
-counts unchanged. The remaining
+counts unchanged. Messenger main `f58dfa3` and OpenFox main `b2e140a2` close a
+scanner-supply-chain evidence gap inside the already-partial MSG-013/MSG-014
+rows: the daemon now pins, private-stages and verdict-binds named engine and
+signature resources; the ClamAV adapter is a production candidate; and local
+response v5 lets OpenFox independently reject malformed, reordered or
+substituted resource evidence. This also promotes no whole component row, so
+the percentage and counts remain unchanged. The remaining
 denominator is dominated by independently operated transport evidence, external
 review/approval and a second implementation. The authenticated attachment
 service, recipient authority, daemon
@@ -233,8 +239,9 @@ consumption, restartable ciphertext-only streaming, prepared-only crash
 recovery, exact completed retry, a local Messenger `make verify`, all fifteen
 remote jobs including the new `attachmentops` fuzz target, and complete
 OpenFox test/vet/docs/build plus focused race all pass. Public TLS/operator
-evidence, production scanning and commercial storage remain outside that
-claim. The cumulative increase from the prior approximately 94% audit is the
+evidence, a release-pinned supported ClamAV/current-database representative
+hostile-corpus run, and commercial storage remain outside that claim. The
+cumulative increase from the prior approximately 94% audit is the
 executable encrypted OpenFox/private-room seam plus the durable private-room
 role/moderation policy, production OpenFox room-message consumption, and
 runnable authenticated Mailbox service boundary, followed by daemon-owned
@@ -2256,11 +2263,38 @@ and operating-system evidence, not an independent hard-isolation review. Hosts
 that do not enable this explicit profile retain only the documented legacy
 `prlimit` claim and must not infer hard RSS/swap isolation.
 
+Messenger main `f58dfa3` makes the scanner's non-adapter supply chain explicit.
+Each scanner may name up to eight canonical engine/signature resources, bounded
+to 512 MiB each and 1 GiB together. Startup rehashes every configured resource;
+admission opens and checks the exact regular inode, rejects symlinks and
+group/world-writable or incorrectly executable files, copies it into the
+private scan directory, rechecks the SHA-256 digest, mounts it read-only below
+`/scanner-resources`, and accepts only an exactly ordered verdict name/digest
+set. Missing, reordered, unreported, path-substituted, digest-substituted,
+oversized or writable resources fail before plaintext release.
+
+The same main adds `tos-attachment-clamav-scanner` as a production-candidate
+adapter. It requires a pinned ClamScan resource and sorted signed official
+`main`/`daily` CVD or CLD snapshots, with optional `bytecode`; invokes only
+those databases with official-only, encrypted/broken/exceeded-limit alerts and
+exact authenticated-input scan ceilings; maps exit 0 to allow, exit 1 to deny,
+and every other engine outcome to failure. Local response v5 carries the exact
+resource evidence, and OpenFox main `b2e140a2` independently validates its
+canonical names, ordering, count and SHA-256 digests before publishing admitted
+text to the Agent bus. Resource/path/verdict substitution, malformed evidence,
+clean/infected/error adapter outcomes, focused race suites, Messenger's full
+`make verify`, OpenFox's full `make check`, and all fifteen Messenger remote
+jobs pass. The opt-in real-ClamAV acceptance hook was executed on the acceptance
+host and skipped because no ClamAV engine/current database snapshot is
+installed; therefore this is not evidence of a selected production release or
+representative malware coverage. EICAR remains only a plumbing assertion.
+
 This remains deliberately not a general malware scanner, parser-safety claim,
 or prompt-injection defense. OpenFox does compose and upload outbound
 attachments through the daemon-owned boundary, but independently operated
 public TLS and interrupted wide-area evidence, audited retention behavior, a
-selected production scanner and representative hostile corpus, independent
+release-pinned supported ClamAV/current-database representative hostile-corpus
+run, independent
 hard-isolation review/evidence, host-wide crash/swap policy review and
 commercial terms remain open.
 
@@ -2670,7 +2704,7 @@ Every physical invocation requires a one-shot owner decision regardless of the
 configured unattended or own-initiative ceiling. The reviewable action commits
 the local Capability, exact tool and operation, at most 8 KiB of canonical JSON
 arguments, their SHA-256 digest, complete authenticated provenance, and the
-retry key. Local API request v6 / response v4 exposes those exact facts to the
+retry key. Local API request v6 / response v5 exposes those exact facts to the
 owner queue. Durable approval and execution ledgers preserve them across
 restart; replay, changed arguments, changed tool, operation or Capability,
 non-canonical input, incomplete provenance, or approval substitution fails
@@ -3133,6 +3167,18 @@ required.
 | MSG-030 | First-contact admission policy and sybil resistance | future messaging spec / `tos-messenger` | ✅ `3c6a329`: explicit daemon-v5 policy retained by daemon v8, with allow-list/invite/owner-hold and finalized digest check; owner-signed expiring and optionally Agent-scoped 256-bit invites; digest-only persistence; durable one-shot Event binding and restart-safe exact retry; Relay signed-body binding; direct/Relay parity and adversarial tests implemented |
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
+
+2026-08-22 progress note for MSG-013/MSG-014: Messenger main `f58dfa3`
+implements immutable named scanner-engine/signature resources, strict
+resource-bound verdicts, local response v5, and the fail-closed ClamAV
+production-candidate adapter; OpenFox main `b2e140a2` consumes response v5 and
+independently rejects noncanonical, reordered or digest-substituted resource
+evidence. Messenger PR #19 passed all fifteen remote jobs, and OpenFox PR #7
+merged after focused race/vet and complete local `make check`. These are
+implemented sub-results, but both work packages remain 🟡: no supported ClamAV
+release/current FreshClam snapshot has passed the approved representative
+hostile corpus through this exact sandbox, and the existing independent
+transport/operator/review gates remain open.
 
 MSG-020 and MSG-021 implemented sub-results now also include Messenger
 `6f24c14`, merged as main `983117b`: v1 private-room history is explicitly
