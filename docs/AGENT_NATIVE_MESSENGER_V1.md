@@ -155,7 +155,7 @@ profiles remain Expansion-Gate work.
 | Reusable local journal pattern | ✅ | `softwarework.Journal` supplied the original durability pattern; `tos-messenger/pkg/eventlog` now implements the Messenger-specific sole-writer event, ACK, replay, retry, expiry, session, device, room, approval, mandate, budget, and negotiation state | It deliberately remains a single-process store rather than a concurrent cross-process claim database |
 | Contact Card discovery | 🟡 | Signed Agent ID, network tuple, one HTTPS endpoint, optional Capability IDs, and bounded expiry | No ADNL ID, Messaging Endpoint ID, device set, prekey bundle, Mailbox Relay set, protocol negotiation, admission policy, or rotation metadata |
 | ADNL proxy and tunnel support | 🟡 | Proxy/tunnel protocol code exists in TOS Core | A supported home/site reverse-tunnel service, operator runbook, health model, quotas, abuse controls, and multi-operator failover remain product work |
-| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, a join-forward-only prior-history policy, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes. Messenger `beaa358` additionally assembles runnable public-channel replicas over native DHT + ADNL Overlay/RLDP with verified history synchronization and restart; `a3c5910` adds deterministic independently re-verifiable TOS Storage Bag snapshots, bounded publication and authority-free BagID hints; `e3ea408` adds bounded stock CLI download/catch-up, full finalized snapshot re-verification and restart-stable locator recovery; `961c02d` proves it across two real same-host Storage daemons and a locally signed DHT; `c19d759` adds protocol-maximum local resource calibration and a fail-atomic incremental cursor; main `8c26720` adds 1/8/32-peer same-host calibration, a maximum-linear-history request budget, and an immutable exact-ID serving index | Independent Driver review, independently operated/public-network Relay/Overlay/Storage evidence, representative-device/public-network concurrent-peer production calibration and second-implementation review remain open; direct same-Endpoint device history is implemented separately |
+| Overlay for rooms or channels | 🟡 | Broadcast, peer-management, private/semiprivate construction, and membership-certificate primitives exist; `tos-messenger/pkg/room` supplies Messenger room identity, signed authority, and bounded epoch-bound roles; typed moderation plus the durable ledger enforce auditable `hide`/`restore`, and OpenFox durably retracts already-applied history and action authority; `pkg/group`, `rust/openmls-driver`, `pkg/eventlog`, and `pkg/mlslab` implement pinned OpenMLS suite `0x0001`, crash-safe state, a join-forward-only prior-history policy, and a three-OpenFox encrypted/restart loop; OpenFox `ed1fcc75` separates that loop into three independently restartable Agent processes. Messenger `beaa358` additionally assembles runnable public-channel replicas over native DHT + ADNL Overlay/RLDP with verified history synchronization and restart; `a3c5910` adds deterministic independently re-verifiable TOS Storage Bag snapshots, bounded publication and authority-free BagID hints; `e3ea408` adds bounded stock CLI download/catch-up, full finalized snapshot re-verification and restart-stable locator recovery; `961c02d` proves it across two real same-host Storage daemons and a locally signed DHT; `c19d759` adds protocol-maximum local resource calibration and a fail-atomic incremental cursor; main `8c26720` adds 1/8/32-peer same-host calibration, a maximum-linear-history request budget, and an immutable exact-ID serving index; main `9b91e1b` adds exact-Head synchronization single-flight, a 256-candidate pending bound, connected-peer failover and stale-completion refusal | Independent Driver review, independently operated/public-network Relay/Overlay/Storage evidence, representative-device/public-network concurrent-peer production calibration and second-implementation review remain open; direct same-Endpoint device history is implemented separately |
 | TOS service commerce | 🟡 | Software-work Quote, escrow, Receipt, settlement, SDK, and execution-gate foundations exist | Relay lease, attachment storage, public history, and inbox-bond profiles do not exist and cannot be inferred from the software-work profile |
 | OpenFox economic bridge | 🟡 | Architecture and required interfaces are documented in `OPENFOX_ECONOMIC_BRIDGE_V1.md`; the production Messenger channel consumes authenticated direct/room input and submits reply semantics to daemon-owned event construction. Messenger `40e06ff`/`dcfca91` and OpenFox `cfa58ee7`/`6ae673bf` add daemon-assembled finalized-Quote verification, make it a mandatory post-funding/pre-dispatch native-buyer gate including crash recovery, and verify the deterministic funded escrow directly without a locator prewrite. OpenFox `755fbf2d` assembles the production buyer's frozen 2-of-3 chain authority graph. Protocol `94d38f8` and OpenFox `8d0bcedf`/`3fae4f91` add exact custody-reviewed escrow deployment and strict `prepare → inspect → deploy-prepare → deploy-broadcast → fund → dispatch → terminal settlement` production commands, durable leases, signed policy verification, Messenger spend/Quote gates and three transports | Fresh independent buyer/provider commerce sessions, selected live transport, and independently reconstructed settlement evidence remain missing |
 | Attachment storage primitives | 🟡 | TOS Sites, RLDP, and `tos-ai` content-addressed artifact storage exist. Messenger main `026b987` adds a route-neutral authenticated remote boundary over the private encrypted format: exact Endpoint-signed per-manifest grants, separate capability/storage keys, operation/body-bound single-use requests, finalized-authority rechecks, durable replay/clock protection, resumable bounded ciphertext transfer, signed storage acknowledgements, strict HTTPS locators and public-only DNS dialing. Messenger main `463c43f` adds a fail-closed Linux Agent-content boundary: an anonymous sealed `memfd` with no persistent pathname, SHA-256-pinned and private-staged scanner/bubblewrap/prlimit executables, networkless/capability-dropped sandboxing, strict all-must-allow verdict binding, and a parser-free UTF-8 text inspector. Messenger main `5f5c8be` optionally runs every scan in a fresh SHA-256-pinned `systemd-run` cgroup with fixed memory, zero-swap, task, no-core, runtime and whole-control-group kill policy; missing/unsafe runtime authority and launcher substitution fail closed, and a live OOM test proves plaintext is not released. Messenger `96a30ee`, merged as main `52f367c`, adds `artifact.encrypted` v3 recipient authority, daemon-owned fetch/AEAD/scan admission, and a reserved local API that releases only admitted bounded text without Reference or capability material; OpenFox `cb8080d7`, merged as `ac2475a3`, independently rehashes and durably applies that text. Messenger `13a4f48`, merged as main `4833a2c`, adds daemon-owned restartable outbound AES-GCM streaming, separate externally Endpoint-signed upload/fetch grants, bounded resumable storage and StoredAck-before-delivery ordering; OpenFox `69dce589`, merged as main `40554b6c`, streams only exact registered MediaStore files and receives no storage, retention, key, network or Event authority. Messenger main `ecdcedb` pins the real ClamAV 1.5.3 engine, current official databases, matching external signatures and root certificate, and passes three clean/EICAR/corrupt-resource sandbox rounds. Messenger main `8913b23` adds external-approval-ready signed hostile-corpus manifest/report plumbing, fixed approver and runner identities, exact policy/build/resource commitments, structural allow/deny observations, and substitution/TOCTOU/no-replace defenses | Independently operated public TLS transfer and interruption evidence, audited retention behavior, a qualifying externally approved representative hostile-corpus report, independent hard-isolation review/evidence, and commercial storage terms remain open; the reference text inspector is neither a general malware product nor a prompt-injection defense, and DeleteAck proves only the named operator's local lease observation, not cryptographic erasure |
@@ -201,9 +201,14 @@ does not promote a component row. OpenFox `f4087f63` additionally closes the
 observed systemd process-ordering/readiness gap: a bounded, signal-cancelable
 wait accepts only a live Unix listener, while the subsequent authenticated
 room request remains the identity and application-readiness check.
+The public-channel row additionally includes Messenger main `9b91e1b`: exact
+canonical Heads now single-flight across authenticated peers, pending work is
+bounded to 256 public-data candidates, same-Head failure selects one connected
+fallback, and stale completion, disconnect, replay, key substitution,
+overflow, and close paths fail safely under race and complete remote gates.
 
 Progress snapshot (2026-08-22, audited through TOS Core main `0aac896`,
-`tos-messenger` main `8c26720`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
+`tos-messenger` main `9b91e1b`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -215,7 +220,10 @@ that any external gate was completed. The
 terminal removed-member lifecycle added by Messenger main `bb2681a` and
 OpenFox main `c5746b2a` closes a local runtime correctness gap inside already
 partial private-room/OpenFox rows, so the percentage and component counts do
-not change. Messenger main `983117b` likewise closes the last local M4 design
+not change. Messenger main `9b91e1b` likewise removes duplicate same-Head
+public-channel synchronization work inside an already partial row, so it does
+not promote the row or raise the rounded percentage. Messenger main `983117b`
+likewise closes the last local M4 design
 choice—private-room prior history—inside an already partial row without
 claiming external evidence, so the percentage remains unchanged. Messenger
 main `083c202` and OpenFox main `5a5624eb` close the route-neutral Physical AI
@@ -349,6 +357,19 @@ of total history size. Same-host strict wire/verification benchmarks cover
 both 1,024 and 65,536 Events. This narrows the gap to representative-device,
 public-network concurrent calibration and independent operation; it does not
 freeze a route before M0-R.
+Messenger main `9b91e1b` closes the duplicate-work defect exposed by that
+concurrent calibration. `NativeNode` now single-flights synchronization for an
+exact canonical Head across authenticated peers, permits at most one active
+Head per peer, and bounds the pending public-data queue to 256 candidates.
+Failure promotes exactly one still-connected peer advertising the same Head;
+success removes redundant waiters, stale completions are ignored, and distinct
+ready Heads may still progress independently. The key is the complete strict
+Head encoding rather than only `history_digest`, so a same-digest tip
+substitution cannot suppress a canonical candidate. Concurrency, disconnect,
+failure, replay, queue-overflow, substitution and shutdown cases pass focused
+race tests and the complete local and fifteen-job remote gates. This removes
+same-Head amplification inside one node but does not claim public-network
+capacity, Byzantine consensus, or route freeze.
 Messenger `5e9d69b` then closes the M0-R ping-only route-decision gap without
 overclaiming reliable transfer. Endpoint-signed v3 trials retain bounded ADNL
 payload outcomes through the 8176-byte native query maximum; the
@@ -888,6 +909,29 @@ opening and left all counts at 102. Every unit remained `active/running` with
 `NRestarts=0`; the mode-`0600` Relay held no new plaintext and all seven
 warning-or-higher journals were empty. This re-proves the exact-main OpenFox
 group-chat closure but remains same-host evidence.
+
+After same-Head synchronization single-flight merged as Messenger main
+`9b91e1b448afffac5d260d7cf98a2b108708f3c2`, the installed Relay and MLS proxy
+reported that exact revision with `vcs.modified=false`; OpenFox remained exact
+main `b2e140a28078b0c838ab38e726973427b931ab49`. Installed Relay, proxy,
+OpenMLS Driver and OpenFox SHA-256 values were respectively
+`0def646489646211cffc22e1bf876ff9c91efb8236a41dc304c5ea1959da5f7f`,
+`da66c76228a8831c2edfc49f88cb1a2d6235da03acc0be199c04d1ecf95e69cb`,
+`371eb8c65e3253ba69aa2fa8407e31799e72afc3d685b2fcbe71eae4b5ad54e4`,
+and `7a0ab29e79042b6d2028d15de9d17bdc8312ce21ba70c5e6b5dd6bd02ad5756f`.
+
+Alice sent opening
+`msg_d646682fdbeb473e7e5b17cd0f032e4faf9c81576ca1f22cb22c1455eb02c321`;
+Bob and Carol produced exactly one `openfox-agent-loop` reply each,
+`msg_f2a4389b04b609f68e77c46f72e3acbb4fa631c422c3e00aae8ded9eecaf2ec0`
+and `msg_fb0c025f2e531b0186368e99a35af41bc872aa67db4dcfa273ae1c4632a90a18`,
+both bound to the opening. All three transcripts advanced from 102 to 105.
+Exact online replay and replay after a full seven-service restart returned the
+same opening and left every count at 105. Every unit remained
+`active/running` with `NRestarts=0`; the mode-`0600` Relay held no probe
+plaintext and all seven warning-or-higher journals were empty. This proves that
+the public-channel scheduler change did not regress the exact-main OpenFox
+group-chat closure, but remains same-host evidence.
 
 ### 5.4 Scenario acceptance
 
@@ -3281,7 +3325,8 @@ its crash-safe ledger, a live native ADNL Overlay/RLDP carrier, runnable
 native-DHT multi-peer node assembly, deterministic TOS Storage Bag
 publication/hints, bounded stock CLI download/catch-up, same-host two-daemon
 real-binary acceptance, protocol-maximum local resource calibration, and a
-1/8/32-peer same-host strict-path calibration are implemented;
+1/8/32-peer same-host strict-path calibration and exact-Head synchronization
+single-flight with bounded failover are implemented;
 representative-device/public-network concurrent calibration and independent
 public-network/Storage evidence remain open.**
 
@@ -3338,6 +3383,17 @@ required.
 | MSG-031 | Inbox Admission Bond profile and any required escrow | `tos-service-spec` / `tos` | 🔒 Expansion Gate; current software-work escrow is insufficient |
 | MSG-032 | Fixed-price Mailbox Relay Lease profile | `tos-service-spec` | 🔒 Expansion Gate |
 
+2026-08-22 progress note for MSG-022: Messenger main `9b91e1b` adds an
+exact-canonical-Head single-flight scheduler to `NativeNode`. At most one peer
+per exact Head and one Head per peer are active, pending work is capped at 256,
+failure selects one connected same-Head waiter, success clears redundant
+waiters, and distinct ready Heads retain independent progress. Full Head
+encoding prevents a same-digest/different-tips substitution from suppressing a
+canonical candidate. Focused race tests, complete local `make verify`, and all
+fifteen remote jobs pass. MSG-022 remains 🟡 because public-network calibration,
+independent operation, multi-operator failover, vector consumption/review, and
+a second implementation remain external gates.
+
 2026-08-22 progress note for MSG-013/MSG-014: Messenger main `f58dfa3`
 implements immutable named scanner-engine/signature resources, strict
 resource-bound verdicts, local response v5, and the fail-closed ClamAV
@@ -3378,7 +3434,7 @@ closes the local supervised-start race found by a deliberately concurrent
 seven-process restart; timeout, cancellation and non-socket substitution fail
 closed, and the repeated deployed restart required no automatic recovery.
 
-Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `8c26720`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
+Work-package progress (2026-08-22, audited through TOS Core main `0aac896`, `tos-messenger` main `9b91e1b`, OpenFox main `b2e140a2`, and `tos-ai` `a9928de`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
 and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
 the remaining rows keep their precise implemented sub-results and named gates.
 
