@@ -3566,7 +3566,8 @@ Messenger main `74e7cc2` and OpenFox main `6b997b63`, after the DNS contact
 resolver, protocol result composition and reviewed upstream fallback-chain
 merge. Alice's Event
 `msg_fceeaf99b9eb548722b6f7e7cc9c245ad35caffd89de4c370c33eedffd3e5be9`
-received exactly one independently produced AgentLoop reply from Bob and Carol.
+received exactly one independently produced AgentLoop reply from each of Bob
+and Carol.
 After restarting the opaque Relay, all three private MLS proxies and all three
 OpenFox AgentLoop processes together, an exact retry returned the same Event
 and every 120-record transcript retained exactly the same three unique
@@ -3575,8 +3576,7 @@ acceptance IDs. Bob's reply was
 Carol's was
 `msg_5f9eb35211859e0b71316f15a61e4563d066c89949f1fecde3800574b9f11b85`.
 The mode-0600 Relay state contained none of the submitted plaintext. Exact
-binary hashes and the limitation to same-host/local-route evidence are recorded
-in
+binary hashes and the limitation to same-host/local-route evidence are in
 `tos-messenger/docs/evidence/OPENFOX_GROUP_LATEST_MAIN_2026-08-22.md`. This is
 fresh runnable/restart evidence for MSG-014, but it does not change the 🟡
 status: selected-route, public-network, independent-operator, independent
