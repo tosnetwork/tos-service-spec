@@ -455,6 +455,15 @@ gate item.
   expansion gate, reorder Gate D--F work, or establish product acceptance.
   Mailbox Relay and attachment storage service profiles remain expansion work
   under this gate and inherit the lock above.
+- [TOS Edge CDN Architecture V1](EDGE_CDN_ARCHITECTURE_V1.md) defines a standard
+  HTTP CDN backed by an open market of verified Provider and Worker Agents.
+  Customer→Provider and Provider→Worker purchases remain separate; the
+  Scheduler, DNS, cache index, traffic logs and dashboards remain replaceable
+  non-canonical state; high-frequency delivery is aggregated off-chain into
+  bounded evidence windows. **Status: 🟡 Incubation architecture only.** The
+  canonical profiles, Worker/Scheduler implementation, metered settlement,
+  independent operators and live customer evidence do not exist. It consumes
+  no gate capacity and remains locked behind Gate F recurring-use acceptance.
 
 ## 9. Work ordering rules
 

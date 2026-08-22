@@ -117,6 +117,11 @@ refine these rules but cannot contradict them.
   roadmap gates, and cannot be cited as gate acceptance evidence.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
+- [TOS Edge CDN Architecture V1](docs/EDGE_CDN_ARCHITECTURE_V1.md) defines an
+  incubation architecture for standard HTTP content delivery over an open
+  market of verified Provider and Worker Agents. It keeps high-frequency
+  traffic off-chain, uses separate Customer→Provider and Provider→Worker
+  purchases, and does not open or reorder the expansion gate.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
   finalized-state-derived Agent GDP, settled receipts, job, wallet,
   reliability, and

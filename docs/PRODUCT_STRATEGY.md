@@ -439,8 +439,22 @@ Do not prioritize:
 - data APIs and model inference;
 - batch and channel settlement;
 - provider composition;
+- standard CDN delivery backed by independently operated edge Workers;
 - enterprise controls; and
 - additional assets or networks justified by customer demand.
+
+[`EDGE_CDN_ARCHITECTURE_V1.md`](EDGE_CDN_ARCHITECTURE_V1.md) records the
+incubation architecture for that CDN expansion. It preserves ordinary customer
+interfaces (`CNAME`, HTTPS, HTTP Range, HLS and DASH), keeps request traffic
+off-chain, and uses separate explicit Customer→Provider and Provider→Worker
+commercial relationships. Its first eligible product slice is professional
+static-content delivery; community/home Workers and advanced routing follow
+only after the restricted trust model is independently accepted.
+
+This design entry does not change the ordering above. Edge CDN implementation
+and metered-settlement work remain locked until independent buyers demonstrate
+recurring paid use through the initial software-work lifecycle and the roadmap
+expansion gate opens.
 
 ## 15. Twelve-month evidence targets
 

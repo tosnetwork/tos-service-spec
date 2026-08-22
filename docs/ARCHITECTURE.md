@@ -28,6 +28,12 @@ Receipt, release or refund, and independent history resolution. Other markets,
 generalized arbitration, and broader federation follow only after recurring
 paid use.
 
+Focused application architectures may reuse these planes without creating new
+canonical authority. [`EDGE_CDN_ARCHITECTURE_V1.md`](EDGE_CDN_ARCHITECTURE_V1.md)
+applies them to a standard HTTP CDN and independently operated edge Workers;
+its Scheduler, cache, DNS and traffic evidence remain derived/off-chain state,
+and its incubation status does not expand the first-release scope.
+
 ## 2. Canonical authority
 
 Finalized TOS state is the sole canonical authority for:
