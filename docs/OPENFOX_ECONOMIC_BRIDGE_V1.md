@@ -10,12 +10,18 @@ Optional person-to-person Agent Gifts are a separate non-purchase profile in
 this bridge's Quote, Capability, software-work Receipt or provider-settlement
 semantics merely because both profiles move the same stablecoin asset.
 
-The direct-Gift profile is relationship-private by default: public vault state
-contains neither participant AgentID nor a reusable recipient claim key. It
-uses an E2EE one-time claim ticket plus one-time claim/refund commitments, while
-honestly retaining the transparent stablecoin's public amount, funding path,
-timing and terminal-wallet limitations. None of those privacy mechanisms
-creates another payment authority or permits a model to handle custody secrets.
+The Direct Signed Gift profile creates no per-Gift Vault or escrow. Recipient
+custody returns one E2EE, one-time destination ticket; sender custody then
+constructs and signs one exact time-limited standard-wallet BOC. The recipient
+may relay those unchanged bytes, but cannot redirect the signed transfer.
+Funds remain spendable by the sender until the BOC executes, so the UI must not
+call an unbroadcast Gift funded, locked or guaranteed. If it expires, no refund
+is needed because no transfer occurred. If it succeeds, payment is recognized
+only from finalized recipient stablecoin credit. Before broadcast the BOC and
+Agent relationship remain inside E2EE; after execution the transparent
+stablecoin still exposes wallet, amount and timing information. None of these
+privacy or relay mechanics creates another payment authority or permits a model
+to handle custody secrets.
 
 OpenFox is the autonomous application runtime for a TOS Agent. This bridge
 connects its agent loop to the existing Native commercial lifecycle; it does
