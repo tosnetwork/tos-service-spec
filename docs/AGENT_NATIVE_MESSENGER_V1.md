@@ -227,8 +227,9 @@ Head from the second carrier yields one active and one pending candidate,
 exactly one served fetch, one durable commit and an empty scheduler afterward.
 The proof passed 20 consecutive runs without adding a production hook.
 
-Progress snapshot (2026-08-22, audited through TOS Core main `48ea7b426`,
-`tos-messenger` main `74e7cc2`, OpenFox main `6b997b63`, and `tos-ai` main `a1126e4`): the component inventory is **5/19 ✅**, with
+Progress snapshot (2026-08-22, audited through TOS Core main `c845c4693`,
+`tos-messenger` main `3094463`, OpenFox main `6b997b63`, and `tos-ai` main
+`a1126e4`): the component inventory is **5/19 ✅**, with
 12/19 🟡, 1/19 ⬜, and 1/19 🔒. Partial rows retain their implemented
 sub-results without being promoted to ✅ before the whole stated behaviour is
 implemented and tested end to end.
@@ -3561,22 +3562,31 @@ is a same-host operator-local deployment, not selected-route or independent
 multi-operator evidence.
 
 The seven-unit composition was rebuilt and redeployed again on 2026-08-22 from
-Messenger main `8566051` and OpenFox main `6b997b63`, after the DNS contact
-resolver and reviewed upstream fallback-chain merge. Alice's Event
-`msg_61e4b1b4f1c1ca6177a25a7f9b79aa98a0bb55e2bb44747ebe63287fe3d0617c`
+Messenger main `74e7cc2` and OpenFox main `6b997b63`, after the DNS contact
+resolver, protocol result composition and reviewed upstream fallback-chain
+merge. Alice's Event
+`msg_fceeaf99b9eb548722b6f7e7cc9c245ad35caffd89de4c370c33eedffd3e5be9`
 received exactly one independently produced AgentLoop reply from Bob and Carol.
 After restarting the opaque Relay, all three private MLS proxies and all three
 OpenFox AgentLoop processes together, an exact retry returned the same Event
-and every transcript retained exactly the same three unique IDs. The mode-0600
-Relay state contained none of the submitted plaintext. Exact binary hashes and
-the limitation to same-host/local-route evidence are recorded in
+and every 120-record transcript retained exactly the same three unique
+acceptance IDs. Bob's reply was
+`msg_4eb9058f5c8b8980444f51e23c557339711b75bb36aaec646c54f1fb606b85e3`;
+Carol's was
+`msg_5f9eb35211859e0b71316f15a61e4563d066c89949f1fecde3800574b9f11b85`.
+The mode-0600 Relay state contained none of the submitted plaintext. Exact
+binary hashes and the limitation to same-host/local-route evidence are recorded
+in
 `tos-messenger/docs/evidence/OPENFOX_GROUP_LATEST_MAIN_2026-08-22.md`. This is
 fresh runnable/restart evidence for MSG-014, but it does not change the 🟡
-status: selected-route and independent-operator evidence remain absent.
+status: selected-route, public-network, independent-operator, independent
+OpenMLS review and second-implementation evidence remain absent.
 
-Work-package progress (2026-08-22, audited through TOS Core main `48ea7b426`, `tos-messenger` main `74e7cc2`, OpenFox main `6b997b63`, and `tos-ai` main `a1126e4`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜,
-and 3/29 🔒. The ✅ packages are MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030;
-the remaining rows keep their precise implemented sub-results and named gates.
+Work-package progress (2026-08-22, audited through TOS Core main `c845c4693`,
+`tos-messenger` main `3094463`, OpenFox main `6b997b63`, and `tos-ai` main
+`a1126e4`): **6/29 ✅**, 19/29 🟡, 1/29 ⬜, and 3/29 🔒. The ✅ packages are
+MSG-002, MSG-006, MSG-007, MSG-012, MSG-015, and MSG-030; the remaining rows
+keep their precise implemented sub-results and named gates.
 
 ## 26. Minimum viable demonstration
 
