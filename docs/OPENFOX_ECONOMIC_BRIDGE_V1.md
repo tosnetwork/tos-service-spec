@@ -1,5 +1,10 @@
 # OpenFox Economic Bridge V1
 
+The cross-repository implementation sequence for autonomous discovery,
+first-contact Messenger initiation and policy-gated execution is defined in
+[`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
+This document remains the authority boundary for the commercial lifecycle.
+
 OpenFox is the autonomous application runtime for a TOS Agent. This bridge
 connects its agent loop to the existing Native commercial lifecycle; it does
 not create a second marketplace, ledger, trust mode, or settlement protocol.

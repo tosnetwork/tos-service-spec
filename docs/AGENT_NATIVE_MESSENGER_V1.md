@@ -2734,7 +2734,10 @@ network-delivered.
 
 This proactive path deliberately reuses an established AgentID route/session.
 Generic new-contact session bootstrap and the selected live transport remain
-open work; `.tos` does not bypass either gate.
+open work; `.tos` does not bypass either gate. The daemon-owned first-contact
+state machine, M0-R-dependent transport phase and OpenFox autonomous economy
+integration are sequenced in
+[`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
 
 The implementation snapshot is `tos-messenger` commit `d284f44` and OpenFox
 commit `402e21ed`. `tos-messenger` passed `make verify`, including the race
