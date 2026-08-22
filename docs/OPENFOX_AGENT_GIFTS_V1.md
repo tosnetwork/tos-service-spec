@@ -3,11 +3,15 @@
 **Status:** incubation design; not implemented and not payment-acceptance
 evidence
 
+**Privacy class:** relationship-private by default; amount confidentiality and
+full transaction anonymity are not claimed
+
 **Related specifications:**
 
 - [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
 - [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [`AGENT_NATIVE_MESSENGER_V1.md`](AGENT_NATIVE_MESSENGER_V1.md)
+- [`DNS_ALIAS_V1.md`](DNS_ALIAS_V1.md)
 - [`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md)
 - [`SETTLEMENT.md`](SETTLEMENT.md)
 - [`AUTH.md`](AUTH.md)
@@ -15,65 +19,120 @@ evidence
 ## 1. Product decision
 
 OpenFox-to-OpenFox ordinary messaging, first contact and private-room chat do
-not require payment. A gift (the product presentation may call it a red packet)
-is an optional, explicitly authorized economic action carried alongside chat.
+not require payment. A Gift — presented to a user as a gift or red packet — is
+an optional, explicitly authorized economic action carried alongside an
+existing private conversation.
 
-V1 supports one narrowly defined product:
+V1 supports one narrow product:
 
-> One sender Agent offers one fixed amount of one allowlisted stablecoin to one
-> canonical recipient Agent. The recipient may claim it before expiry; after
-> expiry the sender may recover it. Finalized chain state, never chat text,
-> determines the economic outcome.
+> One sender Agent privately offers one fixed amount of one allowlisted
+> TOS-network stablecoin to one canonical recipient Agent. The recipient may
+> claim it before expiry; after expiry the sender may recover it. Finalized
+> chain state, never chat text, determines the economic outcome.
 
-V1 does not support group packets, random shares, first-come allocation,
-split claims, tips paid directly from model output, or an unrestricted
-autonomous-spend mode. Those features require separate profiles and acceptance
-evidence.
+The V1 privacy objective is equally explicit:
 
-The word `Gift` is used in protocol identifiers. “Red packet” is presentation
-metadata and has no separate identity, payment or settlement semantics.
+> Public protocol state must not directly publish the sender AgentID, recipient
+> AgentID, `.tos` alias, long-lived recipient Gift key, greeting, or social
+> relationship. Those facts remain in end-to-end encrypted Messenger and
+> owner-private state unless a participant selectively discloses them.
 
-## 2. Why this is not an ordinary message
+V1 does not support group packets, random shares, first-come allocation, split
+claims, public Gift discovery, tips paid directly from model output, or an
+unrestricted autonomous-spend mode. Those features require separate profiles,
+privacy analysis and acceptance evidence.
 
-A chat Event can be retried, delayed, delivered through multiple Relays or
-observed after a process restart. A stablecoin transfer cannot safely inherit
-those delivery semantics. In particular:
+`Gift` is the architectural term. “Red packet” is presentation metadata and has
+no separate identity, payment or settlement semantics.
 
-- message delivery does not prove that funds were locked;
-- a displayed amount does not prove the asset or amount on chain;
-- retrying a send must not create a second funding transaction;
-- receiving the same Event twice must not permit two claims;
-- an expired offer must not race into both claim and refund;
-- `.tos` reassignment must not change the recipient; and
-- model output must not select a wallet, signing key or contract address.
+## 2. Privacy objective and honest limits
 
-Messenger therefore carries an authenticated reference and human-readable
-display hint. The Gift contract and finalized wallet-transfer chain own money.
+### 2.1 What V1 protects by design
+
+A conforming implementation minimizes disclosure to unrelated observers:
+
+- the Gift vault contains no clear sender or recipient AgentID;
+- a `.tos` alias never enters public payment authority;
+- a recipient uses one one-time claim ticket per Gift rather than a public,
+  reusable on-chain claim key;
+- sender refund authority is also one-time and commitment-based;
+- the Gift type, amount and greeting remain inside E2EE Messenger payloads and
+  content-free push notifications;
+- Relays and Gateways receive no Gift claim secret, refund secret, destination
+  wallet secret or chain signing key;
+- public resolvers resolve a Gift only by exact Gift ID or vault address and do
+  not expose a protocol-standard “list Gifts by Agent” index;
+- local logs, metrics and crash journals minimize or pseudonymize identifiers;
+  and
+- either participant may later prove the private Agent-to-Gift binding through
+  a selective-disclosure audit bundle.
+
+### 2.2 What V1 does not hide
+
+The supported stablecoin and base chain are transparent. A passive chain
+observer may still see or infer:
+
+- that a contract of the approved claimable-Gift vault code exists;
+- the stablecoin master, exact funded amount and vault balance;
+- the funding wallet or funding path;
+- creation, funding, claim and refund timing;
+- the terminal stablecoin destination wallet when it is revealed for claim or
+  refund; and
+- correlations caused by address reuse, unique amounts, timing, network-layer
+  observation or later consolidation of funds.
+
+Therefore V1 is **relationship-minimizing**, not amount-confidential, shielded,
+or anonymous. It makes the public contract state insufficient by itself to map
+an Agent social relationship, but it cannot erase information already exposed
+by a transparent asset or wallet graph.
+
+A later confidential-asset, shielded-pool or privacy-preserving sponsorship
+profile may strengthen this boundary. Such a profile must be separately
+specified and must not be simulated by misleading UI labels.
+
+### 2.3 Adversaries considered
+
+The design considers:
+
+- public chain observers and block explorers;
+- a curious or compromised Gateway, indexer, Relay or push provider;
+- unrelated Agents scraping public profiles;
+- an external model provider receiving OpenFox prompts;
+- a malicious sender attempting to redirect or reuse a recipient ticket;
+- a malicious recipient attempting to claim twice or claim after expiry;
+- mempool observers copying a claim or refund transaction;
+- local log and telemetry collection; and
+- crash/retry behavior that could duplicate funding or terminal transfer.
+
+It does not protect a party from its own compromised custody process or device,
+and sender and recipient necessarily know the counterparty with whom they are
+communicating.
 
 ## 3. Normative authority boundaries
 
 ### 3.1 Identity
 
-- The sender and recipient are canonical AgentIDs.
-- A `.tos` input is resolved once through the normal finalized name path before
-  gift preparation. Alias text may be retained only as display metadata.
-- A later name transfer cannot retarget a prepared, funded, claimed or refunded
-  Gift.
-- Messaging EndpointID, DeviceID, SessionID and room membership are not payment
-  identities.
-- V1 uses a dedicated Gift claim key authorized for the recipient Agent. It
-  does not reuse an Endpoint, Device, MLS or model-provider key.
+- Sender and recipient are canonical AgentIDs in private authorization state.
+- A `.tos` input is resolved once through the finalized alias path before Gift
+  preparation. Alias text is optional display metadata only.
+- A later name transfer cannot retarget a ticket, prepared Gift, funded vault,
+  claim, refund, mandate or audit record.
+- EndpointID, DeviceID, SessionID, room membership, display name and Relay
+  identity are not payment identities.
+- The public vault MUST NOT contain either AgentID or a stable key whose public
+  profile makes the recipient trivially enumerable.
 
 ### 3.2 Funds
 
 - Only finalized Gift-vault and stablecoin-wallet state establishes funded,
   claimed or refunded status.
-- A Messenger Event, Gateway response, model statement, local projection or
-  transaction-submission result is never terminal economic evidence.
+- A Messenger Event, Gateway response, model statement, local projection,
+  transaction hash or submission acknowledgement is never terminal economic
+  evidence.
 - The software-work Quote, escrow, Receipt and Settler profiles are not reused.
   A Gift buys no Capability and proves no execution.
 - V1 supports one deployment-allowlisted stablecoin contract per configured
-  network. Native-coin and multi-asset gifts are later profiles.
+  network. Native-coin and multi-asset Gifts are later profiles.
 - Gas funding is an operator deployment responsibility and is not deducted
   silently from the displayed Gift amount.
 
@@ -81,25 +140,62 @@ display hint. The Gift contract and finalized wallet-transfer chain own money.
 
 - Gift sending is disabled by default.
 - Funding requires an exact owner policy or owner-signed mandate binding the
-  recipient AgentID, asset, maximum amount, expiry, count and time window.
-- The AgentLoop may propose a recipient, amount and message. It cannot create
-  the authorization, alter resolved authority or sign a transaction.
-- `tosctl` or an equivalently hardened custody process owns wallet signing.
-  OpenFox and `tos-messengerd` do not receive chain private keys.
-- Claim signing is performed by a recipient-owned Gift claimant process. The
-  model never receives the claim private key.
+  canonical recipient AgentID or owner-approved allowlist digest, asset,
+  maximum amount, expiry, count and rolling time window.
+- The owner confirmation binds the canonical private-terms digest, not a model
+  summary or `.tos` string.
+- AgentLoop may propose recipient, amount, expiry and greeting. It cannot create
+  the authorization, alter resolved authority, issue a receiver ticket, choose
+  custody destinations or sign a transaction.
+- `tosctl` or an equivalently hardened custody process owns funding and refund
+  secrets and chain signing. OpenFox and `tos-messengerd` do not receive chain
+  private keys.
+- A recipient-owned Gift claimant process owns claim-ticket secrets and
+  destination policy. The model never receives claim secrets, ticket signing
+  keys or destination-wallet secrets.
 
-## 4. Recipient Gift profile
+### 3.4 Privacy authority
 
-Before funding, the sender resolves a finalized, network-bound Gift receiver
-profile for the canonical recipient AgentID:
+Privacy metadata is not payment authority. Padding, alias display, local labels,
+optional sponsor routing and audit disclosures cannot change the canonical
+asset, amount, expiry, claim commitment, refund commitment or vault state.
+
+A privacy failure MUST NOT cause a semantic fallback. For example, failure to
+obtain a one-time private claim ticket must stop preparation; it must not fall
+back to publishing a long-lived recipient claim key in the vault.
+
+## 4. Data visibility matrix
+
+| Data | Sender owner/custody | Recipient owner/custody | OpenFox model | Messenger Relay | Public chain |
+|---|---:|---:|---:|---:|---:|
+| Sender/recipient AgentID binding | yes | yes | only user-facing intent as policy allows | no plaintext | no direct field |
+| `.tos` alias | optional display | optional display | optional input | no plaintext | never |
+| Amount and asset | yes | after verified offer | optional intent/verified summary | no plaintext | visible |
+| Greeting | yes | yes | optional | no plaintext | never |
+| Claim secret and destination secret | no | yes | never | never | secret revealed only at claim; destination becomes visible |
+| Refund secret and destination secret | yes | no | never | never | secret revealed only at refund; destination becomes visible |
+| Long-lived receiver ticket-signing key | verification only | custody | never | never | not in vault |
+| One-time ticket body | yes | yes | never | E2EE only | only opaque digest/commitment |
+| Chain funding/signing key | custody only | no | never | never | never |
+
+The implementation may disclose less, never more, without a separately reviewed
+profile.
+
+## 5. Receiver profile and one-time claim tickets
+
+### 5.1 Finalized Gift receiver profile
+
+A sender first resolves a finalized, network-bound receiver profile for the
+canonical recipient AgentID:
 
 ```text
 GiftReceiverProfileV1 {
   network
   recipient_agent_id
-  claim_public_key
-  supported_asset_contracts[]
+  ticket_signing_public_key
+  ticket_service_descriptor_digest
+  supported_asset_policy_digest
+  admission_policy_digest
   not_before
   expires_at
   generation
@@ -108,320 +204,684 @@ GiftReceiverProfileV1 {
 ```
 
 The profile is signed or committed through the existing Agent controller
-hierarchy. Resolution verifies the Agent lifecycle, network tuple, controller
-authority, validity window and monotonically advancing generation.
+hierarchy. Resolution verifies Agent lifecycle, network tuple, controller
+authority, validity window, exact profile digest and monotonically advancing
+generation.
 
-The claim key is a narrowly scoped public key. It may authorize only a claim
-over the exact Gift ID, vault, recipient AgentID, destination stablecoin wallet,
-nonce and expiry. It cannot authorize Messenger sessions, Agent mutations,
-Capability actions or general wallet transfers.
+The profile key authorizes only bounded `GiftClaimTicketV1` bodies. It cannot
+claim a Gift, move stablecoins, authorize Messenger sessions, mutate an Agent,
+operate a Capability or sign a general wallet transaction.
 
-Rotation affects only Gifts prepared after the new finalized profile is
-resolved. An existing funded Gift remains bound to the claim key committed in
-its immutable terms. Revocation policy must be explicit: V1 does not silently
-replace that key. A future recovery profile may add an owner-authorized timeout
-path without changing already finalized outcomes.
+The profile contains no reusable public claim key. Publishing such a key and
+then copying it into every vault would make all Gifts to one recipient directly
+linkable.
 
-If no valid profile exists, the operation fails before authorization or
-funding. OpenFox must not ask the model to invent a payout address.
+### 5.2 Ticket request boundary
 
-## 5. Canonical Gift identity and immutable terms
+Before owner funding authorization, the sender obtains a one-time ticket over
+an authenticated E2EE direct conversation. The default V1 policy permits a
+ticket request only for:
 
-The sender runtime creates a cryptographically random 256-bit `gift_intent_id`
-outside the model. After recipient/profile resolution, the canonical terms bind
-at least:
+- an existing approved contact;
+- a recipient-issued one-time Gift invite; or
+- an explicitly enabled first-contact policy with bounded rate and owner
+  controls.
+
+A public profile scrape is not enough to construct a claimable Gift. This
+reduces both social-graph scraping and unsolicited on-chain Gift spam.
+
+Conceptually the sender sends an encrypted request containing:
 
 ```text
-network tuple
-gift_intent_id
-sender_agent_id
-recipient_agent_id
-recipient_claim_public_key
-stablecoin master contract
-amount in indivisible units
-claim expiry
-refund destination authority
-Gift-vault code hash and version
+GiftTicketRequestV1 {
+  network
+  gift_intent_id
+  sender_agent_id
+  recipient_agent_id
+  stablecoin_master
+  amount_atomic
+  claim_expiry
+  receiver_profile_generation
+}
 ```
 
-`GiftID` is a domain-separated digest of the canonical terms. The deterministic
-vault address is derived through the pinned contract deployment rules and is
-verified before funding.
+`gift_intent_id` is a fresh cryptographically random 256-bit value generated
+outside the model.
 
-The human greeting, emoji, color and `.tos` alias are not part of payment
-authority. If presentation text is committed for audit, it uses a separate
-bounded display digest so changing it cannot change the recipient or amount.
+### 5.3 One-time claim ticket
 
-The durable sender idempotency key is the exact `GiftID`. Reusing one
-`gift_intent_id` with different canonical terms is a conflict, not another
-Gift. Retrying exact terms resumes the existing record and cannot fund twice.
+The recipient claimant custody process — not AgentLoop and not the model —
+generates a fresh 256-bit claim secret, selects the exact destination policy,
+and returns an E2EE ticket:
 
-## 6. On-chain Gift vault
+```text
+GiftClaimTicketV1 {
+  network
+  gift_intent_id
+  ticket_id
+  sender_agent_id
+  recipient_agent_id
+  stablecoin_master
+  amount_atomic
+  claim_expiry
+  claim_commitment
+  receiver_profile_generation
+  ticket_not_after
+  ticket_body_digest
+  ticket_signature
+}
+```
 
-V1 requires a dedicated Gift vault contract. The software-work escrow MUST NOT
-be repurposed: its Quote, Capability, Receipt, dispute and provider semantics do
-not describe a gift.
+The exact encoding and digest are frozen at G0. The claim commitment is a
+domain-separated commitment to at least:
 
-The vault commits the immutable terms and accepts exactly the required
-stablecoin amount through the standard authenticated transfer-notification
-path. Direct wallet credit, an unverified token notification, wrong asset,
-wrong amount, wrong vault code or surplus funding fails closed under the
-contract's specified recovery rules.
+```text
+claim secret
+ticket ID
+gift intent ID
+exact destination stablecoin wallet or owner representation
+network and stablecoin master
+amount and expiry
+```
+
+The destination is inside the commitment and is not disclosed to the sender.
+At claim time, revealing the secret and destination lets the vault recompute the
+commitment. A mempool observer may copy the claim, but cannot redirect payment;
+the copied transaction still pays the committed destination.
+
+The ticket signature covers the complete body and is verified against the
+finalized receiver profile before owner authorization or funding. The ticket is
+never published by default.
+
+### 5.4 Ticket lifecycle and reuse
+
+Recipient custody durably marks a ticket `available`, `reserved`, `funded`,
+`claimed`, `expired` or `released`. A ticket reserved for one exact intent
+cannot be issued to another sender.
+
+Gift identity and deterministic vault derivation commit the ticket body digest
+and exact economic terms. An exact retry reaches the same Gift and vault.
+Changing recipient, asset, amount, expiry, profile generation or claim
+commitment invalidates the ticket and cannot produce a claimable substitution.
+
+If a sender never funds, the recipient may release the reservation only after a
+bounded reservation timeout and a finalized check showing that the expected
+vault is absent or unfunded. Ticket reuse after ambiguous funding is prohibited.
+
+## 6. Private terms, public vault terms and selective disclosure
+
+### 6.1 Private Gift terms
+
+The parties retain owner-private canonical terms conceptually containing:
+
+```text
+PrivateGiftTermsV1 {
+  network
+  gift_intent_id
+  sender_agent_id
+  recipient_agent_id
+  receiver_profile_digest
+  ticket_body_digest
+  stablecoin_master
+  amount_atomic
+  claim_expiry
+  claim_commitment
+  refund_commitment
+  vault_code_hash
+  vault_version
+  optional_display_digest
+  privacy_blinding
+}
+```
+
+The private-terms commitment is a domain-separated digest of the canonical body
+and a fresh 256-bit blinding value. The greeting, emoji, color and `.tos` alias
+are not payment authority. If a display digest is retained for audit, it is
+separate and bounded so presentation changes cannot change recipient or amount.
+
+### 6.2 Public Gift vault terms
+
+The on-chain vault stores only what the contract needs:
+
+```text
+PublicGiftVaultTermsV1 {
+  network
+  gift_id
+  stablecoin_master
+  amount_atomic
+  claim_expiry
+  claim_commitment
+  refund_commitment
+  private_terms_commitment
+  vault_code_hash
+  vault_version
+}
+```
+
+It MUST NOT contain:
+
+- sender or recipient AgentID;
+- `.tos` alias or display name;
+- long-lived receiver profile or claim public key;
+- ticket signature or ticket service location;
+- greeting, emoji or room/conversation identifier; or
+- EndpointID, DeviceID, SessionID or Relay identity.
+
+The exact asset amount remains public because the supported stablecoin is
+transparent and the vault must transfer the exact balance.
+
+### 6.3 Gift identity and deterministic address
+
+`GiftID` is a domain-separated digest over the exact public terms plus the
+opaque ticket/private-terms commitments. Its preimage contains fresh 256-bit
+entropy and is not a digest of guessable alias/amount/timing fields alone.
+
+The deterministic vault address is independently reproduced from the pinned
+contract code and exact public terms. An exact retry produces the same address;
+a mutation produces another address whose state does not satisfy the signed
+ticket and must be rejected.
+
+### 6.4 Selective-disclosure audit bundle
+
+Either participant may later disclose:
+
+```text
+GiftAuditBundleV1 {
+  PrivateGiftTermsV1
+  receiver profile proof
+  GiftClaimTicketV1
+  private-terms blinding
+  finalized vault and wallet references
+}
+```
+
+An auditor can recompute profile authority, ticket signature, private-terms
+commitment, GiftID, deterministic vault, amount and terminal outcome. This
+supports tax, accounting or dispute evidence without publishing a permanent
+Agent-to-Gift index for everyone.
+
+Selective disclosure proves a relationship; it is irreversible for the party
+receiving the bundle and must be an explicit owner decision.
+
+## 7. One-time refund authorization
+
+Sender custody generates a fresh refund secret and an exact refund destination
+before funding. `refund_commitment` is a domain-separated commitment to at
+least:
+
+```text
+refund secret
+Gift ID
+exact refund stablecoin wallet or owner representation
+network and stablecoin master
+amount and expiry
+```
+
+The public vault stores only the commitment. After expiry, the sender reveals
+the secret and destination. A copied refund transaction cannot redirect funds.
+
+The refund secret and destination are kept by sender custody, not OpenFox, the
+model or Messenger. Loss of the refund secret may make recovery impossible
+until a separately specified recovery path exists; V1 must not silently insert
+a public long-lived sender key as fallback.
+
+## 8. On-chain Gift vault
+
+V1 requires a dedicated claimable-Gift vault contract. The software-work escrow
+MUST NOT be repurposed: Quote, Capability, Receipt, dispute and provider
+semantics do not describe a Gift.
+
+The vault accepts exactly the required stablecoin amount through the standard
+authenticated transfer-notification path. Direct wallet credit, an unverified
+notification, wrong asset, wrong amount, wrong vault code or surplus funding
+fails closed under frozen recovery rules.
 
 The vault exposes two mutually exclusive terminal paths:
 
-1. `claim`: before expiry, verify the dedicated recipient claim signature and
-   request transfer of the exact amount to the signed destination wallet; or
-2. `refund`: after expiry, authorize the pinned sender refund authority and
-   request transfer of the exact amount to the refund destination.
+1. `claim`: before expiry, reveal the exact claim preimage and request transfer
+   to the destination bound by `claim_commitment`; or
+2. `refund`: after expiry, reveal the exact refund preimage and request transfer
+   to the destination bound by `refund_commitment`.
+
+The contract does not need either AgentID to decide these paths. Private Agent
+authority was already checked when issuing and accepting the ticket and when
+owner policy authorized funding; the vault enforces only the one-time economic
+commitments.
 
 Claim and refund serialize through one contract state. At most one terminal
-economic transfer request may exist. As with the stablecoin escrow, initiating
-an asynchronous wallet transfer is not terminal success. The vault becomes
-`claimed` or `refunded` only after the exact authenticated wallet callback or
-other profile-defined finalized confirmation. Bounce and ambiguous-transfer
-states remain nonterminal and recoverable without issuing a second economic
-transfer.
+economic transfer request may exist. Initiating an asynchronous wallet transfer
+is not terminal success. The vault becomes `claimed` or `refunded` only after
+the exact authenticated wallet callback or other frozen finalized
+confirmation. Bounce and ambiguous-transfer states remain nonterminal and
+recoverable without issuing a second economic transfer.
 
-## 7. Durable lifecycle
+## 9. Durable lifecycle
 
-OpenFox keeps a non-authoritative orchestration projection. The chain/vault
-record remains authoritative:
+Sender orchestration is non-authoritative; chain state remains authoritative:
 
 ```text
 draft
-  -> recipient-verified
-  -> policy-authorized
+  -> recipient-resolved
+  -> ticket-requested
+  -> ticket-verified
+  -> private-terms-authorized
   -> vault-prepared
   -> funding-submitted
   -> funded
   -> offer-announced
-  -> claim-submitted -> claim-transfer-pending -> claimed
+  -> claim-observed -> claim-transfer-pending -> claimed
   -> refund-submitted -> refund-transfer-pending -> refunded
 ```
 
-Before `funded`, a rejected or expired local attempt may become
-`terminal-failed` without an economic outcome. After funding, local failures
-are never collapsed into failure: the record remains resumable until finalized
-chain state proves `claimed` or `refunded`.
+Recipient custody maintains:
 
-Each transition is fsynced before its next external side effect. On restart,
-the coordinator queries finalized vault/wallet state before retrying an
-ambiguous mutation. A transaction hash is useful evidence but not a state
+```text
+ticket-created
+  -> ticket-reserved
+  -> vault-observed
+  -> offer-verified
+  -> claim-authorized
+  -> claim-submitted
+  -> claimed
+  -> expired/refunded
+```
+
+Before `funded`, a rejected or expired local attempt may become
+`terminal-failed` without an economic outcome. After funding, local failures are
+never collapsed into failure: the record remains resumable until finalized
+vault and wallet state proves `claimed` or `refunded`.
+
+Each durable transition is fsynced before its next external side effect. On
+restart, sender and recipient query finalized vault/wallet state before retrying
+an ambiguous mutation. A transaction hash is useful evidence but not a state
 transition by itself.
 
-The recipient projection has `observed`, `claim-authorized`,
-`claim-submitted`, `claimed`, `expired` and `refunded` views. It never marks a
-Gift claimed merely because it submitted a claim or sent a chat acknowledgement.
+Secrets are not duplicated into the general OpenFox journal. Sender refund
+secrets remain in sender custody; recipient ticket and claim secrets remain in
+recipient custody. The orchestration record stores opaque handles and digests.
 
-## 8. Messenger profile
+## 10. Messenger privacy profile
 
-Messenger carries an encrypted authenticated payload conceptually shaped as:
+### 10.1 Inner payload, not Relay-visible classification
+
+Gift messages are typed **inside E2EE application data**. The outer
+Relay-visible envelope MUST use the same generic private-application class as
+ordinary encrypted application control traffic. A distinct outer
+`agent.gift.offer` kind would let every Relay build a Gift-activity graph even
+without plaintext access and therefore does not satisfy this profile.
+
+Conceptual inner payloads are:
+
+```text
+agent.gift.ticket-request.v1
+agent.gift.ticket-response.v1
+agent.gift.offer.v1
+agent.gift.refresh-hint.v1
+```
+
+The offer contains only bounded data needed by the recipient:
 
 ```text
 agent.gift.offer.v1 {
   gift_id
   network
   vault_address
-  sender_agent_id
-  recipient_agent_id
-  asset_display
-  amount_display
-  expires_at
+  private_gift_terms
+  private_terms_blinding
   optional_display_message
+  padding
 }
 ```
 
 The receiver independently:
 
-1. binds the Event sender and recipient to the payload AgentIDs;
-2. derives or verifies the expected Gift vault address and pinned code;
-3. reads finalized vault state;
-4. checks the exact canonical asset, amount, claim key and expiry; and
-5. displays `claimable` only when the vault is finalized as funded.
+1. verifies the authenticated Event sender and local recipient against the
+   private AgentIDs;
+2. verifies that the private terms match its reserved signed ticket;
+3. recomputes the private-terms commitment, GiftID and vault address;
+4. reads finalized vault state and pinned code;
+5. checks exact asset, amount, claim commitment, refund commitment and expiry;
+   and
+6. displays `claimable` only when the vault is finalized as funded.
 
-`asset_display`, `amount_display` and status messages are hints. Divergence
-from canonical chain terms is a security error, not a UI warning.
+The UI derives asset, amount and status from verified canonical state. A display
+hint that diverges from canonical terms is a security error, not a warning.
 
-Optional `agent.gift.status.v1` Events may prompt refresh after claim or refund,
-but carry no economic authority. Delivery acknowledgement, ReadAck and TOS
-commercial Receipt are not Gift settlement evidence.
+### 10.2 Padding and notifications
 
-The offer may travel over an existing direct conversation or private room, but
-V1 always names exactly one recipient AgentID. Room membership never expands
-claim eligibility.
+Gift ticket and offer payloads use a frozen small set of ciphertext padding
+buckets. Exact bucket sizes are a G0 decision and must be tested across direct,
+Mailbox and multi-Relay paths. Implementations must not pad with unbounded
+model-controlled content.
 
-## 9. OpenFox behavior
+Mobile push or wakeup services receive a generic content-free notification. No
+push payload may contain Gift type, AgentID, alias, asset, amount, vault address
+or status.
 
-OpenFox exposes narrow owner/runtime actions rather than a generic wallet tool:
+Padding reduces trivial classification; it does not claim resistance to a
+global traffic-analysis adversary.
+
+### 10.3 Status behavior
+
+The normal status path is exact finalized-state polling by a party already
+holding the Gift reference. An optional encrypted refresh hint may prompt a
+poll, but contains no terminal authority. Repeated public or Relay-visible
+status broadcasts are prohibited.
+
+DeliveryAck, ReadAck, ApplicationAck and TOS commercial Receipt are not Gift
+settlement evidence. A recipient may claim silently without sending a chat
+acknowledgement.
+
+### 10.4 Direct and room carriage
+
+The private Gift may travel over an authenticated direct conversation. A
+private room may carry the encrypted offer only when it still names exactly one
+recipient AgentID and only that recipient has the ticket secret. Room
+membership never expands eligibility.
+
+A room message visible to several members leaks the social act to those
+members, even though the chain remains relationship-minimized. The UI must make
+that audience explicit; private direct delivery is the default.
+
+## 11. OpenFox behavior and model boundary
+
+OpenFox exposes narrow typed actions, not a generic wallet tool:
 
 ```text
 PrepareGift(recipientInput, asset, amount, expiry, display)
-AuthorizeGift(giftID, ownerDecision)
+RequestGiftTicket(giftIntentID)
+AuthorizeGift(privateTermsDigest, ownerDecision)
 FundGift(giftID)
 AnnounceGift(giftID, conversationIntent)
 ClaimGift(giftID, destinationPolicy)
 RefreshGift(giftID)
 RefundExpiredGift(giftID)
+DiscloseGiftAudit(giftID, disclosurePolicy)
 ```
 
 Production code resolves recipient and chain authority through typed services.
-The model cannot submit vault address, claim key, wallet address, contract code,
-finality proof, transaction body or signature. A destination wallet used for a
-claim comes from recipient custody policy and is covered by the exact claim
-signature.
+The model cannot submit profile key, ticket, vault address, claim/refund
+commitment, destination wallet, contract code, finality proof, transaction body,
+secret or signature.
+
+A privacy-sensitive deployment SHOULD parse structured Gift commands locally or
+through an owner UI rather than sending raw recipient, amount and greeting to an
+external model provider. If model-assisted intent parsing is enabled, the
+operator must be told that the model provider learns the submitted text. Claim
+and refund secrets, tickets, custody destinations and audit bundles are never
+model inputs under any mode.
+
+Owner confirmation must independently render:
+
+- canonical recipient AgentID and optional resolved alias;
+- exact network and stablecoin identity;
+- exact atomic and human-formatted amount;
+- expiry;
+- rolling-budget and count effect;
+- the relationship-private privacy guarantee; and
+- the remaining public leakages of transparent funding, amount, timing and
+  terminal wallet use.
 
 Funding and announcement are separate resumable operations. If funding
-finalizes but Messenger is unavailable, OpenFox keeps retrying the same
-announcement; it does not fund another Gift. If announcement arrives before a
-receiver observes finality, the UI shows verification pending rather than
-claimable.
+finalizes while Messenger is unavailable, OpenFox retries the same padded offer
+and never funds another Gift. If the offer arrives before the receiver observes
+finality, the UI shows `verification pending` rather than `claimable`.
 
 Policy must bound at least:
 
 - network and stablecoin contract;
-- per-Gift and rolling total amount;
-- recipient AgentID or an explicit recipient class;
+- per-Gift and rolling cumulative amount;
+- canonical recipient AgentID or owner-approved allowlist digest;
 - number of funded Gifts per period;
 - minimum/maximum claim window;
-- maximum concurrent nonterminal Gifts; and
-- whether autonomous proposal is allowed. Funding still requires the stated
-  mandate and is never implied by conversational consent.
+- maximum concurrent nonterminal Gifts;
+- whether ticket requests from first contacts are allowed;
+- whether model-assisted intent parsing is allowed; and
+- whether autonomous proposal is allowed.
 
-## 10. Repository ownership
+Funding still requires the exact owner mandate and is never implied by
+conversational consent or by the recipient issuing a ticket.
+
+## 12. Local storage, logs and telemetry
+
+Gift state contains a sensitive social and financial relationship even when the
+chain does not. Therefore:
+
+- private Gift terms and alias display metadata are stored only in owner-private
+  state with mode/ACL equivalent to the existing custody boundary;
+- claim and refund secrets remain in their dedicated custody processes;
+- crash journals use GiftID, ticket digest and opaque custody handles rather
+  than copying secrets;
+- ordinary logs omit AgentIDs, alias, amount, Gift ID and vault address by
+  default;
+- metrics use aggregate counters and per-install salted labels, never public
+  AgentID labels;
+- error reports expose typed failure classes without dumping canonical bodies;
+- analytics export is opt-in and must state every disclosed field and retention
+  period;
+- backups containing private terms or tickets are encrypted under owner-held
+  recovery material; and
+- deleting UI history does not falsely claim deletion of public chain facts.
+
+A production privacy test must inspect logs, traces, crash dumps, metrics,
+support bundles and model-provider requests, not only network packets.
+
+## 13. Resolution, indexing and audit
+
+A conforming resolver supports exact lookups by GiftID, vault address and final
+chain reference. It verifies code, public terms, stablecoin wallet and terminal
+state.
+
+The protocol does not define:
+
+- list Gifts by sender AgentID;
+- list Gifts by recipient AgentID;
+- resolve `.tos` to Gift history;
+- public Gift feed, leaderboard or social graph; or
+- Gateway-owned status as economic truth.
+
+An operator may maintain private owner views after local authorization. A public
+indexer may enumerate vault contracts from the transparent chain, but MUST NOT
+label participant identities as protocol facts unless supplied with and
+verifying a selective-disclosure bundle.
+
+## 14. Repository ownership
 
 | Repository | Responsibilities |
 |---|---|
-| `tos-service-spec` | This profile, state machines, authority boundaries, vectors and acceptance evidence |
-| `tos` | Gift-vault TVM contract, deterministic address/state rules, stablecoin callbacks and finalized state exposure |
-| `tosctl` | Hardened wallet/claim custody, exact transaction preparation, signing and broadcast |
-| `tos-service-protocol` | Canonical Gift/profile types, digests, resolvers, strict clients and adversarial vectors |
-| `tos-messenger` | Authenticated encrypted Gift offer/status payload carriage and Event identity binding only |
-| `OpenFox` | User/model intent, owner-policy orchestration, durable non-authoritative projection and presentation |
+| `tos-service-spec` | This profile, privacy classes, state machines, authority boundaries, vectors and acceptance evidence |
+| `tos` | Claimable-Gift vault TVM contract, deterministic address/state rules, commitment checks, stablecoin callbacks and finalized state exposure |
+| `tosctl` | Hardened funding/refund/claim custody, one-time secret generation, exact transaction preparation, signing and broadcast |
+| `tos-service-protocol` | Canonical public/private Gift types, receiver profile and ticket verification, digests, exact resolvers, selective-disclosure verifier and adversarial vectors |
+| `tos-messenger` | Generic outer private-application carriage, encrypted Gift inner payloads, padding, Event identity binding and no Relay-visible Gift classification |
+| `OpenFox` | Human/model intent, owner-policy orchestration, durable non-authoritative projection, privacy-safe presentation and local disclosure decisions |
 
-`tos-service-gateway` is not required for direct gifts. If it later indexes Gift
-activity, results are discovery hints only. `tos-ai` is not required because a
-Gift has no software execution or commercial Receipt.
+`tos-service-gateway` is not required for direct Gifts. If it later indexes
+Gift vaults, the result is an exact-address projection and not a participant
+identity index. `tos-ai` is not required because a Gift has no software
+execution or commercial Receipt.
 
-## 11. Threat model and required refusal cases
+## 15. Threat model and required refusal cases
 
 Implementations must test at least:
 
-- `.tos` reassignment after preparation does not change the recipient AgentID;
-- wrong network, Agent, profile generation, claim key, asset, amount, expiry,
-  vault code or deterministic address fails before funding or display;
-- model-selected Endpoint, Session, vault, claim key, wallet or transaction
-  fields are unrepresentable or rejected;
-- exact funding retry cannot create a second vault or transfer;
-- duplicate/multi-Relay offer delivery cannot create a second claim;
-- claim-key substitution and claim to an unsigned wallet fail;
+### 15.1 Identity and privacy
+
+- `.tos` reassignment after preparation does not change recipient AgentID;
+- serialized public vault state contains no sender/recipient AgentID, alias,
+  profile key, ticket signature, display text, conversation or device ID;
+- two tickets for the same recipient produce unlinkable ticket IDs, claim
+  commitments and Gift IDs;
+- scraping the public receiver profile does not reveal a future on-chain claim
+  commitment;
+- wrong network, Agent, profile generation, ticket signer, ticket body, asset,
+  amount, expiry, vault code or address fails before funding or display;
+- no public resolver can derive participant AgentIDs without a selectively
+  disclosed private bundle;
+- Relay-visible outer metadata does not uniquely identify Gift traffic within
+  the frozen padding class; and
+- logs, metrics, crash reports and model-provider requests contain no forbidden
+  custody or identity data.
+
+### 15.2 Authorization and substitution
+
+- model-selected Endpoint, Session, vault, ticket, commitment, wallet,
+  transaction or secret fields are unrepresentable or rejected;
+- changed terms under one ticket fail closed;
+- a reserved ticket cannot be issued twice or released after ambiguous funding;
+- a malicious sender cannot derive the claim secret or destination;
+- claim to an uncommitted destination fails;
+- claim-key/ticket substitution fails;
+- owner approval of one private-terms digest cannot authorize another; and
+- compromised Gateway, Relay, push provider or model output cannot authorize
+  spending.
+
+### 15.3 Replay and terminal state
+
+- exact funding retry cannot create a second vault or stablecoin transfer;
+- duplicate or multi-Relay offer delivery cannot create a second claim;
+- a copied mempool claim/refund cannot redirect payment;
 - claim after expiry and refund before expiry fail;
 - concurrent claim/refund produces exactly one terminal path;
-- bounced or ambiguous stablecoin callbacks remain recoverable and cannot
-  issue a second economic transfer;
-- local journal corruption, rollback and cross-network replay fail closed;
-- Messenger delivery/read acknowledgements cannot mark funds claimed; and
-- compromised Gateway, Relay or model output cannot authorize spending.
+- bounced or ambiguous stablecoin callbacks remain recoverable and cannot issue
+  a second economic transfer;
+- local journal corruption, rollback and cross-network replay fail closed; and
+- Messenger delivery/read/application acknowledgements cannot mark funds
+  claimed.
 
-Amounts are represented only in indivisible integer units under the exact
-asset contract. Floating-point values are prohibited. Every wire object is
-strictly bounded, versioned, domain-separated and rejects unknown fields where
-forward-compatibility rules do not explicitly permit them.
+Amounts are represented only in indivisible integer units under the exact asset
+contract. Floating point is prohibited. Every wire object is strictly bounded,
+versioned, domain-separated and rejects unknown fields unless an explicit
+forward-compatibility rule permits them.
 
-## 12. Privacy and abuse
+## 16. Abuse and recipient safety
 
-V1 does not claim confidential amounts or anonymous participants. Public chain
-state may expose the vault, asset, amount, timing and committed identities or
-keys. Messenger encryption only protects the offer while transported.
+Receiving a ticket request or offer never causes automatic signing, transaction
+broadcast, model tool execution or public acknowledgement.
 
-Receiving an offer never causes automatic signing, transaction broadcast or
-model tool execution. Operators may block unsolicited Gift presentation,
-enforce known-contact/invite admission, rate-limit verification and hide spam
-without changing chain truth. A Gift is not proof of trust, reputation or
-permission to contact the recipient again.
+Operators may:
 
-Tax, sanctions, consumer-protection, money-transmission and reporting duties
-are deployment-specific legal requirements and are outside protocol
-correctness. Production enablement requires an operator review for its
-jurisdiction.
+- disable Gift support completely;
+- require known-contact or invite-only ticket requests;
+- rate-limit per sender, control domain and installation;
+- require owner review before issuing a ticket or claiming;
+- hide unsolicited Gift presentation without changing chain truth;
+- block future ticket requests independently of ordinary messaging policy; and
+- maintain bounded abuse evidence without publishing a recipient social graph.
 
-## 13. Group red packets — deferred profile
+A Gift is not proof of trust, reputation, identity verification, debt payment,
+permission to contact the recipient again or acceptance of any accompanying
+message.
 
-Group packets are not a trivial repetition of V1. A future profile must define:
+Tax, sanctions, consumer-protection, money-transmission and reporting duties are
+deployment-specific legal requirements outside protocol correctness.
+Production enablement requires operator review for its jurisdiction. Privacy
+features must not be presented as a way to evade lawful obligations.
 
-- the exact MLS room ID and immutable membership epoch eligible to claim;
-- privacy-preserving eligibility proofs and dedicated claim keys;
+## 17. Group red packets — deferred profile
+
+Group packets are not a trivial repetition of direct V1. A future profile must
+define:
+
+- exact MLS room ID and immutable membership epoch eligible to claim;
+- an eligibility commitment that does not publish the room member list;
+- privacy-preserving membership/eligibility proofs and one-time claim
+  commitments;
 - a hard participant/share bound and unambiguous remainder policy;
-- concurrent claim serialization and per-Agent replay protection;
+- concurrent claim serialization and per-Agent replay protection without a
+  public AgentID claim index;
 - join/remove behavior after the eligibility snapshot;
 - expiry and refund of unclaimed shares; and
 - verifiable allocation randomness.
 
 Relay arrival order, model output, local clocks and block timestamps MUST NOT be
-used as “random” allocation authority. An equal-share profile can be considered
-before a random-share profile. A random profile requires a separately reviewed
-commit/reveal, VRF or other manipulation-resistant construction and must state
-who can bias or abort it.
+used as random allocation authority. Equal-share may be considered before
+random-share. Random-share requires separately reviewed commit/reveal, VRF or
+another manipulation-resistant construction and must state who can bias,
+withhold or abort it.
 
-Until that profile exists, sending one direct Gift Event to a room does not
-create a group packet. It still names one canonical recipient AgentID.
+Until that profile exists, sending a direct Gift offer to a room still names
+one canonical recipient AgentID and does not create a group packet.
 
-## 14. Implementation sequence
+## 18. Implementation sequence
 
-### G0 — specification and vectors
+### G0 — privacy specification and vectors
 
-- freeze canonical terms, GiftID, profile digest and claim-signing preimages;
+- freeze receiver profile, ticket request/response, public/private terms,
+  GiftID, vault address, claim/refund commitment and selective-disclosure
+  preimages;
+- freeze the relationship-private visibility rules and forbidden public fields;
+- freeze generic outer Messenger carriage and ciphertext padding buckets;
 - freeze the stablecoin/vault state machine and callback recovery;
-- publish positive and adversarial vectors; and
-- obtain contract, custody and cross-repository security review.
+- publish positive, mutation, privacy-leak and crash/replay vectors; and
+- obtain contract, custody, Messenger-metadata and cross-repository security
+  review.
 
-### G1 — contract and read-only verification
+### G1 — contract and read-only privacy verification
 
-- implement the Gift vault and emulator tests in `tos`;
-- add finalized profile/vault/wallet resolvers in `tos-service-protocol`;
+- implement the claimable-Gift vault and emulator tests in `tos`;
+- add finalized profile, exact-vault and wallet resolvers plus audit-bundle
+  verification in `tos-service-protocol`;
 - implement OpenFox observe-only display against injected finalized fixtures;
+- prove that public state serialization has no participant fields;
+- inspect logs, metrics, traces and model requests for forbidden data; and
 - do not enable funding.
 
 ### G2 — owner-authorized direct Gift
 
-- add hardened sender and claimant custody commands;
+- add hardened receiver-ticket, claim, sender-funding and refund custody
+  commands;
 - add OpenFox durable orchestration and exact policy/mandate enforcement;
-- add Messenger offer/status payloads;
-- prove funding, delayed delivery, claim, expiry, refund and full-process
-  restart on a local validator network.
+- add generic encrypted Messenger ticket/offer payload carriage and padding;
+- prove funding, delayed/offline delivery, claim, expiry, refund and full-process
+  restart on a local validator network;
+- prove two Gifts to one recipient are not directly linkable through protocol
+  participant fields; and
+- prove copied claims cannot redirect funds.
 
-### G3 — independent acceptance
+### G3 — independent acceptance and privacy review
 
-- separate sender, recipient, resolver and validator operators;
+- separate sender, recipient, resolver, Relay and validator operators;
 - one fresh funded Gift claimed successfully;
 - one fresh funded Gift expires and refunds successfully;
 - ambiguous broadcast/callback and Messenger outage recovery;
-- independently reconstructed canonical terms and terminal wallet transfers;
-  and
-- exact configs, binaries, code hashes, checkpoints and repository commits in
-  a signed evidence bundle.
+- independent reconstruction of public terms and terminal wallet transfers;
+- optional selective disclosure proving the private Agent binding;
+- chain-observer, Relay-metadata, log/telemetry and external-model privacy
+  review; and
+- exact configs, binaries, code hashes, checkpoints and repository commits in a
+  signed evidence bundle.
 
-Group/equal-share and group/random-share work begins only after G3 and uses a
-new versioned specification.
+Group/equal-share, group/random-share, confidential-amount and sponsored-funding
+work begins only after G3 and uses new versioned profiles.
 
-## 15. Acceptance criterion
+## 19. Acceptance criterion
 
 V1 is complete only when an operator can say:
 
 ```text
-“Send 10 units to alice.tos as a gift, claimable for 24 hours.”
+“Send 10 units to alice.tos as a private Gift, claimable for 24 hours.”
 ```
 
 and the implementation:
 
 1. resolves `alice.tos` once to a canonical AgentID;
-2. verifies that Agent's finalized Gift receiver profile;
-3. obtains exact owner authorization and external custody signature;
-4. funds exactly one deterministic Gift vault;
-5. announces only the verified Gift reference through Messenger;
-6. lets only the pinned recipient claim before expiry;
-7. otherwise lets only the sender refund after expiry; and
-8. reports success only from finalized vault and wallet state.
+2. obtains a one-time E2EE claim ticket from that Agent's finalized receiver
+   profile and claimant custody;
+3. obtains exact owner authorization over the private-terms digest;
+4. funds exactly one deterministic vault whose public state contains neither
+   participant AgentID nor a reusable recipient key;
+5. announces only the encrypted verified Gift reference through generic private
+   Messenger carriage;
+6. lets only the holder of the one-time claim secret pay the committed
+   destination before expiry;
+7. otherwise lets only the holder of the one-time refund secret recover to the
+   committed destination after expiry;
+8. reports success only from finalized vault and wallet state;
+9. exposes amount/timing/funding-wallet transparency honestly rather than
+   calling it confidential; and
+10. can selectively prove the private sender/recipient binding to an authorized
+    auditor without creating a public Agent-to-Gift index.
 
 Ordinary OpenFox messaging remains usable with Gift support disabled and with
-no wallet configured.
+no wallet or Gift custody process configured.
