@@ -1,7 +1,8 @@
 # OpenFox Direct Signed Agent Gifts V1
 
-**Status:** V1 product flow frozen; canonical encodings, implementation, and
-acceptance evidence pending
+**Status:** V1 product flow and canonical encodings frozen; G0-G2 local
+implementation and compositional acceptance complete; independent G3
+deployment acceptance pending
 
 **Privacy class:** E2EE-private before broadcast; transparent after broadcast
 
@@ -14,6 +15,7 @@ acceptance evidence pending
 - [`AGENT_NATIVE_MESSENGER_V1.md`](AGENT_NATIVE_MESSENGER_V1.md)
 - [`DNS_ALIAS_V1.md`](DNS_ALIAS_V1.md)
 - [`AUTH.md`](AUTH.md)
+- [`OPENFOX_AGENT_GIFTS_V1_FIRST_PRINCIPLES.md`](OPENFOX_AGENT_GIFTS_V1_FIRST_PRINCIPLES.md)
 
 ## 1. Product decision
 
@@ -25,8 +27,9 @@ V1 uses the smallest useful protocol:
 
 1. sender Agent A asks recipient Agent B for a native TOS address;
 2. B returns one address inside their authenticated E2EE conversation;
-3. A obtains owner authorization and signs one exact, time-limited standard
-   wallet external-message BOC transferring native TOS to that address;
+3. A obtains owner authorization and its deployed Agent Account signs one
+   exact, time-limited generic native-send external-message BOC transferring
+   native TOS to that address;
 4. A sends the exact signed BOC to B through E2EE Messenger;
 5. B verifies and submits those unchanged bytes to a TOS node; and
 6. only finalized destination credit establishes payment.
@@ -56,24 +59,24 @@ semantics.
 
 Before submitting a conforming BOC, B can verify that it:
 
-- was signed by A's pinned Gift wallet;
-- is valid only for the intended TOS network and wallet identity;
-- uses one exact wallet sequence number;
+- was signed by A's pinned Agent Account controller;
+- is valid only for the intended TOS network and Agent Account identity;
+- uses one exact Agent Account sequence number;
 - expires at one exact signed `valid_until` time;
 - contains exactly one permitted native TOS send action;
 - sends exactly `amount_atomic` to B's previously returned address;
-- pays wallet execution and forwarding fees separately from the Gift amount;
+- pays Agent Account execution and forwarding fees separately from the Gift amount;
 - contains no second action, plugin mutation, StateInit, memo, comment, Gift
   marker, AgentID, alias, room ID, or arbitrary payload; and
-- can execute at most once under the approved wallet sequence rules.
+- can be accepted at most once under the Agent Account sequence rules.
 
 ### 2.2 What is not guaranteed before finalization
 
 Funds are not locked when A sends the BOC to B. Before successful execution:
 
 - A may no longer have enough native TOS for the amount plus fees;
-- the signed wallet sequence may be consumed by a cancellation or another
-  wallet action;
+- the signed Agent Account sequence may be consumed by a cancellation or
+  another account action;
 - the BOC may expire before inclusion;
 - node submission may fail or remain ambiguous; and
 - a transaction observed before finality may still disappear.
@@ -87,15 +90,27 @@ Only `finalized-paid` means that B received value. Other allowed states are:
 address-requested
 address-received
 owner-authorization-required
+owner-authorized
 boc-signed
 offer-delivered
 currently-executable
+currently-unexecutable
 broadcast-submitted
 expired-unpaid
 invalidated-unpaid
 insufficient-funds
 finality-unknown
 ```
+
+This is the user-visible status vocabulary after a Gift has been offered.
+Section 9 additionally names private orchestration and recipient-observation
+states that are never presented as payment claims.
+
+`finalized-paid`, `expired-unpaid`, and `invalidated-unpaid` are terminal.
+Every other state is non-terminal. In particular, `insufficient-funds` and
+`currently-unexecutable` may return to executable after a top-up or reversible
+policy change; custody retains the original sequence claim. Controller rotation
+is different: it consumes a sequence and becomes finalized invalidation.
 
 ## 3. Identity and address authority
 
@@ -152,6 +167,7 @@ GiftAddressRequestV1 {
   gift_intent_id
   sender_agent_id
   recipient_agent_id
+  sender_agent_account
   asset_kind = native_tos
   amount_atomic
   requested_valid_until
@@ -197,11 +213,12 @@ delegation.
 
 The full request digest prevents moving an address between intents. Exact
 duplicate responses are idempotent. Reusing one intent ID with another network,
-participant, amount, address, or expiry is a conflict.
+participant, sender Agent Account, amount, address, or expiry is a conflict.
 
 B may return a fresh address to reduce simple linkage, but V1 neither requires
 one nor claims anonymity. A must authorize and sign before
 `response_not_after`, which cannot be later than `requested_valid_until`.
+The signed BOC's `valid_until` MUST NOT be later than either bound.
 
 ## 5. Sender authorization and custody
 
@@ -209,7 +226,7 @@ Gift sending is disabled by default. Before signing, A's owner policy or
 explicit confirmation binds:
 
 - network and canonical recipient AgentID;
-- sender Gift wallet;
+- sender Agent Account and its owner wallet;
 - exact or maximum native TOS amount;
 - B's exact returned destination;
 - validity-window bounds;
@@ -219,40 +236,86 @@ explicit confirmation binds:
 - whether model-assisted intent parsing is allowed.
 
 The confirmation independently renders recipient, network, amount, exact
-destination, sender wallet, current sequence, `valid_until`, fee reserve,
+destination, sender Agent Account, owner wallet, controller key ID, current
+sequence, `valid_until`, fee reserve,
 request/response digests, the fact that funds are not locked, and the ways the
 BOC may expire or become invalid.
 
-OpenFox and the model never receive a wallet private key or unsigned wallet
-request. `tosctl` or an equivalently hardened custody process reads finalized
-wallet state, builds the exact action, signs it, durably persists the exact BOC,
-and returns only bounded status to OpenFox.
+OpenFox and the model never receive an owner or controller private key or an
+unsigned account request. `tosctl` custody is the sole local authority for the
+Agent Account address and controller. It reads finalized account state, claims
+the sequence in the journal shared by every controller action, builds the exact
+action, signs it, durably persists the exact BOC, and returns only bounded
+status to OpenFox. Raw-hash and unjournaled controller signing are unavailable.
 
 ## 6. Signed Gift BOC profile
 
-### 6.1 Approved sender wallet
+### 6.1 Approved sender Agent Account
 
-V1 uses one pinned standard sender-wallet code hash and one canonical
-signed-external-message profile. The first implementation candidate is TOS
-Wallet V5.
+V1 uses the one pinned TOS Agent Account code hash and its canonical generic
+`agent_native_send` signed-external-message profile. The pre-release Agent
+Account interface is replaced in place; there is no Wallet V5R1 Gift sender,
+legacy Agent Account parser, dual-version deployment, or migration mode.
 
-G0 freezes the exact wallet code hash, network/global-ID and wallet-ID encoding,
+G0 freezes the exact Agent Account code hash, minimum TVM/global version 4,
+TVM `GLOBALID` check,
 external-message constructor, BOC serialization, signed validity and sequence,
-action encoding, signature preimage, and positive/negative vectors. Multiple
-wallet versions cannot share the same V1 profile identifier.
+generic operation encoding, account-address-bound signature preimage, fixed
+send mode and positive/negative vectors. `agent_task_send` also gains the
+global-ID field but is never accepted as a Gift action.
 
-The wallet must already be active in finalized state. V1 does not combine
-wallet deployment and Gift execution.
+The Agent Account must already be active in finalized state and must match the
+owner-private `tosctl agent wallet` profile's owner, controller, policy, and
+address. V1 does not combine account creation, deployment, migration, funding,
+or recovery with Gift execution. The underlying Wallet V5R1 remains the account's
+owner/recovery wallet and is not a separate Gift balance.
 
-### 6.2 Dedicated Gift wallet
+The frozen implementation constants are:
 
-A conforming deployment uses a dedicated Gift wallet or bounded pool. Each
-wallet has at most one active signed Gift. While active, the deployment prevents
-unrelated payments and plugin or extension mutation from that wallet.
+```text
+Agent Account code hash:
+  tvm-cell-sha256:299c060b66635574c8bd482639bff02012b2e2de52cf58cedf0ef82d3fcf2229
+minimum TVM/global version: 4
+agent_task_send opcode:    0x41475003
+agent_native_send opcode:  0x41475004
+agent_cancel_seqno opcode: 0x41475005
+controller-signature domain SHA-256:
+  ede715a9852fbba2c3c234ed0d27329ae34d6263a82cfb6215da87c91683b471
+```
 
-Before signing, custody resolves the exact finalized wallet identity, code hash,
-sequence, native TOS balance, Gift amount, maximum fee reserve, and absence of
-another active Gift.
+The final account data includes an immutable, nonzero random
+`deployment_id:uint256`, generated by `tosctl` at account creation. Finalized
+readers bind every prepared Gift to that exact value. Destruction and
+redeployment therefore creates a different account generation and cannot make
+an old signed BOC current again, even if owner, controller, and policy repeat.
+
+The controller signature preimage binds that domain hash, signed global ID,
+Agent Account workchain and 256-bit address, and exact payload cell hash. The
+external payload is rejected unless its global ID equals TVM `GLOBALID`.
+Every controller action must also satisfy
+`now < valid_until <= now + default_task_timeout`; the stored timeout is an
+on-chain upper bound, not merely a custody default. An owner controller-key
+rotation increments `seqno`, permanently invalidating every outstanding
+controller signature even if an old key is later restored.
+
+The native `max_per_tx` and `daily_limit` meter native TOS message value only.
+The generic `agent_task_send` body can invoke other contracts and does not
+measure tokenized or contract-internal assets. Operators must therefore keep
+such assets out of this account unless the invoked contract independently
+enforces policy. Gift V1 never emits `agent_task_send` and supports native TOS
+only.
+
+### 6.2 One active Agent Account action
+
+One Agent Account is the Agent's sole automatic-spending account. Custody uses
+one process-independent sequence journal shared by Gift and non-Gift controller
+actions. It permits at most one active primary signed action for the current
+sequence, plus at most one separately owner-authorized cancellation racing that
+same action. While unresolved, unrelated controller spending is blocked.
+
+Before signing, custody resolves the exact finalized account identity, pinned
+code hash, deployment ID, owner, controller, policy, sequence, native TOS balance, Gift amount,
+maximum fee reserve, and absence of another primary action.
 
 Exact retry returns the same durable BOC. A changed request, response, address,
 amount, sequence, validity time, action, or BOC is a conflict.
@@ -266,21 +329,34 @@ binds:
 destination_address
 amount_atomic
 message_value = amount_atomic
-fixed_send_mode
+fixed_send_mode = 3 (pay fees separately, ignore action error)
 fixed_bounce_policy
-body_absent
+body_absent = inline-empty body branch
 state_init_absent
 ```
 
-The frozen mode pays wallet execution and forwarding fees separately from Gift
-principal. Emulator vectors define and prove the exact finalized
+The fixed bounce policy is non-bouncing. Owner confirmation must treat the
+exact destination as irreversible: an uninitialized or failing recipient
+contract does not return principal to the Agent Account.
+
+The frozen mode pays account execution and forwarding fees separately from Gift
+principal. Its ignore-action-error bit ensures that an accepted but
+insufficient output consumes the sequence rather than allowing repeated
+recipient-triggered gas charges. Such a finalized execution without exact
+destination credit is `invalidated-unpaid`; the attempted amount is
+conservatively committed to the account's `spent_today` even though no output
+credit occurred. Emulator vectors define and prove the exact finalized
 destination-credit predicate.
 
-V1 rejects zero or excessive amounts, multiple or unknown actions, another
-destination or amount, caller-selected mode or bounce policy, fees deducted
-from principal, any body or payload, StateInit, deployment, plugin mutation,
-hidden references, trailing data, and any BOC whose complete semantics cannot
-be reconstructed.
+V1 rejects zero or excessive amounts, `agent_task_send`, multiple or unknown
+actions, another destination or amount, caller-selected mode or bounce policy,
+fees deducted from principal, any non-empty or referenced body, StateInit,
+deployment, hidden references, trailing data, and any BOC whose complete
+semantics cannot be reconstructed.
+
+An exact signed BOC is bounded to 56 KiB, reserving deterministic space for
+the canonical offer fields and up to 4 KiB of padding. Every complete Gift
+application object remains within Messenger's 64 KiB application-data bound.
 
 ### 6.4 Signed Gift identity
 
@@ -320,20 +396,23 @@ GiftSignedBOCOfferV1 {
 ```
 
 The display message has no payment authority. B derives the authoritative
-wallet, network, amount, destination, sequence, and validity from the BOC and
-its durable address-exchange record.
+Agent Account, network, amount, destination, sequence, and validity from the BOC
+and its durable address-exchange record.
 
 Before broadcast, B verifies:
 
 1. the E2EE participants are canonical A and B;
 2. request and response digests match B's durable record;
 3. BOC digest and `SignedGiftID` are canonical;
-4. the external message targets a sender wallet using the approved Gift-wallet
-   profile;
-5. wallet address, code hash, wallet ID, and network/global ID match;
-6. sequence equals the latest finalized sender-wallet sequence;
+4. the external message targets the exact sender Agent Account in the request
+   using the pinned code/profile;
+5. account address, code hash, owner, controller, and signed network/global ID
+   match finalized state and the connected chain's actual `GLOBALID`;
+6. sequence equals the latest finalized Agent Account sequence;
 7. `valid_until` is in bounds with sufficient inclusion margin;
-8. A's wallet signature over the exact request is valid;
+8. A's Agent Account controller signature is valid over the frozen domain tag,
+   signed network/global ID, exact account address, and exact canonical payload
+   hash; the global ID also remains inside that payload;
 9. there is exactly one permitted action and no hidden data;
 10. destination equals the address B returned for this intent;
 11. amount equals the request, response, and BOC;
@@ -345,7 +424,9 @@ A readiness observation is not a guarantee that state remains unchanged.
 
 B submits the exact original BOC to one or more TOS nodes. B never rebuilds,
 edits, or re-signs it. Repeated submission is permitted while finality is
-unresolved; wallet sequence rules allow at most one successful execution.
+unresolved; the first accepted execution consumes the account sequence even if
+its mode-3 output action fails, and later duplicates fail before charging
+accepted-message gas.
 Submission acknowledgement, mempool observation, or a transaction hash is not
 payment evidence.
 
@@ -355,7 +436,7 @@ payment evidence.
 
 ```text
 exact signed external BOC
-  -> successful execution by A's exact Gift wallet and sequence
+  -> accepted execution by A's exact Agent Account and sequence
   -> its one permitted internal message
   -> exact native TOS credit to B's returned destination
 ```
@@ -372,7 +453,12 @@ Expiry requires no refund because funds were never locked.
 A may cancel by broadcasting a separately owner-authorized action consuming the
 same sequence. Cancellation races with B's BOC: whichever valid request executes
 first wins. `invalidated-unpaid` is terminal only after finalized state proves a
-non-Gift sequence consumption and no matching destination credit.
+non-Gift sequence consumption or output-action failure and no matching
+destination credit. Controller rotation consumes a sequence and therefore
+permanently invalidates the Gift once finalized. Policy tightening without
+sequence consumption is reversible and only produces non-terminal
+`currently-unexecutable`; the original claim remains reserved because policy
+loosening may re-enable the BOC before expiry.
 
 ## 9. Crash safety and idempotency
 
@@ -380,8 +466,11 @@ Sender lifecycle:
 
 ```text
 draft -> recipient-resolved -> address-requested -> address-received
-      -> owner-authorized -> boc-signed -> offer-delivered
-      -> finalized-paid | expired-unpaid | invalidated-unpaid | finality-unknown
+      -> owner-authorization-required -> owner-authorized -> boc-signed
+      -> offer-delivered -> currently-executable | insufficient-funds
+                         | currently-unexecutable | broadcast-submitted
+                         | finality-unknown
+      -> finalized-paid | expired-unpaid | invalidated-unpaid
 ```
 
 Recipient lifecycle:
@@ -389,8 +478,10 @@ Recipient lifecycle:
 ```text
 address-request-observed -> address-response-sent -> signed-offer-observed
                          -> verified -> broadcast-submitted
+                         -> currently-executable | insufficient-funds
+                          | currently-unexecutable | finality-unknown
                          -> finalized-paid | expired-unpaid
-                          | invalidated-unpaid | finality-unknown
+                          | invalidated-unpaid
 ```
 
 Each transition is fsynced before the next external side effect. Restart uses
@@ -407,10 +498,13 @@ frozen padding buckets. Push notifications are content-free.
 The chain receives no Gift contract, registry, opcode, memo, greeting, AgentID,
 alias, conversation ID, EndpointID, DeviceID, or room ID.
 
-After execution, observers may see A's Gift wallet, B's destination, exact
+After execution, observers may see A's Agent Account, B's destination, exact
 amount, timing, sequence, validity window, funding history, reuse, and later
-consolidation. Fresh wallets reduce simple linkage but do not provide anonymity.
-V1 claims neither amount confidentiality nor transaction anonymity.
+consolidation. Because the same account performs Agent tasks and Gifts, every
+Gift is linkable to A's operating history; B learns that primary account,
+balance, and policy before submission. V1 deliberately chooses coherent custody
+over unlinkability and claims neither relationship privacy, amount
+confidentiality, nor transaction anonymity.
 
 ## 11. OpenFox and model boundary
 
@@ -454,13 +548,14 @@ SignedGiftAuditBundleV1 {
   canonical address request and response
   exact signed BOC
   SignedGiftID
-  finalized sender-wallet execution reference
+  finalized sender-Agent-Account execution reference
   finalized destination-credit reference
   optional owner authorization record
 }
 ```
 
-It proves conversation provenance, B's returned address, A's wallet signature,
+It proves conversation provenance, B's returned address, A's Agent Account
+controller signature,
 transfer semantics, and outcome. It does not prove B owns the destination key
 unless B separately discloses such proof. Selective disclosure irreversibly
 reveals relationship information and requires explicit owner action.
@@ -477,15 +572,21 @@ Implementations test at least:
   address input fails;
 - request/response intent, participant, network, amount, digest, or destination
   substitution fails;
-- wrong network, wallet identity, code, sequence, validity, or signature fails;
+- wrong network, Agent Account identity, code, owner, controller, sequence,
+  validity, or signature fails;
 - multiple actions, hidden data, plugin mutation, deployment, StateInit,
   unknown action, memo, comment, tag, or payload fail;
 - wrong amount, destination, mode, bounce policy, or fee behavior fails;
 - insufficient balance plus fee reserve is not executable;
+- mode-3 output failure consumes sequence, emits no credit, and conservatively
+  counts the attempted amount against the on-chain daily limit;
+- account destruction/redeployment or any seqno reset cannot revive an old BOC;
 - duplicate delivery and node submission create at most one payment;
 - changed bytes under one `SignedGiftID` fail;
 - local time alone cannot produce `expired-unpaid`;
 - cancellation races remain nonterminal until finalized resolution;
+- controller rotation consumes sequence and permanently invalidates outstanding
+  BOCs; policy tightening without sequence consumption remains nonterminal;
 - ambiguous submission resolves finalized state before replacement or terminal
   reporting;
 - crash recovery returns the same BOC and does not sign twice;
@@ -494,16 +595,35 @@ Implementations test at least:
 - diagnostics exclude prohibited data.
 
 Every object is bounded, versioned, canonically encoded, domain-separated where
-hashed, and rejects unknown fields unless a frozen compatibility rule permits
-them.
+hashed, and rejects unknown fields and trailing data.
+
+The canonical schema and digest-domain strings are frozen as:
+
+```text
+tos.agent-gift.address-request.v1
+tos.agent-gift.address-response.v1
+tos.agent-gift.signed-boc-offer.v1
+tos.agent-gift.owner-authorization.v1
+tos.agent-gift.owner-cancellation.v1
+tos.agent-gift.unsigned-transfer.v1
+tos.agent-gift.exact-signed-boc.v1
+tos.agent-gift.signed-gift.v1
+```
+
+OpenFox exposes separate owner-private Unix sockets to the model and runtime.
+The model principal can only start a Gift with recipient, amount, expiry and
+greeting, then read a redacted lifecycle view. Canonical address-exchange
+bytes, exact BOCs, Agent IDs, addresses, digests, custody actions, broadcast,
+cancellation and finality refresh are runtime-only operations; the local API
+never returns those private authority values to the model principal.
 
 ## 14. Repository ownership
 
 | Repository | Responsibilities |
 |---|---|
 | `tos-service-spec` | This profile, canonical objects, BOC profile, vectors, negative corpus, and acceptance evidence |
-| `tos` | Standard-wallet and native TOS semantics; no Gift contract is added |
-| `tosctl` | Gift-wallet custody, exact BOC construction/signing, verification, and raw-byte broadcast |
+| `tos` | The single Agent Account contract and native TOS semantics; no Gift contract is added |
+| `tosctl` | Agent Account custody/journal, exact BOC construction/signing, verification, and raw-byte broadcast |
 | `tos-service-protocol` | Canonical Gift types, wallet/BOC parser, finalized resolver, and adversarial vectors |
 | `tos-messenger` | Authenticated E2EE address request/response and signed-offer carriage |
 | `OpenFox` | Intent, owner-policy orchestration, durable state, and honest presentation |
@@ -516,7 +636,8 @@ non-authoritative and must not expose a standard Agent Gift graph.
 ### G0 — freeze profiles and vectors
 
 - freeze request, response, offer, IDs, digests, and encodings;
-- pin one wallet code/profile and exact signed-message/action encoding;
+- pin the one Agent Account code/profile, minimum TVM/global version 4, and exact
+  signed-message/action encoding;
 - freeze mode, bounce policy, fee reserve, and destination-credit predicate;
 - publish positive and negative vectors;
 - prove builder/parser equivalence in two implementations; and
@@ -525,7 +646,7 @@ non-authoritative and must not expose a standard Agent Gift graph.
 ### G1 — read-only verification
 
 - implement strict Gift and BOC parsing;
-- implement finalized wallet execution and destination-credit resolution;
+- implement finalized Agent Account execution and destination-credit resolution;
 - implement observe-only OpenFox rendering;
 - prove prohibited data does not reach model, diagnostics, Relay metadata, or
   push; and
@@ -533,7 +654,7 @@ non-authoritative and must not expose a standard Agent Gift graph.
 
 ### G2 — owner-authorized local Gifts
 
-- implement one-active-Gift custody;
+- implement one-active-primary-action custody shared by every Agent Account controller operation;
 - implement E2EE address exchange and signed-offer delivery;
 - implement owner authorization and rolling native TOS controls; and
 - prove signing, broadcast, finalization, expiry, cancellation, insufficient
@@ -550,6 +671,41 @@ non-authoritative and must not expose a standard Agent Gift graph.
 - publish signed configs, binaries, code hashes, vectors, checkpoints, and
   repository commits.
 
+### Local implementation evidence (2026-08-23)
+
+The completed local evidence establishes G0-G2 without treating fixtures as
+live-chain results:
+
+- Rust sandbox tests execute the pinned Agent Account code and cover native
+  payment, expiry, cancellation, controller rotation, policy and mode-3 output
+  failure. Rust fixtures and the independent Go parser agree on the exact BOC
+  profile and code hash.
+- An isolated local validator run uses a Wallet V5R1 owner and the deployed
+  Agent Account sender. It proves exact payment and destination credit,
+  duplicate submission at most once, cancellation winning the shared sequence,
+  finalized expiry without execution, generic task send, policy update,
+  controller rotation, owner recovery send, and validator restart/catch-up.
+- Protocol tests cover strict canonical request/response/offer decoding,
+  adversarial BOCs, finalized sender transaction linkage, the one exact output,
+  exact recipient credit, and bounded-history uncertainty.
+- Two independently established Messenger daemons carry all three exact Gift
+  application byte strings in both directions over authenticated direct E2EE;
+  first-contact, room, unauthenticated, rendered, and Gift-specific outer
+  metadata paths are refused.
+- OpenFox cross-repository tests consume the Rust BOC fixture and canonical Go
+  exchange objects, execute owner authorization, durable send/receive,
+  verification and broadcast seams, then recover both roles as
+  `finalized-paid`. Separate crash, ambiguous submission, cancellation and
+  exact-byte retry tests cover failure recovery.
+
+This is compositional executable acceptance, not G3. The remaining external
+condition is an independently operated environment with at least three pinned
+validator/read endpoints and two deployed Agent identities running the full
+A/B/Messenger/resolver process topology. The host also needs the system
+`libolm` development headers before the unrelated Matrix-enabled OpenFox root
+test set can build; Gift packages and the native implementation do not depend
+on that missing header.
+
 ## 16. Acceptance criterion
 
 V1 is complete only when an operator can say:
@@ -565,10 +721,10 @@ and the implementation:
 3. asks B for a native TOS address;
 4. receives one intent-bound authenticated address response;
 5. obtains A's exact owner authorization;
-6. signs one exact single-action time-limited wallet BOC;
+6. signs one exact single-action time-limited Agent Account BOC;
 7. delivers only that immutable BOC through E2EE Messenger;
 8. lets B independently verify and submit the exact bytes;
-9. transfers the exact amount if A's wallet state still permits execution;
+9. transfers the exact amount if A's Agent Account state still permits execution;
 10. creates no Gift contract or Gift-specific chain payload;
 11. reports payment only from finalized destination credit; and
 12. honestly reports expiry, invalidation, insufficient funds, or unknown
@@ -579,16 +735,16 @@ and the implementation:
 1. **V1 has no Receiver Profile, Gift delegation, receive ticket, or ticket-signing key.**
 2. **V1 supports native TOS only.**
 3. **B's destination comes only from an authenticated direct E2EE response for the exact Gift intent.**
-4. **A's owner policy and Gift wallet are the only spending authorities.**
+4. **A's owner policy and Agent Account controller are the only spending authorities.**
 5. **The exact signed BOC is payment authorization; chat text is not.**
 6. **The BOC contains one native TOS transfer and no hidden action or payload.**
 7. **B may submit but cannot redirect or modify payment.**
 8. **Funds are not locked before execution, and the UI states this plainly.**
 9. **Only finalized exact destination credit establishes payment.**
 10. **Local time, submission, transaction hash, or chat acknowledgement is not terminal evidence.**
-11. **One dedicated Gift wallet has at most one active signed Gift.**
+11. **The one Agent Account custody journal permits at most one active primary signed action per sequence, plus one separately owner-authorized cancellation.**
 12. **AgentIDs and aliases never enter the on-chain transfer payload.**
-13. **Wallet, destination, BOC, sequence, fees, signature, and finality never come from model output.**
+13. **Agent Account, destination, BOC, sequence, fees, signature, and finality never come from model output.**
 14. **Fees cannot reduce the signed Gift principal.**
 15. **Exact BOC retries are idempotent; changed bytes are a conflict.**
 16. **V1 does not claim guaranteed funding, destination-key ownership proof, anonymity, or amount confidentiality.**
