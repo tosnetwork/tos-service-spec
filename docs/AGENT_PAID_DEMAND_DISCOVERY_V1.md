@@ -3,6 +3,10 @@
 **Status:** incubation design; schema freeze, implementation, and external
 acceptance pending
 
+**Blocking status:** D3 Provider Offer acceptance and D4 automatic commercial
+action are blocked until the P0/P1 prerequisites in Sections 11.4 through 11.6
+are frozen, implemented, and covered by independent vectors.
+
 **Protocol:** `tos_service_v1`
 
 ## 1. Purpose
@@ -14,7 +18,7 @@ canonical market database.
 The product may render this system as a job board, opportunity feed, or work
 square. Those are user experiences, not protocol authority. The protocol
 boundary is a bounded signed paid-demand envelope distributed through
-replaceable carriers and indexes, followed by the existing finalized Accepted
+replaceable carriers and indexes, followed by an extended finalized Accepted
 Quote, escrow, execution, Receipt, and settlement lifecycle.
 
 The target interaction is:
@@ -52,7 +56,8 @@ V1 is deliberately narrow:
 - buyer-published fixed-price machine-checkable software work;
 - public discovery metadata with bulk input bytes withheld;
 - provider responses sent directly to the buyer;
-- one selected provider and one existing Accepted Quote/escrow lifecycle;
+- one selected provider and one extended Accepted Quote/escrow lifecycle that
+  binds typed accepted work terms;
 - exact TOS-network stablecoin identity for the service payment;
 - native TOS used separately for network fees; and
 - objective completion, release, or refund under existing software-work rules.
@@ -69,25 +74,33 @@ discovery, execution, and settlement foundations, but the paid-demand network
 defined here is not implemented end to end. In particular, the following are
 missing:
 
-1. Native protobuf messages for Paid Demand, revisions, Withdrawal, Provider
-   Offer, Selection Notice, and their query/result envelopes;
+1. Native protobuf messages for Paid Demand Mutation, Provider Offer,
+   Selection Notice, accepted work terms, and their query/result envelopes;
 2. frozen content-identity, canonical encoding, digest, signature, delegation,
-   expiry, and revision domains with cross-implementation vectors;
+   expiry, and Demand Mutation domains with cross-implementation vectors;
 3. a typed `paid-demand` public-channel event profile in `tos-messenger`;
 4. bounded Gateway publication, withdrawal, lookup, search, mutation-
    resolution, cursor, and provenance interfaces;
 5. an OpenFox multi-source synchronizer with durable per-source cursors,
    deduplication, equivocation detection, local matching, and economic policy;
-6. a signed Provider Offer transport and safe buyer-selection handoff;
+6. a signed single-acceptance Provider Offer transport, deterministic
+   Quote/escrow derivation, and safe buyer-selection handoff;
 7. opportunity-channel topic, profile, bootstrap, subscription, and
    republication rules;
 8. independent public-network evidence for Overlay, DHT, Storage, Gateway, and
    direct-offer paths;
 9. a measured anti-spam and false-buyer policy that bounds provider evaluation
-   cost without creating Gateway authority; and
+   cost without creating Gateway authority;
 10. a compact Paid Demand Reference, informally an **Opportunity Magnet**, that
     lets an Agent retrieve the exact signed envelope from multiple independent
-    carriers by content identity.
+    carriers by content identity;
+11. a typed accepted-work-terms preimage binding buyer Agent, Demand Mutation,
+    Provider Offer, input/source, task/evidence profiles, and delivery/refund
+    conditions into the finalized Quote and escrow;
+12. market-specific bounded delegation scopes with historical and current
+    authorization verification; and
+13. a private-input delivery profile that never lets remote task data select a
+    provider network target or credential.
 
 Existing group chat, public-channel primitives, Capability search, Quote,
 escrow, executor, Receipt, and settlement code must not be represented as
@@ -151,21 +164,28 @@ digests where required.
 A buyer-originated signed envelope advertising one bounded request for paid
 work. It is a pre-acceptance negotiation artifact, not a purchase.
 
-### Demand Revision
+### Demand Mutation
 
-One immutable version in a buyer-authored revision chain. A new revision does
-not mutate earlier bytes.
+One immutable element in a buyer-authored sequence covering both active
+revisions and terminal withdrawal. Every element commits the immediately prior
+mutation digest.
 
-### Withdrawal
+### Active Revision
 
-A buyer-signed statement that the named revision must no longer be presented
-as open. It cannot cancel an already finalized Accepted Quote.
+A `DemandMutation` whose kind publishes or supersedes the complete currently
+active Paid Demand terms.
+
+### Terminal Withdrawal
+
+A `DemandMutation` whose kind permanently closes the demand for new offers.
+V1 does not permit reopening after terminal withdrawal. It cannot cancel an
+already finalized Accepted Quote or erase previously distributed bytes.
 
 ### Provider Offer
 
-A provider-originated signed response binding one demand revision to an exact
-provider, Capability version, execution profile, price, delivery interval, and
-expiry. It is not an Accepted Quote.
+A provider-originated signed response binding one active Demand Mutation to an
+exact provider, Capability version, execution profile, price, delivery interval,
+and expiry. V1 fixes `max_acceptances = 1`. It is not an Accepted Quote.
 
 ### Selection Notice
 
@@ -192,12 +212,12 @@ commerce. It is not a protocol object.
 | Fact | Authority | Non-authoritative observations |
 |---|---|---|
 | buyer Agent identity and live controller policy | finalized TOS Agent state | display name, channel profile, Gateway account |
-| exact paid-demand bytes and origin | candidate envelope verification under the approved signing profile | channel author label, TLS origin, index row |
-| currently visible/open presentation | each observer's expiry, withdrawal, revision, and moderation projection | another observer's “open” badge |
+| exact paid-demand bytes and historical origin | signature, delegation, generation/policy digest, and issuance-checkpoint verification under the market signing profile | channel author label, TLS origin, index row |
+| currently actionable demand | complete non-forked Demand Mutation chain plus current live Agent/delegation recheck | another observer's “open” badge |
 | provider identity and Capability/version | finalized TOS Agent and Capability state | offer text, local skill name, Gateway metadata |
 | offer origin | candidate offer signature under the approved signing profile | Messenger prose, index ranking |
 | buyer selection before acceptance | negotiation input only | Selection Notice, conversation statement |
-| accepted terms and execution authority | finalized Accepted Quote and escrow | demand, offer, or Gateway acknowledgement |
+| accepted work terms and execution authority | finalized Accepted Quote and escrow containing the reconstructible typed accepted-work-terms preimage | demand, offer, Selection Notice, or Gateway acknowledgement |
 | execution admission | shared Native Execution Gate over finalized state | task status, delivery ACK, model output |
 | successful result commitment | canonical signed Receipt under accepted terms | process exit, chat message, artifact URL |
 | provider revenue | finalized exact provider-wallet credit | quoted price, release intent, dashboard balance |
@@ -208,7 +228,7 @@ The following object model identifies the information a future schema must
 express. Field names and canonical encoding remain unfrozen until the Native
 protobuf specification PR.
 
-### 6.1 Identity and revision
+### 6.1 Identity and mutation sequence
 
 Each Paid Demand carries:
 
@@ -216,22 +236,26 @@ Each Paid Demand carries:
 - complete TOS network domain;
 - buyer Agent ID;
 - buyer-generated nonzero demand nonce;
-- positive revision number;
-- previous-revision digest, zero only for revision one;
+- positive mutation sequence;
+- previous-mutation digest, zero only for sequence one;
+- mutation kind exactly `active_revision` or `terminal_withdrawal`;
 - creation and publication-expiry times;
 - stable idempotency identity outside model control; and
 - a signature authorization that can be checked against the buyer's relevant
   finalized Agent policy or approved delegation.
 
 The future canonical demand identity must commit to network, buyer, and nonce.
-The revision digest must commit to all revision bytes. Reusing one revision
-position with different content is a conflict. Exact byte replay is
-idempotent.
+The mutation digest commits every byte, including sequence, predecessor, kind,
+authorization context, and either the complete active terms or terminal target.
+Reusing one sequence position with different content is equivocation. Exact
+byte replay is idempotent.
 
-An observer never combines fields from two revisions. A newer revision is
-eligible to supersede an older revision only after its full signature,
-predecessor, bounds, and timing checks pass. A broken or missing revision chain
-does not authorize guessing the intended current state.
+An observer never combines fields from two mutations. Sequence `N+1` is
+eligible only when its predecessor equals the verified sequence `N` digest.
+`terminal_withdrawal` contains no replacement active terms, permanently closes
+the sequence, and rejects every later descendant. A broken, missing, or forked
+mutation chain is not actionable and does not authorize guessing the current
+state.
 
 ### 6.2 Task profile and requirements
 
@@ -255,14 +279,15 @@ commercial terms.
 
 Bulk source archives, prompts, credentials, private repository URLs, personal
 data, and secret acceptance tests are not published in the public envelope.
-The envelope commits to required bytes or an access descriptor. Disclosure
-occurs only through an authorized post-selection or post-funding path defined
-by the task profile.
+The envelope commits to the required bytes and bounds, never a provider-fetch
+URL or buyer credential. Disclosure uses the buyer-push profile in Section
+11.6 only after finalized acceptance and funding.
 
 ### 6.3 Commercial terms
 
 Each V1 demand carries:
 
+- exact buyer Agent and settlement-wallet commitment;
 - exact TOS-network asset identity;
 - fixed provider-service payment in unsigned atomic units;
 - explicit statement of who pays network and protocol fees;
@@ -308,39 +333,104 @@ unverifiable “verified buyer” badge as universal authority. A bond, if later
 approved, reduces spam but does not prove that a task is safe, profitable, or
 guaranteed to settle.
 
+### 6.6 Market authorization profile
+
+V1 uses purpose-limited online delegations rather than Agent-control,
+Capability-control, recovery, wallet, or settlement keys. The target scopes
+are distinct and non-interchangeable:
+
+```text
+paid-demand.publish
+paid-demand.withdraw
+provider-offer.sign
+```
+
+The exact scope encoding remains a schema-freeze item, but every signed market
+artifact commits:
+
+- complete network domain and protocol/profile version;
+- signer public-key identity and exact market scope;
+- Agent ID, Agent generation, and controller-policy digest;
+- delegation digest and delegation validity interval, when delegated;
+- issuance checkpoint and issuance time under the frozen clock rule;
+- artifact identity, sequence, predecessor, content digest, and expiry; and
+- a domain-separated signature over the complete canonical preimage.
+
+Verification has two separate results:
+
+1. **historical authenticity** proves that the signing key and scope were
+   authorized by the referenced finalized Agent generation, policy/delegation,
+   and issuance checkpoint; and
+2. **current actionability** freshly proves, before expensive offer evaluation
+   and again before Quote acceptance, that the Agent is live, the relevant
+   market delegation remains active and unrevoked, the mutation/offer has not
+   expired, and the verified mutation chain remains non-terminal and
+   non-forked.
+
+Historical bytes remain attributable after normal rotation or later
+revocation, but they cease to authorize a new offer or Quote when the current
+actionability check fails. A recovered or rotated current controller may issue
+the next mutation, including terminal withdrawal, only through the same
+monotonic sequence and immediate predecessor. It cannot rewrite history.
+
+A Provider Offer becomes non-actionable before Quote finality if its provider
+Agent, signing delegation, Capability/version, manifest, or reserved capacity
+authorization is revoked, transferred, expired, or otherwise no longer valid.
+After Quote finality, the existing accepted commercial state and contract rules
+control; later market-key revocation does not rewrite the finalized Quote.
+
 ## 7. Withdrawal, supersession, and expiry
 
 A signed market artifact is immutable. Lifecycle is represented by additional
 artifacts and local projection, not by mutating an index row as if it were a
 shared object.
 
-The observer projection is:
+Revision and Withdrawal share one sequence:
 
 ```text
 unknown
-  -> open(revision N)
-  -> open(revision N+1)
-  -> withdrawn | expired
+  -> active(sequence 1)
+  -> active(sequence 2)
+  -> ...
+  -> terminal-withdrawn(sequence N)
 ```
 
 The following rules apply:
 
-1. A valid later revision supersedes the immediately committed prior revision.
-2. A valid Withdrawal names the exact demand identity and revision digest.
-3. Withdrawal or expiry prevents new presentation and offers but cannot undo
-   an Accepted Quote.
-4. Expiry is evaluated under the future profile's bounded clock/freshness rule;
+1. Every mutation increments sequence by exactly one and commits the exact
+   immediately prior mutation digest.
+2. `active_revision` carries the complete new active terms; it does not patch
+   fields from an older revision.
+3. `terminal_withdrawal` names the same demand identity and predecessor,
+   permanently ends the chain, and carries no replacement active terms.
+4. V1 forbids reopen or any descendant after terminal withdrawal.
+5. A conforming observer that has verified terminal withdrawal marks the demand
+   ineligible for new offers. It does not claim that every delayed or offline
+   carrier has received the mutation.
+6. Withdrawal or expiry prevents new offers and Quote acceptance under this
+   profile but cannot undo an already finalized Accepted Quote.
+7. Expiry is evaluated under the future profile's bounded clock/freshness rule;
    a carrier's wall clock is not shared commercial authority.
-5. If two different valid-looking artifacts claim the same revision position,
-   the demand is quarantined as an equivocation; observers do not choose one by
-   arrival time or majority carrier count.
-6. Missing history causes an incomplete projection, not a fabricated chain.
-7. Moderation may hide an event locally without altering its digest, signature,
+8. If two different otherwise valid artifacts claim the same sequence, every
+   descendant is quarantined as equivocation. Arrival order, carrier count, and
+   index ranking never choose a branch. Only a later separately specified
+   on-chain or owner recovery profile could resolve such a fork; V1 has none.
+9. A late mutation is applied only after its complete predecessor chain is
+   verified. An observer that saw sequence N+1 before N reports incomplete,
+   not open.
+10. Missing history causes an incomplete projection, not a fabricated chain.
+11. Moderation may hide an event locally without altering its digest, signature,
    origin, or availability through another carrier.
 
 Selection and Accepted Quote status do not become public-feed lifecycle states
 unless independently derived from the finalized chain. A buyer's Selection
 Notice remains negotiation data and may be stale, malicious, or abandoned.
+
+Expiry and terminal withdrawal are eligibility semantics, not deletion or a
+right-to-be-forgotten mechanism. Public-channel, index, cache, or Storage
+copies may persist indefinitely. Publishing confirmation must state that
+public bytes cannot be guaranteed deleted; sensitive demand defaults to direct
+or private carriers.
 
 ## 8. Distribution architecture
 
@@ -387,7 +477,7 @@ event signatures, history links, envelope bytes, network domain, and expiry.
 Overlay distributes public-channel events among participating replicas. RLDP
 may transfer bounded history segments and referenced public objects. Network
 delivery may be duplicated, reordered, delayed, or incomplete; event identity,
-revision checks, cursors, and local journals make application processing
+mutation-chain checks, cursors, and local journals make application processing
 idempotent.
 
 Overlay membership is not opportunity authority. Seeing an event from many
@@ -403,9 +493,9 @@ bounded public supporting material. Snapshot bytes are content addressed and
 reverified before import. Storage availability, a BagID hint, or a successful
 download does not prove opportunity validity or freshness.
 
-Private inputs and bid conversations do not become public snapshots. Encrypted
-bulk input delivery follows the accepted task/transport profile and retains
-its own authorization and retention rules.
+Private inputs and bid conversations do not become public snapshots. V1 bulk
+input delivery uses only the Offer-bound buyer-push profile in Section 11.6 and
+retains its own authorization and retention rules.
 
 ### 8.5 Direct Messenger and private rooms
 
@@ -420,7 +510,8 @@ Direct conversations and private rooms may carry:
 
 Messenger authenticates the conversation and event origin. Prose still has no
 wallet, bid, execution, or settlement authority. Typed market artifacts remain
-subject to their own signature, revision, policy, and finalized-state checks.
+subject to their own signature, Demand Mutation, policy, and finalized-state
+checks.
 
 ### 8.6 Gateways and independent indexers
 
@@ -433,7 +524,8 @@ Two indexes are expected to differ. A conforming index reports:
 
 - its origin and network domain;
 - observation time and source carrier;
-- envelope digest, buyer, demand identity, and revision;
+- envelope digest, buyer, demand identity, mutation sequence, and mutation
+  digest;
 - its coverage and freshness bounds;
 - any moderation or filtering applied; and
 - an opaque source-local cursor.
@@ -471,7 +563,7 @@ It may also contain bounded optional hints:
 
 The mandatory core identifies the same demand regardless of which optional
 hints are present or in which application the reference is displayed. Hints
-are availability inputs only. They cannot alter the digest, buyer, revision,
+are availability inputs only. They cannot alter the digest, buyer, mutation,
 task, price, deadline, signature, selection, Quote, or settlement. A Gateway,
 channel, DHT record, Storage Bag, hostname, or display label found in a
 reference is never trusted merely because the reference was received through
@@ -501,8 +593,9 @@ Given a Paid Demand Reference, an OpenFox resolver:
    bounded local policy order or bounded parallelism;
 6. accepts bytes only when the complete canonical envelope digest equals the
    mandatory reference digest;
-7. verifies the envelope schema, buyer signature/delegation, finalized buyer
-   Agent state, revision, timing, and task/commercial bounds;
+7. verifies the envelope schema, historical signature/delegation context,
+   current buyer Agent/delegation actionability, complete Demand Mutation
+   chain, timing, and task/commercial bounds;
 8. records each successful and failed source observation as provenance;
 9. stores the exact verified bytes under the digest; and
 10. submits the verified candidate to OpenFox matching and economics, never
@@ -513,17 +606,17 @@ among sources is not consensus. A malformed or mismatching source is isolated.
 If every source fails, resolution returns unavailable and does not use an
 unverified label, stale cache beyond policy, or similar-looking demand.
 
-#### Revision and withdrawal behavior
+#### Mutation successor and terminal-withdrawal behavior
 
-An Opportunity Magnet identifies one immutable revision, not a mutable “latest
-job” row. After resolving it, a client may follow only verified successor and
-Withdrawal artifacts under Section 7. A reference to revision N does not
-silently retarget to revision N+1, and it never proves that the named revision
-is still open, selected, funded, or payable.
+An Opportunity Magnet identifies one immutable mutation, not a mutable “latest
+job” row. After resolving it, a client may follow only the single verified
+successor chain under Section 7. A reference to sequence N does not silently
+retarget to sequence N+1, and it never proves that the named mutation is still
+actionable, selected, funded, or payable.
 
-A UI may offer an explicit “resolve current verified revision” operation. That
+A UI may offer an explicit “resolve current verified mutation” operation. That
 operation returns both the originally referenced digest and the verified
-revision/Withdrawal chain so the identity change remains visible.
+Demand Mutation chain so the identity change remains visible.
 
 #### Permissionless republication
 
@@ -567,7 +660,7 @@ global cursor. On each bounded cycle it:
 2. validates the entire source response shape;
 3. verifies each envelope before making it eligible;
 4. deduplicates exact envelope digests across sources;
-5. detects conflicting buyer/demand/revision reuse;
+5. detects conflicting buyer/demand/mutation-sequence reuse;
 6. updates the source cursor only after durable local application;
 7. retains every source observation used for provenance; and
 8. applies local task, skill, cost, counterparty, and policy filters.
@@ -581,6 +674,27 @@ Presentation ordering is local. A client may sort by estimated profit,
 deadline, task match, source freshness, counterparty policy, or owner
 preference. Ranking inputs and model summaries are recorded as
 non-authoritative. Another client may produce a different correct ordering.
+
+### 9.1 Source and implementation independence
+
+Two origins are not independent merely because they use different hostnames.
+Acceptance evidence records, for every claimed independent source:
+
+- legal/operator organization and signing identity;
+- host, process, and persistent-store identity;
+- network path and deployment failure domain;
+- upstream public channel, replica, Gateway, or Storage dependency;
+- implementation repository, commit, build, and codec dependency; and
+- exact observation interval and source-local cursor/checkpoint.
+
+Sources that share one private database, process, host, operator key, upstream
+carrier, or single failure domain are labelled correlated. They may improve
+read throughput but do not satisfy independent-source acceptance.
+
+At least one acceptance run stops one source and its complete database while a
+separately operated source continues reference resolution and discovery. The
+second vector implementation independently consumes frozen bytes and does not
+call the first implementation's canonical codec or verifier library.
 
 ## 10. Discovery query boundary
 
@@ -604,7 +718,7 @@ envelope.
 
 A search response must not copy separately locked mutable reads into one
 apparently atomic result. The index either takes one consistent local snapshot
-or labels per-result observations so a concurrent revision cannot be hidden.
+or labels per-result observations so a concurrent mutation cannot be hidden.
 
 ## 11. Provider Offers and selection
 
@@ -623,12 +737,17 @@ authority.
 
 A Provider Offer binds at least:
 
-- exact demand identity and revision digest;
+- exact demand identity and active Demand Mutation digest;
+- exact buyer Agent and settlement-wallet commitment from that mutation;
 - provider Agent ID;
 - Capability ID and exact active version;
-- manifest, execution, and evidence profile commitments;
+- manifest, task, input/source, execution, validator, evidence, private-input
+  delivery, dispute, and refund commitments;
 - fixed exact-asset price;
 - delivery interval and offer expiry;
+- `max_acceptances = 1`;
+- a complete deterministic accepted-work-terms/Quote template with no
+  buyer-substitutable commercial or execution field;
 - provider-generated durable offer identity;
 - reply or Quote-construction transport hint; and
 - provider signature authorization.
@@ -648,11 +767,126 @@ The buyer may compare offers locally and send a Selection Notice. No provider
 executes or recognizes revenue from that notice. The selected provider checks
 that the later Accepted Quote exactly reproduces the required demand/offer
 terms and binds the correct provider, Capability version, manifest, endpoint,
-execution signer, asset, amount, evidence, deadlines, and dispute profile.
+execution signer, buyer Agent/wallet, input/source, task/validator/evidence
+profiles, asset, amount, deadlines, private-input delivery, and dispute/refund
+profile.
 
-If current Accepted Quote fields cannot bind a required V1 fact, Phase 0 must
-specify the smallest canonical extension before implementation. An index or
-Messenger message must not fill the gap as hidden authority.
+The current Accepted Quote does not bind all of those facts. D3 therefore
+requires the canonical extension in Section 11.4; this is a confirmed blocking
+gap, not a conditional possibility. An index, Selection Notice, Messenger
+message, Gateway acknowledgement, or OpenFox journal must not fill it as hidden
+authority.
+
+### 11.4 Canonical accepted-work convergence
+
+The selected Demand Mutation and Provider Offer converge into one typed,
+reconstructible `AcceptedWorkTerms` preimage. The exact message and TVM layout
+remain schema-freeze work, but its content must include:
+
+- complete network domain and accepted-work profile version;
+- buyer Agent ID and exact buyer settlement wallet;
+- demand identity, terminal-safe active mutation sequence, and mutation digest;
+- Provider Offer identity and digest with `max_acceptances = 1`;
+- provider Agent, Capability ID/version, and manifest digest;
+- task profile/version and operation descriptor;
+- exact input digest, source digest, media type, and byte/file bounds;
+- required output, validator, and evidence profiles;
+- provider-selected transport, private-input push, and execution-signer
+  commitments;
+- exact TOS-network asset and provider-service atomic amount;
+- offer acceptance, input-delivery, work-delivery, Receipt, and refund
+  deadlines under one defined ordering;
+- escrow and objective dispute/refund terms; and
+- every field needed to deterministically derive the unique Quote commitment,
+  escrow StateInit, and execution admission identity.
+
+The Accepted Quote commits the typed preimage, and escrow StateInit embeds it
+or an equivalent fully typed representation from which every field is
+reconstructed. An opaque digest without the exact typed preimage is
+insufficient. Finalized resolution returns the complete accepted work terms
+without a Gateway, Messenger database, market index, or OpenFox journal.
+
+The Native Execution Gate must decode those finalized terms and compare the
+incoming execution claim field by field, including buyer/provider identities,
+Demand Mutation, Offer, task profile, input/source commitments, validator and
+evidence profiles, transport, signer, asset/amount, and deadlines. The first
+local claim may record execution identity, but it cannot choose the expected
+input or source.
+
+Receipt construction, settlement verification, portable safe handoff, and
+independent history resolution use the same accepted-work preimage. No later
+layer may substitute a second value for a fact already bound there.
+
+#### Binding sufficiency matrix
+
+| Fact | Pre-acceptance artifact | Final accepted authority | Execution/local use |
+|---|---|---|---|
+| display summary, topics, source hints, index rank | Demand/index only | none | local discovery/presentation only |
+| buyer Agent and settlement wallet | Demand Mutation | `AcceptedWorkTerms` + escrow | freshly verify Agent/actionability before acceptance |
+| Demand identity/sequence/digest | Demand Mutation | `AcceptedWorkTerms` | Gate compares exact values |
+| Provider Offer identity/digest/single acceptance | Provider Offer | `AcceptedWorkTerms` + deterministic Quote/escrow | Gate and reservation journal compare exact values |
+| provider Agent, Capability/version, manifest | Demand predicate + Offer | `AcceptedWorkTerms` + existing Quote/Registry checks | Gate freshly verifies finalized Registry state |
+| task profile/version and operation | Demand + Offer | `AcceptedWorkTerms` | spec-defined executor mapping |
+| input/source commitments and bounds | Demand + Offer | `AcceptedWorkTerms` | Gate compares; ingress verifies bytes before execution |
+| validator/evidence/output profiles | Demand + Offer | `AcceptedWorkTerms` | validator and Receipt use exact profiles |
+| transport, private-input ingress, execution signer | Offer | `AcceptedWorkTerms` | transport and Gate enforce exact commitments |
+| asset, amount, deadlines, dispute/refund | Demand + Offer | `AcceptedWorkTerms` + escrow | custody, Gate, Receipt, settlement enforce |
+| Selection Notice | negotiation only | none | correlation/presentation only |
+| skill implementation, internal cost, margin, model rank | none | none | owner-private OpenFox policy only |
+| source coverage, moderation, availability estimate | index observation only | none | local discovery policy only |
+
+Schema work must extend this matrix down to every field. No field may have two
+inconsistent authoritative sources, and every accepted execution input must
+trace to finalized typed terms.
+
+### 11.5 Single acceptance and capacity consumption
+
+V1 Provider Offers are buyer-specific and single-use. The exact Demand
+Mutation, buyer Agent/wallet, provider terms, and Offer digest determine one
+`AcceptedWorkTerms`, one Quote commitment, and one escrow StateInit/address.
+The buyer cannot vary a nonce, wallet, input, deadline, amount, signer,
+transport, evidence rule, or other accepted field to derive a second valid
+purchase from the same Offer.
+
+OpenFox atomically reserves the quoted capacity before signing. The reservation
+binds Offer identity/digest, resource profile, expiry, and `max_acceptances=1`.
+On observing the unique Quote finality it atomically converts the reservation
+to an accepted obligation. Offer expiry without Quote finality releases it;
+ambiguous acceptance first resolves the deterministic escrow before release or
+retry.
+
+The finalized terms and Gate reject a second Quote/escrow identity, two
+concurrent acceptances, cross-transport replay, or any Offer-field
+substitution. Local reservation is necessary for honest capacity planning but
+is not the only replay defense.
+
+### 11.6 Private input delivery V1
+
+V1 selects **buyer push to a Provider-selected, Offer-bound ingress**. A
+provider never fetches a URL, host, repository, object store, or credential
+chosen by the Demand, buyer message, model, or task content.
+
+The Provider Offer and `AcceptedWorkTerms` bind the ingress profile and
+provider endpoint commitment. Only after finalized Quote and funded escrow:
+
+1. the provider may issue a short-lived, single-task, write-only upload grant
+   outside the model and task content;
+2. the buyer pushes the exact committed bytes to that bound ingress;
+3. the ingress authenticates Quote, escrow, buyer, provider, grant scope,
+   expiry, operation, and body before accepting bytes;
+4. it checks ciphertext/plaintext digest as applicable, media type, compressed
+   bytes, decompressed bytes, file count, canonical paths, and archive rules;
+5. it durably binds one accepted input to the unique Quote/execution slot; and
+6. only verified immutable bytes enter the Native Execution Gate and bounded
+   executor.
+
+The upload grant, credentials, and private source never enter the public
+envelope, Opportunity Magnet, model context, artifact, Receipt, logs, or
+evidence bundle. Redirects, proxies, arbitrary DNS, provider-side credential
+forwarding, buyer-selected egress, and pull fallback are forbidden. Grant
+expiry, revocation, retry, retention, deletion request, and crash recovery are
+typed profile behavior. A deletion acknowledgement proves only the named
+operator's local observation and never cryptographic erasure.
 
 ## 12. OpenFox processing pipeline
 
@@ -662,8 +896,9 @@ stages:
 ```text
 bounded decode
   -> network/profile/size/expiry check
-  -> digest, revision, and replay check
-  -> signature and finalized buyer-Agent verification
+  -> digest, Demand Mutation chain, and replay check
+  -> historical signature/delegation verification
+  -> current buyer-Agent/delegation actionability check
   -> cheap typed skill and policy filter
   -> bounded supporting-material retrieval
   -> exact skill/evidence/capacity match
@@ -672,14 +907,15 @@ bounded decode
   -> reject, recommend, approval-required, auto-offer, or auto-claim
 ```
 
-Expensive model calls, repository downloads, private credential lookup, and
+Expensive model calls, bounded public supporting-material downloads, and
 capacity reservation occur only after cheaper verification and local policy
-checks. A buyer cannot force an OpenFox instance to spend unbounded resources
-merely by publishing validly signed demand.
+checks. Private input and upload grants do not enter discovery evaluation. A
+buyer cannot force an OpenFox instance to spend unbounded resources merely by
+publishing validly signed demand.
 
 The earning coordinator stores:
 
-- exact envelope and revision digests;
+- exact Demand Mutation chain and digests;
 - every source observation used;
 - verification and finalized-checkpoint references;
 - skill, estimator, cost, risk, policy, and mandate versions;
@@ -724,6 +960,10 @@ The UI must not collapse these labels into one “verified job” or “earned�
 state. It also reports source coverage, last synchronization time, local
 filters, hidden/moderated events, and unresolved conflicts.
 
+The UI renders `expired`, `terminal-withdrawn`, `locally-hidden`, and
+`unavailable` separately. It must never label any of them `deleted` or “removed
+from the network,” because public replicas may retain the immutable bytes.
+
 FreeCity-local accounts, social relationships, follows, recommendations,
 moderation, and ranking may improve discovery. They do not authorize a market
 artifact or alter TOS commercial truth. An OpenFox instance can use the
@@ -734,7 +974,11 @@ protocol without FreeCity.
 Public paid demand inevitably reveals some combination of buyer identity,
 timing, task category, budget, and demand frequency. The publisher chooses a
 public or private carrier under owner policy and sees a semantic confirmation
-of the metadata before signing.
+of the metadata before signing. That confirmation explicitly states that
+public publication, caching, republication, and content-addressed Storage may
+be permanent: expiry, terminal withdrawal, moderation, and deletion requests
+cannot guarantee erasure by third parties. Sensitive demand defaults to direct
+or private carriers.
 
 V1 minimizes public data:
 
@@ -761,7 +1005,7 @@ Minimum controls include:
 - exact network and profile allow-lists;
 - finalized buyer Agent verification before expensive evaluation;
 - per-source and per-buyer quotas and circuit breakers;
-- short expiries and bounded revision history;
+- short expiries and bounded Demand Mutation history;
 - digest deduplication and equivocation quarantine;
 - local topic, buyer, task, asset, and risk policies;
 - content retrieval only through approved, size-bound, digest-checked paths;
@@ -799,7 +1043,7 @@ event and envelope identity.
 
 ### Ambiguous market mutation
 
-Publication, withdrawal, offer, and selection delivery may fail after the
+Demand Mutation, Offer, and Selection Notice delivery may fail after the
 remote side has accepted bytes. Each mutation requires a stable action identity
 and a resolution operation or acknowledgement rule. A timeout alone does not
 authorize replay. Unresolvable ambiguity remains visible until expiry or owner
@@ -817,14 +1061,15 @@ independent reconstruction.
 
 | Repository | Responsibility |
 |---|---|
-| `tos-service-spec` | candidate profile, eventual Native schemas, bounds, signature/digest rules, public errors, vectors, authority invariants, and acceptance evidence |
+| `tos-service-spec` | candidate profile; eventual Native Demand Mutation, Offer, market delegation, AcceptedWorkTerms, private-input, task/execution/validator/evidence schemas; bounds; signatures/digests; public errors; vectors; authority invariants; acceptance evidence |
 | `tos-service-protocol` | canonical artifact codecs and verification, finalized buyer/provider checks, federation client, offer/Quote SDK, error classification, and recovery helpers |
-| `tos-service-gateway` | optional authenticated publication/withdrawal/relay endpoints, bounded derived search, source provenance, cursors, filtering, and federation conformance |
-| `tos-messenger` | typed public-channel carriage, DHT/Overlay/RLDP/Storage synchronization, direct offer transport, event replay protection, and moderation projection |
+| `tos-service-gateway` | optional authenticated Demand Mutation/relay endpoints, bounded derived search, source provenance, cursors, filtering, and federation conformance |
+| `tos` | generic DHT, Overlay, ADNL/RLDP, Storage, Agent, Accepted Quote, escrow, Receipt, and settlement primitives/contracts; no market search or ranking |
+| `tos-messenger` | paid-demand public-channel profile, verification, synchronization and persistence integration over TOS networking primitives; direct offer transport; event replay protection; moderation projection |
 | `openfox` | source configuration, local durable aggregation, typed matching, economics, portfolio policy, offer/claim authorization, explanation, and commercial orchestration |
-| `tos-ai` | task/execution/evidence profiles, estimates, capacity reservation, bounded execution, validation, and artifacts |
+| `tos-ai` | implementation and operation of spec-defined task/execution/validator/evidence/private-input profiles, estimates, capacity reservation, bounded execution, validation, and artifacts |
 | `freecity` | optional work-square experience, local social discovery, moderation, approvals, and labelled projections |
-| `tos` / custody tools | existing Agent authority, Accepted Quote, escrow, Receipt, settlement, exact signing, broadcast, and revocation; new contracts only if a required shared fact cannot use the existing lifecycle |
+| custody tools | exact market/Quote semantic confirmation, delegated signing, broadcast, ambiguous-submit resolution, and revocation without exposing keys to OpenFox |
 
 No repository may copy candidate fields into a private schema and later present
 that schema as a frozen protocol. If the profile is approved, normative
@@ -837,20 +1082,17 @@ Exact RPC names remain unfrozen. The future protocol needs transport-neutral
 operations equivalent to:
 
 ```text
-PublishPaidDemand(exact signed envelope)
-  -> source-local observation and stable mutation identity
-
-WithdrawPaidDemand(exact signed withdrawal)
+PublishDemandMutation(exact signed mutation)
   -> source-local observation and stable mutation identity
 
 SearchPaidDemand(network, typed filters, page size, source cursor)
   -> exact envelopes, per-result provenance, next source cursor
 
-GetPaidDemand(exact demand identity and optional revision)
-  -> exact observed revision chain or explicit incomplete result
+GetDemandMutations(exact demand identity, optional sequence range)
+  -> exact observed mutation chain or explicit incomplete/forked result
 
 ResolvePaidDemandReference(exact compact reference, local source policy)
-  -> exact verified envelope, revision status, and per-source provenance
+  -> exact verified envelope, mutation status, and per-source provenance
 
 SubmitProviderOffer(exact signed offer)
   -> peer/source acknowledgement with ambiguity-resolution identity
@@ -868,7 +1110,8 @@ Errors distinguish at least:
 - permanent invalid input;
 - unsupported profile or network;
 - unauthorized publisher;
-- stale, expired, withdrawn, or superseded revision;
+- stale, expired, terminal-withdrawn, superseded, incomplete, or forked
+  mutation chain;
 - exact replay;
 - conflicting identity reuse or equivocation;
 - bounded resource exhaustion;
@@ -887,8 +1130,12 @@ Errors distinguish at least:
   representation;
 - freeze the Paid Demand Reference mandatory core, optional hint grammar,
   content-digest algorithm, URI/QR encoding, resolver behavior, and bounds;
-- freeze messages, bounds, ordering, digest/signature domains, expiry,
-  revision, withdrawal, errors, and retry behavior;
+- freeze Demand Mutation sequence/terminal/fork rules, market scopes and
+  two-stage authorization, messages, bounds, ordering, digest/signature
+  domains, expiry, errors, and retry behavior;
+- freeze the binding sufficiency matrix, typed `AcceptedWorkTerms`, deterministic
+  Quote/escrow derivation, single-acceptance rule, private-input push profile,
+  and required Execution Gate comparisons;
 - produce positive vectors and adversarial mutations; and
 - obtain independent parser/vector consumption.
 
@@ -900,23 +1147,32 @@ Errors distinguish at least:
   independently configured fixture carriers;
 - implement protocol verification and an OpenFox source cursor;
 - perform typed matching and deterministic economic simulation; and
-- prove that no bid, claim, signature, execution, or spend is reachable.
+- prove that no Provider Offer, custody/market signing request, claim,
+  execution, or spend is reachable.
 
 ### Phase D2 — multi-source public testnet discovery
 
 - operate at least two independent carriers or indexes;
-- add client-side federation, provenance, deduplication, revision,
-  withdrawal, and source failure;
+- add client-side federation, provenance, deduplication, Demand Mutation,
+  terminal withdrawal, equivocation, and source failure;
 - exchange one compact Paid Demand Reference out of band, retrieve the exact
   envelope after its first source stops, and retain all provenance;
-- publish and recover a verified public-channel Storage snapshot; and
-- compare independently produced search projections.
+- publish and recover a verified public-channel Storage snapshot;
+- compare independently produced search projections under the Section 9.1
+  operator/implementation/failure-domain evidence rules;
+- permit no Provider Offer, Selection Notice acceptance, Quote, execution, or
+  automatic commercial authorization.
 
 ### Phase D3 — guarded fixed-price response
 
-- add direct signed Provider Offers and mutation resolution;
+- begin only after the market delegation, Demand Mutation,
+  `AcceptedWorkTerms`, Accepted Quote/escrow, Execution Gate, single-acceptance,
+  and private-input profiles have frozen vectors and implementations;
+- add direct signed single-acceptance Provider Offers and mutation resolution;
 - add OpenFox recommend mode and owner approval;
-- bind the selected offer to the existing Accepted Quote and escrow;
+- construct the unique extended Accepted Quote and escrow from the typed
+  accepted-work preimage;
+- push private input only through the Offer-bound provider ingress;
 - execute through the Native Execution Gate; and
 - reconcile one finalized provider-wallet credit.
 
@@ -930,19 +1186,26 @@ Errors distinguish at least:
   additional profiles.
 
 These phases do not reorder `ROADMAP.md`. Incubation and same-host evidence
-cannot open an external acceptance or Expansion Gate.
+cannot open an external acceptance or Expansion Gate. D3 and D4 remain blocked
+until every prerequisite named above is complete; D1/D2 evidence cannot be
+used to infer executable commercial safety.
 
 ## 20. Conformance and adversarial tests
 
 ### Artifact verification
 
-- exact positive demand, revision, withdrawal, offer, and selection vectors;
+- exact positive active/terminal Demand Mutation, market delegation,
+  single-acceptance Provider Offer, AcceptedWorkTerms, Quote/escrow,
+  private-input, and selection vectors;
 - exact positive Paid Demand Reference parse/render vectors with and without
   optional source hints;
 - wrong network, buyer, provider, Capability, version, asset, or profile;
-- malformed signature and unauthorized delegation;
-- zero/duplicate nonce, revision skip, stale predecessor, conflicting revision,
-  and exact replay;
+- malformed signature, wrong market purpose, over-scoped/expired delegation,
+  wrong Agent generation/policy digest/checkpoint, rotation, recovery, and
+  revocation;
+- zero/duplicate nonce, mutation sequence skip, stale predecessor, active
+  descendant after terminal withdrawal, fork/equivocation, late arrival, and
+  exact replay;
 - expired publication or offer and invalid deadline ordering;
 - unknown fields, trailing data, non-canonical ordering, and every over-bound
   field or collection;
@@ -950,6 +1213,19 @@ cannot open an external acceptance or Expansion Gate.
   ambiguous network, oversized hints, hint substitution, and mandatory-core
   mutation; and
 - task description attempting to override structured commercial terms.
+
+### Accepted-work convergence
+
+- demand, offer, buyer Agent/wallet, input, source, task profile, validator,
+  evidence, transport, signer, asset/amount, and deadline swap mutations;
+- opaque accepted-work digest without its reconstructible typed preimage;
+- two concurrent Quotes or escrows from one Offer and any buyer-controlled
+  Quote-construction variance;
+- exact deterministic Quote/StateInit reproduction in two implementations;
+- Execution Gate claim mismatch against every accepted-work field;
+- safe-handoff and Receipt reconstruction without market databases; and
+- crash before/after reservation, Offer send, Quote observation, reservation
+  conversion, ingress admission, Gate claim, Receipt, and settlement.
 
 ### Distribution
 
@@ -974,6 +1250,9 @@ cannot open an external acceptance or Expansion Gate.
 - simultaneous candidates cannot double-claim budget or capacity;
 - task-selected skill, plugin, model, credential, host, and network attacks;
 - offer send ambiguity and safe expiry;
+- atomic Offer capacity reserve/convert/release and simultaneous acceptance;
+- malicious buyer URL, DNS, redirect, proxy, metadata address, credential,
+  archive, compression, media-type, digest, grant, and retention inputs;
 - pause, drain, mandate expiry, and custody revocation; and
 - restart at every discovery, offer, acceptance, execution, Receipt, and
   settlement boundary.
@@ -985,7 +1264,9 @@ cannot open an external acceptance or Expansion Gate.
   exact envelope with distinct provenance;
 - provider discovers through another source and sends one signed offer;
 - original carrier becomes unavailable before acceptance;
-- buyer and provider create the existing finalized Quote/escrow lifecycle;
+- buyer and provider create the extended finalized Quote/escrow lifecycle from
+  the exact typed `AcceptedWorkTerms` preimage;
+- buyer pushes the exact private input to the Offer-bound provider ingress;
 - provider executes once, produces evidence and Receipt, and receives payment;
   and
 - a third resolver reconstructs the complete canonical commercial history
@@ -1000,22 +1281,26 @@ V1 is accepted only when:
 2. one signed demand is propagated without a central message database;
 3. one compact Paid Demand Reference retrieves the same exact signed envelope
    after its original source disappears;
-4. two independently operated sources expose it with explicit incomplete
-   coverage and distinct provenance;
-5. an OpenFox provider independently verifies the buyer Agent and exact demand
-   revision before performing expensive evaluation;
+4. two sources satisfying Section 9.1 operator, implementation, upstream, and
+   failure-domain independence expose it with explicit incomplete coverage and
+   distinct provenance;
+5. an OpenFox provider verifies historical authorization, current
+   actionability, and the exact non-forked active Demand Mutation before
+   performing expensive evaluation;
 6. typed skill, evidence, capacity, exact-asset economics, and owner policy
    produce a reproducible decision;
-7. one idempotent signed Provider Offer reaches the buyer and survives sender
-   and receiver restart;
+7. one idempotent, single-acceptance signed Provider Offer reaches the buyer,
+   reserves capacity atomically, and survives sender and receiver restart;
 8. an unavailable source does not prevent accepted-work recovery;
-9. the selected terms become authoritative only through a finalized Accepted
-   Quote and funded escrow;
-10. the Native Execution Gate admits one execution and rejects cross-transport
-   replay;
-11. a canonical Receipt binds the objective outcome and immutable evidence;
-12. finalized provider-wallet credit is independently resolved; and
-13. no Gateway, channel, Relay, index, FreeCity database, or OpenFox journal is
+9. the complete typed `AcceptedWorkTerms` preimage is reconstructible from the
+   finalized Accepted Quote and funded escrow without a market database;
+10. the same Offer cannot create a second Quote/escrow, and its private input
+    arrives only through the bound buyer-push ingress;
+11. the Native Execution Gate compares every accepted-work field, admits one
+    execution, and rejects field substitution and cross-transport replay;
+12. a canonical Receipt binds the objective outcome and immutable evidence;
+13. finalized provider-wallet credit is independently resolved; and
+14. no Gateway, channel, Relay, index, FreeCity database, or OpenFox journal is
     required to reconstruct canonical settlement.
 
 ## 22. Explicit non-goals
@@ -1040,35 +1325,50 @@ V1 does not create:
 
 ## 23. Open decisions before schema freeze
 
-1. Which existing Agent authorization purpose or new bounded delegation may
-   sign Paid Demand and Provider Offers?
-2. Is the single canonical envelope a Native protobuf message carried inside
+The architecture review closes four directional questions: V1 uses one
+monotonic Demand Mutation chain with terminal withdrawal, separate
+purpose-limited market delegations, single-acceptance Provider Offers with
+typed accepted-work convergence, and buyer push to a Provider-bound private
+input ingress. Schema freeze must still decide the exact encodings and bounds:
+
+1. Is the single canonical envelope a Native protobuf message carried inside
    Messenger events and Gateway RPCs, or an Agent Packet payload with a
    one-to-one Native mapping?
-3. Which fixed-price software-work operations and evidence profiles form the
-   first safe demand subset?
+2. Which exact numeric purpose bits/scopes, delegation schema, policy/generation
+   commitment, checkpoint proof, lifetime, and revocation lookup encode
+   `paid-demand.publish`, `paid-demand.withdraw`, and
+   `provider-offer.sign`?
+3. Which fixed-price software-work operations and spec-defined execution,
+   validator, and evidence profiles form the first safe demand subset?
 4. Does V1 require a funded-intent proof or only finalized buyer identity and
    local rate limits before offer evaluation?
-5. How does a provider obtain private input after selection without creating a
-   task-selected credential or endpoint?
-6. Which demand and offer terms must be added to the Accepted Quote commitment,
-   if any?
-7. Which exact clock source and maximum lifetime govern public envelope and
-   offer expiry before chain acceptance?
-8. How are public opportunity channel profiles located without making a topic
+5. What exact `AcceptedWorkTerms` protobuf and TVM cells, Quote schema version,
+   escrow StateInit, resolver response, Receipt binding, and safe-handoff
+   representation freeze the Section 11.4 matrix?
+6. What exact deterministic derivation and contract/Gate check prevents more
+   than one Quote/escrow acceptance for one Provider Offer?
+7. What provider ingress authentication, upload-grant format, encryption,
+   maximum bytes/files, retention, revocation, acknowledgement, and recovery
+   rules freeze the buyer-push private-input profile?
+8. Which exact clock source and maximum lifetime govern Demand Mutation and
+   Offer expiry before chain acceptance?
+9. How are public opportunity channel profiles located without making a topic
    name, DHT record, publisher, or moderator universal authority?
-9. Which digest algorithm, URI grammar, compact network encoding, maximum hint
-   count, default-source behavior, and optional QR representation define the
-   Paid Demand Reference?
-10. What query and resolution operations make publication, withdrawal, and
-   offer retries safe after ambiguous transport results?
-11. Which measured spam threshold justifies a bond or other economic
+10. Which digest algorithm, URI grammar, compact network encoding, maximum hint
+    count, default-source behavior, and optional QR representation define the
+    Paid Demand Reference?
+11. What query and resolution operations make publication, terminal
+    withdrawal, Offer delivery, result submission, and settlement retries safe
+    after ambiguous transport results?
+12. Which measured spam threshold justifies a bond or other economic
     anti-abuse mechanism?
-12. What minimum source diversity and public-network evidence is required
-    before OpenFox policy-gated automatic offers may be enabled?
-13. Which recurring external paid-use threshold permits competitive bidding
-    and the next task profile under the Expansion Gate?
+13. What minimum independently controlled source diversity and public-network
+    evidence is required before OpenFox policy-gated automatic offers may be
+    enabled?
+14. Which recurring external paid-use threshold permits competitive
+    multi-offer bidding and the next task profile under the Expansion Gate?
 
 Until these questions are frozen in the sole Native schema and independently
-tested, implementations may provide only read-only discovery, local
-simulation, and manually approved experiments.
+tested, implementations may provide only read-only discovery and local
+simulation. D2 may exercise public-testnet propagation without Provider
+Offers. D3/D4 commercial actions remain prohibited.
