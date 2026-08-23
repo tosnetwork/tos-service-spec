@@ -104,6 +104,7 @@ tosctl Agent Wallet profile (owner-private local configuration)
 Agent Account (on chain)
   owner address
   controller public key
+  controller epoch
   seqno
   max-per-action and daily native-TOS limits
   generic task-send, native-send, and sequence-cancel operations
@@ -111,7 +112,7 @@ Agent Account (on chain)
 
 The Gift flow fails closed unless the local profile, finalized Agent Account
 address, pinned code hash, owner, controller public key, actual chain global ID,
-immutable nonzero deployment ID, policy, seqno, and balance all agree.
+immutable nonzero deployment ID, controller epoch, policy, seqno, and balance all agree.
 
 ## 4. Final Agent Account wire profile
 
@@ -122,6 +123,7 @@ frozen in G0 before signing is enabled. The semantic preimage is:
 AgentNativeSend {
   opcode
   network_global_id: int32
+  controller_epoch: uint64
   seqno: uint32
   valid_until: uint32
   destination: MsgAddressInt
@@ -131,10 +133,16 @@ AgentNativeSend {
 AgentCancelSeqno {
   opcode
   network_global_id: int32
+  controller_epoch: uint64
   seqno: uint32
   valid_until: uint32
 }
 ```
+
+The frozen single-cell signed body permits
+`1 <= amount_atomic <= 2^48 - 1` (`281474976710655` nanoTOS). Policy creation,
+Gift canonical validation, and both controller payload builders reject larger
+values before a custody claim is acquired.
 
 `agent_task_send` is retained for task-contract calls, but its pre-release
 encoding is replaced and also carries `network_global_id`. Only that operation
@@ -152,9 +160,15 @@ exact canonical payload hash
 Account data contains an immutable random `deployment_id:uint256`, generated
 by `tosctl` at creation and exposed by the finalized data getter. It is part of
 the account's StateInit/address and is never mutated by policy or controller
-operations. Gift preparation and finality bind this value so a destroyed and
-redeployed account is always a new generation, even if every human-selected
-parameter is reused.
+operations. Gift preparation and finality bind this value. The supported
+`tosctl agent-account deploy --new-generation` replacement flow refuses an
+active or frozen predecessor, waits until outstanding controller signatures
+have expired, retires its custody records, and
+persists a fresh deployment ID/address after owner confirmation but before
+broadcast. Reusing an identical StateInit outside that flow is prohibited: the
+chain cannot distinguish it from the old generation, while custody's durable
+epoch/sequence high-water mark treats the resulting rollback as recovery and
+fails closed.
 
 The contract executes TVM `GLOBALID` and compares it directly with the signed
 `network_global_id` before checking the signature, sequence, expiry, and policy.
@@ -162,9 +176,10 @@ Custody and recipient verification independently obtain the connected chain's
 global ID from pinned genesis and finalized configuration and require the same
 value. Agreement with local configuration alone is never sufficient.
 The contract also enforces
-`now < valid_until <= now + default_task_timeout`. Rotating the controller
-increments `seqno`, so rotating away and later back to an old key cannot revive
-an outstanding signature.
+`now < valid_until <= now + default_task_timeout`. Every signed payload carries
+the exact on-chain `controller_epoch:uint64`. Rotating the controller increments
+both the epoch and `seqno`; restoring an old key cannot revive a signature from
+that key's retired epoch even if a future sequence was pre-signed.
 
 The account's native value limits do not account for token or contract-defined
 assets reachable through the generic `agent_task_send` body. Gift never uses
