@@ -5,6 +5,34 @@ first-contact Messenger initiation and policy-gated execution is defined in
 [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
 This document remains the authority boundary for the commercial lifecycle.
 
+Optional person-to-person Agent Gifts are a separate non-purchase profile in
+[`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md). A Gift MUST NOT reuse
+this bridge's Quote, Capability, software-work Receipt, or provider-settlement
+semantics merely because both profiles move value.
+
+The Direct Signed Gift profile creates no Receiver Profile, Gift delegation,
+receive ticket, per-Gift Vault, or escrow. V1 supports native TOS only. Inside
+an existing authenticated direct E2EE conversation, the sender asks the
+recipient for one TOS address. Sender custody then constructs and signs one
+exact time-limited standard-wallet BOC transferring native TOS to that returned
+address. The recipient may submit those unchanged bytes but cannot redirect the
+signed transfer.
+
+Funds remain spendable by the sender until the BOC executes, so the UI must not
+call an unbroadcast Gift funded, locked, or guaranteed. If it expires, no refund
+is needed because no transfer occurred. If it succeeds, payment is recognized
+only from finalized exact destination credit. Before broadcast, the address
+exchange, BOC, and Agent relationship remain inside E2EE; after execution,
+transparent TOS state still exposes wallet, amount, and timing information.
+
+Native TOS support in the Gift profile is strictly non-purchase semantics. It
+does not make native TOS a provider-service price or settlement asset under the
+software-work commercial profile, where the controlling Quote and settlement
+documents continue to apply.
+
+None of the Gift privacy, relay, or asset mechanics creates another payment
+authority or permits a model to handle custody secrets.
+
 OpenFox is the autonomous application runtime for a TOS Agent. This bridge
 connects its agent loop to the existing Native commercial lifecycle; it does
 not create a second marketplace, ledger, trust mode, or settlement protocol.
@@ -12,9 +40,10 @@ not create a second marketplace, ledger, trust mode, or settlement protocol.
 ## Responsibilities
 
 OpenFox owns local intent, task scheduling, execution, artifacts, and owner
-policy. `tos-service-protocol`/`tos-service-gateway` owns finalized-state resolution, Quote preimage
-validation, relay and escrow construction. TOS contracts own canonical Agent,
-Capability, Accepted Quote, escrow, Receipt, and settlement state.
+policy. `tos-service-protocol`/`tos-service-gateway` owns finalized-state
+resolution, Quote preimage validation, relay, and escrow construction. TOS
+contracts own canonical Agent, Capability, Accepted Quote, escrow, Receipt, and
+settlement state.
 
 OpenFox must never infer ownership or payment from a Gateway response. Every
 candidate is re-resolved from finalized TOS state before spending.

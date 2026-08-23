@@ -122,6 +122,9 @@ refine these rules but cannot contradict them.
   market of verified Provider and Worker Agents. It keeps high-frequency
   traffic off-chain, uses separate Customer→Provider and Provider→Worker
   purchases, and does not open or reorder the expansion gate.
+- [OpenFox Direct Signed Agent Gifts V1](docs/OPENFOX_AGENT_GIFTS_V1.md) defines
+  the native-TOS-only authenticated address exchange and recipient-broadcast
+  signed BOC Gift flow.
 - [Agent Economy Metrics V1](docs/AGENT_ECONOMY_METRICS_V1.md) defines
   finalized-state-derived Agent GDP, settled receipts, job, wallet,
   reliability, and
