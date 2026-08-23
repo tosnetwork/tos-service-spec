@@ -23,6 +23,7 @@ Related specifications:
 - [`NATIVE_EXECUTION_GATE_V1.md`](NATIVE_EXECUTION_GATE_V1.md)
 - [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
+- [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md)
 - [`AGENT_ECONOMY_METRICS_V1.md`](AGENT_ECONOMY_METRICS_V1.md)
 - [`ROADMAP.md`](ROADMAP.md)
 
@@ -259,6 +260,12 @@ identity where monetary, and an error disposition that states whether retry is
 safe, forbidden, or requires authoritative resolution first.
 
 ## 6. Market negotiation profile
+
+The transport-neutral paid-demand envelope, public-channel carriage,
+DHT/Overlay/Storage boundary, replaceable indexing, federated discovery,
+direct Provider Offer, abuse controls, and work-square projection are defined
+in [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md).
+This section retains only the cross-repository earning-control-plane summary.
 
 ### 6.1 Why a demand profile is needed
 
