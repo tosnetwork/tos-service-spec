@@ -62,6 +62,37 @@ general arbitration, sealed-bid auctions, provider subcontracting, GPU markets,
 payment channels, additional task profiles, and cross-network markets remain
 outside V1 and behind their existing roadmap gates.
 
+### 2.1 Current implementation gaps
+
+The surrounding repositories contain reusable identity, public-channel,
+discovery, execution, and settlement foundations, but the paid-demand network
+defined here is not implemented end to end. In particular, the following are
+missing:
+
+1. Native protobuf messages for Paid Demand, revisions, Withdrawal, Provider
+   Offer, Selection Notice, and their query/result envelopes;
+2. frozen content-identity, canonical encoding, digest, signature, delegation,
+   expiry, and revision domains with cross-implementation vectors;
+3. a typed `paid-demand` public-channel event profile in `tos-messenger`;
+4. bounded Gateway publication, withdrawal, lookup, search, mutation-
+   resolution, cursor, and provenance interfaces;
+5. an OpenFox multi-source synchronizer with durable per-source cursors,
+   deduplication, equivocation detection, local matching, and economic policy;
+6. a signed Provider Offer transport and safe buyer-selection handoff;
+7. opportunity-channel topic, profile, bootstrap, subscription, and
+   republication rules;
+8. independent public-network evidence for Overlay, DHT, Storage, Gateway, and
+   direct-offer paths;
+9. a measured anti-spam and false-buyer policy that bounds provider evaluation
+   cost without creating Gateway authority; and
+10. a compact Paid Demand Reference, informally an **Opportunity Magnet**, that
+    lets an Agent retrieve the exact signed envelope from multiple independent
+    carriers by content identity.
+
+Existing group chat, public-channel primitives, Capability search, Quote,
+escrow, executor, Receipt, and settlement code must not be represented as
+closing these gaps. They are dependencies on which this profile can be built.
+
 ## 3. Architectural decision
 
 ### 3.1 A distributed bulletin system, not one bulletin board
@@ -412,6 +443,116 @@ buyer”, “funded”, or “profitable” unless each claim is explicitly labe
 a local projection and, where applicable, independently backed by finalized
 state.
 
+### 8.7 Paid Demand Reference (“Opportunity Magnet”)
+
+The protocol needs a compact, copyable reference analogous in purpose to a
+magnet link: it identifies one immutable Paid Demand envelope and supplies
+optional places from which the exact bytes may be retrieved. The normative
+name is **Paid Demand Reference**. “Opportunity Magnet” is a product nickname,
+not a second schema or authority path.
+
+A future canonical reference has a small mandatory core:
+
+- exact `tos_service_v1` protocol and reference-profile version;
+- complete TOS network domain or its unambiguous approved compact encoding;
+- paid-demand envelope media/schema identifier; and
+- exact content digest of the complete canonical signed Paid Demand envelope.
+
+It may also contain bounded optional hints:
+
+- expected buyer Agent ID for early filtering, which must match the retrieved
+  and verified envelope;
+- public opportunity-channel profile or immutable channel identifier;
+- one or more owner-policy-eligible Gateway origins;
+- a content-addressed TOS Storage object or verified channel-snapshot hint;
+- a direct publisher or replica retrieval hint; and
+- a human-readable label excluded from all identity and authorization
+  decisions.
+
+The mandatory core identifies the same demand regardless of which optional
+hints are present or in which application the reference is displayed. Hints
+are availability inputs only. They cannot alter the digest, buyer, revision,
+task, price, deadline, signature, selection, Quote, or settlement. A Gateway,
+channel, DHT record, Storage Bag, hostname, or display label found in a
+reference is never trusted merely because the reference was received through
+an authenticated conversation.
+
+The exact URI grammar is deliberately not frozen here. A future compact form
+may be rendered conceptually as:
+
+```text
+tos-demand:<network>:<paid-demand-digest>?source-hints...
+```
+
+Implementations must not ship that illustrative spelling as a de facto wire
+format. The schema-freeze PR must specify character encoding, normalization,
+maximum total length, duplicate/unknown parameter handling, canonical display,
+QR representation if any, and downgrade-safe parser behavior.
+
+#### Resolution algorithm
+
+Given a Paid Demand Reference, an OpenFox resolver:
+
+1. parses and bounds the reference without contacting a network;
+2. matches the complete network domain and schema to owner policy;
+3. checks its content-addressed local cache;
+4. selects only configured and policy-approved hints and default sources;
+5. queries eligible public channels, Gateways, Storage, and direct replicas in
+   bounded local policy order or bounded parallelism;
+6. accepts bytes only when the complete canonical envelope digest equals the
+   mandatory reference digest;
+7. verifies the envelope schema, buyer signature/delegation, finalized buyer
+   Agent state, revision, timing, and task/commercial bounds;
+8. records each successful and failed source observation as provenance;
+9. stores the exact verified bytes under the digest; and
+10. submits the verified candidate to OpenFox matching and economics, never
+    directly to bidding or execution.
+
+The first valid exact envelope is sufficient for content retrieval; agreement
+among sources is not consensus. A malformed or mismatching source is isolated.
+If every source fails, resolution returns unavailable and does not use an
+unverified label, stale cache beyond policy, or similar-looking demand.
+
+#### Revision and withdrawal behavior
+
+An Opportunity Magnet identifies one immutable revision, not a mutable “latest
+job” row. After resolving it, a client may follow only verified successor and
+Withdrawal artifacts under Section 7. A reference to revision N does not
+silently retarget to revision N+1, and it never proves that the named revision
+is still open, selected, funded, or payable.
+
+A UI may offer an explicit “resolve current verified revision” operation. That
+operation returns both the originally referenced digest and the verified
+revision/Withdrawal chain so the identity change remains visible.
+
+#### Permissionless republication
+
+Any Agent, channel replica, Gateway, indexer, or application may re-serve the
+unchanged signed envelope or share another Paid Demand Reference to its digest.
+Republication requires no new buyer signature because it creates no new
+semantic claim. A republisher may attach new source and display hints, but it
+must not alter the mandatory core or represent itself as the buyer.
+
+Indexes deduplicate by exact envelope digest while retaining all source
+provenance. Republishing the same bytes improves availability only; it does not
+increase authenticity, ranking, buyer solvency, selection probability, or
+commercial authority.
+
+#### Security and privacy
+
+- References contain no credentials, bearer tokens, private repository URLs,
+  session material, private host paths, or decryption keys.
+- Network hints pass the same SSRF, DNS, redirect, TLS, proxy, byte, time, and
+  credential-origin policy as direct discovery.
+- Clients never contact every untrusted hint automatically; owner policy
+  selects eligible carriers and bounds fan-out.
+- A reference digest verifies content integrity, not buyer solvency, task
+  safety, profitability, availability, or payment.
+- Copying a public reference may leak buyer, topic, timing, or commercial
+  metadata even when bulk inputs remain private.
+- Unknown or unsupported algorithms, schemas, networks, or reference versions
+  fail closed without a “best effort” legacy parser.
+
 ## 9. Federated discovery
 
 An OpenFox instance configures multiple owner-approved sources. Sources may be
@@ -708,6 +849,9 @@ SearchPaidDemand(network, typed filters, page size, source cursor)
 GetPaidDemand(exact demand identity and optional revision)
   -> exact observed revision chain or explicit incomplete result
 
+ResolvePaidDemandReference(exact compact reference, local source policy)
+  -> exact verified envelope, revision status, and per-source provenance
+
 SubmitProviderOffer(exact signed offer)
   -> peer/source acknowledgement with ambiguity-resolution identity
 
@@ -741,6 +885,8 @@ Errors distinguish at least:
 - decide the one canonical artifact source: Native protobuf, an Agent Packet
   payload profile mapped into Native protobuf, or another approved single
   representation;
+- freeze the Paid Demand Reference mandatory core, optional hint grammar,
+  content-digest algorithm, URI/QR encoding, resolver behavior, and bounds;
 - freeze messages, bounds, ordering, digest/signature domains, expiry,
   revision, withdrawal, errors, and retry behavior;
 - produce positive vectors and adversarial mutations; and
@@ -750,6 +896,8 @@ Errors distinguish at least:
 
 - generate signed synthetic fixed-price demand;
 - implement one local public-channel or fixture carrier;
+- resolve one Paid Demand Reference from a local cache and at least two
+  independently configured fixture carriers;
 - implement protocol verification and an OpenFox source cursor;
 - perform typed matching and deterministic economic simulation; and
 - prove that no bid, claim, signature, execution, or spend is reachable.
@@ -759,6 +907,8 @@ Errors distinguish at least:
 - operate at least two independent carriers or indexes;
 - add client-side federation, provenance, deduplication, revision,
   withdrawal, and source failure;
+- exchange one compact Paid Demand Reference out of band, retrieve the exact
+  envelope after its first source stops, and retain all provenance;
 - publish and recover a verified public-channel Storage snapshot; and
 - compare independently produced search projections.
 
@@ -787,18 +937,27 @@ cannot open an external acceptance or Expansion Gate.
 ### Artifact verification
 
 - exact positive demand, revision, withdrawal, offer, and selection vectors;
+- exact positive Paid Demand Reference parse/render vectors with and without
+  optional source hints;
 - wrong network, buyer, provider, Capability, version, asset, or profile;
 - malformed signature and unauthorized delegation;
 - zero/duplicate nonce, revision skip, stale predecessor, conflicting revision,
   and exact replay;
 - expired publication or offer and invalid deadline ordering;
 - unknown fields, trailing data, non-canonical ordering, and every over-bound
-  field or collection; and
+  field or collection;
+- malformed URI encoding, duplicate/unknown parameters, unsupported digest,
+  ambiguous network, oversized hints, hint substitution, and mandatory-core
+  mutation; and
 - task description attempting to override structured commercial terms.
 
 ### Distribution
 
 - duplicate delivery through channel, Gateway, direct source, and Storage;
+- one Paid Demand Reference resolving to the same exact envelope through each
+  supported carrier independently;
+- dead, malicious, mismatching, private-network, redirecting, and
+  credential-capturing reference hints;
 - malicious peer omission, replay, flood, delay, and altered bytes;
 - DHT locator substitution and Storage snapshot mismatch;
 - incomplete history, forked head, cursor corruption, and restart;
@@ -839,22 +998,24 @@ V1 is accepted only when:
 1. two independent implementations reproduce all frozen market-artifact
    digests and reject the adversarial corpus;
 2. one signed demand is propagated without a central message database;
-3. two independently operated sources expose it with explicit incomplete
+3. one compact Paid Demand Reference retrieves the same exact signed envelope
+   after its original source disappears;
+4. two independently operated sources expose it with explicit incomplete
    coverage and distinct provenance;
-4. an OpenFox provider independently verifies the buyer Agent and exact demand
+5. an OpenFox provider independently verifies the buyer Agent and exact demand
    revision before performing expensive evaluation;
-5. typed skill, evidence, capacity, exact-asset economics, and owner policy
+6. typed skill, evidence, capacity, exact-asset economics, and owner policy
    produce a reproducible decision;
-6. one idempotent signed Provider Offer reaches the buyer and survives sender
+7. one idempotent signed Provider Offer reaches the buyer and survives sender
    and receiver restart;
-7. an unavailable source does not prevent accepted-work recovery;
-8. the selected terms become authoritative only through a finalized Accepted
+8. an unavailable source does not prevent accepted-work recovery;
+9. the selected terms become authoritative only through a finalized Accepted
    Quote and funded escrow;
-9. the Native Execution Gate admits one execution and rejects cross-transport
+10. the Native Execution Gate admits one execution and rejects cross-transport
    replay;
-10. a canonical Receipt binds the objective outcome and immutable evidence;
-11. finalized provider-wallet credit is independently resolved; and
-12. no Gateway, channel, Relay, index, FreeCity database, or OpenFox journal is
+11. a canonical Receipt binds the objective outcome and immutable evidence;
+12. finalized provider-wallet credit is independently resolved; and
+13. no Gateway, channel, Relay, index, FreeCity database, or OpenFox journal is
     required to reconstruct canonical settlement.
 
 ## 22. Explicit non-goals
@@ -862,6 +1023,8 @@ V1 is accepted only when:
 V1 does not create:
 
 - one global job board or globally complete order book;
+- a mutable location-dependent job identity or authoritative source-hint
+  registry;
 - consensus over search results, ranking, moderation, availability, or profit;
 - a Gateway-controlled buyer identity, balance, acceptance, or reputation;
 - natural-language authorization for offers, execution, or payment;
@@ -894,13 +1057,16 @@ V1 does not create:
    offer expiry before chain acceptance?
 8. How are public opportunity channel profiles located without making a topic
    name, DHT record, publisher, or moderator universal authority?
-9. What query and resolution operations make publication, withdrawal, and
+9. Which digest algorithm, URI grammar, compact network encoding, maximum hint
+   count, default-source behavior, and optional QR representation define the
+   Paid Demand Reference?
+10. What query and resolution operations make publication, withdrawal, and
    offer retries safe after ambiguous transport results?
-10. Which measured spam threshold justifies a bond or other economic
+11. Which measured spam threshold justifies a bond or other economic
     anti-abuse mechanism?
-11. What minimum source diversity and public-network evidence is required
+12. What minimum source diversity and public-network evidence is required
     before OpenFox policy-gated automatic offers may be enabled?
-12. Which recurring external paid-use threshold permits competitive bidding
+13. Which recurring external paid-use threshold permits competitive bidding
     and the next task profile under the Expansion Gate?
 
 Until these questions are frozen in the sole Native schema and independently
