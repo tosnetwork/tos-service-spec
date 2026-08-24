@@ -173,8 +173,9 @@ Deliver:
 - ✅ atomic Capability transfer;
 - ✅ direct typed-state resolution;
 - ✅ internal contract and `nativecore` review and remediation;
-- 🟡 independent contract and `nativecore` security review, including the
-  chain-time recovery preflight and crash-safe relay journal remediations;
+- ✅ independent contract and `nativecore` security review, including the
+  chain-time recovery preflight and crash-safe relay journal remediations, and
+  the 2026-08-24 two-engine migration-delta review;
 - ✅ adversarial encoder, resolver, relay, mutation-corpus, release-hash,
   source-cleanliness, and recovery-policy-binding lifecycle checks; and
 - ✅ independent full-lifecycle TVM emulator evidence covering every Agent and
@@ -184,12 +185,33 @@ Accept when the full lifecycle passes on a local chain, the exported code hash
 matches frozen vectors, and independent review finds no unauthorized or partial
 transition.
 
-**Gate status: 🟡 Migration delta review pending.** Implementation, frozen
-conformance, reproducible contract release, and full lifecycle tests pass under
-the new domain. The prior independent review remains relevant to the unchanged
-contract state machines, but Gate B requires a focused independent review of
-the renamed domains, generated protobuf, vectors, and cross-repository imports
-before it can be accepted for `tos_service_v1`.
+**Gate status: ✅ Complete.** Implementation, frozen conformance, reproducible
+contract release, and full lifecycle tests pass under the new domain. The
+focused migration-delta review of the 2026-08-15 rename was performed on
+2026-08-24 by two independent engines (`tos-service-protocol`
+`fb9b86bccbb80459a09d9b14bf59b854e969dda4`, `tos`
+`3a265312828cee1e76934c3da284bb48a5827ef8`). It confirmed: no stale
+pre-migration identifier, protobuf name, schema/signing domain, environment
+variable, discovery path, or module import is accepted anywhere in live code
+(only the archive retains them, byte-for-byte); the generated protobuf is
+byte-in-sync with `native.proto` (regenerate-and-`cmp`), with correct
+reserved-field discipline; the frozen Registry code hash
+`600f2fda…a91ffa0` matches the spec identity; both independent codecs reproduce
+the regenerated vectors and reject the full negative-mutation corpus; and the
+full `make verify` (fmt, proto-sync, `go vet`, `-race` tests, build) passes.
+
+The review's one substantive finding was that the wire protocol identifier is
+not committed to the signed action cell, Agent/Capability ID derivation, or the
+Accepted Quote commitment. This was resolved as a **specification correction**,
+not a code change: cross-domain separation is provided — more strongly — by the
+committed network domain (genesis root/file hash, network ID) and contract code
+hash, and the protocol identifier is intentionally a transport/validation field
+kept outside signed action semantics (§1.1 of `NATIVE_REGISTRY_STATE_MACHINES.md`
+and the Cryptographic-consequence section of `NAMING_MIGRATION.md`). The reset
+is enforced by fresh-unique-genesis deployment, made an explicit Gate C
+acceptance item below. No authority or replay invariant is weakened: the
+genesis+code-hash binding that actually carries separation is unchanged, and the
+frozen code hash is retained.
 
 ## 3. Gate C — Public testnet authority
 
@@ -204,6 +226,13 @@ Deliver:
 - ✅ designated initial public-testnet ConfigParam 8 at global version 14;
 - ⬜ current-domain public-testnet deployment record binding network domain, contract
   address, deployed code BOC, code hash, transaction, and exact source commit;
+- ⬜ fresh-unique-genesis proof: the deployment record MUST show the network
+  domain's genesis root and file hashes differ from every prior and archived
+  network (`deployments/archive/pre-tos-service-v1/`). Because the protocol
+  identifier is not part of any signed commitment, this genesis distinctness is
+  what cryptographically enforces the breaking domain reset
+  (`NATIVE_REGISTRY_STATE_MACHINES.md` §1.1); a deployment reusing an archived
+  genesis is rejected;
 - ⬜ current-domain three-validator strict-majority finalized
   resolution through the production typed-state resolver;
 - ✅ wallet action signing and semantic confirmation, including exact action-hash

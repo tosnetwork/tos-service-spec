@@ -8,8 +8,8 @@
 
 Every action commits to:
 
-- exact protocol identifier;
-- complete TOS network domain;
+- complete TOS network domain (genesis root hash, genesis file hash, network
+  ID);
 - target object ID;
 - target contract code hash;
 - generation and sequence;
@@ -19,6 +19,34 @@ Every action commits to:
 
 The TVM action cell is canonical. Its cell hash is the action hash signed by
 controllers. Callers do not provide an action hash or intended result state.
+
+### 1.1 Cross-domain separation
+
+Cross-domain separation is carried cryptographically by the **complete network
+domain** (genesis root hash, genesis file hash, network ID) and the **target
+contract code hash**, both committed above. These are the strongest available
+separators: a genesis root/file hash is a commitment to a chain's entire origin,
+so two distinct chains cannot share it, and the code hash pins the exact
+contract. A signature, identifier, or account address produced against one
+network domain and code hash is therefore invalid against any other. Account
+addresses are `hash(StateInit(code, data))` and the data cell binds the network
+domain, so even the Agent/Capability address space is genesis-separated.
+
+The wire protocol identifier (`tos_service_v1`) is a transport and build-time
+validation field. It is validated before an action is built and is **not** part
+of the signed action cell, consistent with the contributor rule *"keep transport
+context outside signed action semantics"*. The protocol rename is deliberately
+non-cryptographic: a breaking protocol reset is enforced by deploying on a fresh,
+unique genesis (and, when contract code changes, a fresh code hash), never by the
+identifier string. Deployments therefore MUST use a network domain whose genesis
+root/file hashes differ from every prior or archived network; `ROADMAP.md`
+Gate C records that distinctness as acceptance evidence.
+
+The same separation model applies to every other signed or committed object in
+this protocol (registration identities, Accepted Quote commitments, and
+settlement preimages): each binds the network domain, and where applicable the
+contract code hash and the immutable manifest digest, rather than the protocol
+identifier string.
 
 For a new object, generation and sequence are both `1` and the predecessor is
 zero. Every existing-object mutation, including a generation-reset mutation,
