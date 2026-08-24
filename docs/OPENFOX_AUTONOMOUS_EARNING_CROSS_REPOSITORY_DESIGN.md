@@ -614,7 +614,11 @@ WITHDRAW_AGREEMENT
 RESERVE_EXECUTION
 PREPARE_EXECUTION
 START_EXECUTION
+TRANSITION_SCHEDULE_ENTRY
+TRANSITION_SCHEDULE_DEPENDENCY
+PERFORM_EXECUTOR_EFFECT
 DELIVER_RESULT
+DELETE_PRIVATE_CONTENT
 SEND_GIFT
 SEND_DIRECT_TRANSFER
 PREPARE_TOS_ESCROW
@@ -623,7 +627,10 @@ ABANDON
 ```
 
 New business categories do not add action types unless they introduce a new
-side-effect class.
+side-effect class. These product-facing names map to the released
+`schedule.entry.transition`, `schedule.dependency.transition`,
+`executor.effect`, `content.delete`, or other exact entries in
+`SEMANTIC_ACTION_IDENTITY_V1.md`; they are not caller-selected idempotency keys.
 
 ## 11. Safety and failure invariants
 
@@ -743,7 +750,7 @@ delivery phase determines the actual PR set.
 | first contact | OpenFox | Messenger | canonical Agent recipient, Intent reference, bounded message, exact Authorized Action, sink-side writer admission, action-ID deduplication and resolution |
 | negotiation | Messenger | OpenFox participants | authenticated events, open content, replay-safe delivery, no implicit Agreement |
 | Agreement | participants/protocol helper | OpenFox and selected adapters | canonical acyclic participant/obligation graph; per-obligation settlement; body-bound typed authorization predicates; typed proposal; complete profile-qualified evidence over the exact body, subject, profile, target, role, obligation and expiry; deterministic conflicts |
-| semantic action identity | specification registry and protocol SDK | every side-effect sink | exact V1 framing and SHA-256 formula; registered ordered semantic key; exact request conflict; authority-issued repeat instances; terminal successor and execution-lineage rules; exact-byte vectors |
+| semantic action identity | specification registry and protocol SDK | every side-effect sink | exact V1 framing and SHA-256 formula; registered ordered semantic key; recoverable authority-issued repeat instances; schedule/dependency transitions; post-start executor effects; private-content deletion; terminal successor and execution-lineage rules; exact request conflict and exact-byte vectors |
 | local execution authorization | OpenFox Gate and task-scoped broker | local skill or executor | unique execution slot; atomic `PREPARED -> STARTING`; one-shot start ticket; exact Agreement/plan/input/reservation; immutable file/network/credential capabilities; writer/policy/approval/expiry; ambiguous-start recovery |
 | scheduling | OpenFox durable scheduler | local coordinator and Gate | durable entry and dependency graph with dispatch generation, deadline, resource/exposure reservations, cancel/preempt class, irreversible boundary, downstream Agreement and evidence-driven failure propagation; no authority by itself |
 | Agreement-bound direct payment | custody adapter | accounting/resolver | exact Agreement/obligation/payer/payee/asset/amount/destination/expiry, Authorized Action, adapter-specific finalized evidence, no evidence reuse |

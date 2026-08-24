@@ -624,8 +624,14 @@ for a broader ambient token.
 
 Every upload, new outbound connection, credential use, value transfer, or
 destructive operation passes through the same task broker after process start;
-the runner cannot rely only on a preflight check. If writer generation is
-superseded while running, the default is `DRAIN_NO_NEW_EFFECTS`: pure local
+the runner cannot rely only on a preflight check. Every externally visible or
+destructive Skill effect uses the registered `executor.effect` identity, or a
+more specific released kind such as `content.upload`, `disclosure.release`, or
+`payment.direct`. Its `plan_effect_id` and effect-profile descriptor are frozen
+in the Gate-approved canonical plan; the runner cannot invent either after
+start. Private-content retention deletion uses `content.delete`.
+If writer generation is superseded while running, the default is
+`DRAIN_NO_NEW_EFFECTS`: pure local
 computation may checkpoint, but the broker denies every new external or
 destructive effect. Owner policy may choose immediate kill for a profile known
 to be safely killable. Existing effects already linearized before takeover may
@@ -668,6 +674,12 @@ invent capacity, exceed reservations, or preempt irreversible work. Every
 admission, dispatch, cancellation, or preemption transition requires an exact
 `AuthorizedActionV1`; dispatch also requires a fresh Execution Gate
 authorization. `Propose` has no authority by itself.
+
+Every entry admission, dispatch, cancellation, preemption, ambiguous-state
+resolution, and terminal transition derives `schedule.entry.transition` from
+the normative semantic-action registry. Every blocking or informational edge
+insertion/removal derives `schedule.dependency.transition`; the action admission,
+graph revision, cycle decision, exposure change, and edge mutation are atomic.
 
 The durable scheduler projection is:
 
@@ -838,14 +850,20 @@ ActionResolutionV1 {
 ```
 
 Publication, public reply, contact, Proposal, Agreement acceptance, reservation,
-schedule dispatch, Gate preparation/start, delivery, disclosure, upload,
-credential issuance, Gift, transfer, escrow, billing, settlement, reservation
-release, and applied reconciliation each use an appropriate `action_kind`.
+schedule/dependency transition, Gate preparation/start, post-start executor
+effect, delivery, disclosure, upload/deletion, credential issuance, Gift,
+transfer, escrow, billing, settlement, reservation release, and applied
+reconciliation each use an appropriate registered `action_kind`.
 Typed wrappers may add fields but must embed the exact common envelope.
 
 `stable_action_id` for every kind is derived under the frozen
 `SemanticActionIdentityV1` registry described in §4.7, so no caller, model, or
 retry path can mint a fresh identity for an existing semantic side effect.
+Repeatable actions obtain their instance only through
+`AllocateAuthorityInstance`; after a timeout they call
+`ResolveAuthorityInstance` with the same allocation-request digest before any
+retry. Workers cannot provide an allocation sequence or substitute a new
+request.
 
 For each owner/Agent, every sink either participates directly in one
 linearizable, rollback-resistant action-admission domain or is reachable only
@@ -1924,6 +1942,10 @@ successful recovery after one Carrier and its complete database are removed.
   ID, and any attempt to express the same payment, publication, or execution
   under a new ID — including a changed destination wrapper — rejected as a
   distinct unauthorized action;
+- a lost repeat-instance allocation response resolved by the same
+  `allocation_request_digest` without allocating another sequence; skipped,
+  reused, fabricated, or nonterminal predecessor and worker-chosen allocation
+  nonce rejected;
 - exact retry, same action ID with different request digest, wrong expected
   prior state, expired policy/mandate/approval and stale journal;
 - `unknown`, `prepared`, `submitted`, `accepted`, `rejected`, `conflict` and
@@ -2001,7 +2023,9 @@ successful recovery after one Carrier and its complete database are removed.
 - symlink, rename, inode/device/mount substitution, file-digest change, DNS
   rebinding, redirect, proxy, TLS/SNI change, and credential-scope substitution;
 - every post-start upload, connection, credential use and destructive action
-  rechecked by the task broker;
+  rechecked by the task broker and admitted as `executor.effect`,
+  `content.delete`, or a more specific released action kind; runner-selected
+  plan-effect identity, target, operation, or semantic-key substitutions fail;
 - bounded failure, cancellation, delivery retry, and duplicate prevention; and
 - result delivered without falsely claiming payment.
 
@@ -2017,6 +2041,9 @@ successful recovery after one Carrier and its complete database are removed.
   cycle formation across subcontract chains, cycle revalidation after restart
   and takeover, and cancellation or timeout removing blocking edges so blocked
   entries resolve;
+- every entry and dependency mutation reproducing the normative
+  `schedule.entry.transition` or `schedule.dependency.transition` identity,
+  request-conflict, graph-revision, and terminal-successor behavior;
 - upstream cancellation racing downstream irreversible work under independent
   cancellation policies;
 - subcontractor unavailable, late, unpaid, malicious, or requesting upstream

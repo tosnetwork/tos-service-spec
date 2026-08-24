@@ -61,6 +61,7 @@ application profiles above it.
 - [Software Work Receipt TVM V1](SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - [Paid-Demand Accepted-Quote Binding V1](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 - [Native Execution Gate V1](NATIVE_EXECUTION_GATE_V1.md)
+- [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md)
 
 The on-chain path is optional for discovery and conversation. It becomes
 authoritative only after parties explicitly select that profile.
@@ -71,6 +72,7 @@ authoritative only after parties explicitly select that profile.
 - [OpenFox Autonomous Messenger Economy Plan](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
 - [OpenFox Autonomous Earning — Operation-Composed Cross-Repository Design](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
 - [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
+- [OpenFox Autonomous Earning Roadmap](OPENFOX_AUTONOMOUS_EARNING_ROADMAP.md)
 
 These documents explain how OpenFox composes generic operations, AI reasoning,
 skills, runtime policy, and optional settlement. They do not define new

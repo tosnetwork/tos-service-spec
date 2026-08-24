@@ -113,7 +113,7 @@ otherwise. Fields appear in the exact order shown.
 | `action_kind` | Ordered semantic fields | Successor policy |
 |---|---|---|
 | `publication.publish` | `owner_id:id`, `agent_id:id`, `carrier_id:id`, `intent_object_id:id`, `revision:u64`, `operation_digest:digest32` | none |
-| `authority.instance` | `owner_id:id`, `agent_id:id`, `purpose_kind:kind`, `mandate_digest:digest32`, `authority_allocation_sequence:u64` | none |
+| `authority.instance` | `owner_id:id`, `agent_id:id`, `purpose_kind:kind`, `mandate_digest:digest32`, `allocation_request_digest:digest32`, `authority_allocation_sequence:u64` | none |
 | `publication.reply` | `owner_id:id`, `agent_id:id`, `carrier_id:id`, `parent_operation_digest:digest32`, `authority_instance_id:digest32` | authority_instance |
 | `publication.withdraw` | `owner_id:id`, `agent_id:id`, `carrier_id:id`, `intent_object_id:id`, `withdrawn_revision:u64`, `withdrawal_operation_digest:digest32` | none |
 | `messenger.contact` | `owner_id:id`, `agent_id:id`, `recipient_agent_id:id`, `intent_reference_digest:digest32`, `authority_instance_id:digest32` | authority_instance |
@@ -123,11 +123,15 @@ otherwise. Fields appear in the exact order shown.
 | `agreement.withdraw` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `proposal_action_id:digest32` | none |
 | `portfolio.reserve` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `reservation_scope_digest:digest32`, `target_revision:u64` | terminal_successor |
 | `portfolio.release` | `owner_id:id`, `agent_id:id`, `reservation_id:digest32`, `target_revision:u64`, `terminal_evidence_set_digest:digest32` | terminal_successor |
+| `schedule.entry.transition` | `owner_id:id`, `agent_id:id`, `schedule_entry_id:id`, `agreement_body_digest:digest32`, `execution_id:digest32`, `expected_state_revision:u64`, `target_state:state`, `target_dispatch_generation:u64` | terminal_successor |
+| `schedule.dependency.transition` | `owner_id:id`, `agent_id:id`, `upstream_agreement_digest:digest32`, `upstream_obligation_id:id`, `downstream_agreement_digest:digest32`, `downstream_obligation_id:id`, `dependency_type:kind`, `dependency_class:kind`, `transition_kind:kind`, `graph_base_revision:u64` | terminal_successor |
 | `execution.prepare` | `owner_id:id`, `agent_id:id`, `execution_id:digest32` | none |
 | `execution.start` | `owner_id:id`, `agent_id:id`, `execution_id:digest32` | none |
+| `executor.effect` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `execution_id:digest32`, `plan_effect_id:id`, `effect_profile_digest:digest32`, `target_digest:digest32`, `operation_kind:kind`, `effect_semantic_key_digest:digest32` | none |
 | `credential.issue` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `execution_id:digest32`, `recipient_id:id`, `capability_descriptor_digest:digest32` | none |
 | `disclosure.release` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `recipient_id:id`, `content_digest:digest32`, `purpose_digest:digest32` | none |
 | `content.upload` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `handoff_id:id`, `sender_id:id`, `receiver_id:id`, `content_manifest_digest:digest32` | none |
+| `content.delete` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `handoff_id:id`, `content_manifest_digest:digest32`, `retention_policy_digest:digest32` | none |
 | `delivery.release` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `recipient_id:id`, `deliverable_manifest_digest:digest32` | none |
 | `gift.send` | `owner_id:id`, `agent_id:id`, `authority_instance_id:digest32`, `recipient_id:id`, `network_id:id`, `asset_digest:digest32`, `amount_atomic:id`, `destination_digest:digest32` | authority_instance |
 | `payment.direct` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_instance_id:digest32`, `payer_id:id`, `payee_id:id`, `network_id:id`, `asset_digest:digest32`, `amount_atomic:id`, `destination_digest:digest32` | none |
@@ -151,11 +155,108 @@ UUID. A read-only calculation, cache update, model turn, or Carrier-derived rank
 does not receive an economic action identity because it has no external or
 authority-changing side effect.
 
+`schedule.entry.transition` covers entry admission, dispatch, cancellation,
+preemption, ambiguous-state resolution, and terminal transition. The canonical
+request carries the complete entry mutation; changing priority, deadline,
+reservation, dependency set, cancellation/preemption class, irreversible
+boundary, or evidence while reusing the same semantic transition therefore
+conflicts through `exact_request_digest`. `schedule.dependency.transition`
+covers both insertion and removal. `transition_kind` is `add` or `remove`, and
+the Action Authority performs the graph-revision check, cycle check, edge
+mutation, reservation/exposure update, and action admission in one transaction.
+
+`executor.effect` is the business-neutral identity for a Skill's post-start
+external or destructive effect when no more specific released action kind
+applies. `plan_effect_id` is a nonzero unique identifier frozen in the exact
+Gate-approved canonical plan, never allocated by the runner or model after
+start. The selected effect profile deterministically projects the complete
+destination, principal, resource, operation, and semantic replay key into
+`target_digest` and `effect_semantic_key_digest`; its immutable descriptor is
+bound by `effect_profile_digest`. A credentialed API write, repository mutation,
+cloud-resource change, email send, or other visible tool effect cannot be
+treated as an unregistered local detail. `content.delete` separately identifies
+the destructive retention transition for accepted private content.
+
 ## 5. Authority-issued repeatable instances
 
 Some actions are intentionally repeatable: an owner may send the same text
 twice or send two Gifts of the same amount. Their distinction cannot be inferred
 from content and cannot be left to a worker-selected nonce.
+
+Allocation itself must be recoverable before the sequence or resulting
+`authority_instance_id` is known to the caller. The request is therefore:
+
+```text
+AuthorityInstanceAllocationRequestV1 {
+  owner_id
+  agent_id
+  purpose_kind
+  mandate_digest
+  approval_digest_or_zero           # raw 32 zero bytes when absent
+  downstream_effect_descriptor_digest
+  predecessor_authority_instance_id # raw 32 zero bytes for the first instance
+}
+
+downstream_effect_descriptor_digest
+  = SHA-256("tos.authority-instance-effect.v1\0" ||
+            uint32_big_endian(len(canonical_effect_body)) ||
+            canonical_effect_body)
+
+allocation_request_digest
+  = SHA-256("tos.authority-instance-allocation.v1\0" ||
+            uint32_big_endian(len(canonical_allocation_request_body)) ||
+            canonical_allocation_request_body)
+
+canonical_allocation_request_body
+  = uint16_big_endian(1) ||       # request version
+    uint16_big_endian(7) ||       # field count
+    allocation_field("owner_id", owner_id) ||
+    allocation_field("agent_id", agent_id) ||
+    allocation_field("purpose_kind", purpose_kind) ||
+    allocation_field("mandate_digest", raw32(mandate_digest)) ||
+    allocation_field("approval_digest_or_zero", approval_digest_or_zero) ||
+    allocation_field("downstream_effect_descriptor_digest",
+                     raw32(downstream_effect_descriptor_digest)) ||
+    allocation_field("predecessor_authority_instance_id",
+                     predecessor_authority_instance_id)
+
+allocation_field(name, value) = lp16(lower_ascii_name) || lp32(value)
+```
+
+`canonical_effect_body` is the exact intended downstream side-effect payload
+with `authority_instance_id`, `AuthorizedActionV1`, retry, transport, writer,
+and admission fields absent. Its released action profile defines exact canonical
+bytes and a finite size bound; an unknown or non-canonical profile fails closed.
+The `id`, `kind`, `lp16`, and `lp32` rules are those in §2; `raw32(x)` decodes a
+canonical `sha256:` digest to its raw 32 bytes. Digest fields and zero sentinels
+are exact 32-byte values, including `predecessor_authority_instance_id` despite
+its ID name. The caller knows every allocation-request field before allocation
+and can therefore query or retry the same digest after a lost response. The
+Action Authority keeps one durable record for
+`(owner_id, agent_id, allocation_request_digest)`. It allocates the sequence,
+instance ID, policy result, and exposure change in one serializable transaction
+before returning. Exact retry returns that record and never increments the
+sequence.
+
+The normative authority interface is:
+
+```text
+AllocateAuthorityInstance(request, writer_fence) -> authority_instance_record
+ResolveAuthorityInstance(owner_id, agent_id, allocation_request_digest)
+  -> authority_instance_record | unknown
+```
+
+`unknown` permits only an exact retry of the same allocation request. It never
+authorizes a caller to vary a request field or choose a new sequence.
+
+A second intentionally identical effect either references the prior terminal
+authority instance as its predecessor or binds a distinct owner approval whose
+policy explicitly permits an independent series. The authority validates the
+predecessor, terminal resolution, mandate, approval, repeat limit, and aggregate
+exposure. Reused, skipped, nonterminal, fabricated, or caller-selected
+predecessors fail closed. A worker UUID, RPC ID, session ID, timestamp, or fresh
+allocation request over the same effect cannot turn an ambiguous allocation
+into a second admitted instance.
 
 For an `authority_instance` entry, the Owner Economic Action Authority allocates
 the instance in the same serializable transaction that validates policy,
@@ -169,6 +270,7 @@ authority_instance_id = SemanticActionIdentityV1(
     agent_id,
     purpose_kind,
     mandate_digest,
+    allocation_request_digest,
     authority_allocation_sequence
   ])
 ```
@@ -177,9 +279,10 @@ authority_instance_id = SemanticActionIdentityV1(
 `tos.semantic-action.authority.instance.v1`; the allocation sequence is a
 rollback-resistant owner/Agent `u64`. The worker cannot supply or increment it.
 The authority durably returns the allocated id before its exclusive broker can
-perform the external action. Lost responses are resolved against the same
-authority request record; they do not allocate again. A second identical action
-requires a new policy-admitted allocation and is not a retry.
+perform the external action. Lost responses are resolved by the exact
+`allocation_request_digest`; they do not allocate again. A second identical
+action requires the predecessor- or approval-bound policy-admitted allocation
+defined above and is not a retry.
 
 ## 6. Terminal successors
 
@@ -281,9 +384,17 @@ Every implementation must also pass generated entry-specific vectors covering:
 - same id plus different exact request bytes is `conflict`;
 - ambiguous execution, payment, publication, upload, or settlement cannot gain
   a successor id;
-- takeover recomputes the same id for the same side effect; and
-- two intentionally repeated actions differ only through two independently
-  admitted authority instance allocations, never a worker nonce.
+- takeover recomputes the same id for the same side effect;
+- a lost authority-instance allocation response resolves by the same allocation
+  request digest without incrementing the sequence, while a second intentional
+  repeat requires a valid terminal predecessor or distinct owner approval;
+- schedule entry and dependency transitions reproduce their state/graph
+  revisions and reject concurrent cycle-forming or conflicting mutations;
+- every post-start external/destructive effect uses `executor.effect` or a more
+  specific released kind, and a runner-chosen effect ID, target, operation, or
+  semantic-key substitution fails; and
+- accepted private-content deletion uses `content.delete`, and conflicting
+  manifest or retention-policy bytes cannot reuse the action identity.
 
 Phase 0 cannot exit until `tos-service-protocol` and a code-independent
 reference verifier consume the same registry data and reproduce every exact

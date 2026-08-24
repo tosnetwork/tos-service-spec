@@ -164,6 +164,9 @@ conformance artifacts for:
   `AGREEMENT/WITHDRAW` actions;
 - the per-action-kind `SemanticActionIdentityV1` registry in
   [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md),
+  including recoverable repeat-instance allocation, schedule/dependency
+  transitions, generic post-start executor effects, and private-content
+  deletion,
   `WriterFenceV1`, `AuthorizedActionV1`, and `ActionResolutionV1`;
 - `BillingTermsV1` and `SettlementObligationV1`, including Agreement and
   obligation identity, kind, sequence, predecessor, payer, payee, asset,
@@ -424,7 +427,11 @@ Implement:
 - non-escalating credentials bound to action, Skill, task, domain, and
   destination;
 - task-broker mediation for every outbound connection, upload, credential use,
-  value transfer, and destructive action after process start; and
+  value transfer, and destructive action after process start;
+- a registered `executor.effect` or more specific action kind for every
+  externally visible or destructive tool/API effect, with the exact
+  plan-effect ID, profile, target, operation and semantic key frozen by the
+  Gate-approved plan; and
 - explicit drain or kill policy when writer authority is superseded.
 
 A successful Gate decision authorizes only bounded execution. It does not prove
@@ -454,6 +461,9 @@ Action/Portfolio transaction as schedule admission, preventing concurrent
 `A -> B` and `B -> A` insertion. Informational edges never block dispatch.
 Cancellation, timeout, or terminal failure removes blocking edges under the
 recorded propagation policy so recovery cannot deadlock the schedule.
+Entry mutations use `schedule.entry.transition`; dependency insertion and
+removal use `schedule.dependency.transition`. Unknown or implementation-local
+scheduler action kinds fail closed.
 
 ### 6.9 Settlement, accounting, and learning
 
@@ -1030,7 +1040,10 @@ operators, stores, time windows, and exclusions, and demonstrates:
    ordered key, SHA-256 identity and vectors independent of retry, transport,
    time or writer; same-ID/different-request conflicts, ambiguous successors,
    destination omission, takeover, terminal lineage, and authority-issued
-   intentional repeats fail or succeed exactly as specified;
+   intentional repeats fail or succeed exactly as specified; a lost repeat-
+   allocation response resolves by the same request digest without consuming a
+   second sequence, and scheduler/dependency transitions, post-start executor
+   effects and private-content deletion cannot use caller-selected IDs;
    every sink verifies the authority-issued `WriterFenceV1`, resolved mandate
    and approval content, and two processes or hosts cannot bypass generation,
    aggregate exposure, or custody limits;
