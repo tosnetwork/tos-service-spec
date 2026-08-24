@@ -34,10 +34,10 @@ Build OpenFox into:
 
 > An owner-controlled Agent that continuously discovers arbitrary economic
 > intent, identifies opportunities compatible with its current abilities and
-> resources, estimates profit and risk, negotiates with other Agents, performs
-> agreed work through approved skills, selects an appropriate payment method,
-> advertises bounded services, schedules a portfolio of obligations, and learns
-> from verified outcomes.
+> resources, estimates profit and risk, negotiates exact obligations and their
+> settlement adapters with other Agents, obtains typed acceptance, performs
+> agreed work through approved skills, advertises bounded services, schedules a
+> portfolio of obligations, and learns from verified outcomes.
 
 The primary loop and component boundary are:
 
@@ -50,10 +50,13 @@ Capability Inventory
   -> Economic Evaluator computes feasibility, profit, ROI, trust, and risk
   -> ignore, watch, request owner review, or contact issuer
   -> Negotiation Manager uses authenticated Messenger
-  -> freeze exact Agreement
-  -> Portfolio Ledger atomically reserves resources and exposure
+  -> Settlement Selector chooses an adapter for each value-bearing obligation
+  -> Agreement Compiler freezes exact obligations and typed acceptances
+  -> validate adapter prerequisites
+  -> Portfolio Ledger atomically reserves aggregate resources and exposure
+  -> prove required prepayment or finalized escrow funding
   -> Skill/Execution Gate performs and delivers approved work
-  -> Settlement Selector chooses none/Gift/direct/TOS escrow/external adapter
+  -> resolve each obligation through its selected adapter
   -> Portfolio Ledger reconciles evidence and bounded learning records
   -> repeat
 ```
@@ -102,13 +105,13 @@ generic autonomous business loop in this plan.
 | Intent-referenced contact | No complete coordinator turns a verified Intent into bounded authenticated first contact. |
 | Open negotiation | Existing earning design over-specializes Provider Offers and forbids general natural-language negotiation in the production path. |
 | Generic Agreement | No exact object cleanly separates ordinary chat from the final terms that authorize work or payment. |
-| Optional settlement | No common adapter boundary selects trusted Gift, direct transfer, TOS escrow, or external settlement without changing the Intent or Agreement objects. |
+| Optional settlement | No common adapter boundary selects Agreement-bound direct transfer, TOS escrow, or external settlement per obligation without changing the Intent or Agreement objects. |
 | Generic execution dispatch | The passive provider path is pinned to a narrow software profile rather than a locally selected approved skill. |
 | Local execution authorization | No common OpenFox Gate binds every Skill plan to exact files, domains, credentials, resources, disclosure, policy, approval, writer fence, and expiry. |
 | Autonomous supply | No durable loop safely publishes, reprices, revises, or withdraws OpenFox's own service Intents. |
 | Portfolio scheduling and subcontracting | Concurrency limits do not yet define deadline-, priority-, dependency- and exposure-aware scheduling or separate downstream Agreements. |
 | Milestone and periodic billing | No generic obligation sequence reconciles invoices, installments, partial payments, accumulated balances, and bounded recurring mandates. |
-| Business accounting | Expected Gift, unsecured receivable, external payment, escrowed receivable, cost, nonpayment, and settled revenue are not reconciled under evidence classes. |
+| Business accounting | Gift gratuity, unsecured receivable, external payment, escrowed receivable, cost, nonpayment, and settled revenue are not reconciled under evidence classes. |
 | Continuous operation | Pause, drain, restart, contact limits, unresolved Agreements, settlement recovery, and learning are not integrated into one durable loop. |
 
 ## 4. Architectural decisions
@@ -159,17 +162,20 @@ The system must not treat ordinary natural-language acceptance phrases as an
 Agreement. The AI may propose terms; a dedicated Agreement action freezes and
 authorizes them.
 
-### 4.5 Select settlement late
+### 4.5 Select settlement after negotiation and before acceptance
 
 Settlement is chosen after negotiation:
 
-- `trusted-gift` for low-risk relationships willing to accept nonpayment risk;
-- `direct-transfer` for simple payment without escrow;
+- `none` for explicitly unpaid collaboration, which may later receive an
+  unrelated Gift gratuity;
+- `agreement-direct-transfer` for simple Agreement-bound payment without
+  escrow, including intentionally unsecured post-delivery payment;
 - `tos-escrow` for a supported high-assurance TOS profile;
-- `external` for explicitly non-TOS systems; or
-- `none` for unpaid collaboration.
+- `external` for explicitly non-TOS systems.
 
 No settlement mode is a prerequisite for discovering or discussing an Intent.
+Every value-bearing obligation selects and validates its mode before the
+Agreement is accepted and before dependent reservation or execution.
 
 ### 4.6 Preserve strict optional profiles
 
@@ -197,7 +203,7 @@ their semantics match exactly.
 
 ```text
 pkg/earning/
-  coordinator.go      # observe -> evaluate -> negotiate -> execute -> settle
+  coordinator.go      # observe -> evaluate -> negotiate -> agree -> prepare -> execute -> resolve
   lifecycle.go        # generic economic safety states, not business categories
   actions.go          # typed semantic actions and idempotent action IDs
   writer_lease.go     # owner/Agent single-writer lease and fencing generation
@@ -246,7 +252,7 @@ pkg/skilladapter/
 
 pkg/settlementadapter/
   adapter.go          # common prepare/authorize/submit/resolve boundary
-  gift.go             # existing Agent Gift integration
+  gift.go             # gratuity/other-income integration; not settlement
   direct.go           # supported direct transfers
   tosescrow.go        # optional Accepted Quote/escrow profile
   external.go         # explicit non-TOS evidence integration
@@ -281,9 +287,14 @@ type OpportunitySource interface {
         ctx context.Context,
         ref OperationRef,
     ) (VerifiedAgentOperation, error)
-    FetchContent(
+}
+
+type ContentResolver interface {
+    ResolveContent(
         ctx context.Context,
         descriptor ContentDescriptor,
+        policy ContentRetrievalPolicyV1,
+        budget RetrievalBudget,
     ) (ExactContent, error)
 }
 ```
@@ -299,8 +310,10 @@ issuer, topic, retry, and verification budgets as search.
 
 Search returns exact bounded signed cards or exact references plus provenance;
 any derived labels or rank are separate attributed fields. Detail, attachment
-manifest, and selected attachments reuse one explicit content fetch and must
-match their signed size and digest. Search may be
+manifest, and selected attachments go through a configured `ContentResolver`
+and the generic retrieval security profile before they must match their signed
+size and digest. A raw `retrieval_hint` is never passed to a general HTTP client
+or model-selected tool. Search may be
 lexical, taxonomy-, value-, time-, region-, language-, embedding-, room-, or
 application-based. A source's filtering or ranking never becomes OpenFox's
 decision or issuer authority.
@@ -317,24 +330,25 @@ type IntentPublisher interface {
     ) (IntentDraft, error)
     Publish(
         ctx context.Context,
-        fence WriterFence,
-        action AuthorizedPublicationAction,
+        action AuthorizedActionV1,
     ) (PublicationResult, error)
     Reply(
         ctx context.Context,
-        fence WriterFence,
-        action AuthorizedReplyAction,
+        action AuthorizedActionV1,
     ) (PublicationResult, error)
     Revise(
         ctx context.Context,
-        fence WriterFence,
-        action AuthorizedPublicationAction,
+        action AuthorizedActionV1,
     ) (PublicationResult, error)
     Withdraw(
         ctx context.Context,
-        fence WriterFence,
-        action AuthorizedWithdrawalAction,
+        action AuthorizedActionV1,
     ) (PublicationResult, error)
+    ResolveAction(
+        ctx context.Context,
+        actionID ActionID,
+        requestDigest Digest,
+    ) (ActionResolution, error)
 }
 ```
 
@@ -354,11 +368,22 @@ refresh cannot conceal a worse price or rewrite an earlier issuer assertion.
 
 ```go
 type CapabilityInventory interface {
-    Snapshot(ctx context.Context, owner OwnerID, agent AgentID) (InventorySnapshot, error)
+    Snapshot(
+        ctx context.Context,
+        owner OwnerID,
+        agent AgentID,
+        barrier ConsistencyBarrier,
+    ) (InventorySnapshot, error)
 }
 
 type InventorySnapshot struct {
     Revision       uint64
+    CreatedAt      Timestamp
+    ExpiresAt      Timestamp
+    SourceGeneration uint64
+    PortfolioRevision uint64
+    PolicyRevision PolicyRevision
+    ConsistencyToken Digest
     Skills         []SkillDescriptor
     Models         []ModelDescriptor
     Tools          []ToolDescriptor
@@ -371,18 +396,53 @@ type InventorySnapshot struct {
     CostEvidence   []UnitCostEvidence
     OutcomeHistory []SkillOutcomeSummary
 }
+
+type InventoryItemState struct {
+    ItemID               ItemID
+    AuthorityDigest      Digest
+    State                AvailabilityState
+    ExpiresAt            Timestamp
+    RevocationGeneration uint64
+    EvidenceRefs         []EvidenceRef
+}
 ```
 
-The snapshot is local, versioned, and owner-scoped. Remote content cannot add a
-Skill, mark a credential available, change a cost, or release a reservation.
+Every Skill, model, tool, credential, wallet, asset, capacity, and cost entry
+includes `InventoryItemState`. The snapshot is local, versioned, owner-scoped,
+and consistent with the named writer, portfolio, and policy barrier. Remote
+content cannot add a Skill, mark a credential available, change a cost, or
+release a reservation.
+
+An informational contact policy may accept a longer configured freshness
+window. Agreement validation, reservation, publication pricing, settlement
+preparation, and Gate authorization require a new non-expired snapshot under
+the same admission barrier. If heterogeneous sources cannot produce one atomic
+snapshot, the final admission transaction revalidates every referenced item,
+revocation generation, portfolio revision, and consistency token before it
+linearizes the action. A mismatch restarts evaluation; it never falls back to a
+stale estimate.
 
 ### 6.4 Conversation transport
 
 ```go
 type ConversationTransport interface {
-    EnsureDirect(ctx context.Context, issuer AgentID) (Conversation, error)
-    Send(ctx context.Context, conversation ConversationID, actionID ActionID, message Message) (SendResult, error)
+    EnsureDirect(
+        ctx context.Context,
+        action AuthorizedActionV1,
+        issuer AgentID,
+    ) (Conversation, error)
+    Send(
+        ctx context.Context,
+        conversation ConversationID,
+        action AuthorizedActionV1,
+        message Message,
+    ) (SendResult, error)
     Subscribe(ctx context.Context, cursor Cursor, limit uint32) (MessageBatch, error)
+    ResolveAction(
+        ctx context.Context,
+        actionID ActionID,
+        requestDigest Digest,
+    ) (ActionResolution, error)
 }
 ```
 
@@ -398,7 +458,7 @@ type AgreementCompiler interface {
         ctx context.Context,
         conversation ConversationSnapshot,
         intentRefs []IntentRef,
-        proposedTerms ProposedTerms,
+        proposedBody AgentAgreementBodyV1,
     ) (AgreementCandidate, error)
     Validate(
         ctx context.Context,
@@ -411,11 +471,15 @@ type AgreementCompiler interface {
 
 Compilation converts a bounded conversation and selected attachments into one
 exact candidate that binds participants, referenced publications, terms and
-attachment digests, deliverables, consideration, schedule, acceptance evidence,
-confidentiality, cancellation, dispute and billing terms, settlement mode, and
-expiry. Business-specific meaning remains in exact terms or namespaced
-extensions. The compiler cannot sign, reserve, execute, or settle; those remain
-separate authorized actions.
+attachment digests and a canonical graph of `AgreementObligationV1` records.
+Each obligation binds its obligor, beneficiary, dependencies, subject,
+deliverables or consideration, exact asset and amount when applicable, schedule,
+acceptance evidence, confidentiality, cancellation, dispute and billing terms,
+settlement adapter, required authorizers, and expiry. Business-specific meaning
+remains in exact terms or namespaced extensions. The compiler rejects duplicate
+IDs, cycles, missing required acceptance, ambiguous value, and missing
+adapter-required fields. It cannot sign, reserve, execute, or settle; those
+remain separate authorized actions.
 
 ### 6.6 Economic evaluator
 
@@ -453,7 +517,7 @@ type Skill interface {
     ) (ExecutionPlan, error)
     Execute(
         ctx context.Context,
-        authorization ExecutionAuthorization,
+        ticket StartTicket,
         plan ExecutionPlan,
         input Input,
     ) (Outcome, error)
@@ -470,23 +534,28 @@ local registry and Agreement content, not from a new business-category API.
 
 ```go
 type ExecutionGate interface {
-    Authorize(
+    PrepareExecution(
         ctx context.Context,
-        fence WriterFence,
+        action AuthorizedActionV1,
         agreement Agreement,
         plan ExecutionPlan,
         reservation Reservation,
         policyRevision PolicyRevision,
-    ) (ExecutionAuthorization, error)
-    RevalidateAtLaunch(
+    ) (PreparedExecution, error)
+    StartExecution(
         ctx context.Context,
-        authorization ExecutionAuthorization,
-    ) error
+        action AuthorizedActionV1,
+        prepared PreparedExecution,
+    ) (StartTicket, error)
+    ResolveExecution(
+        ctx context.Context,
+        slot ExecutionSlotID,
+    ) (ExecutionResolution, error)
 }
 ```
 
 This is OpenFox's local gate for every Skill, not the optional TOS Native
-Execution Gate used by an escrow profile. Its authorization binds exact
+Execution Gate used by an escrow profile. `PreparedExecution` binds exact
 Agreement, plan and input digests; Skill and model versions; sandbox; allowed
 files and directories; network domains and destinations; task-scoped credential
 handles; CPU, memory, storage, accelerator, token, time and spend budgets;
@@ -494,22 +563,63 @@ allowed disclosures and uploads; destructive-operation flags; reservation;
 writer fencing generation; owner approval evidence; policy revision; and
 expiry.
 
-The executor receives handles scoped to the exact Skill, task, domain and
-destination rather than long-lived custody or general credentials. It rejects a
-stale writer, expired authorization, plan mutation, additional network target,
-unapproved upload, or destructive side effect. A successful Gate decision does
+The Gate creates one unique execution slot for `(agent_id,
+agreement_body_digest, execution_id)`. `PrepareExecution` may create only
+`PREPARED`. `StartExecution` is the single linearization point: under the action
+admission transaction it revalidates writer high-water, Agreement, plan, input,
+reservation, policy, credentials and approval, then atomically moves
+`PREPARED -> STARTING` and returns a short-lived `start_not_after` one-shot
+ticket. The runner consumes that ticket once and records `RUNNING`; a crash in
+`STARTING` becomes `AMBIGUOUS_START` and must be reconciled, never automatically
+re-authorized. Terminal states are `SUCCEEDED`, `FAILED`, `CANCELLED`, or
+`KILLED`. A new writer cannot create another slot for the same exact execution.
+
+File access uses pre-opened no-follow directory/file capabilities bound to
+stable file identity and, where immutability is required, exact content digest.
+Path re-resolution, symlink traversal, rename substitution, device files, and
+mount escape fail closed. Network access is mediated for every connection by a
+task broker that binds allowed scheme, hostname, resolved IP class, port, TLS
+SNI/certificate policy, proxy, redirect and retry rules. DNS and redirects are
+rechecked at each hop. Credential capabilities are immutable, purpose-limited,
+bound to action, Skill, task, domain and destination, and cannot be exchanged
+for a broader ambient token.
+
+Every upload, new outbound connection, credential use, value transfer, or
+destructive operation passes through the same task broker after process start;
+the runner cannot rely only on a preflight check. If writer generation is
+superseded while running, the default is `DRAIN_NO_NEW_EFFECTS`: pure local
+computation may checkpoint, but the broker denies every new external or
+destructive effect. Owner policy may choose immediate kill for a profile known
+to be safely killable. Existing effects already linearized before takeover may
+finish and are reconciled by their action IDs. A successful Gate decision does
 not prove correct work or authorize payment.
 
 ### 6.9 Engagement scheduler
 
 ```go
 type EngagementScheduler interface {
-    Schedule(
+    Propose(
         ctx context.Context,
         inventory InventorySnapshot,
         portfolio PortfolioSnapshot,
         engagements []SchedulableEngagement,
     ) (ScheduleDecision, error)
+    Admit(
+        ctx context.Context,
+        action AuthorizedActionV1,
+        entry EngagementScheduleEntryV1,
+    ) (EngagementScheduleEntryV1, error)
+    RequestTransition(
+        ctx context.Context,
+        action AuthorizedActionV1,
+        entryID ScheduleEntryID,
+        expectedRevision uint64,
+        target ScheduleState,
+    ) (EngagementScheduleEntryV1, error)
+    ResolveEntry(
+        ctx context.Context,
+        entryID ScheduleEntryID,
+    ) (EngagementScheduleEntryV1, error)
 }
 ```
 
@@ -517,8 +627,63 @@ Scheduling considers Agreement deadlines, expected profit, risk, priority,
 resource compatibility, setup cost, fairness, dependencies, cancellation cost,
 and settlement exposure. It may delay or recommend rejection, but it cannot
 invent capacity, exceed reservations, or preempt irreversible work. Every
-dispatch still requires the current writer fence and a fresh Execution Gate
-authorization.
+admission, dispatch, cancellation, or preemption transition requires an exact
+`AuthorizedActionV1`; dispatch also requires a fresh Execution Gate
+authorization. `Propose` has no authority by itself.
+
+The durable scheduler projection is:
+
+```text
+EngagementScheduleEntryV1 {
+  schedule_entry_id
+  agreement_body_digest
+  execution_id
+  writer_generation
+  dispatch_generation
+  state                    # queued, reserved, dispatched, starting, running,
+                           # preempt_requested, cancel_requested, ambiguous,
+                           # completed, failed, cancelled
+  priority
+  not_before
+  deadline
+  reservation_digest
+  resource_and_exposure_digest
+  dependency_ids[]
+  cancel_class
+  preempt_class
+  irreversible_boundary
+  downstream_agreement_digests[]
+  state_revision
+  evidence_refs[]
+}
+
+PortfolioDependencyV1 {
+  dependency_id
+  upstream_agreement_digest
+  upstream_obligation_id
+  downstream_agreement_digest
+  downstream_obligation_id
+  dependency_type
+  failure_propagation_policy
+  disclosure_policy_digest
+  reserved_loss_exposure
+}
+```
+
+Only an `AuthorizedActionV1` with the current writer generation can linearize a
+dispatch, cancellation, or preemption transition. A takeover increments
+`dispatch_generation`, reconstructs durable entries, and reconciles
+`dispatched`, `starting`, `running`, and `ambiguous` entries before dispatching
+replacement work. Crossing an irreversible boundary disables automatic
+preemption. Cancellation of an upstream Agreement does not silently cancel a
+downstream Agreement; its accepted cancellation policy and dependency event are
+applied separately.
+
+A downstream completion, failure, delay, dispute, cancellation, or payment
+event atomically updates the dependency projection, deadline risk, reserved
+loss, refund exposure, and Portfolio evidence before a new scheduling decision.
+It never copies private input, authority, execution evidence, or settlement
+state between Agreements.
 
 ### 6.10 Settlement adapter
 
@@ -527,28 +692,34 @@ type SettlementAdapter interface {
     Prepare(
         ctx context.Context,
         agreement Agreement,
-        obligation SettlementObligation,
+        obligation SettlementObligationV1,
     ) (PreparedSettlement, error)
-    Request(ctx context.Context, action AuthorizedAction) (Attempt, error)
+    Request(ctx context.Context, action AuthorizedActionV1) (Attempt, error)
     Resolve(ctx context.Context, reference SettlementRef) (SettlementEvidence, error)
+    ResolveAction(
+        ctx context.Context,
+        actionID ActionID,
+        requestDigest Digest,
+    ) (ActionResolution, error)
 }
 ```
 
 Adapters expose a shared operational shape but preserve their own guarantees.
 No generic method claims that all external settlement is atomic or finalized.
-`SettlementObligation` identifies an exact deposit, milestone, installment,
-period, final balance, refund, or other Agreement-bound obligation. Each request
-has its own stable action ID and evidence; a schedule is not unlimited recurring
-payment authority.
+`SettlementObligationV1` is the canonical projection defined by the Intent
+specification. It identifies an exact deposit, milestone, installment, period,
+final balance, refund, or other Agreement-bound obligation and state. Each
+request has its own stable action ID and evidence; a schedule is not unlimited
+recurring payment authority.
 
 ### 6.11 Portfolio ledger and writer fencing
 
 ```go
 type PortfolioLedger interface {
     Snapshot(ctx context.Context, owner OwnerID, agent AgentID) (PortfolioSnapshot, error)
-    Reserve(ctx context.Context, fence WriterFence, reservation Reservation) (ReservationResult, error)
-    ApplyEvidence(ctx context.Context, fence WriterFence, actionID ActionID, evidence Evidence) error
-    Reconcile(ctx context.Context, fence WriterFence, scope ReconcileScope, apply bool) (ReconcileResult, error)
+    Reserve(ctx context.Context, action AuthorizedActionV1, reservation Reservation) (ReservationResult, error)
+    ApplyEvidence(ctx context.Context, action AuthorizedActionV1, evidence Evidence) error
+    Reconcile(ctx context.Context, action AuthorizedActionV1, scope ReconcileScope, apply bool) (ReconcileResult, error)
 }
 
 type WriterLease interface {
@@ -558,11 +729,82 @@ type WriterLease interface {
 }
 ```
 
-`WriterFence` contains a monotonically increasing generation. Every operation
-that creates contact, commitment, reservation, execution, delivery, or
-settlement exposure carries the current generation. Local storage and custody
-reject stale generations. A process mutex is required even for single-process
-deployments but does not replace cross-process or cross-host fencing.
+`WriterFence` contains a monotonically increasing generation. A process mutex is
+required even for single-process deployments but does not replace cross-process
+or cross-host fencing.
+
+### 6.12 Unified economic action admission
+
+Every externally visible or exposure-changing side effect uses the same frozen
+authorization envelope:
+
+```text
+AuthorizedActionV1 {
+  owner_id
+  agent_id
+  action_kind
+  stable_action_id
+  exact_request_digest
+  writer_generation
+  policy_revision
+  mandate_digest
+  approval_digest?
+  expected_prior_state
+  expires_at
+}
+
+ActionResolutionV1 {
+  stable_action_id
+  exact_request_digest
+  state                    # unknown, prepared, submitted, accepted,
+                           # rejected, conflict, terminal
+  sink_reference?
+  evidence_refs[]
+  state_revision
+}
+```
+
+Publication, public reply, contact, Proposal, Agreement acceptance, reservation,
+schedule dispatch, Gate preparation/start, delivery, disclosure, upload,
+credential issuance, Gift, transfer, escrow, billing, settlement, reservation
+release, and applied reconciliation each use an appropriate `action_kind`.
+Typed wrappers may add fields but must embed the exact common envelope.
+
+For each owner/Agent, every sink either participates directly in one
+linearizable, rollback-resistant action-admission domain or is reachable only
+through a broker that does. Admission atomically:
+
+1. rejects a generation lower than the stored high-water generation;
+2. advances the high-water generation when a newer valid writer arrives;
+3. creates `(stable_action_id, exact_request_digest)` once against the expected
+   prior state; and
+4. returns the durable existing resolution for an exact retry or `conflict` for
+   the same ID with different bytes.
+
+Messenger outboxes, custody, Carrier publishers, credential brokers, local
+executors, Portfolio storage, and settlement adapters must enforce this rule.
+If an external system cannot enforce fencing, its credential is held only by
+the fenced broker; stale processes have no alternate session, token, key, or
+network route that can create the economic side effect directly.
+
+Timeout or crash recovery calls `ResolveAction(stable_action_id,
+exact_request_digest)`. `unknown` may retry the same exact action under policy;
+`prepared`, `submitted`, or `accepted` is ambiguous or in progress and never
+creates a new semantic action. An action linearized before a writer loses its
+lease may reach its defined terminal state. After the high-water generation
+advances, that writer cannot linearize a new action, including a release or
+compensating action.
+
+V1 defines two deployment profiles. `personal-single-host` uses one local
+Owner Economic Action Authority with an exclusive process lock and durable
+transactional store; every side-effect credential and outbox is owned by that
+authority, not worker processes. `shared-multi-host` uses one owner-operated
+strongly consistent Action Authority endpoint shared by all hosts, while
+custody independently persists and rejects lower generations. The endpoint is
+not a global market database: it stores only one owner's private safety state.
+Loss of the authority stops new actions; it never falls back to per-process
+journals. A backend is eligible only after linearizability, crash, rollback,
+partition, stale-client, and custody-high-water conformance tests.
 
 ## 7. Domain model
 
@@ -596,7 +838,8 @@ The AI assessment is versioned local evidence containing:
 - proposed plan and work units;
 - revenue, cost, probability, trust, asset, legal, privacy, and safety
   assumptions;
-- recommended response and settlement mode; and
+- recommended response and settlement adapter for each value-bearing
+  obligation; and
 - exact model/profile and prompt-policy revision used.
 
 The assessment is not a signature or commitment.
@@ -640,17 +883,22 @@ identity. A changed digest is a new Intent revision, not a retry result.
 A Proposal contains candidate terms and remains non-binding. An Agreement
 contains:
 
-- exact participants;
+- exact participants and roles;
 - referenced Intent revisions;
 - bounded exact terms and content-addressed attachments;
-- selected execution/delivery assumptions;
-- selected settlement mode and adapter parameters;
-- validity and cancellation terms; and
-- required authorizations.
+- a canonical acyclic graph of exact `AgreementObligationV1` records;
+- per-obligation obligor, beneficiary, dependencies, subject, asset/amount,
+  schedule, evidence, disclosure, cancellation, dispute, billing and settlement
+  parameters;
+- selected execution/delivery assumptions; and
+- validity, predecessor and required typed acceptances.
 
-For trusted mode, the accepted record may be an authenticated conversation
-agreement. For higher risk, both Agent authorities or the selected TOS profile
-must authorize it.
+Conversation text and transcript digests remain evidence only. OpenFox sends a
+typed `AGREEMENT/PROPOSE` action, and each required participant sends a typed
+`AGREEMENT/ACCEPT` bound to the same exact body digest, version, roles,
+obligations and expiry. No local projection becomes `AGREED` until every
+obligation's required acceptance set is complete. Higher-assurance profiles may
+add chain acceptance, but cannot remove the generic body or required authority.
 
 ### 7.5 Engagement
 
@@ -660,8 +908,13 @@ collaboration.
 
 ```text
 AGREED
-  -> PREPARING
-  -> READY
+  -> SETTLEMENT_PREPARING
+  -> READY_TO_RESERVE
+  -> RESOURCE_RESERVED
+  -> FUNDING_REQUIRED | UNSECURED_APPROVED | READY
+  -> FUNDED | READY
+  -> EXECUTION_PREPARED
+  -> EXECUTION_STARTING
   -> EXECUTING
   -> DELIVERING
   -> DELIVERED
@@ -685,8 +938,15 @@ DISCOVERED
        -> CONTACTING
        -> NEGOTIATING
        -> AGREEMENT_PROPOSED
+       -> AGREEMENT_ACCEPTING
        -> AGREED
+       -> SETTLEMENT_PREPARING
+       -> READY_TO_RESERVE
        -> RESOURCE_RESERVED
+       -> FUNDING_REQUIRED | UNSECURED_APPROVED | READY
+       -> FUNDED | READY
+       -> EXECUTION_PREPARED
+       -> EXECUTION_STARTING | EXECUTION_AMBIGUOUS
        -> EXECUTING
        -> DELIVERED
        -> SETTLEMENT_RESOLVING
@@ -891,21 +1151,53 @@ matter to an action.
 ### 9.4 Agreement promotion
 
 When both sides appear ready, OpenFox constructs an exact Proposal from the
-conversation. The model explains the Proposal; deterministic code validates
-participants, terms digest, settlement adapter, resources, policy, and
-authorization requirements.
+conversation. The model explains it; deterministic code validates the canonical
+obligation graph, participants, terms and attachment digests, exact values,
+dependencies, billing, per-obligation settlement adapters, resources, policy,
+and required acceptance sets.
 
-Promoting the Proposal to Agreement is a distinct action. Changed terms require
-a new version. Ordinary chat cannot trigger promotion.
+Sending `AGREEMENT/PROPOSE` and each `AGREEMENT/ACCEPT` are distinct
+writer-fenced `AuthorizedActionV1` operations. Every acceptance binds the exact
+body digest, version, roles, obligation IDs and expiry. Changed terms require a
+new predecessor-bound version and a complete new acceptance set. Ordinary chat,
+a transcript digest, a model phrase, read receipt, or stale acceptance cannot
+trigger promotion. Ambiguous sends are resolved by action ID and request digest
+before retry.
 
 ## 10. Execution and delivery
 
-### 10.1 Reservation
+### 10.1 Agreement and settlement admission
+
+Execution is ineligible until the exact `AgentAgreementBodyV1` has every typed
+acceptance required by its obligations. The coordinator prepares each selected
+settlement adapter, validates its exact parameters and prerequisites, and
+recomputes economics and worst-case exposure using that adapter's payment,
+funding, reversibility, fee, delay, dispute, and nonpayment model.
+
+An obligation requiring prepayment must have accepted finalized payment
+evidence before dependent work begins. A TOS escrow obligation must have its
+profile-required finalized funding and all Gate prerequisites. An unsecured
+direct-payment obligation explicitly reserves nonpayment exposure. Work with no
+payment obligation records no receivable; a possible later Gift is not a
+settlement prerequisite. Changing settlement adapter, payer, payee, asset,
+amount, destination, sequence, funding rule, or release condition requires a
+new Agreement version and complete typed acceptance before a dependent
+irreversible action.
+
+Adapter validation is read-only and does not move value. The aggregate
+Portfolio reservation linearizes first. Only after that reservation succeeds
+may custody admit the exact prepayment or escrow-funding action; dependent work
+remains blocked until the required finalized funding evidence is resolved.
+
+### 10.2 Reservation
 
 Before work begins, OpenFox reserves the exact plan's resources and worst-case
 cost. Reservation is keyed by Agreement and stable action ID. Concurrent
 instances cannot exceed shared local or custody-enforced exposure. Reservation
-requires the current owner/Agent writer-fence generation and atomically checks:
+requires the current `AuthorizedActionV1`; the linearizable owner/Agent
+Portfolio admission transaction validates its writer generation, policy,
+request digest, expected prior state and fresh consistency barrier while it
+atomically checks:
 
 - CPU, memory, disk, accelerator, token, API, time, and concurrency capacity;
 - external spend and locked capital;
@@ -921,7 +1213,7 @@ stopped.
 Trusted mode may intentionally accept unsecured payment risk, but it cannot
 ignore execution cost or resource limits.
 
-### 10.2 Skill dispatch
+### 10.3 Skill planning, Gate, and dispatch
 
 The AI chooses among installed adapters and proposes an exact `ExecutionPlan`.
 The Portfolio Ledger reserves its worst-case resources and exposure before the
@@ -936,13 +1228,13 @@ local Execution Gate evaluates it. The selected adapter receives only:
 Remote text cannot widen that envelope. If no safe adapter exists, OpenFox asks
 for owner intervention, renegotiates, or declines.
 
-Immediately before launch, the Gate revalidates the current writer generation,
-Agreement and plan digests, reservation, policy revision, credential handles,
-destinations, approval evidence, and expiry. Plan mutation or a lost reservation
-requires a new authorization; retry does not reuse an authorization whose
-one-shot effects may already have occurred.
+The Gate prepares the exact slot, then atomically revalidates and moves it to
+`STARTING` when issuing the one-shot start ticket. Plan mutation, lost
+reservation, stale writer, changed resource identity, or expired policy requires
+a new preparation. `STARTING` ambiguity is resolved from the execution journal;
+it is never treated as permission to start again.
 
-### 10.3 Delivery
+### 10.4 Delivery
 
 Delivery may use Messenger, content-addressed storage, an authenticated
 endpoint, or the selected escrow profile. The delivery record binds exact
@@ -953,22 +1245,27 @@ it as such.
 
 ## 11. Settlement adapters
 
-### 11.1 Trusted Gift
+### 11.1 Agent Gift gratuity
 
-OpenFox may perform work before payment when local trust and value-at-risk
-policy permit it. After delivery, it can request or wait for an Agent Gift.
+OpenFox may perform explicitly unpaid trusted work and later receive an Agent
+Gift. Gift V1 remains a non-purchase transfer: it is recorded as gratuity or
+other income and cannot close an Agreement obligation, invoice, milestone, or
+receivable. A chat reference or matching amount is not a payment binding.
 
-The Gift action remains distinct from Agreement and delivery. Expected Gift is
-an unsecured expectation. Settled revenue requires finalized destination
-credit under the Gift profile.
+If the parties promise compensation, the Agreement uses an Agreement-bound
+direct, external, or escrow adapter. OpenFox never records an “expected Gift” as
+a debt or settled Agreement revenue.
 
-### 11.2 Direct transfer
+### 11.2 Agreement-bound direct transfer
 
-The adapter prepares one exact transfer request with asset, amount,
-destination, expiry, and replay identity. It may support payment before, during,
-or after work.
+The adapter prepares one exact `AgreementPaymentRequestV1` containing Agreement
+digest, obligation ID, payer, payee, asset, amount, destination, adapter, expiry,
+and stable action identity. It may support payment before, during, or after work
+when the accepted obligation permits that timing.
 
-It does not claim escrow protection or prove work quality.
+It does not claim escrow protection or prove work quality. It closes only the
+exact obligation whose payment-request digest is bound by independently
+resolved transfer evidence; the same evidence cannot close another obligation.
 
 ### 11.3 TOS escrow
 
@@ -997,18 +1294,24 @@ An unsupported external mode remains conversation-only or approval-required.
 
 ### 11.5 Milestones, invoices, and periodic settlement
 
-An Agreement may contain exact billing terms for a deposit, milestones,
-installments, usage periods, a final balance, or an accumulated low-value
-balance. OpenFox projects each due item as a separate `Invoice` or payment
-obligation with Agreement digest, sequence, asset, amount, due time, payer,
-payee, settlement adapter, stable action ID, and evidence state.
+An accepted `AgreementObligationV1` contains exact `BillingTermsV1`. OpenFox
+deterministically projects each due item into the canonical
+`SettlementObligationV1` and `SettlementObligationStateV1` defined by the Intent
+specification. Deposit, milestone, installment, usage period, final balance,
+refund, and accumulated balance share the same sequence, predecessor, amount,
+aggregate-cap, adapter, stable-action and evidence rules.
 
-Periodic terms authorize only the bounded schedule and maximum aggregate amount
-in the Agreement or a separate mandate. They do not let the model invent a new
-charge. A cumulative execution Receipt is valid only when the selected profile
-defines how exact completed units and payment are bound; otherwise OpenFox keeps
-separate execution evidence and payment requests. Partial payment never settles
-unpaid obligations implicitly.
+Periodic expansion requires exact start, interval, finite count, end and maximum
+aggregate amount. Modification requires a new typed-accepted Agreement version
+and does not rewrite already due or paid instances. Partial payment is applied
+only to the exact payment-request digest for one instance; duplicate evidence is
+idempotent and conflicting allocation fails closed. Cancellation, due-time and
+payment races follow the accepted policy and durable state revision.
+
+A cumulative execution Receipt is valid only when the selected profile defines
+how exact completed units and payment are bound; otherwise OpenFox keeps
+separate execution evidence and payment requests. No invoice, schedule, model
+output, or prior transfer creates unlimited recurring authority.
 
 ## 12. Accounting
 
@@ -1018,8 +1321,8 @@ revenue.
 Candidate accounts include:
 
 - estimated consideration;
-- expected unsecured Gift;
 - Agreement value;
+- finalized Gift gratuity or other income, never an Agreement receivable;
 - issued and received invoices by obligation sequence;
 - milestone, installment, and accumulated-balance receivables;
 - prepaid direct transfer;
@@ -1036,8 +1339,8 @@ Settlement promotion rules:
 
 | Mode | Settled evidence |
 |---|---|
-| trusted Gift | exact finalized destination credit |
-| supported direct TOS transfer | exact finalized destination credit |
+| Agent Gift | exact finalized destination credit proves gratuity only; closes no Agreement obligation |
+| Agreement-bound direct TOS transfer | exact payment-request digest plus independently resolved exact finalized transfer evidence |
 | TOS escrow | independently resolved finalized provider-wallet credit |
 | external adapter | adapter's declared evidence class; never labelled TOS-finalized |
 | no payment | no revenue |
@@ -1097,6 +1400,15 @@ earning:
     ttl_seconds: 30
     renew_seconds: 10
     require_custody_fence: true
+  action_admission:
+    backend: owner-scoped-linearizable-store
+    rollback_resistant_generation: true
+    require_sink_or_broker_enforcement: true
+    resolve_before_retry: true
+  inventory:
+    max_contact_age_seconds: 300
+    max_commitment_age_seconds: 30
+    require_portfolio_policy_consistency_barrier: true
   sources:
     - id: public-intents
       adapter: gateway
@@ -1129,6 +1441,17 @@ earning:
     shortlist_size: 40
     max_shortlist_per_issuer: 3
     max_shortlist_per_taxonomy: 12
+  content_retrieval:
+    allowed_resolver_profiles: [configured-carrier, configured-storage, public-https]
+    deny_loopback_linklocal_private_metadata: true
+    recheck_dns_and_redirects: true
+    allow_ambient_proxy: false
+    allow_url_credentials: false
+    require_tls_hostname_sni_certificate_binding: true
+    max_redirects: 3
+    max_connections_per_object: 4
+    max_header_bytes: 65536
+    max_expanded_bytes_per_object: 8388608
   publication:
     enabled: false
     max_active_service_intents: 5
@@ -1159,6 +1482,12 @@ earning:
   execution_gate:
     require_fresh_writer_fence: true
     require_exact_plan_digest: true
+    atomic_prepared_to_starting: true
+    start_ticket_ttl_seconds: 10
+    ambiguous_start_requires_reconcile: true
+    writer_loss_policy: drain-no-new-effects
+    no_follow_file_capabilities: true
+    recheck_dns_redirect_tls_each_connection: true
     deny_unlisted_network_destinations: true
     deny_unlisted_credential_handles: true
     destructive_actions_require_owner_approval: true
@@ -1168,10 +1497,13 @@ earning:
     deadline_miss_requires_replan_or_owner_review: true
   settlement:
     allowed:
-      - trusted-gift
+      - agreement-direct-transfer
       - tos-escrow
     default_for_unknown_counterparty: tos-escrow
     external_requires_owner_approval: true
+  gratuity:
+    accept_agent_gifts: true
+    never_close_agreement_obligation: true
 ```
 
 Configuration is owner policy. Intent content cannot edit it.
@@ -1190,11 +1522,15 @@ openfox earning search <text>
 openfox earning opportunity inspect <operation-ref>
 openfox earning explain <operation-ref>
 openfox earning inventory show
+openfox earning inventory consistency
 openfox earning portfolio show
 openfox earning writer status
+openfox earning action inspect <action-id> <request-digest>
 openfox earning conversations
 openfox earning agreement inspect <agreement-id>
 openfox earning engagement list
+openfox earning execution inspect <execution-slot-id>
+openfox earning schedule entries
 openfox earning billing obligations <agreement-id>
 openfox earning accounting summary
 openfox earning settlement inspect <agreement-id>
@@ -1248,7 +1584,7 @@ Metrics include:
 - contacts, replies, conversation turns, and abuse/rate-limit events;
 - publication drafts, posts, revisions, withdrawals, audience, price changes,
   active-post age, Carrier propagation, and publication-rate rejections;
-- Proposals and Agreements by settlement mode;
+- Proposals, Agreements, and obligations by selected settlement adapter;
 - engagements accepted, fulfilled, failed, abandoned, and unpaid;
 - expected versus actual cost and duration;
 - scheduler decisions, deadline risk, preemption rejection, queue age, and
@@ -1272,7 +1608,10 @@ or unrestricted model context.
 - re-audit the selected OpenFox commit;
 - freeze the common Agent Operation Envelope plus the Intent payload, signed
   Discovery Card, detail descriptor, publisher/derived-field boundary, query,
-  and Agreement vectors in `tos-service-spec` and `tos-service-protocol`;
+  content retrieval policy, canonical Agreement/obligation/acceptance,
+  `AuthorizedActionV1`, settlement-obligation state, local Gate/start-ticket,
+  scheduler/dependency, and recovery vectors in `tos-service-spec` and
+  `tos-service-protocol`;
 - freeze coarse modes/classes, taxonomy and region identifier syntax, keyword/
   language rules, capability-hint identifiers, canonical decimal value hints,
   schedule ordering, and all card/detail/attachment bounds;
@@ -1282,9 +1621,10 @@ or unrestricted model context.
 - keep every external action disabled.
 
 Exit: two independent codecs/verifiers agree on the common operation and Intent
-payload, unrelated goods, services, and asset exchange require no new core
-opcode or fields, and a second implementation filters signed cards without
-retrieving detail.
+payload plus Agreement, obligation, acceptance, action and billing objects;
+unrelated goods, services, and asset exchange require no new core opcode or
+fields; and a second implementation filters signed cards without retrieving
+detail. No side-effect phase starts before this exit is met.
 
 ### Phase 1 — read-only Intent scout
 
@@ -1294,10 +1634,12 @@ retrieving detail.
   policy;
 - implement hard card filters, cheap local scoring, issuer/category/value
   diversity quotas, and a bounded exploration bucket;
-- retrieve and digest-check only shortlisted detail and separately approved
-  public attachments;
+- retrieve through the generic SSRF/DNS/redirect/TLS/proxy/credential policy,
+  then digest-check only shortlisted detail and separately approved public
+  attachments;
 - add hostile-content isolation;
-- expose the local capability/resource inventory;
+- expose freshness-, authority-, revocation- and consistency-bound local
+  capability/resource inventory;
 - let the embedded AI choose bounded queries and classify Intents;
 - calculate explainable economics and trust/risk estimates;
 - persist Opportunity projections and cursors; and
@@ -1311,26 +1653,34 @@ advertised as resilient decentralized public discovery.
 
 ### Phase 2 — authenticated contact and negotiation
 
+- deploy the linearizable writer-generation and `AuthorizedActionV1` admission
+  domain for Messenger and Agreement actions;
 - add Intent-referenced first contact through existing Messenger;
 - enable bounded open-ended conversation;
 - add contact/disclosure/abuse policies;
-- implement Proposal and Agreement versioning;
+- implement typed Proposal, Agreement acceptance, withdrawal and versioning;
 - compile exact generic Agreement candidates from bounded conversation and
   selected content without granting signing authority;
 - ensure ordinary chat is non-binding; and
 - recover ambiguous send and restart without duplicate Agreement actions.
 
-Exit: two fresh Agents negotiate changed terms and freeze one exact Agreement
-without chain settlement.
+Exit: two fresh Agents negotiate changed terms, emit typed acceptances for one
+canonical multi-obligation Agreement, and recover ambiguous sends through
+`ResolveAction` without chain settlement or transcript inference.
 
 ### Phase 3 — trusted low-risk work
 
 - enable one reviewed local skill or executor;
-- reserve resources and worst-case cost;
-- construct an exact plan and pass the local Execution Gate before launch;
+- select and validate settlement for each value-bearing obligation;
+- reserve resources, worst-case cost, capital and exact unsecured nonpayment
+  exposure in the linearizable Portfolio;
+- then satisfy required prepayment or finalized funding evidence;
+- construct an exact plan and pass the local Execution Gate's one-shot atomic
+  start before launch;
 - execute, schedule, and deliver under one trusted Agreement;
 - record nonpayment exposure;
-- optionally request/receive an existing Agent Gift or direct transfer; and
+- optionally request/receive one Agreement-bound direct transfer, or separately
+  observe an unrelated Agent Gift gratuity; and
 - reconcile paid or unpaid outcome.
 
 Exit: one real low-value job completes without invoking Accepted Quote or
@@ -1339,15 +1689,17 @@ escrow. Nonpayment must be handled as a valid adverse business outcome.
 ### Phase 4 — policy-gated settlement adapters
 
 - add a common adapter registry;
-- enable Agent Gift and supported direct-transfer modes;
+- enable Agreement-bound direct-transfer modes and separate Gift-gratuity
+  accounting;
 - project deposits, milestones, installments, periodic obligations, invoices,
-  partial payments, and outstanding balances without recurring implicit
+  partial payments, cancellation races, conflicts, finite aggregate caps, and
+  outstanding balances from canonical state without recurring implicit
   authority;
 - add external adapters only with explicit evidence labels and owner approval;
 - optionally integrate the released TOS escrow profile; and
 - prove disabling any adapter does not disable discovery or negotiation.
 
-Exit: the same Intent/Agreement path selects at least two settlement modes
+Exit: the same Intent/Agreement path selects at least two settlement adapters
 without category-specific core code.
 
 ### Phase 5 — optional untrusted TOS escrow
@@ -1401,6 +1753,10 @@ successful recovery after one Carrier and its complete database are removed.
   embedding, price conversion, risk label, and rank provenance;
 - detail size/digest mismatch, mutable retrieval URL, unavailable detail, and
   attachment-budget exhaustion;
+- URL user information, loopback, link-local, private and metadata addresses,
+  alternative IP encodings, DNS rebinding, redirects across origin/address
+  class, TLS/SNI mismatch, proxy and credential capture, oversized headers,
+  connection fan-out, compression bombs, timeout and retry amplification;
 - keyword stuffing, one-issuer flooding, one-category starvation, source-rank
   manipulation, and diversity/exploration quota enforcement;
 - source adapter receives only the projected query, not credentials, full skill
@@ -1426,7 +1782,9 @@ successful recovery after one Carrier and its complete database are removed.
 
 ### Capability, economics, portfolio, and writer fencing
 
-- stale, missing, or internally inconsistent capability inventory;
+- expired snapshot, stale source generation, mismatched portfolio/policy
+  revision or consistency token, revoked item generation, and internally
+  inconsistent capability inventory;
 - unavailable model, Skill, tool, credential, wallet, asset, or capacity;
 - deterministic profit and risk-adjusted ROI calculations around threshold
   boundaries, unknown costs, uncertain payment, and adverse outcomes;
@@ -1439,6 +1797,22 @@ successful recovery after one Carrier and its complete database are removed.
   writer's reservation; and
 - crash, lease expiry, takeover, journal replay, and evidence-driven
   reconciliation without duplicate economic actions.
+
+### Authorized actions and sink admission
+
+- every publication, contact, Proposal, acceptance, reservation, dispatch,
+  Gate, credential, disclosure, delivery, payment, settlement, release and
+  reconciliation sink receiving the exact common action envelope;
+- lower, equal and higher writer generations against a rollback-resistant
+  high-water mark;
+- exact retry, same action ID with different request digest, wrong expected
+  prior state, expired policy/mandate/approval and stale journal;
+- `unknown`, `prepared`, `submitted`, `accepted`, `rejected`, `conflict` and
+  terminal recovery through `ResolveAction`;
+- an action admitted before takeover completing, while the old writer cannot
+  admit a new message, compensation, release or retry afterward; and
+- external sinks without native fencing accessible only through a broker whose
+  scoped credential and network route are unavailable to stale processes.
 
 ### AI and hostile content
 
@@ -1457,6 +1831,13 @@ successful recovery after one Carrier and its complete database are removed.
   ambiguous send;
 - excessive unsolicited contact and disclosure;
 - model message containing “accept” without Agreement action;
+- transcript digest or local UI projection without typed acceptance;
+- multi-party and multi-obligation service, deposit/final balance, milestone,
+  asset-exchange and refund fixtures using one canonical schema;
+- duplicate obligation IDs, missing participant, dependency cycle, ambiguous
+  asset/amount, missing adapter field, unknown required extension, and unknown
+  optional-extension round trip;
+- acceptance for wrong body, version, role, obligation set or expiry;
 - changed terms under reused Agreement identity;
 - concurrent Proposals and stale acceptance;
 - Intent withdrawal before and after Agreement; and
@@ -1471,7 +1852,14 @@ successful recovery after one Carrier and its complete database are removed.
   reservation, writer fence, approval evidence, or authorization expiry;
 - unlisted file, directory, domain, destination, credential handle, upload,
   network route, destructive action, or resource use;
-- restart before and after first execution start;
+- atomic `PREPARED -> STARTING`, one-shot ticket consumption, crash before and
+  after start linearization, and `AMBIGUOUS_START` recovery;
+- writer takeover before prepare, between prepare and start, while starting,
+  and while running under drain-no-new-effects and kill policies;
+- symlink, rename, inode/device/mount substitution, file-digest change, DNS
+  rebinding, redirect, proxy, TLS/SNI change, and credential-scope substitution;
+- every post-start upload, connection, credential use and destructive action
+  rechecked by the task broker;
 - bounded failure, cancellation, delivery retry, and duplicate prevention; and
 - result delivered without falsely claiming payment.
 
@@ -1481,6 +1869,10 @@ successful recovery after one Carrier and its complete database are removed.
 - starvation, unsafe preemption, lost reservation, stale queue item, and
   irreversible work;
 - scheduler output unable to bypass writer fencing or the Execution Gate;
+- durable dispatch generation and takeover reconciliation for queued,
+  dispatched, starting, running and ambiguous entries;
+- upstream cancellation racing downstream irreversible work under independent
+  cancellation policies;
 - subcontractor unavailable, late, unpaid, malicious, or requesting upstream
   private input; and
 - upstream and downstream Agreements, evidence, reservations, and settlement
@@ -1489,11 +1881,18 @@ successful recovery after one Carrier and its complete database are removed.
 ### Settlement
 
 - trusted work paid and unpaid;
-- Gift/direct transfer wrong destination, amount, asset, replay, and ambiguity;
+- Gift with a matching conversation, amount or destination unable to close any
+  Agreement obligation;
+- Agreement-bound direct transfer wrong Agreement, obligation, payer, payee,
+  destination, amount, asset, request digest, replay, evidence reuse, or
+  ambiguity;
 - external evidence labelled below TOS finality;
 - unsupported adapter and owner-approval enforcement;
 - duplicate, skipped, reordered, partial, overdue, cancelled, or over-limit
   milestone and periodic obligations;
+- sequence/predecessor conflict, recurrence without finite count/end/cap,
+  concurrent cancellation/payment, partial-payment allocation, evidence reuse,
+  Agreement revision after incurred debt, and restart reconstruction;
 - a billing schedule unable to create unlimited recurring payment authority;
 - cumulative execution evidence not treated as payment without a profile that
   binds both;
@@ -1503,7 +1902,7 @@ successful recovery after one Carrier and its complete database are removed.
 ### Accounting and learning
 
 - quoted value never counted as revenue;
-- expected Gift remains unsecured;
+- Gift is gratuity/other income and never a receivable or Agreement payment;
 - exact promotion by evidence class;
 - invoices, installments, partial payments, accumulated balances, and overdue
   obligations reconcile by exact sequence and stable action ID;
@@ -1522,9 +1921,11 @@ The generic autonomous-earning MVP is accepted only when:
 2. each active Intent exposes a bounded signed Discovery Card containing a
    coarse direction/class, keywords, optional namespaced capability hints,
    explicit value state, lifecycle, and digest-bound detail descriptor;
-3. OpenFox builds a fresh, evidence-backed Capability Inventory covering its
-   current Skills, models, tools, credentials, wallets, assets, capacity,
-   reservations, obligations, costs, and relevant verified outcomes;
+3. OpenFox builds a fresh, evidence-backed Capability Inventory with created/
+   expiry times, source generation, portfolio and policy revisions, consistency
+   token, and per-item authority, state, expiry, revocation generation and
+   evidence for Skills, models, tools, credentials, wallets, assets, capacity,
+   reservations, obligations, costs, and outcomes;
 4. OpenFox's embedded AI proposes a versioned bounded search profile from that
    inventory, and deterministic owner policy clamps it;
 5. card search or subscription and deterministic filters cover category,
@@ -1535,7 +1936,9 @@ The generic autonomous-earning MVP is accepted only when:
 7. hard filters plus diversity quotas reject irrelevant/flooding cards before
    general-model analysis, while an explicit exploration quota avoids a fully
    closed recommendation loop;
-8. only shortlisted detail and approved attachments are fetched, each under
+8. only shortlisted detail and approved attachments are fetched through a
+   configured resolver under SSRF, DNS, redirect, TLS, proxy, credential-origin,
+   connection, compressed/expanded-byte and timeout policy, then accepted under
    separate budgets and exact digest/size verification;
 9. OpenFox explains search-profile, rejection, shortlist, detail-fetch,
    semantic, capability, resource, profit, and risk decisions;
@@ -1545,30 +1948,49 @@ The generic autonomous-earning MVP is accepted only when:
 11. hostile content cannot control tools, credentials, models, routes, policies,
    execution, disclosure, or payment;
 12. OpenFox A contacts OpenFox B through authenticated Messenger using an exact
-   Intent reference;
-13. A and B negotiate natural-language terms and produce a separate exact
-   Agreement;
-14. ordinary messages cannot create an Agreement or economic side effect;
-15. one active writer lease and fencing generation governs all economic
-    actions for the owner/Agent, including across multiple processes or hosts;
-16. compute, spend, capital, receivable risk, and counterparty/global exposure
+    Intent reference and `AuthorizedActionV1` admitted by the current writer;
+13. A and B negotiate natural-language terms that compile into one canonical
+    acyclic Agreement body with unambiguous participants and multi-obligation
+    deliverable, payment, exchange, billing, evidence, cancellation, dispute,
+    disclosure and per-obligation settlement fields;
+14. every required participant emits typed acceptance over the same exact body,
+    version, roles, obligation IDs and expiry before `AGREED`;
+15. ordinary messages, transcript digests, model phrases, UI projections,
+    Gifts, invoices and payment requests cannot create an Agreement or economic
+    side effect;
+16. one active writer lease and rollback-resistant fencing high-water governs
+    all economic actions for the owner/Agent across multiple processes or hosts;
+17. every side-effect sink receives the same action ID, request digest, writer
+    generation, policy, mandate, approval, expected state and expiry, persists
+    conflict-safe resolution, and supports query-before-retry;
+18. compute, spend, capital, receivable risk, and counterparty/global exposure
     are atomically reserved before commitment, and aggregate portfolio limits
     cannot be bypassed by concurrent opportunities;
-17. one owner-approved bounded Skill produces an exact plan, and a local
-    Execution Gate binds its Agreement, input, Skill/model versions, sandbox,
-    resources, files, network, credentials, disclosures, writer fence, policy,
-    approval and expiry before launch;
-18. that Skill executes and delivers without exceeding its authorization;
-19. one trusted low-risk run records either verified Gift/direct payment or an
-   honest unpaid outcome;
-20. the Portfolio Ledger reconciles actual cost and settlement evidence
+19. every value-bearing obligation selects its settlement adapter and validates
+    exact prerequisites before reservation or execution, and escrow-dependent
+    work proves finalized funding first;
+20. one owner-approved bounded Skill produces an exact plan, and a local Gate
+    creates a unique execution slot binding Agreement, input, Skill/model,
+    sandbox, immutable files, mediated network, scoped credentials, disclosure,
+    reservation, writer, policy, approval and expiry;
+21. atomic `PREPARED -> STARTING`, a short-lived one-shot ticket, durable
+    `AMBIGUOUS_START`, and post-start task brokers prevent duplicate start and
+    file/network/credential TOCTOU through crash or takeover;
+22. that Skill executes and delivers without exceeding its authorization;
+23. one trusted low-risk run records either an Agreement-bound direct payment,
+    an honest unpaid receivable, or explicitly unpaid work; a finalized Gift is
+    separate gratuity and closes no obligation;
+24. canonical billing state reconstructs sequence, predecessor, finite
+    recurrence, aggregate cap, partial payment, cancellation, conflict and
+    evidence without heuristic allocation;
+25. the Portfolio Ledger reconciles actual cost and settlement evidence
     without calling expected value revenue;
-21. restart, writer takeover, and exact retry create no duplicate contact,
+26. restart, writer takeover, and exact retry create no duplicate contact,
     Agreement, execution, Gift, transfer, or settlement action;
-22. pause and drain work at source, publication, contact, scheduler, Skill,
+27. pause and drain work at source, publication, contact, scheduler, Skill,
     adapter, and global scope;
-23. the entire MVP works with TOS escrow support disabled; and
-24. if TOS escrow is demonstrated, it separately passes every specialized
+28. the entire MVP works with TOS escrow support disabled; and
+29. if TOS escrow is demonstrated, it separately passes every specialized
     profile gate.
 
 Two independent carriers are required before claiming resilient decentralized
@@ -1584,10 +2006,13 @@ requires:
 2. dynamic pricing uses current cost, capacity, risk and verified outcome
    evidence while deterministic policy enforces margin, discount, exposure and
    revision-change limits;
-3. multiple Engagements are scheduled without deadline, reservation, priority,
-   preemption, or aggregate-exposure violations;
+3. multiple Engagements use durable schedule entries, dispatch generations and
+   dependency records, and survive cancellation, ambiguous start, takeover and
+   downstream failure without deadline, reservation, priority, unsafe
+   preemption, irreversible-work or aggregate-exposure violations;
 4. every invoice, milestone, installment, period and accumulated balance has a
-   distinct Agreement-bound obligation, stable action ID and evidence state;
+   distinct Agreement-bound obligation, finite sequence/cap, stable action ID,
+   conflict rule, partial-payment allocation and evidence state;
 5. customer, supplier and subcontractor searches reuse the same Intent profile,
    while each resulting relationship has a separate Agreement, disclosure,
    reservation, execution and settlement boundary;
@@ -1617,30 +2042,27 @@ The implementation does not require:
 1. Should the first generic Carrier be a Messenger public room, a Gateway
    search endpoint, or both behind one `OpportunitySource` interface?
 2. What exact owner policy permits autonomous first contact?
-3. What minimum Agreement fields are required for trusted work?
-4. Which existing OpenFox skill is safe and useful for the first low-value
+3. Which existing OpenFox Skill is safe and useful for the first low-value
    trusted run?
-5. Should trusted Agreement acceptance require both Agent signatures or a
-   mutually authenticated Messenger transcript digest?
-6. Which Gift or direct-transfer adapter should be demonstrated first?
-7. How should external asset descriptions and price observations be normalized
+4. Which Agreement-bound direct-payment adapter should be demonstrated first,
+   and should Gift gratuity be demonstrated separately?
+5. How should external asset descriptions and price observations be normalized
    locally without becoming protocol authority?
-8. What retention and disclosure defaults apply to public Intent and private
+6. What retention and disclosure defaults apply to public Intent and private
    negotiation content?
-9. Which evidence class permits counterparty trust calibration?
-10. When does value at risk require owner approval or TOS escrow?
-11. Which durable store and custody boundary enforce owner/Agent writer fencing
-    across processes and hosts?
-12. Which reservation dimensions and evidence release each class of aggregate
+7. Which evidence class permits counterparty trust calibration?
+8. When does value at risk require owner approval or TOS escrow?
+9. Which concrete backend is the first released implementation of the
+   single-host and shared multi-host Action Authority conformance profiles?
+10. Which reservation dimensions and evidence release each class of aggregate
     portfolio exposure?
-13. Which publication audiences, posting/reply limits, price-change bounds and
+11. Which publication audiences, posting/reply limits, price-change bounds and
     owner approvals are safe for the first autonomous service offer?
-14. Which credential broker and sandbox enforce exact Skill/task/domain/
-    destination handles for the local Execution Gate?
-15. Which scheduling and subcontracting policy governs deadlines, preemption,
-    downstream disclosure and aggregate failure exposure?
-16. Which settlement adapters support milestones or bounded periodic
-    obligations, and what exact evidence closes each obligation?
+12. Which credential broker and sandbox implementation satisfies the frozen
+    immutable-handle and task-scoped effect-broker contract for exact
+    Skill/task/domain/destination scopes?
+13. Which released settlement adapter first implements the canonical finite
+    milestone or periodic obligation profile?
 
 Until these decisions are frozen and tested, OpenFox may implement the
 read-only scout. Autonomous publication, contact, Agreement, scheduling,
