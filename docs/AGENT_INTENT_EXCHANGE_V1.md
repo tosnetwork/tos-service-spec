@@ -248,6 +248,7 @@ DiscoveryCardV1 {
   subject_classes[]
   taxonomy_paths[]
   keywords[]
+  capability_hints[]
   value_state
   value_hints[]
   schedule
@@ -273,10 +274,28 @@ acceptance, and they are never execution or payment authority.
 
 A publishing Agent may use AI to propose the card from draft detail, but
 deterministic code validates every bound and the issuer's publication policy
-authorizes the final exact body. Changing category, keyword, value, schedule,
-region, summary, or detail digest requires a new signed publication revision. An
-index may flag a misleading card; it cannot silently “repair” the signed
-publisher fields.
+authorizes the final exact body. Changing category, keyword, capability hint,
+value, schedule, region, summary, or detail digest requires a new signed
+publication revision. An index may flag a misleading card; it cannot silently
+“repair” the signed publisher fields.
+
+`capability_hints` is optional. Each entry is a bounded issuer assertion:
+
+```text
+CapabilityHintV1 {
+  relation             # required, preferred, or offered
+  capability_namespace
+  capability_identifier
+  version_constraint?
+}
+```
+
+Namespaces and identifiers are opaque, bounded, and extensible. A hint may say
+that an issuer requires, prefers, or offers a named capability, but it does not
+prove that either party possesses that capability or that differently named
+Skills are incompatible. Unknown hints remain valid. OpenFox compares them with
+its local Capability Inventory and may still use detail or conversation to
+resolve semantic equivalence.
 
 The containing operation's audience descriptor distinguishes at least
 public/indexable, unlisted/reference-only, room-scoped, and direct recipients.
@@ -635,6 +654,7 @@ A carrier search query may constrain:
 - exact taxonomy paths or segment-aware path prefixes;
 - keyword clauses with explicit language and `all`, `any`, or `exclude`
   behavior;
+- optional namespaced capability-hint relations and identifiers;
 - value state, exact asset namespace/identifier, amount interval, and unit;
 - publication/expiry interval and requested schedule overlap;
 - fulfillment mode, region hierarchy, and language; and
@@ -670,6 +690,7 @@ propose:
 
 - Intent modes and coarse subject classes;
 - taxonomy prefixes, positive keywords, negative keywords, and languages;
+- optional capability-hint namespaces and identifiers;
 - approximate value windows and acceptable assets;
 - schedule, fulfillment mode, and region constraints;
 - minimum relevance, expected-value, trust, and confidence thresholds; and
@@ -693,7 +714,7 @@ AI proposes bounded local search profile
   -> source searches indexes by card fields
   -> retrieve small signed publications and Discovery Cards, not all details
   -> deterministic size/version/network/time/signature/revision checks
-  -> deterministic hard filters: mode/class/value/time/region/language/policy
+  -> deterministic hard filters: mode/class/capability/value/time/region/language/policy
   -> cheap local keyword/taxonomy/embedding score
   -> retain top-K diverse candidates under source and issuer quotas
   -> retrieve and digest-check selected Intent details
@@ -826,8 +847,8 @@ Signed cards do not prevent keyword stuffing, false categories, unrealistic
 prices, rapid revisions, duplicate publication, or Sybil issuers. Receivers
 therefore apply:
 
-- strict card, field-count, keyword, taxonomy, revision, and publication-rate
-  bounds;
+- strict card, field-count, keyword, capability-hint, taxonomy, revision, and
+  publication-rate bounds;
 - exact digest deduplication and issuer/revision conflict evidence;
 - per-source, per-issuer, per-category, and per-value-band quotas;
 - diminishing or capped contribution from repeated keywords and categories;
@@ -1101,10 +1122,11 @@ ResolveSettlement(agreement_id)
 ```
 
 `query` and `filter` are bounded application inputs over mode, coarse class,
-taxonomy path, keyword, approximate value, lifecycle time, schedule, region,
-language, and fulfillment mode. They do not define a closed business taxonomy.
-An implementation may additionally accept text or embeddings. Search returns
-exact small signed cards plus separately attributed derived records; detail and
+taxonomy path, keyword, optional capability hint, approximate value, lifecycle
+time, schedule, region, language, and fulfillment mode. They do not define a
+closed business taxonomy. An implementation may additionally accept text or
+embeddings. Search and subscription return exact small signed cards plus
+separately attributed derived records and source-local cursors; detail and
 attachments require explicit later retrieval and digest verification.
 
 Settlement adapters expose their own typed operations only after an Agreement
@@ -1165,6 +1187,8 @@ contract.
 
 - add independent carriers and failure recovery;
 - add optional market applications and externally supplied leads;
+- publish, revise, and withdraw an Agent's own bounded service Intents under
+  owner policy and publication-rate limits;
 - add more execution and settlement adapters without changing the Intent core;
   and
 - measure recurring use, profitability, nonpayment, settlement choice, and
@@ -1178,8 +1202,9 @@ The first useful Intent-exchange MVP requires:
    interoperable coarse discovery dimensions;
 2. each active Intent has a bounded signed Discovery Card and independently
    digest-verifiable detail;
-3. search can filter by mode, class, taxonomy/keyword, approximate value, time,
-   region/language, and fulfillment mode without retrieving every detail;
+3. search and subscription can filter by mode, class, taxonomy/keyword,
+   optional capability hint, approximate value, time, region/language, and
+   fulfillment mode without retrieving every detail;
 4. publisher-supplied fields remain distinguishable from every derived label,
    translation, conversion, embedding, and rank;
 5. unknown value, time, or location follows explicit policy and is never
@@ -1206,6 +1231,12 @@ The first useful Intent-exchange MVP requires:
 Multi-source public availability and external settlement adapters have their
 own later evidence gates. They do not block first contact about one verified
 Intent.
+
+An autonomous-supply claim additionally requires policy-bounded publication,
+revision, withdrawal, price changes, capability-hint generation, and public
+reply behavior. Every mutation preserves its earlier signed revision, uses a
+stable action identity, and remains separate from Agreement or execution
+authority.
 
 ## 18. Explicit non-goals
 
