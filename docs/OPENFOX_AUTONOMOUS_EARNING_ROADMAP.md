@@ -9,6 +9,9 @@ conformance evidence, and production acceptance remain pending
 **Intent and Agreement profile:**
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 
+**Semantic side-effect identity:**
+[`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
+
 **Cross-repository architecture:**
 [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
 
@@ -40,7 +43,7 @@ discover bounded signed summaries
 -> compare against fresh Inventory and Portfolio state
 -> estimate feasibility, profit, risk and settlement strength
 -> admit writer-fenced contact and negotiate through Messenger
--> select exact obligations, settlement Adapters and acceptance profile
+-> select exact obligations, settlement Adapters and per-predicate evidence profiles
 -> compile one canonical Agreement body
 -> satisfy every profile-qualified authorization predicate
 -> validate Adapter prerequisites and atomically reserve aggregate exposure
@@ -97,7 +100,7 @@ repositories.
 |---|---|---|
 | protocol fixtures | `tos-service-spec`, `tos-service-protocol` | two implementations agree on exact objects, digests, errors, and recovery rules |
 | read-only scout | protocol fixtures, `openfox`, one Carrier | OpenFox can safely find and evaluate signed Intents without external side effects |
-| negotiated Agreement | read-only foundation, `tos-messenger`, the `openfox` Owner Economic Action Authority | Agents can contact, negotiate, and satisfy every mandatory and additional authorization predicate under a released acceptance profile without requiring chain settlement |
+| negotiated Agreement | read-only foundation, `tos-messenger`, the `openfox` Owner Economic Action Authority | Agents can contact, negotiate, and satisfy every body-bound mandatory and proposer-added authorization predicate through its frozen evidence profile without requiring chain settlement |
 | trusted low-risk earning | negotiated Agreement, one executor, one selected payment Adapter if payment is promised | one bounded Agreement can be executed and honestly resolved as paid or unpaid |
 | resilient public discovery | trusted foundation plus a second independent Carrier | loss of one Carrier or its database does not remove public discovery availability |
 | optional TOS escrow | protocol, OpenFox, selected executor/Gate, `tos` and custody | untrusted counterparties can choose finalized funding and the released escrow lifecycle |
@@ -111,8 +114,8 @@ architecture normally involves seven, subject to the ownership choices above.
 
 | Repository or component | Requirement | Required changes | Must not become |
 |---|---|---|---|
-| `tos-service-spec` | always | freeze Intent, Agreement, obligation, action, retrieval, private handoff, operation admission, billing, scheduling, Gate, authority, bounds, errors, vectors, and an implementation-independent reference verifier | an industry-specific workflow catalog |
-| `tos-service-protocol` | always | production canonical codecs, signatures, verification, deterministic IDs, admission and handoff helpers, references, clients, Adapter interfaces, and recovery vectors | a profitability engine or market database |
+| `tos-service-spec` | always | freeze Intent, Agreement, body-bound authorization predicates, evidence profiles, semantic action identity registry, obligation, action, retrieval, private handoff, operation admission, billing, scheduling, Gate, authority, bounds, errors, vectors, and an implementation-independent reference verifier | an industry-specific workflow catalog |
+| `tos-service-protocol` | always | production canonical codecs, signatures, predicate/evidence verification, registry-derived deterministic IDs, admission and handoff helpers, references, clients, Adapter interfaces, and recovery vectors | a profitability engine or market database |
 | `openfox` | always for the product | discovery, Inventory, AI assessment, economics, negotiation, Agreement coordination, Owner Economic Action Authority, transactional Portfolio, Gate, publication/pricing, scheduling, operations, accounting, and learning | custody, chain finality, or unrestricted model authority |
 | `tos-messenger` | required for Agent negotiation; optionally one Carrier | Intent-referenced contact, typed Agreement and private-handoff control events, action admission, deduplication, resolution, exact-object transport, replay-safe delivery, and the complete bounded Carrier profile when enabled | Agreement, execution, settlement, or global-market truth derived from chat or room state |
 | `tos-service-gateway` | required when Gateway is a Carrier; normally one of two production paths | bounded publish/search/subscribe, source-local cursor, operation admission, provenance, selective retrieval, idempotent status, and controlled writer admission | a global market head, winner, solvency oracle, or authoritative order database |
@@ -141,15 +144,27 @@ conformance artifacts for:
   ingress, bounds, retention, action identity, acknowledgement and recovery;
 - `AgentAgreementBodyV1` and its canonical participant and obligation graph;
 - `AgreementObligationV1`, including dependencies, value, billing, evidence,
-  disclosure, cancellation, dispute, specification-derived mandatory
-  authorizers, proposer-supplied additional authorizers, and one settlement
+  disclosure, cancellation, dispute, references to specification-derived
+  mandatory and proposer-added authorization predicates, and one settlement
   Adapter for each value-bearing obligation;
-- `AgreementAcceptanceProfileV1`, mapping every authorization predicate to its
-  qualifying evidence without allowing a weaker or duplicate substitute;
+- canonical `AgreementAuthoritySubjectV1` and
+  `AgreementAuthorizationPredicateV1` records inside the Agreement body,
+  binding subject, role/obligation scope, evidence profile
+  URI/version/descriptor digest, validity and target projection;
+- the non-circular Agreement-core, authorization-policy and per-predicate target
+  projection formulas, with the final body digest covering every target;
+- `AgreementAcceptanceProfileV1` and
+  `AgreementAuthorizationEvidenceV1`, supporting mixed profiles while
+  preventing a later profile choice, weaker substitute, partial union, or
+  cross-Agreement replay;
+- the V1 Agent-signature, authority-signature and optional Paid Demand Quote
+  evidence-profile descriptors, eligible subject kinds, grouping rules and
+  immutable descriptor-digest fixtures;
 - typed `AGREEMENT/PROPOSE`, `AGREEMENT/ACCEPT`, and
   `AGREEMENT/WITHDRAW` actions;
-- the per-action-kind `SemanticActionIdentityV1` registry, `WriterFenceV1`,
-  `AuthorizedActionV1`, and `ActionResolutionV1`;
+- the per-action-kind `SemanticActionIdentityV1` registry in
+  [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md),
+  `WriterFenceV1`, `AuthorizedActionV1`, and `ActionResolutionV1`;
 - `BillingTermsV1` and `SettlementObligationV1`, including Agreement and
   obligation identity, kind, sequence, predecessor, payer, payee, asset,
   canonical amount, due/not-before/expiry, finite recurrence, aggregate cap,
@@ -181,7 +196,7 @@ The protocol SDK implements the shared mechanics so that individual products
 do not create incompatible versions. It must provide:
 
 - canonical encode/decode for Agent Operations, Intents, Agreements,
-  acceptances, Authorized Actions, payment requests, and settlement
+  authorization predicates/evidence, Authorized Actions, payment requests, and settlement
   obligations;
 - exact signature, delegation, expiry, audience, revision, and predecessor
   verification;
@@ -191,11 +206,14 @@ do not create incompatible versions. It must provide:
   observed expired object after process restart or host-clock rollback;
 - deterministic object, action, obligation-instance, and request digests;
 - duplicate, conflict, equivocation, fork, and unknown-extension handling;
-- mandatory-authorizer derivation and profile-qualified Agreement acceptance
-  verification, including one complete acceptance per body/version/Agent and no
-  union of partial subsets;
-- the `SemanticActionIdentityV1` registry and deterministic action/execution ID
-  derivation that excludes retry, transport, wall time and writer generation;
+- mandatory-predicate derivation; non-circular target recomputation; immutable
+  profile descriptor resolution; and mixed-profile Agreement evidence
+  verification, including one complete generic evidence object per
+  body/version/subject and no union of partial subsets;
+- exact implementation of the released `SemanticActionIdentityV1` binary
+  framing, SHA-256 formula, ordered entry table, controlled repeat-instance,
+  terminal-successor, execution-lineage and exact-byte vectors, excluding
+  retry, transport, wall time and writer generation;
 - `WriterFenceV1` proof, owner/Agent/scope/expiry and authority-confirmed
   acquire/takeover verification, plus mandate and approval content resolution;
 - Intent Reference and Carrier client helpers;
@@ -300,21 +318,21 @@ Implement:
 - disclosure, frequency, recipient, abuse, and owner-policy controls;
 - natural-language negotiation through authenticated Messenger;
 - compilation of one canonical multi-obligation Agreement body;
-- deterministic derivation of each obligation's mandatory authorizers: always
-  its obligor, plus the payer/custody principal for value, the refunding
+- deterministic derivation of each obligation's mandatory typed predicates:
+  always its obligor, plus the payer/custody principal for value, the refunding
   principal for a refund, and the authority owner for disclosed private data,
-  credentials or capabilities; proposer-listed authorizers may only extend
-  this set;
+  credentials or capabilities; proposer additions become stricter canonical
+  predicates rather than an untyped parallel list;
 - settlement Adapter and exact parameters for every value-bearing obligation
   before acceptance;
-- selection of one released `AgreementAcceptanceProfileV1` and satisfaction of
-  every authorization predicate with its profile-qualified evidence; the
-  generic off-chain profile uses typed acceptance, while a released chain-bound
-  profile uses its exact mapped chain evidence without duplicate generic
-  acceptance;
-- typed proposal, applicable acceptance, withdrawal, predecessor, expiry, and
-  conflict handling, with exactly one complete acceptance per
-  `(body_digest, version, agent)` rather than unioned subsets; and
+- body binding of each predicate's subject, profile
+  URI/version/descriptor digest, role/obligation scope, validity and recomputed
+  target projection, followed by satisfaction with matching evidence; generic
+  predicates use typed acceptance while chain-bound predicates use their exact
+  mapped evidence without duplicate generic acceptance;
+- typed proposal, applicable generic acceptance, withdrawal, predecessor,
+  expiry, and conflict handling, with exactly one complete generic evidence
+  object per `(body_digest, version, subject)` rather than unioned subsets; and
 - recovery of ambiguous sends through the same action ID and request digest.
 
 Ordinary chat, a model-generated acceptance phrase, a UI state, a read receipt,
@@ -391,9 +409,11 @@ resources after takeover.
 Implement:
 
 - a unique `(agent_id, agreement_digest, execution_id)` slot;
-- `execution_id` derived under `SemanticActionIdentityV1` from Agreement,
-  execution-bearing obligation, canonical plan/input identity and recorded
-  attempt lineage, so retry or takeover recomputes the same slot;
+- `execution_id` derived from the exact `execution.slot` entry over Agreement,
+  execution-bearing obligation, canonical plan/input identity, authority-
+  allocated attempt index and predecessor terminal-resolution digest; attempt
+  zero uses the zero predecessor, ambiguous state has no successor, and only a
+  permitted terminal failure can atomically allocate index `n+1`;
 - `PREPARED -> STARTING` as the atomic execution linearization point;
 - a short-lived, one-shot `start_not_after` ticket;
 - durable `AMBIGUOUS_START` after a crash during start;
@@ -583,8 +603,8 @@ Messenger is the authenticated negotiation transport. It must add or expose:
 - first contact bound to canonical issuer Agent identity and an exact Intent
   Reference;
 - typed `AGREEMENT/PROPOSE` and `AGREEMENT/WITHDRAW` event delivery, plus
-  `AGREEMENT/ACCEPT` when the selected acceptance profile uses typed off-chain
-  acceptance;
+  `AGREEMENT/ACCEPT` when a body-bound predicate selects typed off-chain
+  evidence;
 - exact Agreement body and digest transport;
 - typed private-handoff challenge, authorization, acknowledgement, status and
   deletion events without placing bulk plaintext in public or model context;
@@ -766,10 +786,14 @@ Only an Agreement obligation that explicitly selects a released TOS escrow
 profile activates this scope. The selected profile must provide:
 
 - deterministic Agreement-to-Accepted-Quote binding;
-- a released `AgreementAcceptanceProfileV1` mapping Provider authorization to
-  the exact signed Provider Offer and buyer commercial acceptance to the
-  finalized bound-wallet on-chain `accept`, with no duplicate generic
-  acceptance required or accepted for those predicates;
+- body-bound Paid Demand predicates mapping Provider authorization to the exact
+  signed Provider Offer and buyer commercial acceptance to the finalized bound-
+  wallet on-chain `accept`, with no duplicate generic acceptance required or
+  accepted for those predicates;
+- Quote commitment to the exact generic Agreement body digest, scoped
+  obligation IDs, predicate IDs, target projection digests and immutable Paid
+  Demand profile descriptor, with equality verification against both generic
+  and native terms;
 - complete specification-derived mandatory and additional authorization;
 - exact asset, amount, destination, and contract configuration;
 - finalized escrow funding before dependent execution;
@@ -826,8 +850,10 @@ Repositories:
 
 Deliver:
 
-- all canonical objects, operation-admission and private-handoff profiles,
-  bounds, IDs, signatures, errors, and recovery vectors;
+- all canonical objects, body-bound Agreement predicates, mixed-profile
+  evidence, non-circular targets, semantic-action registry entries and
+  exact-byte vectors, operation-admission and private-handoff profiles, bounds,
+  IDs, signatures, errors, and recovery vectors;
 - semantically unrelated fixtures; and
 - the standalone `tos-service-spec` reference verifier plus the production
   `tos-service-protocol` codec/verifier.
@@ -862,9 +888,9 @@ Repositories:
 - the `openfox` Owner Economic Action Authority and transactional Portfolio
   implementation.
 
-Deliver proof-carrying writer-fenced contact, registered semantic action IDs,
-typed Agreement proposal/withdrawal and applicable off-chain acceptance,
-mandatory-authorizer derivation, profile-qualified acceptance validation,
+Deliver proof-carrying writer-fenced contact, registry-derived semantic action
+IDs, typed Agreement proposal/withdrawal and applicable off-chain evidence,
+mandatory-predicate derivation, body-bound profile/target validation,
 Action/Portfolio atomic admission, duplicate and ambiguous-send recovery,
 owner-approved takeover, pause/drain, and non-binding ordinary conversation.
 
@@ -989,17 +1015,22 @@ operators, stores, time windows, and exclusions, and demonstrates:
 5. ordinary chat, transcript text, model output, Gift, invoice, or payment
    request cannot create Agreement or execution authority;
 6. every specification-derived mandatory and proposer-added authorization
-   predicate is satisfied over the same Agreement digest, version, roles,
-   obligations and expiry by its released acceptance profile; generic typed
-   acceptances cannot replace required chain evidence, chain evidence needs no
-   duplicate generic acceptance, and partial subsets from one Agent are not
-   unioned;
+   predicate is frozen inside the canonical body with typed subject,
+   profile URI/version/descriptor digest, role/obligation scope, validity and
+   recomputed target projection, then satisfied over that same final Agreement
+   by matching evidence; mixed profiles converge, later profile selection and
+   partial unions fail, generic evidence cannot replace required chain evidence,
+   and chain evidence needs no duplicate generic acceptance;
 7. settlement is selected per obligation and aggregate exposure is reserved
    before funding or execution; cross-asset economics retain reproducible,
    fresh valuation, spread, liquidity, fee and worst-case conversion evidence,
    and unknown or conflicting material valuation blocks autonomous commitment;
-8. Action and Portfolio admission are atomic; every semantic side effect derives
-   the registered stable ID independent of retry, transport, time or writer;
+8. Action and Portfolio admission are atomic; every semantic side effect and
+   execution attempt reproduces the normative registry's exact framing,
+   ordered key, SHA-256 identity and vectors independent of retry, transport,
+   time or writer; same-ID/different-request conflicts, ambiguous successors,
+   destination omission, takeover, terminal lineage, and authority-issued
+   intentional repeats fail or succeed exactly as specified;
    every sink verifies the authority-issued `WriterFenceV1`, resolved mandate
    and approval content, and two processes or hosts cannot bypass generation,
    aggregate exposure, or custody limits;
@@ -1011,7 +1042,7 @@ operators, stores, time windows, and exclusions, and demonstrates:
    superseded authorization;
 10. ambiguous publication, send, upload, signing, broadcast, start, billing,
     and settlement states recover by querying the same stable action, never by
-    inventing a replacement;
+    inventing a replacement or allocating a terminal successor;
 11. private handoff authenticates sender, receiver, Agreement, obligation,
     challenge, content, encryption, bounds, ingress, expiry and accepted bytes;
     bearer theft, remote-selected fetch, conflicting or concurrent upload,
@@ -1047,11 +1078,12 @@ operators, stores, time windows, and exclusions, and demonstrates:
 22. real Carrier, Messenger, executor, handoff, custody and payment Adapter
     failures are demonstrated in addition to unit, fuzz, race, crash, partition
     and platform tests; and
-23. the TOS escrow acceptance profile recognizes exact Provider Offer and
-    finalized bound-wallet chain evidence as one Agreement acceptance state,
-    rejects weaker substitutes, and disabling TOS escrow leaves generic
-    discovery, negotiation, trusted execution, private handoff, and supported
-    direct payment operational.
+23. the TOS escrow acceptance profile recognizes the exact Provider Offer and
+    finalized bound-wallet chain evidence only for the Quote-committed generic
+    Agreement body, scoped obligation IDs, predicate IDs, target projections and
+    profile descriptor; cross-Agreement/profile replay and weaker substitutes
+    fail, while disabling TOS escrow leaves generic discovery, negotiation,
+    trusted execution, private handoff, and supported direct payment operational.
 
 Mocks and same-process happy paths are useful unit tests but are insufficient
 for cross-host, custody, Carrier-independence, or production claims.
@@ -1081,11 +1113,14 @@ This roadmap does not require:
 
 The recommended first PR sequence is:
 
-1. `tos-service-spec`: freeze the Phase 0 wire objects, operation admission,
-   private handoff, authority, recovery and conformance vectors;
+1. `tos-service-spec`: freeze the Phase 0 wire objects, body-bound authorization
+   predicates and evidence profiles, non-circular Agreement targets, the
+   semantic action registry and exact-byte vectors, operation admission, private
+   handoff, authority, recovery and conformance vectors;
 2. `tos-service-spec`: implement the standalone code-independent reference
    verifier and record its language/toolchain boundary;
 3. `tos-service-protocol`: implement the production canonical codec/verifier,
+   Agreement predicate/evidence validation, registry-derived action/execution
    IDs, clients, admission/handoff helpers and cross-verifier fixtures;
 4. `openfox`: implement read-only Inventory, privacy-preserving Collector,
    filtering, retrieval, economics, persistence, observability and operator

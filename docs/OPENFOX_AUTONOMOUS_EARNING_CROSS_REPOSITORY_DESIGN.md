@@ -9,6 +9,9 @@ acceptance pending
 **Publication and Intent profile:**
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 
+**Semantic side-effect identity:**
+[`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
+
 **Optional high-assurance settlement profile:**
 [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 
@@ -29,7 +32,7 @@ observe a signed POST carrying a generic Intent profile
   -> contact the issuer through authenticated Messenger
   -> negotiate arbitrary terms
   -> select settlement for every value-bearing obligation
-  -> compile exact obligations and collect typed Agreement acceptances
+  -> compile exact obligations and satisfy body-bound authorization predicates
   -> validate adapters, reserve aggregate exposure, and prove required funding
   -> enter the local Execution Gate, execute, and deliver
   -> resolve each obligation, account, and learn
@@ -168,20 +171,23 @@ They may clarify any semantic detail without changing the Intent protocol.
 
 Ordinary conversation is always non-binding. When the parties decide to
 proceed, one participant sends a typed `AGREEMENT/PROPOSE` containing the
-exact canonical Agreement digest. Acceptance follows the Agreement's selected
-released acceptance profile: under the generic off-chain profile every
-required authorizer sends a typed `AGREEMENT/ACCEPT` binding that same digest,
-version, role, and expiry, while a chain-bound profile satisfies its
-designated predicates with its own evidence, such as the finalized
-buyer-wallet `accept` of the Paid Demand binding. A transcript digest may be
-evidence attached to the Agreement, but can never substitute for acceptance
-evidence.
+exact canonical Agreement body. That body contains every typed authorization
+predicate with its subject, role/obligation scope, evidence profile
+URI/version/descriptor digest, validity, and non-circular target projection.
+Under the generic off-chain profile, each subject sends one typed
+`AGREEMENT/ACCEPT` covering its complete predicate set. A chain-bound profile
+instead supplies its frozen evidence, such as the Paid Demand Provider Offer or
+finalized buyer-wallet `accept`. One Agreement may mix profiles. A later message
+cannot select or weaken them, and a transcript digest never substitutes for
+authorization evidence.
 
 The Agreement is a generic canonical graph of participant roles and
 `AgreementObligationV1` records. Each obligation binds its deliverable or
 consideration, exact value when applicable, dependencies, acceptance evidence,
 billing and dispute rules, required authorizers, and its own settlement adapter
-and parameters. This structure is business-neutral but gives execution,
+and parameters. Mandatory and proposer-added authorizers are represented by
+typed predicates inside the same body, never a later untyped list. This
+structure is business-neutral but gives execution,
 Portfolio, Billing, and Settlement one deterministic input.
 
 ### 3.4 OpenFox execution and settlement adapters
@@ -322,7 +328,7 @@ improve availability but do not establish truth or a global latest state.
 A and B negotiate in Messenger
   -> select one settlement adapter for every value-bearing obligation
   -> compile one canonical Agreement obligation graph
-  -> exchange typed proposal and all required typed acceptances
+  -> exchange typed proposal and all required profile-qualified evidence
   -> validate adapter prerequisites and reserve aggregate exposure
   -> local Gate atomically issues a one-shot execution start ticket
   -> A performs and delivers work through task-scoped resource brokers
@@ -340,10 +346,12 @@ does not satisfy the unpaid obligation.
 ```text
 A and B negotiate
   -> select a released TOS escrow profile
-  -> compile the exact escrow obligation into the canonical Agreement
+  -> compile the exact escrow obligation and Paid Demand predicates into the
+     canonical Agreement
   -> satisfy the Paid Demand acceptance profile: Provider authorization by the
      exact signed Provider Offer, buyer commercial acceptance by the finalized
-     buyer-wallet on-chain accept (no duplicate generic acceptance)
+     buyer-wallet on-chain accept, each Quote-bound to the exact generic
+     Agreement/obligation/predicate/target set (no duplicate generic acceptance)
   -> validate every adapter prerequisite and reserve aggregate exposure
   -> accept and fund exact escrow
   -> enter the Native Execution Gate with a one-shot execution slot
@@ -355,9 +363,11 @@ A and B negotiate
 The Paid Demand binding documents govern this path. The binding is a released
 acceptance profile of the generic Agreement: its chain evidence — not a second
 generic `AGREEMENT/ACCEPT` — satisfies the authorization predicates it maps,
-so the coordinator, Gate, Portfolio, and recovery flows all derive one
-acceptance state. Generic Intent fields never silently fill missing escrow
-authority.
+and its Quote binding commits the final generic Agreement body digest and exact
+scoped obligation/predicate/target lists. The coordinator, Gate, Portfolio, and
+recovery flows therefore derive one acceptance state, and the same chain event
+cannot authorize a modified Agreement. Generic Intent fields never silently
+fill missing escrow authority.
 
 ### 7.4 Asset exchange or external settlement
 
@@ -365,7 +375,7 @@ authority.
 Intent advertises offered/wanted assets in free-form or optional extension
   -> Agents clarify chain, asset, amount, custody, price, and timing
   -> each leg becomes an exact Agreement obligation with its own adapter
-  -> all required participants accept the same Agreement digest
+  -> every body-bound predicate receives its profile-qualified evidence
   -> each leg resolves under its own evidence model
 ```
 
@@ -385,7 +395,7 @@ risk rather than labelling the exchange settled prematurely.
 | issuer identity | finalized Agent resolution plus Intent authorization | display name, room membership, application login |
 | conversation peer | authenticated Messenger Agent identity | alias string, Gateway account, model guess |
 | Proposal | exact conversation object | Agreement, execution, or payment authority |
-| Agreement | canonical obligation graph plus every required typed acceptance over the same digest, version, role, and expiry | ordinary prose, frozen transcript, or UI selection marker |
+| Agreement | canonical obligation graph and body-bound typed predicates plus complete profile-qualified evidence over the same digest, subject, profile, target, role, obligation and expiry | ordinary prose, frozen transcript, later profile choice, or UI selection marker |
 | skill suitability | OpenFox-local AI assessment plus installed capability/resource checks | remote category or model claim |
 | authorization to act | sink-admitted `AuthorizedActionV1`, current writer generation, exact request digest, policy/mandate/approval, and expected prior state | Intent content, AI output, or stale local lease alone |
 | Agreement-bound direct payment | exact payment request plus adapter-specific finalized transfer evidence bound to Agreement and obligation | promise, unrelated equal-value transfer, screenshot, dashboard balance |
@@ -572,6 +582,12 @@ Participant-local derivative events are at least once, rebuildable, and
 non-authoritative. Stable semantic action IDs exclude delivery cursor, model
 turn, wall-clock attempt, and retry number.
 
+Every action kind, ordered semantic key, binary framing, SHA-256 formula,
+controlled repeat-instance allocation, terminal successor, execution attempt
+lineage, and exact-byte vector is frozen by
+[`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md). An
+implementation-local table or caller-provided idempotency key is invalid.
+
 Read operations include `Get`, `List`, `Subscribe`, `AvailableActions`, and
 `ResolveAction`. Every side effect uses one canonical `AuthorizedActionV1`
 with owner/Agent, action kind, stable action ID, exact request digest, writer
@@ -627,12 +643,14 @@ side-effect class.
    authority.
 7. Unknown value, time, geography, language, or taxonomy follows explicit local
    policy and is never silently interpreted as favorable.
-8. Ordinary conversation is non-binding. Only typed proposal and every
-   required typed acceptance over the same canonical Agreement digest create
-   an Agreement; a transcript digest is evidence only.
+8. Ordinary conversation is non-binding. Only a typed proposal carrying
+   canonical body-bound authorization predicates and complete matching
+   profile-qualified evidence over the same Agreement digest create an
+   Agreement; a transcript digest and later profile selection are invalid.
 9. Every value-bearing Agreement obligation selects at most one settlement
    adapter before acceptance, reservation, or execution. A change creates a
-   new Agreement version and requires new acceptances.
+   new Agreement version and requires a complete new authorization-evidence
+   set.
 10. Unknown Intent or Agreement extensions are preserved but have no implicit
     authority; an unknown required extension fails closed.
 11. One source is enough for an independently verified observation and contact;
@@ -643,53 +661,57 @@ side-effect class.
     enforces the current writer generation and exact request digest in a
     linearizable rollback-resistant owner/Agent admission domain and exposes
     `ResolveAction` recovery.
-14. One owner/Agent economic portfolio has one active writer lease and a
+14. Every side-effect kind uses the released semantic identity registry.
+    Transport, retry, time, host, and writer fields never change identity;
+    ambiguous state has no successor, and intentionally repeated actions use an
+    Action-Authority-issued instance rather than a worker nonce.
+15. One owner/Agent economic portfolio has one active writer lease and a
     monotonically increasing fencing generation. A stale instance cannot
     reserve capacity, contact a new counterparty, accept an Agreement, start
     execution, or request settlement even if it retains an old journal.
-15. Reservations and exposure limits cover all concurrent OpenFox instances,
+16. Reservations and exposure limits cover all concurrent OpenFox instances,
     outstanding proposals, accepted Agreements, locked funds, unsecured work,
     and unsettled obligations; per-process limits alone are insufficient.
-16. Capability Inventory used for contact or commitment identifies its
+17. Capability Inventory used for contact or commitment identifies its
     creation/expiry, source generation, portfolio/policy revisions, consistency
     token, and per-item authority/revocation evidence. Commitment and execution
     re-read it at a consistent barrier.
-17. Private data is disclosed only through an authenticated bounded channel
+18. Private data is disclosed only through an authenticated bounded channel
     after local policy permits it.
-18. Agreement-bound direct payment is labelled unsecured until exact terminal
+19. Agreement-bound direct payment is labelled unsecured until exact terminal
     payment evidence exists. An Agent Gift is gratuity and cannot close an
     obligation.
-19. Periodic and milestone billing uses finite canonical obligation instances
+20. Periodic and milestone billing uses finite canonical obligation instances
     with sequence, predecessor, maximum aggregate, paid-to-date, stable action,
     evidence, cancellation, dispute, and replay rules.
-20. External settlement is never represented as TOS-finalized state.
-21. TOS escrow execution uses every existing profile-specific Gate, Receipt,
+21. External settlement is never represented as TOS-finalized state.
+22. TOS escrow execution uses every existing profile-specific Gate, Receipt,
     release/refund, and recovery rule.
-22. Failure of an optional carrier or settlement adapter cannot corrupt Intent
+23. Failure of an optional carrier or settlement adapter cannot corrupt Intent
     identity or another adapter's state.
-23. Pause stops new contacts or commitments according to scope; drain preserves
+24. Pause stops new contacts or commitments according to scope; drain preserves
     already accepted obligations.
-24. Learning cannot expand authority, rewrite adverse outcomes, or weaken
+25. Learning cannot expand authority, rewrite adverse outcomes, or weaken
     settlement evidence.
-25. A single Carrier may support a read-only or first-contact prototype, but
+26. A single Carrier may support a read-only or first-contact prototype, but
     production claims of resilient decentralized public discovery require at
     least two independent Carrier paths and source-loss recovery.
-26. Every Skill execution owns a unique `(agreement_digest, execution_id)`
+27. Every Skill execution owns a unique `(agreement_digest, execution_id)`
     slot. The Gate atomically changes `PREPARED` to `STARTING` and issues a
     short-lived one-shot start ticket; a crash in `STARTING` is ambiguous and
     cannot be retried as fresh authority.
-27. The runner receives immutable no-follow file capabilities, pinned network
+28. The runner receives immutable no-follow file capabilities, pinned network
     and TLS policy, and non-escalating task/action-scoped credentials. Every
     outbound, upload, credential, and destructive effect returns through the
     same broker.
-28. Publishing and repricing use writer-fenced stable actions. An advertisement
+29. Publishing and repricing use writer-fenced stable actions. An advertisement
     is not reserved capacity, and a later revision cannot erase an earlier
     signed claim.
-29. Durable scheduler entries bind dispatch generation, dependencies,
+30. Durable scheduler entries bind dispatch generation, dependencies,
     reservations, cancellation/preemption class, irreversible boundary, and
     downstream Agreement identity; takeover reconciles ambiguous work before
     redispatch.
-30. Customer, supplier, principal, and subcontractor relationships use separate
+31. Customer, supplier, principal, and subcontractor relationships use separate
     Agreements, reservations, disclosure decisions, execution evidence, and
     settlement obligations.
 
@@ -697,11 +719,11 @@ side-effect class.
 
 | Repository | Core responsibility | Enters scope when |
 |---|---|---|
-| `tos-service-spec` | common Agent Operation Envelope, opcode/profile boundaries, Discovery Card, retrieval policy, canonical Agreement/acceptance/obligation, Authorized Action, billing obligation, local Gate/start-ticket contracts, authority rules, and vectors | always for the common protocol |
-| `tos-service-protocol` | operation, Agreement, action, and obligation codecs; bounded verification; deterministic IDs; references; conflict/recovery vectors; clients; and adapter interfaces | always for portable implementation |
+| `tos-service-spec` | common Agent Operation Envelope, opcode/profile boundaries, Discovery Card, retrieval policy, canonical Agreement/predicate/evidence/obligation, semantic action identity registry, Authorized Action, billing obligation, local Gate/start-ticket contracts, authority rules, and vectors | always for the common protocol |
+| `tos-service-protocol` | operation, Agreement, predicate/evidence, action, and obligation codecs; bounded verification; registry-derived IDs; references; conflict/recovery vectors; clients; and adapter interfaces | always for portable implementation |
 | `openfox` | search-profile generation, consistent Capability Inventory, staged acquisition, service publication, pricing, filtering, AI matching, economics, risk, contact, typed Agreement coordination, Portfolio projection, durable scheduling, local execution coordination, accounting, and learning | always for the autonomous product |
 | `tos-service-gateway` | one replaceable bounded card index, selective detail retrieval, and optional market-application adapters | when Gateway publication/search is enabled |
-| `tos-messenger` | rooms, direct first contact, conversation, typed Agreement propose/accept delivery, action-ID deduplication/resolution, controlled writer admission or outbox, and Gift transport | when Messenger is a carrier or negotiation transport |
+| `tos-messenger` | rooms, direct first contact, conversation, typed Agreement proposal and applicable generic evidence delivery, action-ID deduplication/resolution, controlled writer admission or outbox, and Gift transport | when Messenger is a carrier or negotiation transport |
 | `tos-ai` | optional bounded execution profiles, immutable resource capabilities, task-scoped effect broker, one-shot runner, and evidence | when an Agreement selects those executors |
 | `tos` / `tosctl` | Agent state, Gift and direct value transfer, optional Quote/escrow/Receipt contracts, rollback-resistant writer-generation/action admission in custody, signing, broadcast, and recovery | when the selected action or settlement mode needs chain state |
 | optional market app | hosted board, search, ranking, moderation, KYC, support, fiat, proprietary services | independently optional |
@@ -720,12 +742,13 @@ delivery phase determines the actual PR set.
 | Intent semantic analysis | OpenFox AI | local coordinator | untrusted-content classification, capability/resource/economic/risk explanation; no authority |
 | first contact | OpenFox | Messenger | canonical Agent recipient, Intent reference, bounded message, exact Authorized Action, sink-side writer admission, action-ID deduplication and resolution |
 | negotiation | Messenger | OpenFox participants | authenticated events, open content, replay-safe delivery, no implicit Agreement |
-| Agreement | participants/protocol helper | OpenFox and selected adapters | canonical acyclic participant/obligation graph; per-obligation settlement; typed proposal; every required typed acceptance over the exact digest, version, role, and expiry; deterministic conflicts |
+| Agreement | participants/protocol helper | OpenFox and selected adapters | canonical acyclic participant/obligation graph; per-obligation settlement; body-bound typed authorization predicates; typed proposal; complete profile-qualified evidence over the exact body, subject, profile, target, role, obligation and expiry; deterministic conflicts |
+| semantic action identity | specification registry and protocol SDK | every side-effect sink | exact V1 framing and SHA-256 formula; registered ordered semantic key; exact request conflict; authority-issued repeat instances; terminal successor and execution-lineage rules; exact-byte vectors |
 | local execution authorization | OpenFox Gate and task-scoped broker | local skill or executor | unique execution slot; atomic `PREPARED -> STARTING`; one-shot start ticket; exact Agreement/plan/input/reservation; immutable file/network/credential capabilities; writer/policy/approval/expiry; ambiguous-start recovery |
 | scheduling | OpenFox durable scheduler | local coordinator and Gate | durable entry and dependency graph with dispatch generation, deadline, resource/exposure reservations, cancel/preempt class, irreversible boundary, downstream Agreement and evidence-driven failure propagation; no authority by itself |
 | Agreement-bound direct payment | custody adapter | accounting/resolver | exact Agreement/obligation/payer/payee/asset/amount/destination/expiry, Authorized Action, adapter-specific finalized evidence, no evidence reuse |
 | Agent Gift | custody adapter | accounting/resolver | exact Gift evidence recorded as gratuity or other income only; never Agreement settlement |
-| TOS escrow | protocol + TOS contracts | Gate, executor, accounting | profile-specific Quote, funding, execution, Receipt, release/refund and recovery |
+| TOS escrow | protocol + TOS contracts | Gate, executor, accounting | Quote commitment to exact generic Agreement/obligation/predicate/target/profile plus profile-specific acceptance, funding, execution, Receipt, release/refund and recovery |
 | external settlement | external adapter | accounting | explicit evidence class; never implicit TOS authority |
 | milestone or periodic billing | Agreement + settlement adapter | Portfolio Ledger | canonical finite `SettlementObligationV1` instances with predecessor, amount, schedule, aggregate cap, paid-to-date, stable action ID, partial-payment/evidence/cancellation/dispute state; no unlimited recurring authority |
 
@@ -742,19 +765,23 @@ Repositories: `tos-service-spec`, then `tos-service-protocol`.
   bounds, publication signature context, revision/withdrawal behavior,
   extensions, settlement preferences, and compact reference;
 - freeze `ContentRetrievalPolicyV1`, the canonical multi-obligation Agreement,
-  typed proposal/acceptance, `AuthorizedActionV1`, action resolution,
+  body-bound authorization predicates, mixed-profile evidence, typed
+  proposal/acceptance where applicable, `AuthorizedActionV1`, action resolution,
   `BillingTermsV1`, `SettlementObligationV1`, durable schedule/dependency state,
   and the local Gate/start-ticket contract;
-- freeze error classes and exact-byte vectors;
+- freeze the semantic-action registry framing, entries, formulas, controlled
+  repeat and terminal-successor rules, execution lineage, error classes, and
+  exact-byte vectors;
 - include semantically unrelated examples without category-specific core
   fields; and
 - provide a second independent codec/verifier.
 
 Exit: different Intent categories round-trip through one codec, signed cards
-can be filtered without body retrieval, Agreement obligations and acceptances
-are deterministic, action/obligation conflicts fail closed, unknown optional
-extensions survive, unknown required extensions fail, and a second verifier
-reproduces every digest and error.
+can be filtered without body retrieval, Agreement obligations, predicates,
+profile-qualified evidence and action/execution identities are deterministic,
+action/obligation conflicts fail closed, unknown optional extensions survive,
+unknown required extensions fail, and a second verifier reproduces every
+digest, exact-byte vector and error.
 
 ### Phase 1 — read-only Intent scout
 
@@ -786,17 +813,18 @@ Repositories: `openfox`, `tos-messenger`, and protocol helpers.
 - deploy the rollback-resistant owner/Agent action authority and require every
   Messenger side effect to enforce current writer generation, exact request
   digest, action-ID conflict, and `ResolveAction`;
-- distinguish chat, typed `AGREEMENT/PROPOSE`, and typed
-  `AGREEMENT/ACCEPT`;
+- distinguish chat, typed `AGREEMENT/PROPOSE`, body-bound authorization
+  predicates, and profile-qualified evidence including typed
+  `AGREEMENT/ACCEPT` where selected;
 - select the settlement adapter and exact parameters of every value-bearing
-  obligation before collecting acceptances;
+  obligation before collecting authorization evidence;
 - add rate, privacy, abuse, disclosure, and owner-policy controls; and
 - survive duplicate delivery, ambiguous send, restart, device rotation, and
   Intent revision.
 
-Exit: two Agents negotiate a changed scope and accept one exact canonical
-Agreement digest through complete typed authorization, without any chain
-transaction or transcript-derived authority.
+Exit: two Agents negotiate a changed scope and authorize one exact canonical
+Agreement through complete generic profile evidence, without any chain
+transaction, later profile selection, or transcript-derived authority.
 
 ### Phase 3 — trusted low-risk earning
 
@@ -967,7 +995,12 @@ opportunity must conform to Paid Demand.
   admit only the current writer generation and exact request digest;
 - a stale writer cannot contact, accept, reserve, execute, settle, reconcile,
   or release, and ambiguous sends are recovered by `ResolveAction` without a
-  new semantic action.
+  new semantic action;
+- two code-independent implementations reproduce every registered action and
+  execution identity exact-byte vector; semantic-field mutations, omitted
+  destinations, caller nonces, same-ID/different-request conflicts, ambiguous
+  successors, takeover and authority-issued intentional repeats behave
+  identically.
 
 ### Conversation and Agreement
 
@@ -975,10 +1008,14 @@ opportunity must conform to Paid Demand.
 - ordinary prose cannot create Agreement or payment authority;
 - a canonical Agreement contains a deterministic acyclic graph of exact
   obligations and one settlement adapter per value-bearing obligation;
-- every obligation authorization predicate — always including the
-  specification-derived mandatory authorizers — is satisfied by the selected
-  acceptance profile's evidence binding the same Agreement digest, version,
-  role, and expiry;
+- every mandatory and proposer-added authorization predicate is frozen in the
+  body with typed subject, profile URI/version/digest, role/obligation scope,
+  validity and target projection, then satisfied by matching evidence binding
+  that same final Agreement body;
+- mixed generic, custody and chain evidence profiles converge on one Agreement
+  state, while later profile selection, partial evidence union, weaker
+  substitution, and replay of one chain event to a changed Agreement,
+  obligation, predicate or target fail closed;
 - missing, duplicate, expired, withdrawn, concurrent-version, conflicting, and
   unknown-required-extension cases fail closed;
 - changed negotiated or settlement terms produce a new digest and complete new
@@ -1017,7 +1054,9 @@ opportunity must conform to Paid Demand.
   finite recurrence, exact sequence/predecessor, aggregate cap, stable action
   identity, paid-to-date, partial-payment, cancellation, dispute, evidence and
   outstanding state across restart and takeover;
-- TOS escrow uses the complete specialized acceptance matrix; and
+- TOS escrow uses the complete specialized acceptance matrix and its Quote
+  commits the exact generic Agreement body digest, scoped obligation/predicate/
+  target set and profile descriptor; and
 - the generic system operates with the escrow adapter absent.
 
 ### Federation

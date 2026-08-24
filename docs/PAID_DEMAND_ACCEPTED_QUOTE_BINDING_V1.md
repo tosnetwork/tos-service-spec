@@ -285,6 +285,17 @@ Agreement acceptance state from this mapping, so an on-chain-accepted purchase
 cannot remain generically unaccepted and a generic projection cannot claim
 chain acceptance that does not exist.
 
+The profile is selected by canonical
+`AgreementAuthorizationPredicateV1` records inside the generic Agreement body,
+not by a later acceptance message. The Provider and buyer predicates freeze
+their typed subjects, Paid Demand evidence profile URI/version, scoped generic
+obligation IDs, immutable profile descriptor digest, validity bounds, and
+target projection digests. The Quote
+binding below then commits the final generic Agreement body digest and those
+exact identifiers. This is a one-way commitment: the Agreement contains the
+profile and non-circular target projections but not the later Provider Offer or
+Quote digest, while the Offer and Quote commit the already finalized Agreement.
+
 ### 4.2 `PaidDemandQuoteBindingBodyV1`
 
 The Provider constructs one unsigned canonical binding body from the exact
@@ -296,6 +307,12 @@ execution admission, and settlement recovery.
 It includes at least:
 
 - complete network domain and paid-demand Quote-binding profile version;
+- exact generic `agreement_body_digest`;
+- canonical nonempty `agreement_obligation_ids[]`,
+  `agreement_authorization_predicate_ids[]`, and corresponding
+  `agreement_authorization_target_digests[]` covered by this Quote, plus the
+  exact `tos.agreement.evidence.paid-demand-quote.v1` profile URI/version and
+  immutable profile descriptor digest;
 - the exact `BuyerHandoffProfile`;
 - stable Demand identity, terminal-safe active Mutation sequence, and exact
   Mutation digest;
@@ -326,6 +343,21 @@ It includes at least:
 
 Repeated values are equality constraints, never second authorities. Existing
 Quote and escrow fields remain authoritative for their native meanings.
+The Agreement verifier requires every listed obligation to reference the listed
+predicates, every predicate to select this exact profile URI/version/digest and
+target, and every Paid Demand payment, delivery, disclosure, cancellation,
+deadline, asset, amount, wallet, input, output, validator, and evidence term to
+equal its generic Agreement projection. The lists are canonical sets with no
+duplicates or omitted required Paid Demand predicate. A Quote binding may
+satisfy only those listed predicates; it cannot be reused for another Agreement,
+obligation, subject, profile, or target.
+
+This comparison is acyclic. First the canonical generic Agreement and its
+authorization target projections are finalized. Then the
+`PaidDemandQuoteBindingBodyV1` embeds their final digests. No generic Agreement
+field commits the Provider signature, Quote digest, escrow address, or binding
+body digest.
+
 `accept_by` must equal the successor Quote's `expires_at` and the deterministic
 escrow's acceptance cutoff; the bound-wallet `accept` operation rejects at or
 after that time. For this successor version, `expires_at` is an acceptance-only
@@ -586,41 +618,46 @@ stablecoin funding remains a later existing-rail transition.
 
 The only valid fixed-price handoff sequence is:
 
-1. Resolve and verify the exact active Demand Mutation, mutation history,
+1. Compile and validate the canonical generic Agreement body, including the
+   complete Paid Demand-scoped obligations and body-bound authorization
+   predicates, profiles, subjects, validity bounds, and target projections.
+2. Resolve and verify the exact active Demand Mutation, mutation history,
    `BuyerHandoffProfile`, authority references, expiry, and observed fork
-   evidence under the discovery profile.
-2. Preallocate one durable Provider Offer identity and construct the complete
-   canonical `PaidDemandQuoteBindingBodyV1` without signatures.
-3. Derive the stable body digest and semantic action ID.
-4. Reserve owner-private portfolio exposure and obtain the exact runtime
+   evidence under the discovery profile, and prove exact equality with the
+   generic Agreement projection.
+3. Preallocate one durable Provider Offer identity and construct the complete
+   canonical `PaidDemandQuoteBindingBodyV1` without signatures, committing the
+   final Agreement body digest and scoped obligation/predicate/target lists.
+4. Derive the stable body digest and semantic action ID.
+5. Reserve owner-private portfolio exposure and obtain the exact runtime
    capacity lease for that body.
-5. Pass Provider-wide custody admission, then create the Provider authorization
+6. Pass Provider-wide custody admission, then create the Provider authorization
    and signed Provider Offer.
-6. Deliver the exact signed Offer bytes through an ambiguity-resolving response
+7. Deliver the exact signed Offer bytes through an ambiguity-resolving response
    transport.
-7. The buyer verifies the exact Provider Offer and selects it locally. A
+8. The buyer verifies the exact Provider Offer and selects it locally. A
    Selection Notice is optional and non-authoritative.
-8. The deterministic escrow StateInit embeds the versioned Accepted Quote,
+9. The deterministic escrow StateInit embeds the versioned Accepted Quote,
    complete `PaidDemandQuoteBindingV1`, exact buyer wallet, and
    `pending_acceptance` state. Deployment creates no Accepted Quote authority
    and may safely occur before the buyer acts.
-9. The exact bound buyer wallet sends the versioned `accept` operation. The
+10. The exact bound buyer wallet sends the versioned `accept` operation. The
    contract authenticates the sender and transitions once from
    `pending_acceptance` to `awaiting_funding`; wrong senders cannot consume or
    disable that transition. Finality of this state transition is Quote
    acceptance.
-10. The buyer funds that exact escrow through the existing asynchronous
+11. The buyer funds that exact escrow through the existing asynchronous
    stablecoin transfer-notification path. A broadcast acknowledgement is not
    funding; the Provider waits for exact finalized funded state. The profile's
    acceptance-to-funding margin makes this ordered path feasible after a
    latest-valid acceptance.
-11. Finalized resolution returns the existing Accepted Quote and escrow state
+12. Finalized resolution returns the existing Accepted Quote and escrow state
     plus the complete typed binding and Provider proof without a market
     database.
-12. The existing Native Execution Gate verifies its normal Capability, Quote,
+13. The existing Native Execution Gate verifies its normal Capability, Quote,
     escrow, signer, and replay invariants and additionally compares every
     paid-demand binding field.
-13. The existing bounded executor, objective Receipt, release/refund, and
+14. The existing bounded executor, objective Receipt, release/refund, and
     settlement paths continue under their governing specifications.
 
 No step may construct a second Quote or escrow identity from a different nonce,
@@ -631,6 +668,7 @@ Retries reuse the same canonical bytes and stable semantic action identity.
 
 | Fact | Pre-acceptance artifact | Existing-rail accepted authority | Enforcement |
 |---|---|---|---|
+| generic Agreement and scoped authorization predicates | final Agreement body and target projections | exact body/obligation/predicate/target commitment in the Quote binding | Agreement verifier, resolver, Gate |
 | display summary, topics, hints, rank | Demand/index only | none | local presentation only |
 | buyer Agent-to-wallet context and upload key | active Demand Mutation | exact body plus finalized versioned escrow `accept` transition authenticated to the bound wallet | authority resolver, escrow, ingress |
 | Demand identity/sequence/digest | Demand Mutation | body provenance link, not a claim of a global feed head | resolver and Gate compare exact values |
@@ -926,6 +964,13 @@ The extension requires frozen positive vectors and mutations for:
   acceptance; a generic Agent acceptance without the finalized chain `accept`
   never treated as accepted; and a chain `accept` from an unbound wallet, for
   a different Quote identity, or over a different binding body rejected;
+- Agreement-binding isolation: one finalized chain `accept` replayed against a
+  changed generic Agreement body, obligation, predicate subject, evidence
+  profile/version, role scope, target projection, disclosure, cancellation, or
+  delivery term rejected; a binding with omitted, duplicated, reordered, or
+  extraneous scoped identifiers rejected; and one mixed-profile Agreement
+  accepting its independent generic predicates without allowing those
+  signatures to substitute for the Paid Demand predicates;
 - deterministic one-Offer/one-Quote reproduction; independent acceptance of two
   different Provider Offers; and rejection of a second Quote identity derived
   from one Offer;
@@ -967,8 +1012,11 @@ The paid-demand binding is accepted only when:
    its current conformance suite remains green;
 2. two independent implementations reproduce every extension digest, Provider
    proof, existing Quote commitment, and escrow StateInit;
-3. the selected body, signed Demand context, and Provider proof are
-   reconstructible from finalized state without market infrastructure;
+3. the exact generic Agreement body, scoped obligation and authorization
+   predicate IDs, target projections, selected Paid Demand profile, binding
+   body, signed Demand context, and Provider proof are reconstructible from
+   finalized state without market infrastructure; replaying that evidence
+   against a changed or differently profiled Agreement fails closed;
 4. one Offer cannot yield two Quotes or escrows, while separately accepted and
    funded Provider Offers remain independently valid under the existing rail;
 5. third-party predeployment cannot create acceptance or block the exact bound
@@ -1036,7 +1084,9 @@ This profile does not create:
 Before implementation, the specification PR must freeze:
 
 1. the exact `PaidDemandQuoteBindingBodyV1` and Provider proof protobuf fields,
-   bounds, canonical ordering, digest domains, and positive/negative vectors;
+   including the generic Agreement body digest and scoped
+   obligation/predicate/target commitments, bounds, canonical ordering, digest
+   domains, equality projection, and positive/negative vectors;
 2. the Accepted Quote successor or generic typed-extension mechanism, including
    unknown-version and trailing-data behavior while schema 1 remains unchanged;
 3. the corresponding escrow StateInit/code identity, deterministic address

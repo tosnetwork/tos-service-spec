@@ -6,6 +6,9 @@ acceptance pending
 **Root architecture:**
 [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
 
+**Semantic side-effect identity:**
+[`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
+
 **Protocol relationship:** `PUBLICATION/POST` discovery profile followed by
 generic messaging, an optional typed Agreement, Agreement-bound direct,
 external, or TOS settlement profiles, and a separate Gift gratuity profile
@@ -65,7 +68,7 @@ signed `PUBLICATION/POST` carrying an Intent profile
   -> OpenFox AI filters by capability, resources, profit, and risk
   -> authenticated Agent-to-Agent conversation
   -> select one settlement adapter for each value-bearing obligation
-  -> compile exact obligations and obtain typed Agreement acceptances
+  -> compile exact obligations and satisfy body-bound authorization predicates
   -> validate every selected adapter prerequisite
   -> reserve aggregate resources and exposure
   -> prove required prepayment or finalized escrow funding
@@ -181,9 +184,10 @@ Agreement profile.
 ### Agreement
 
 A bounded exact body containing participants and a canonical obligation graph,
-accepted through explicit typed Agent actions over the same digest. An approved
-TOS commerce profile may additionally commit that body or a deterministic
-binding to its required obligations on-chain.
+body-bound typed authorization predicates, and complete profile-qualified
+evidence over the same digest and target projections. A released TOS commerce
+profile may satisfy designated predicates with chain evidence that commits the
+exact generic body and scoped obligations.
 
 ### Settlement Mode
 
@@ -992,6 +996,41 @@ AgreementAmountV1 {
   unit
 }
 
+AgreementAuthoritySubjectV1 {
+  subject_kind            # agent, wallet, custody_principal, key_owner, data_owner
+  subject_namespace
+  subject_identifier
+}
+
+AgreementAuthorizationPredicateV1 {
+  predicate_id
+  authority_subject
+  role_scope[]
+  obligation_ids[]
+  evidence_profile_uri
+  evidence_profile_version
+  evidence_profile_digest
+  evidence_target_projection_digest
+  valid_from?
+  expires_at
+  required_extensions[]
+  optional_extensions[]
+}
+
+AgreementAcceptanceProfileV1 {
+  profile_uri
+  profile_version
+  profile_digest
+  allowed_subject_kinds[]
+  evidence_content_types[]
+  predicate_grouping_rule
+  target_binding_rule
+  verifier_profile_uri
+  validity_policy
+  required_extensions[]
+  optional_extensions[]
+}
+
 AgreementObligationV1 {
   obligation_id
   kind                    # deliverable, payment, disclosure, refund, exchange_leg, other
@@ -1012,7 +1051,7 @@ AgreementObligationV1 {
   billing_terms?
   settlement_adapter_uri? # required when the obligation transfers value
   settlement_parameters?
-  additional_authorizer_agent_ids[]
+  authorization_predicate_ids[]
   required_extensions[]
   optional_extensions[]
 }
@@ -1028,6 +1067,7 @@ AgentAgreementBodyV1 {
   terms
   attachment_digests[]
   obligations[]
+  authorization_predicates[]
   required_extensions[]
   optional_extensions[]
   valid_from
@@ -1036,7 +1076,7 @@ AgentAgreementBodyV1 {
 
 AgentAgreementV1 {
   body
-  acceptances[]
+  authorization_evidence[]
 }
 ```
 
@@ -1054,26 +1094,85 @@ with explicit dependencies. Every value-bearing obligation selects exactly one
 settlement adapter and binds the adapter parameters it requires. There is no
 body-global settlement mode that can ambiguously cover several obligations.
 
-Every obligation carries a specification-derived mandatory authorizer set that
-the proposer cannot reduce, override, or replace. It always contains
-`obligor_agent_id`. A value-transferring obligation additionally contains the
-payer or custody principal whose assets the obligation moves; a refund
-obligation contains the refunding custody principal; an obligation disclosing
-private data, credentials, or capabilities contains the authority owner of
-that data. `additional_authorizer_agent_ids` may only extend this set with
-further authorizers. The effective required authorization set of an obligation
-is the union of both. A body whose fields would permit acceptance without
-every mandatory authorizer — an omitted obligor, a proposer self-authorizing
-an obligation that binds another party, a substituted payer, or an omitted
-owner of disclosed data — fails closed at validation, before any acceptance is
-evaluated.
+Every obligation references canonical authorization predicates carried by the
+same body. The specification-derived mandatory set always includes a predicate
+for `obligor_agent_id`. A value-transferring obligation additionally includes
+the payer or custody principal whose assets move; a refund includes the
+refunding custody principal; and disclosure of private data, credentials, keys,
+or capabilities includes their authority owner. A proposer may add stricter
+predicates but cannot reduce, replace, or weaken a mandatory predicate. An
+input convenience field such as `additional_authorizer_agent_ids` is compiled
+into additional body-bound predicates and never appears as an untyped parallel
+authority list on the wire.
+
+Each predicate freezes a typed subject, exact role and obligation scope, one
+evidence profile URI, version and immutable descriptor digest, validity bounds,
+and a deterministic target projection digest. Evidence profile selection is
+therefore per predicate, not
+one scalar chosen by a later acceptance message. One Agreement may require
+generic Agent signatures for some predicates, a custody authorization for a
+payment predicate, and finalized chain evidence for another obligation. A
+profile may satisfy several predicates with one evidence object only when all
+of those predicates name that exact profile/version and the profile freezes
+the grouping and target rule.
+
+To avoid a digest cycle while committing the complete Agreement, implementations
+derive each `evidence_target_projection_digest` in three steps:
+
+```text
+core_bytes
+  = canonical AgentAgreementBodyV1 with authorization_predicates field absent
+
+agreement_core_digest
+  = SHA-256("tos.agreement-core.v1\0" ||
+            uint32_big_endian(len(core_bytes)) || core_bytes)
+
+policy_bytes
+  = canonical authorization_predicates with every
+    evidence_target_projection_digest field absent
+
+authorization_policy_digest
+  = SHA-256("tos.agreement-authorization-policy.v1\0" ||
+            uint32_big_endian(len(policy_bytes)) || policy_bytes)
+
+evidence_target_projection_digest(predicate_id)
+  = SHA-256("tos.agreement-authorization-target.v1\0" ||
+            raw32(agreement_core_digest) ||
+            raw32(authorization_policy_digest) ||
+            uint16_big_endian(len(predicate_id_bytes)) ||
+            predicate_id_bytes)
+```
+
+`profile_digest` is likewise
+`SHA-256("tos.agreement-acceptance-profile.v1\0" || uint32_big_endian(length) ||
+canonical_profile_bytes_without_profile_digest)`. Digest fields use canonical
+`sha256:` lower-hex text on the wire and raw 32-byte values inside the formulas
+above. Predicate IDs are bounded canonical identifier bytes and cannot exceed
+65535 bytes; the released wire schema sets a much smaller operational bound.
+
+The final `agreement_body_digest` covers the complete body including all
+recomputed target digests. A verifier recomputes all three values and rejects a
+missing, duplicate, extraneous, mis-scoped, or mismatched predicate before
+evaluating evidence. Thus each evidence target commits the exact Agreement
+core and the complete authorization policy without containing its own final
+body digest. A body that omits an obligor, substitutes a payer, omits a data
+owner, or permits a proposer to authorize another subject's obligation fails
+closed.
+
+Predicate IDs are nonzero and unique within the Agreement. The body-level
+predicate collection and every predicate/obligation/role scope declared as a
+set are sorted by their canonical encoded element bytes and reject duplicates;
+no authorization meaning depends on arrival order. Each obligation must
+reference every predicate derived for it and cannot reference an unknown or
+out-of-scope predicate.
 
 Exact TOS asset profiles use atomic amounts. External asset profiles use a
 released canonical decimal and unit rule or fail closed. An amount cannot
 contain both conflicting representations. Obligation identifiers are nonzero
 and unique within the Agreement. Dependencies reference existing obligations
 and form an acyclic graph. Participant, payer, payee, asset, amount, sequence,
-adapter, acceptance evidence, cancellation, dispute, or disclosure facts must
+adapter, authorization predicate, acceptance evidence, cancellation, dispute,
+or disclosure facts must
 not be inferred from prose when they affect authority or accounting.
 
 Canonical encoding sorts fields only where the schema explicitly declares a
@@ -1101,46 +1200,79 @@ AgreementAcceptanceBodyV1 {
   agreement_id
   agreement_version
   agreement_body_digest
-  accepting_agent_id
+  accepting_subject
   accepted_roles[]
-  accepted_obligation_ids[]
-  acceptance_profile
+  predicate_ids[]
+  evidence_target_projection_digests[]
   expires_at
 }
 
 AgreementAcceptanceV1 {
   body
-  accepting_agent_authorization
+  accepting_subject_authorization
+}
+
+AgreementAuthorizationEvidenceV1 {
+  agreement_id
+  agreement_version
+  agreement_body_digest
+  predicate_ids[]
+  evidence_profile_uri
+  evidence_profile_version
+  evidence_profile_digest
+  evidence_target_projection_digests[]
+  evidence_content_type
+  evidence
 }
 ```
 
-`AGREEMENT/PROPOSE` carries the exact canonical body. `acceptance_profile`
-selects one released `AgreementAcceptanceProfileV1` that maps every
-specification-derived authorization predicate — each obligation's mandatory
-authorizers plus its listed additional authorizers — to the exact evidence
-that satisfies it. Under the generic off-chain profile each authorizer emits
-`AGREEMENT/ACCEPT` over the same domain-separated body digest, version, its
-roles, the obligations it authorizes, and an expiry. A chain-bound profile
-such as the Paid Demand Accepted Quote binding instead satisfies designated
-predicates with its own released evidence: Provider authorization by the exact
-signed Provider Offer, buyer commercial acceptance by the finalized
-buyer-wallet on-chain `accept` transition bound to the exact binding body, and
-funding by later separate finalized evidence. A profile that maps a predicate
-to chain evidence neither requires nor accepts a duplicate generic
-`AGREEMENT/ACCEPT` for that predicate, and a generic acceptance can never
-substitute for required chain evidence. Every implementation derives the same
-accepted state from the same profile evidence, so a chain-accepted Agreement
-cannot remain locally unaccepted and a locally accepted Agreement cannot claim
-chain acceptance that does not exist.
+V1 reserves these evidence-profile semantics. The exact canonical descriptor
+bytes and resulting `profile_digest` are Phase 0 fixtures:
 
-An Agreement is accepted only when every obligation's authorization predicate
-is satisfied by valid, non-expired, profile-qualified evidence. Acceptance
-identity is `(agreement_body_digest, agreement_version, accepting_agent_id)`:
-one Agent emits exactly one acceptance covering the complete set of
-obligations it authorizes; partial obligation-subset acceptances are not
-accumulated by union. An acceptance for another digest, version, role, or
-obligation set has no effect. Exact replay is idempotent; conflicting bytes
-under the same acceptance identity are equivocation and fail closed.
+| Profile URI | Eligible subject | Qualifying evidence | Grouping rule |
+|---|---|---|---|
+| `tos.agreement.evidence.agent-signature.v1` | resolved Agent | typed `AGREEMENT/ACCEPT` plus the Agent authorization over its exact body | one evidence object covers the complete generic predicate set for that Agent and Agreement version |
+| `tos.agreement.evidence.authority-signature.v1` | resolved custody principal, wallet controller, key owner, data owner, or capability owner | profile-authorized signature over the exact evidence body and subject authority proof | one evidence object covers only the complete predicate set declared for the same authority subject and profile |
+| `tos.agreement.evidence.paid-demand-quote.v1` | exact Provider Agent and bound buyer wallet | exact signed Provider Offer and finalized wallet-authenticated Quote `accept` committed to the generic Agreement | grouping is the exact scoped predicate set carried by `PaidDemandQuoteBindingBodyV1`; Provider and buyer evidence remain distinct |
+
+The authority-signature profile authorizes the Agreement predicate; it does not
+move value, release a credential, or disclose data. Those remain later separate
+semantic actions. A direct-payment obligation can therefore use an Agent
+signature for commercial consent and an authority signature from the payer or
+custody principal for the spend predicate, while another obligation in the same
+Agreement uses Paid Demand chain evidence. An unsupported or mutable profile,
+wrong descriptor digest, ineligible subject kind, or grouping that differs from
+the frozen descriptor fails closed.
+
+`AGREEMENT/PROPOSE` carries the exact canonical body. Each body-bound predicate
+selects one released evidence profile and exact target. Under the generic
+off-chain profile, an authorizing Agent emits `AGREEMENT/ACCEPT` over the same
+body digest, version, typed subject, complete predicate set, corresponding
+target digests, roles, and expiry. That typed acceptance is wrapped as
+`AgreementAuthorizationEvidenceV1`; its profile fields must equal the fields
+already frozen by every referenced predicate, and the released profile bytes
+must reproduce `evidence_profile_digest`.
+
+A chain-bound profile such as the Paid Demand Accepted Quote binding instead
+satisfies its designated predicates with the exact signed Provider Offer and
+the finalized buyer-wallet on-chain `accept`. Its Quote binding commits the
+generic `agreement_body_digest`, the exact obligation IDs, predicate IDs, and
+target projection digests. Funding remains later settlement evidence, not
+Agreement authorization. A chain predicate neither requires nor accepts a
+duplicate generic `AGREEMENT/ACCEPT`, and generic evidence can never substitute
+for required chain evidence. A later message cannot change a predicate's
+profile, target, subject, or scope.
+
+An Agreement is authorized only when every referenced predicate is satisfied
+by valid, non-expired, profile-qualified evidence that repeats the predicate ID
+and target digest. For the generic typed profile, acceptance identity is
+`(agreement_body_digest, agreement_version, accepting_subject)`: one subject
+emits exactly one acceptance covering the complete set of generic predicates it
+must authorize. Partial predicate subsets are not accumulated by union. Other
+profiles define equally deterministic evidence identity and grouping. Evidence
+for another body, version, subject, profile, predicate set, role, obligation, or
+target has no effect. Exact replay is idempotent; conflicting bytes under one
+evidence identity are equivocation and fail closed.
 
 A proposal may be withdrawn before complete acceptance through a typed
 `AGREEMENT/WITHDRAW`. Once complete, withdrawal cannot rewrite the Agreement;
@@ -1150,16 +1282,20 @@ binds its predecessor digest, but does not silently invalidate already incurred
 obligations under an accepted predecessor.
 
 An authenticated transcript digest may be included as a content-addressed
-evidence attachment. It cannot replace the canonical body or any required typed
-acceptance. A model-generated phrase, read receipt, UI click without the typed
-action, or locally frozen transcript creates no Agreement authority.
+evidence attachment. It cannot replace the canonical body or any required
+profile-qualified authorization evidence. A model-generated phrase, read
+receipt, UI click without the typed action, or locally frozen transcript creates
+no Agreement authority.
 
-Supported authority levels are therefore:
+Supported authority compositions are therefore:
 
-1. **typed off-chain Agreement** — all required Agent acceptances bind the exact
-   body; and
-2. **TOS accepted Agreement** — a released Accepted Quote or other chain profile
-   additionally commits the required obligations and state on-chain.
+1. **typed off-chain Agreement** — every predicate selects the generic typed
+   evidence profile and all required Agent evidence binds the exact body;
+2. **mixed-profile Agreement** — different predicates use different released
+   evidence profiles while still binding one body; and
+3. **TOS accepted Agreement** — designated predicates are satisfied by a
+   released Accepted Quote or other chain profile that commits the exact generic
+   body and scoped obligations.
 
 The UI and accounting state which level and which obligations were accepted.
 
@@ -1216,6 +1352,12 @@ inputs, so a retry, crash recovery, or takeover writer recomputes the
 identical ID for the same semantic action and is bound by its existing
 resolution. An unregistered `action_kind` or a non-canonical derivation fails
 closed.
+
+The normative V1 framing, SHA-256 formula, ordered semantic keys, controlled
+repeat-instance allocation, terminal-successor rules, execution attempt
+lineage, and exact-byte vectors are frozen in
+[`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md). A prose-only
+or implementation-local registry is not conformant.
 
 `writer_generation` is meaningful only inside a verifiable `WriterFenceV1`
 lease proof issued by the owner's Action Authority; the envelope binds that
@@ -1342,8 +1484,8 @@ OpenFox recommends or permits a mode using local policy over:
 No global trust score or market administrator selects the mode. The selection
 is made per value-bearing obligation before the Agreement is accepted. Changing
 an adapter or settlement-critical parameter requires a new Agreement version
-and complete typed acceptance before any irreversible action under the new
-version.
+and complete profile-qualified authorization evidence before any irreversible
+action under the new version.
 
 ### 11.6 Canonical settlement obligations and state
 
@@ -1433,7 +1575,7 @@ OpenFox keeps local records that distinguish:
 
 - quoted or discussed value;
 - finalized Gift gratuity, which closes no Agreement obligation;
-- typed-accepted Agreement and obligation value;
+- profile-authorized Agreement and obligation value;
 - pending, partial, paid, overdue, cancelled, disputed, and written-off
   obligation state;
 - directly paid value;
@@ -1455,8 +1597,8 @@ funds without the normal policy boundary.
 
 | Repository or component | Responsibility |
 |---|---|
-| `tos-service-spec` | generic Intent/Agreement/obligation/action envelopes, retrieval policy, bounds, authority classes, settlement semantics, conformance vectors, and profile relationships |
-| `tos-service-protocol` | canonical codecs, signatures, verification, references, carrier clients, typed Agreement acceptance, obligation/action helpers, and optional settlement adapters |
+| `tos-service-spec` | generic Intent/Agreement/obligation/action envelopes, body-bound authorization predicates, semantic action identity registry, retrieval policy, bounds, authority classes, settlement semantics, conformance vectors, and profile relationships |
+| `tos-service-protocol` | canonical codecs, signatures, profile-qualified authorization verification, semantic action identity, references, carrier clients, obligation/action helpers, and optional settlement adapters |
 | `tos-service-gateway` | bounded publish, retrieve, search, relay, pagination, provenance, action-ID resolution, controlled writer admission, and optional application metadata without market authority |
 | `tos-messenger` | authenticated conversations, rooms, direct negotiation, typed Agreement actions, action-ID resolution, controlled writer admission, exact object transport, Gift transport integration, and replay-safe delivery |
 | `openfox` | AI discovery, consistent Capability Inventory, semantic matching, capability/resource/profit/risk analysis, contact decisions, negotiation, local Agreement/Portfolio/obligation projection, settlement selection, durable scheduling, execution coordination, accounting, and learning |
@@ -1513,9 +1655,10 @@ selects them. Their interfaces do not multiply the Intent API.
   publisher/derived-field separation, unknown-extension preservation, and
   compact references;
 - freeze `ContentRetrievalPolicyV1`, canonical participant/obligation graphs,
-  typed Agreement proposal/acceptance/withdrawal, `AuthorizedActionV1`, action
-  resolution, billing/settlement obligations, durable schedule/dependency state,
-  and local Gate/start-ticket semantics;
+  body-bound authorization predicates, typed Agreement
+  proposal/acceptance/withdrawal, profile-qualified authorization evidence,
+  `AuthorizedActionV1`, action resolution, billing/settlement obligations,
+  durable schedule/dependency state, and local Gate/start-ticket semantics;
 - provide varied fixtures for services, goods, asset exchange, collaboration,
   negotiable/non-monetary value, missing location, and ambiguous free-form
   requests; and
@@ -1542,15 +1685,15 @@ selects them. Their interfaces do not multiply the Intent API.
   rollback-resistant owner/Agent Action Authority and require Messenger to
   enforce or be exclusively brokered by its writer-generation high-water;
 - apply rate, privacy, counterparty, and owner-policy limits;
-- distinguish ordinary messages from typed `AGREEMENT/PROPOSE` and
-  `AGREEMENT/ACCEPT` actions;
+- distinguish ordinary messages from typed `AGREEMENT/PROPOSE` and, where a
+  body-bound predicate selects the generic profile, `AGREEMENT/ACCEPT` actions;
 - require every obligation's authorization predicate — mandatory authorizers
   included — to be satisfied by profile-qualified evidence before `AGREED`; and
 - survive retry, duplicate delivery, device rotation, and restart.
 
 ### I3 — trusted low-risk earning
 
-- freeze one typed-accepted off-chain Agreement;
+- freeze one profile-authorized off-chain Agreement;
 - choose and validate settlement per value-bearing obligation before work;
 - validate required prepayment/funding, atomically reserve aggregate exposure,
   and refresh Inventory under the same consistency barrier;
@@ -1622,11 +1765,13 @@ The first useful Intent-exchange MVP requires:
     Intent reference and writer-fenced stable action;
 12. natural-language negotiation compiles a canonical acyclic Agreement body
     with unambiguous participants and `AgreementObligationV1` records;
-13. every mandatory and additional authorizer's predicate is satisfied — via
-    typed acceptance in the off-chain profile — over the same exact body,
-    version, roles, obligation IDs and expiry before `AGREED`;
+13. every mandatory and proposer-added predicate is present in the canonical
+    body with its typed subject, profile/version, obligation/role scope,
+    validity and recomputed target projection, and is satisfied by matching
+    profile-qualified evidence over that same exact body before `AGREED`;
 14. changing negotiated terms changes the predecessor-bound Agreement digest
-    and requires a new complete acceptance set;
+    and requires a new complete authorization-evidence set; a later acceptance
+    cannot select another profile or target;
 15. ordinary chat, a transcript digest, model phrase, read receipt, Gift,
     invoice, or payment request cannot trigger Agreement, signing, execution,
     transfer, or escrow authority;
@@ -1637,18 +1782,28 @@ The first useful Intent-exchange MVP requires:
     obligations reproduce canonical sequence, cap, partial-payment,
     cancellation, conflict and evidence state across restart;
 18. the generic loop works with all TOS escrow code disabled; and
-19. every side-effect sink enforces the current writer generation and exact
+19. mixed-profile obligations reach the same accepted state in two independent
+    implementations, while chain evidence replay against a modified Agreement,
+    a wrong predicate/profile/target, a partial typed-evidence union, and a
+    duplicate weaker evidence profile all fail closed;
+20. every side-effect sink enforces the current writer generation and exact
     request digest, persists conflict-safe action state, and supports
     query-before-retry; stale-writer and takeover tests cannot duplicate or
     release an action;
-20. a fresh consistent Inventory and atomic aggregate Portfolio admission are
+21. every side-effect kind uses the released registry formula and exact-byte
+    vectors; mutation, collision, timeout, ambiguous state, terminal successor,
+    controlled repeat-instance, and takeover vectors agree in two independent
+    implementations;
+22. a fresh consistent Inventory and atomic aggregate Portfolio admission are
     revalidated before Agreement, reservation, settlement preparation, or
     execution;
-21. local execution uses a unique slot, atomic `PREPARED -> STARTING`, one-shot
+23. local execution uses a unique slot, atomic `PREPARED -> STARTING`, one-shot
     ticket, ambiguous-start recovery, immutable file/network/credential
     capabilities, and a post-start effect broker; and
-22. when TOS escrow is selected, its existing profile-specific acceptance and
-    conformance gates still apply without weakening.
+24. when TOS escrow is selected, its Quote binding commits the exact generic
+    Agreement body, scoped obligations, predicates and target projections, and
+    its existing profile-specific acceptance and conformance gates still apply
+    without weakening.
 
 Multi-source public availability and external settlement adapters have their
 own later evidence gates. They do not block first contact about one verified
