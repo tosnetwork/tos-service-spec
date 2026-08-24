@@ -1,22 +1,34 @@
-# Agent Paid Demand Discovery V1
+# Agent Paid Demand Discovery V1 — Optional Escrowed Work Intent Profile
 
 **Status:** incubation design; schema freeze, implementation, and external
 acceptance pending
 
-**Blocking status:** D3 Provider Offer acceptance and D4 automatic commercial
-action are blocked until the complete D2 gate demonstrates two Section 9.1-
-independent sources, source-plus-database shutdown recovery, and a second
-independent codec/verifier, and until the separate
+**Applicability:** this is a specialized profile under
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md) for
+buyer-published, fixed-price, machine-checkable work whose parties choose the
+TOS escrow rail. It is not required for generic Intent publication, AI
+analysis, Messenger contact, natural-language negotiation, trusted work,
+Agent Gifts, direct transfers, or external settlement.
+
+**Blocking status:** TOS-escrowed Provider Offer acceptance and automatic
+execution under this profile are blocked until the separate
 [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
-handoff profile is frozen, implemented, and covered by independent vectors.
+handoff profile, action-specific authorization, custody admission, contract,
+Gate, execution, Receipt, settlement, and recovery requirements are frozen,
+implemented, and covered by independent vectors. The D2 campaign separately
+gates a claim of resilient decentralized public paid-demand availability; it
+does not prevent an Agent from displaying, analyzing, discussing, or responding
+under owner policy to one independently verified exact artifact.
 
 **Protocol:** `tos_service_v1`
 
 ## 1. Purpose
 
-This document defines how Agents may publish, propagate, find, verify, and
-respond to paid work opportunities without a central marketplace or a
-canonical market database.
+This document defines the stricter machine-readable profile used when Agents
+publish, propagate, verify, and respond to fixed-price paid software work that
+is intended to enter TOS escrow. General economic intent and open-ended
+negotiation are governed by
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md).
 
 It deliberately separates three layers:
 
@@ -38,12 +50,24 @@ database. A private or application-exclusive lead may disappear before
 acceptance; that does not make the application protocol authority or satisfy
 D2.
 
-The product may render this system as a job board, opportunity feed, or work
-square. Those are user experiences, not protocol authority. This document's
-protocol boundary is a bounded signed paid-demand envelope distributed through
-replaceable carriers and indexes, followed by direct Provider Offers and buyer
-selection. A separate binding profile hands an accepted Offer into the existing
-Accepted Quote, escrow, execution, Receipt, and settlement lifecycle.
+The product may render this profile inside a general board, opportunity feed,
+or work square. Those are user experiences, not protocol authority. The
+generic board carries `AgentIntentEnvelopeV1` with a required
+`tos.service.paid-demand.v1` extension that binds the complete independently
+signed Paid Demand reference and digest. It does not duplicate Paid Demand
+price, task, authorization, or handoff fields. Generic summary prose is
+discovery input only and cannot authorize a Provider Offer, Quote, or escrow. A
+separate binding profile hands an accepted Offer into the existing Accepted
+Quote, escrow, execution, Receipt, and settlement lifecycle.
+
+For a conforming wrapper, mechanically comparable Discovery Card fields are a
+deterministic projection of the exact Paid Demand: mode is `REQUEST`, coarse
+class is `SERVICE`, the value hint uses the same exact TOS asset, amount, and
+unit, and the wrapper cannot advertise a later expiry than the bound active
+Demand Mutation. Summary, keywords, and additional taxonomy paths may add
+search context but no authority. A mismatch makes the Paid Demand escrow
+adapter non-actionable; an index or AI must not choose whichever duplicate
+field is more favorable.
 
 The target interaction is:
 
@@ -60,7 +84,9 @@ buyer Agent publishes signed paid demand
   -> existing Gate, execution, Receipt, and provider settlement rail
 ```
 
-This design specializes the opportunity-discovery portion of
+This design specializes the general Intent exchange in
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md) and the optional
+escrow portion of
 [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md).
 The corresponding OpenFox-local package, state-machine, economics, policy,
 accounting, configuration, operator-interface, and observability plan is
@@ -242,9 +268,14 @@ They retain their schema-appropriate acceptance rule: the frozen schema-1
 Capability-first escrow uses finalized deployment as acceptance, while the
 paid-demand successor uses `pending_acceptance` followed by the bound buyer
 wallet's versioned `accept` operation. Neither schema is reinterpreted as the
-other. The paid-demand D2 source-independence gate applies to commercial action
-originating from the new public Demand-first path and does not redefine the
-existing Capability-first rail's own acceptance status.
+other. The paid-demand D2 source-independence campaign gates only a claim that
+the new public Demand-first profile is resilient to loss of one source and its
+complete database. It is not truth consensus and does not prohibit contact or
+an otherwise authorized response to one independently verified exact artifact.
+Every Provider Offer and later commercial action still must satisfy the
+profile-specific freshness, issuer-sync, authorization, custody, exposure,
+Quote, and escrow requirements. D2 does not redefine the existing Capability-
+first rail's own acceptance status.
 
 Centralized markets may provide managed matching between the lanes, sponsored
 placement, recommendations, customer support, KYC, moderation, or manual
@@ -448,10 +479,13 @@ The dedicated upload key has no wallet, Agent-control, market-signing,
 settlement, or read authority. It proves possession only when pushing the one
 input already committed by the accepted terms.
 
-A ticker, exchange-rate estimate, Gateway balance, external-chain token, or
-custodial credit is not a valid asset identity. Monetary authorization uses
-checked integer atomic units. A later UI may display converted estimates but
-they never change signed terms.
+Under this TOS escrow profile, a ticker, exchange-rate estimate, Gateway
+balance, external-chain token, or custodial credit is not a valid settlement-
+asset identity. Monetary authorization uses checked integer atomic units. A
+later UI may display converted estimates but they never change signed terms.
+The generic Intent exchange may advertise those external assets for
+negotiation, but selecting them requires a different settlement adapter and
+cannot inherit this profile's TOS guarantees.
 
 The complete buyer handoff and upload context is part of every
 `active_revision` canonical preimage. The `paid-demand.publish` signature
@@ -1484,13 +1518,14 @@ Errors distinguish at least:
 - publish and recover a verified public-channel Storage snapshot;
 - compare independently produced search projections under the Section 9.1
   operator/implementation/failure-domain evidence rules;
-- permit no Provider Offer, Selection Notice, Quote construction, execution, or
-  automatic commercial authorization.
+- permit no automatic custody, Quote construction, execution, or payment as a
+  result of D2 evidence alone. D2 proves carrier/index resilience only; a
+  conversation or independently authorized Offer about one exact artifact is
+  governed by its own policy and profile prerequisites.
 
 ### Phase D3 — guarded fixed-price response
 
-- begin only after the complete D2 two-source, source-plus-database shutdown,
-  and independent-codec/verifier gate, and after the market delegation, Demand
+- begin only after the market delegation, Demand
   Mutation/non-canonical-head boundary, mutation-bound `BuyerHandoffProfile`,
   Provider Offer authorization, Provider-wide writer fencing and
   aggregate admission, deterministic per-Offer existing Quote/escrow handoff,
@@ -1498,6 +1533,10 @@ Errors distinguish at least:
   of-possession private-input profiles—including `InputAcceptanceRecordV1` and
   complete acceptance-to-funding, funding-to-input, and input-to-admission
   margins—have frozen vectors and implementations;
+- independently verify the exact artifact and, before a binding response, use
+  direct issuer synchronization or explicit stale-state policy; do not treat
+  one carrier, two carriers, or a direct message as proof of a global latest
+  revision;
 - add direct signed single-acceptance Provider Offers and mutation resolution;
 - add proposal-only OpenFox recommend mode plus a distinct exact one-shot owner-
   authorization path that does not widen the persistent mode;
@@ -1620,7 +1659,7 @@ their transaction semantics.
 - after acceptance, deletion of the application database does not prevent
   Quote, escrow, Receipt, or settlement reconstruction.
 
-### End-to-end
+### Resilient-public-profile end-to-end campaign
 
 - buyer publishes into at least two source paths satisfying every Section 9.1
   operator, implementation, upstream, store, network-path, and failure-domain
@@ -1648,40 +1687,49 @@ their transaction semantics.
 - a third resolver reconstructs the complete canonical commercial history
   without any market index or Messenger database.
 
-## 21. V1 acceptance criteria
+## 21. Acceptance criteria and labels
 
-V1 is accepted only when:
+The core paid-demand artifact and response profile is conformant only when:
 
 1. two independent implementations reproduce all frozen market-artifact
    digests and reject the adversarial corpus;
 2. one signed demand is propagated without a central message database;
-3. one compact Paid Demand Reference retrieves the same exact signed envelope
-   after its original source disappears;
-4. two sources satisfying Section 9.1 operator, implementation, upstream, and
-   failure-domain independence expose it with explicit incomplete coverage and
-   distinct provenance;
-5. an OpenFox provider verifies historical authorization, current Agent/
+3. an OpenFox provider verifies historical authorization, current Agent/
    delegation eligibility, and the integrity/freshness of the exact observed
    active Demand Mutation while explicitly not claiming a globally complete
    feed head, and verifies the complete mutation-bound
    `BuyerHandoffProfile`, before performing expensive evaluation;
-6. typed skill, evidence, capacity, exact-asset economics, and owner policy
+4. typed skill, evidence, capacity, exact-asset economics, and owner policy
    produce a reproducible decision;
-7. one idempotent, single-acceptance signed Provider Offer reaches the buyer,
+5. one idempotent, single-acceptance signed Provider Offer reaches the buyer,
    reserves capacity atomically, passes Provider-wide writer fencing,
    unresolved-tuple and aggregate-exposure admission across every shared
    key/mandate/instance, and survives sender and receiver restart;
-8. same-host process locking rejects a second writable OpenFox, custody rejects
+6. same-host process locking rejects a second writable OpenFox, custody rejects
    a stale or partitioned writer generation, and a replacement writer inherits
    every unresolved Offer before it may sign;
-9. every acceptance criterion in
+7. every acceptance criterion in
    [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
    passes, including one Offer-specific Quote/escrow identity, separate Quote-
    acceptance and funding finality, Offer-bound input, existing Gate admission,
    Receipt/release/refund reuse, and finalized provider credit; and
-10. no Gateway, channel, Relay, index, FreeCity database, OpenFox journal, or
+8. no Gateway, channel, Relay, index, FreeCity database, OpenFox journal, or
     Provider-private admission ledger is required to reconstruct the existing
     canonical settlement.
+
+The stronger label **resilient decentralized public paid-demand availability**
+may be claimed only when the D2 campaign additionally proves that:
+
+1. one compact Paid Demand Reference retrieves the same exact signed envelope
+   after its original source and complete database disappear;
+2. two sources satisfying Section 9.1 operator, implementation, upstream, and
+   failure-domain independence expose it with explicit incomplete coverage and
+   distinct provenance; and
+3. the resilient-public-profile end-to-end campaign in Section 20 passes.
+
+Core conformance does not imply this resilience label. Conversely, absence of
+the label does not prevent display, analysis, contact, or an otherwise policy-
+authorized response to one independently verified artifact.
 
 ## 22. Explicit non-goals
 

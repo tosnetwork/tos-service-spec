@@ -11,11 +11,21 @@ acceptance evidence.
 
 **Related specifications:**
 
+- [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 - [`AGENT_NATIVE_MESSENGER_V1.md`](AGENT_NATIVE_MESSENGER_V1.md)
 - [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md)
 - [`ARCHITECTURE.md`](ARCHITECTURE.md)
 - [`ROADMAP.md`](ROADMAP.md)
+
+This document records the completed Messenger-first-contact and narrow
+Capability/software-work implementation slice. The later Intent-first product
+architecture is governed by
+[`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
+and
+[`OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md).
+Its generic Intent discovery, open negotiation, trusted work, and optional
+settlement adapters do not change this document's historical completion claims.
 
 ## 1. Product outcome
 

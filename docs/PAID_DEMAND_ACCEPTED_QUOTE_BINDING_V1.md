@@ -9,9 +9,14 @@ Accepted Quote, stablecoin escrow, Native Execution Gate, bounded execution,
 Receipt, release or refund, and finalized settlement. This document does not
 replace that rail.
 
+**Applicability:** this document is an optional high-assurance settlement
+adapter selected after negotiation under
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md). It is not a
+prerequisite for generic Intent discovery, Messenger conversation, trusted
+work, Agent Gifts, direct transfers, or external settlement.
+
 **Blocking status:** paid-demand Provider Offer acceptance and execution remain
-blocked until the discovery profile's D2 two-source, source-plus-database
-shutdown, and independent-verifier gate passes, and until the binding extension,
+blocked until the binding extension,
 Provider Offer authorization, per-Offer determinism, Provider-private admission,
 proof-of-possession input delivery, exact duration/preflight/release-pipeline
 profile, zero-bounce initial wallet-request proof, replay-aware semantic action
@@ -22,7 +27,9 @@ independently verified.
 ## 1. Purpose
 
 This document defines the smallest safe handoff from a selected paid-demand
-Provider Offer into the existing TOS Service Accepted Quote lifecycle.
+Provider Offer into the existing TOS Service Accepted Quote lifecycle after the
+parties choose this settlement mode. Its strict fields protect an untrusted
+on-chain purchase; they are not the generic market object.
 
 The boundary is:
 
@@ -980,9 +987,13 @@ Until these criteria are met, discovery and local simulation may proceed, but
 paid-demand-sourced Provider Offer acceptance and automatic execution remain
 disabled. The existing Capability-first commercial rail is unaffected.
 Passing this binding profile is necessary but not sufficient for commercial
-use: the complete D2 gate in
+use: the exact Demand artifact, issuer synchronization or explicit stale-state
+policy, Provider authorization, custody, exposure, and every selected
+commercial-rail prerequisite must also pass. The D2 campaign in
 [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md)
-must also pass.
+is separately required before claiming resilient decentralized public
+availability; source count by itself neither authorizes nor prohibits one
+exact transaction.
 
 ## 14. Explicit non-goals
 

@@ -5,15 +5,23 @@ first-contact Messenger initiation and policy-gated execution is defined in
 [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
 This document remains the authority boundary for the commercial lifecycle.
 
-The paid-demand front end is split deliberately: signed publication,
-permissionless propagation, discovery, and Provider Offers are defined in
+General economic discovery, AI-local interpretation, authenticated
+conversation, Agreement, and settlement-mode selection are defined in
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md). This bridge is
+invoked only when a negotiated Agreement selects a supported Native commercial
+profile; it is not the required path for every Intent.
+
+The optional fixed-price escrowed-work profile is split deliberately: signed
+publication, permissionless propagation, discovery, and Provider Offers are
+defined in
 [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md), while
 [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 defines the minimal versioned adapter from one exact Offer into this existing
 Quote, escrow, execution, Receipt, and settlement rail. Neither document creates
 a second commercial lifecycle.
 
-Optional person-to-person Agent Gifts are a separate non-purchase profile in
+Trusted person-to-person Agent Gifts are a separate non-purchase settlement
+choice under the general Intent architecture and are defined in
 [`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md). A Gift MUST NOT reuse
 this bridge's Quote, Capability, software-work Receipt, or provider-settlement
 semantics merely because both profiles move value.

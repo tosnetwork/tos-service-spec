@@ -469,6 +469,19 @@ gate item.
   expansion gate, reorder Gate D--F work, or establish product acceptance.
   Mailbox Relay and attachment storage service profiles remain expansion work
   under this gate and inherit the lock above.
+- [Agent Intent Exchange V1](AGENT_INTENT_EXCHANGE_V1.md) defines a generic
+  signed bulletin and Agent-to-Agent negotiation layer. A small signed
+  Discovery Card exposes coarse category, keyword, approximate value, time,
+  region, and fulfillment fields so OpenFox can filter cheaply before fetching
+  detail for AI interpretation. Deterministic owner policy controls contact,
+  execution, disclosure, and payment. Discovery does not require a new schema
+  per business category or mandatory escrow. Trusted Gifts, direct transfers,
+  TOS escrow, and external settlement remain explicit adapter choices with
+  different evidence. **Status: 🟡 Incubation design only.** The wire schema,
+  portable codecs, generic OpenFox coordinator, production carrier, Agreement
+  implementation, and conformance evidence are not complete. This design does
+  not open or reorder Gate D--G, and its optional Paid Demand escrow profile
+  remains subject to every existing commercial-rail gate.
 - [TOS Edge CDN Architecture V1](EDGE_CDN_ARCHITECTURE_V1.md) defines a standard
   HTTP CDN backed by an open market of verified Provider and Worker Agents.
   Customer→Provider and Provider→Worker purchases remain separate; the
@@ -643,7 +656,12 @@ is not implied by Gate C's initial profile.
     multi-operator route decision and a fresh independently operated public-
     network Messenger/paid session are external acceptance gates. OpenFox is
     the sole application runtime and product surface covered by this roadmap
-    and its completion denominator.
+    and its completion denominator. This completed scope is the narrow
+    Messenger/Capability/software-work bridge; it does not claim the generic
+    Intent-first autonomous business loop in
+    `docs/AGENT_INTENT_EXCHANGE_V1.md` or
+    `docs/OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`, which remain
+    incubation work under Section 8.1.
 18. 🟡 **Agent economy metrics:** `docs/AGENT_ECONOMY_METRICS_V1.md` defines
     exact-asset network, Agent, and Capability statistics derived only from
     finalized escrow, Receipt, and stablecoin settlement evidence. It includes

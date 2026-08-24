@@ -31,6 +31,14 @@ Quote Proposals, search impressions, endpoint claims, token prices, unfinalized
 transactions, self-reported revenue, and Gateway-local balances never count as
 economic output.
 
+The generic Intent, conversation, and Agreement architecture is defined in
+[`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md). Intents,
+negotiations, expected Gifts, unsecured receivables, direct payments, and
+external settlement evidence may be useful participant-local business metrics,
+but they do not enter the finalized TOS-derived Agent GDP in this document.
+This document therefore remains a narrow on-chain measurement profile, not a
+requirement that every Agent transaction use Quote, escrow, or Receipt.
+
 ## Canonical job identity and terminal facts
 
 One commercial job is identified by the following byte preimage:
