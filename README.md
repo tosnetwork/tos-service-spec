@@ -91,10 +91,10 @@ contradict them.
   FreeCity as the first society-scale TOS Network application: a human-and-Agent
   city built on the existing Agent, Capability, Quote, escrow, Receipt, and
   settlement lifecycle without creating parallel protocol facts.
-- [Decentralized Agent-to-Agent Use Cases](docs/A2A_USE_CASES.md) explains the
-  interaction lifecycle, suitable paid-agent applications, the roles of TOS
-  and TOS-network stablecoins, and when to batch many off-chain messages into one
-  settlement.
+- [Decentralized Agent-to-Agent Use Cases](docs/AGENT_TO_AGENT_USE_CASES.md)
+  explains the interaction lifecycle, suitable paid-agent applications, the
+  roles of TOS and TOS-network stablecoins, and when to batch many off-chain
+  messages into one settlement.
 - [Product and Commercial Strategy](docs/PRODUCT_STRATEGY.md) defines market
   positioning, the initial software-work wedge, revenue paths, development
   priorities, risks, and evidence required to establish a viable business.
@@ -108,13 +108,16 @@ contradict them.
   first SDK and deployment-template workflow without gateway-owned facts.
 - [Gate E Buyer Onboarding](docs/GATE_E_BUYER_ONBOARDING.md) defines canonical
   Quote review, bounded stablecoin funding, and crash-safe buyer recovery.
-- [A2A Software-Work Adapter V1](docs/A2A_ADAPTER_V1.md) maps official A2A
-  Tasks and results into the same finalized Native commercial lifecycle.
-- [MCP Software-Work Tool Adapter V1](docs/MCP_ADAPTER_V1.md) exposes that
-  lifecycle as one authority-gated, purchase-bound MCP tool.
-- [x402 Adapter Decision](docs/X402_ADAPTER_DECISION.md) explains why x402 is
-  deferred and constrains any future integration to negotiation over the
-  existing canonical TOS escrow lifecycle.
+- [External Agent Task Transport Adapter V1](docs/EXTERNAL_AGENT_TASK_TRANSPORT_ADAPTER_V1.md)
+  maps the currently supported external Agent task protocol's Tasks and results
+  into the same finalized Native commercial lifecycle.
+- [External Tool Transport Adapter V1](docs/EXTERNAL_TOOL_TRANSPORT_ADAPTER_V1.md)
+  exposes that lifecycle through one authority-gated, purchase-bound external
+  tool transport.
+- [HTTP Payment Adapter Decision](docs/HTTP_PAYMENT_ADAPTER_DECISION.md)
+  explains why the currently evaluated HTTP payment protocol is deferred and
+  constrains any future integration to negotiation over the existing canonical
+  TOS escrow lifecycle.
 - [Gateway Discovery V1](docs/GATEWAY_DISCOVERY_V1.md) defines the minimal
   authority-neutral `/.well-known/tos-service.json` transport locator.
 - [Gateway Federation V1](docs/GATEWAY_FEDERATION_V1.md) defines client-side

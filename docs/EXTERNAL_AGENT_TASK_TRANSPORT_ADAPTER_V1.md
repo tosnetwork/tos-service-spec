@@ -1,4 +1,4 @@
-# A2A Software-Work Adapter V1
+# External Agent Task Transport Adapter V1
 
 ## Scope
 

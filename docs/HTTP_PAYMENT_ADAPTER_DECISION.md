@@ -1,4 +1,4 @@
-# x402 Adapter Decision
+# HTTP Payment Adapter Decision
 
 ## Decision
 
