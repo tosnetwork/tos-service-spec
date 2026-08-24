@@ -190,11 +190,15 @@ It does not infect trusted or conversational paths.
 
 Every contact, Agreement action, reservation, execution, delivery, Gift,
 transfer, escrow, and settlement-resolution operation has a stable semantic
-action ID derived from exact participant and object identity plus action kind
-and terms.
+action ID derived under the released `SemanticActionIdentityV1` registry: one
+frozen, domain-separated digest formula per action kind over the complete
+semantic key of exact participant and object identity plus terms. Any writer —
+including a retry path or a takeover writer — recomputes the identical ID for
+the same semantic side effect.
 
-Retry attempt, source cursor, model turn, wall time, and transport session do
-not create new economic identities.
+Retry attempt, source cursor, model turn, wall time, transport session, and
+writer generation are forbidden identity inputs and do not create new economic
+identities.
 
 ## 5. Proposed package boundary
 
@@ -475,11 +479,17 @@ attachment digests and a canonical graph of `AgreementObligationV1` records.
 Each obligation binds its obligor, beneficiary, dependencies, subject,
 deliverables or consideration, exact asset and amount when applicable, schedule,
 acceptance evidence, confidentiality, cancellation, dispute and billing terms,
-settlement adapter, required authorizers, and expiry. Business-specific meaning
-remains in exact terms or namespaced extensions. The compiler rejects duplicate
-IDs, cycles, missing required acceptance, ambiguous value, and missing
-adapter-required fields. It cannot sign, reserve, execute, or settle; those
-remain separate authorized actions.
+settlement adapter, authorizers, and expiry. The compiler derives each
+obligation's mandatory authorizer set from its semantics — always the obligor;
+the payer or custody principal for a value transfer; the refunding custody
+principal for a refund; the authority owner for any private data, credential,
+or capability disclosure — and treats proposer-listed authorizers as additions
+only. Business-specific meaning remains in exact terms or namespaced
+extensions. The compiler rejects duplicate IDs, cycles, missing required
+acceptance, ambiguous value, missing adapter-required fields, and any body
+that omits a mandatory authorizer or would let the proposer authorize an
+obligation that binds another party. It cannot sign, reserve, execute, or
+settle; those remain separate authorized actions.
 
 ### 6.6 Economic evaluator
 
@@ -564,7 +574,14 @@ writer fencing generation; owner approval evidence; policy revision; and
 expiry.
 
 The Gate creates one unique execution slot for `(agent_id,
-agreement_body_digest, execution_id)`. `PrepareExecution` may create only
+agreement_body_digest, execution_id)`. `execution_id` is not chosen by the
+runner, model, or retry path: it is derived under the
+`SemanticActionIdentityV1` registry from the exact Agreement body digest, the
+execution-bearing obligation ID, the canonical plan and input identity, and a
+canonical attempt lineage in which a replacement attempt exists only through
+the recorded terminal state of the prior slot — so a timeout, crash, or
+takeover writer recomputes the identical `execution_id` and is bound by the
+existing slot. `PrepareExecution` may create only
 `PREPARED`. `StartExecution` is the single linearization point: under the action
 admission transaction it revalidates writer high-water, Agreement, plan, input,
 reservation, policy, credentials and approval, then atomically moves
@@ -572,7 +589,8 @@ reservation, policy, credentials and approval, then atomically moves
 ticket. The runner consumes that ticket once and records `RUNNING`; a crash in
 `STARTING` becomes `AMBIGUOUS_START` and must be reconciled, never automatically
 re-authorized. Terminal states are `SUCCEEDED`, `FAILED`, `CANCELLED`, or
-`KILLED`. A new writer cannot create another slot for the same exact execution.
+`KILLED`. A new writer cannot create another slot for the same exact
+execution, because it derives the same `execution_id`.
 
 File access uses pre-opened no-follow directory/file capabilities bound to
 stable file identity and, where immutability is required, exact content digest.
@@ -664,11 +682,25 @@ PortfolioDependencyV1 {
   downstream_agreement_digest
   downstream_obligation_id
   dependency_type
+  dependency_class         # blocking | informational
   failure_propagation_policy
   disclosure_policy_digest
   reserved_loss_exposure
 }
 ```
+
+For each owner Portfolio, the `blocking` cross-Agreement dependencies form one
+versioned graph that must remain acyclic, exactly as obligations must inside a
+single Agreement. Admitting a new blocking edge — or a schedule entry carrying
+`dependency_ids` — is itself an `AuthorizedActionV1` whose cycle check and
+insertion execute inside the same linearized Portfolio admission transaction,
+so two writers cannot concurrently admit `A depends on B` and `B depends on
+A`. An edge that would create a cycle is rejected before any reservation or
+risk reserve is taken. `informational` edges never block dispatch and are
+excluded from the cycle rule. Recovery and takeover revalidate acyclicity
+before dispatching, and cancellation, timeout, or failure of an Agreement
+removes its blocking edges under the recorded propagation policy so dependent
+entries resolve instead of deadlocking.
 
 Only an `AuthorizedActionV1` with the current writer generation can linearize a
 dispatch, cancellation, or preemption transition. A takeover increments
@@ -729,9 +761,29 @@ type WriterLease interface {
 }
 ```
 
-`WriterFence` contains a monotonically increasing generation. A process mutex is
-required even for single-process deployments but does not replace cross-process
-or cross-host fencing.
+`WriterFence` is the typed lease proof:
+
+```text
+WriterFenceV1 {
+  owner_id
+  agent_id
+  instance_id
+  lease_id
+  writer_generation
+  issued_at
+  expires_at
+  authority_id
+  scope
+  fence_proof              # authority-issued unforgeable MAC or signature
+}
+```
+
+`writer_generation` increases monotonically per owner/Agent, but a bare
+integer carries no authority: a fence is valid only while its `fence_proof`
+verifies as issued by the owner's Action Authority over every field above, is
+unexpired, and covers the scope of the attempted action. A process mutex is
+required even for single-process deployments but does not replace
+cross-process or cross-host fencing.
 
 ### 6.12 Unified economic action admission
 
@@ -746,6 +798,7 @@ AuthorizedActionV1 {
   stable_action_id
   exact_request_digest
   writer_generation
+  writer_fence_digest
   policy_revision
   mandate_digest
   approval_digest?
@@ -770,15 +823,27 @@ credential issuance, Gift, transfer, escrow, billing, settlement, reservation
 release, and applied reconciliation each use an appropriate `action_kind`.
 Typed wrappers may add fields but must embed the exact common envelope.
 
+`stable_action_id` for every kind is derived under the frozen
+`SemanticActionIdentityV1` registry described in §4.7, so no caller, model, or
+retry path can mint a fresh identity for an existing semantic side effect.
+
 For each owner/Agent, every sink either participates directly in one
 linearizable, rollback-resistant action-admission domain or is reachable only
 through a broker that does. Admission atomically:
 
-1. rejects a generation lower than the stored high-water generation;
-2. advances the high-water generation when a newer valid writer arrives;
-3. creates `(stable_action_id, exact_request_digest)` once against the expected
+1. verifies the `WriterFenceV1` referenced by `writer_fence_digest` — proof,
+   owner/Agent binding, scope, and expiry — and on a shared endpoint binds the
+   authenticated caller principal to that fence; a bare or forged generation
+   integer is rejected regardless of its value;
+2. rejects a fence generation lower than the stored high-water generation;
+3. advances the high-water generation only when the lease authority has
+   confirmed a completed acquire or takeover for that owner/Agent, never from
+   a future integer carried by an ordinary action request;
+4. resolves and validates mandate and approval content, scope, revision, and
+   expiry — digest comparison alone is insufficient;
+5. creates `(stable_action_id, exact_request_digest)` once against the expected
    prior state; and
-4. returns the durable existing resolution for an exact retry or `conflict` for
+6. returns the durable existing resolution for an exact retry or `conflict` for
    the same ID with different bytes.
 
 Messenger outboxes, custody, Carrier publishers, credential brokers, local
@@ -894,11 +959,17 @@ contains:
 - validity, predecessor and required typed acceptances.
 
 Conversation text and transcript digests remain evidence only. OpenFox sends a
-typed `AGREEMENT/PROPOSE` action, and each required participant sends a typed
-`AGREEMENT/ACCEPT` bound to the same exact body digest, version, roles,
-obligations and expiry. No local projection becomes `AGREED` until every
-obligation's required acceptance set is complete. Higher-assurance profiles may
-add chain acceptance, but cannot remove the generic body or required authority.
+typed `AGREEMENT/PROPOSE` action; acceptance then follows the Agreement's
+selected released acceptance profile. Under the generic off-chain profile each
+required authorizer sends a typed `AGREEMENT/ACCEPT` bound to the same exact
+body digest, version, roles, obligations and expiry. A chain-bound profile
+such as Paid Demand satisfies its designated predicates with the profile's own
+evidence — the exact signed Provider Offer and the finalized buyer-wallet
+on-chain `accept` — and neither requires nor accepts a duplicate generic
+acceptance for those predicates. No local projection becomes `AGREED` until
+every obligation's specification-derived authorization predicate is satisfied
+by profile-qualified evidence; no profile can remove the generic canonical
+body, and a generic acceptance cannot substitute for required chain evidence.
 
 ### 7.5 Engagement
 
@@ -1156,8 +1227,9 @@ obligation graph, participants, terms and attachment digests, exact values,
 dependencies, billing, per-obligation settlement adapters, resources, policy,
 and required acceptance sets.
 
-Sending `AGREEMENT/PROPOSE` and each `AGREEMENT/ACCEPT` are distinct
-writer-fenced `AuthorizedActionV1` operations. Every acceptance binds the exact
+Sending `AGREEMENT/PROPOSE` and, where the selected acceptance profile uses
+typed acceptance, each `AGREEMENT/ACCEPT` are distinct writer-fenced
+`AuthorizedActionV1` operations. Every acceptance binds the exact
 body digest, version, roles, obligation IDs and expiry. Changed terms require a
 new predecessor-bound version and a complete new acceptance set. Ordinary chat,
 a transcript digest, a model phrase, read receipt, or stale acceptance cannot
@@ -1168,8 +1240,9 @@ before retry.
 
 ### 10.1 Agreement and settlement admission
 
-Execution is ineligible until the exact `AgentAgreementBodyV1` has every typed
-acceptance required by its obligations. The coordinator prepares each selected
+Execution is ineligible until every obligation authorization predicate of the
+exact `AgentAgreementBodyV1` is satisfied by its selected acceptance profile's
+qualifying evidence. The coordinator prepares each selected
 settlement adapter, validates its exact parameters and prerequisites, and
 recomputes economics and worst-case exposure using that adapter's payment,
 funding, reversibility, fee, delay, dispute, and nonpayment model.
@@ -1805,6 +1878,17 @@ successful recovery after one Carrier and its complete database are removed.
   reconciliation sink receiving the exact common action envelope;
 - lower, equal and higher writer generations against a rollback-resistant
   high-water mark;
+- a forged or replayed fence proof, a future generation without an
+  authority-confirmed acquire or takeover, a wrong-owner or out-of-scope
+  fence, an expired or stolen lease proof, a rolled-back authority store, and
+  a partitioned stale client unable to advance the high-water or admit
+  actions;
+- mandate or approval digests resolving to changed, out-of-scope, superseded,
+  or expired content rejected despite matching digests;
+- a timeout, crash, or takeover retry deriving the identical semantic action
+  ID, and any attempt to express the same payment, publication, or execution
+  under a new ID — including a changed destination wrapper — rejected as a
+  distinct unauthorized action;
 - exact retry, same action ID with different request digest, wrong expected
   prior state, expired policy/mandate/approval and stale journal;
 - `unknown`, `prepared`, `submitted`, `accepted`, `rejected`, `conflict` and
@@ -1838,6 +1922,15 @@ successful recovery after one Carrier and its complete database are removed.
   asset/amount, missing adapter field, unknown required extension, and unknown
   optional-extension round trip;
 - acceptance for wrong body, version, role, obligation set or expiry;
+- a proposer omitting the obligor from an obligation's authorizer coverage,
+  self-authorizing an obligation that binds another party, substituting the
+  payer or custody principal, or omitting the owner of disclosed private data;
+- one accepting Agent emitting obligation-subset acceptances that only union
+  to coverage, and equivocating bytes under one acceptance identity;
+- a chain-accepted Paid Demand Agreement with no generic `AGREEMENT/ACCEPT`
+  recognized as accepted, a generic acceptance without the profile's finalized
+  chain `accept` never treated as accepted, and a wrong-wallet, wrong-Quote,
+  or wrong-body chain acceptance rejected;
 - changed terms under reused Agreement identity;
 - concurrent Proposals and stale acceptance;
 - Intent withdrawal before and after Agreement; and
@@ -1854,6 +1947,10 @@ successful recovery after one Carrier and its complete database are removed.
   network route, destructive action, or resource use;
 - atomic `PREPARED -> STARTING`, one-shot ticket consumption, crash before and
   after start linearization, and `AMBIGUOUS_START` recovery;
+- `execution_id` re-derivation: a timeout or takeover recomputing the
+  identical slot identity, a runner- or model-chosen novel execution ID
+  rejected, and a replacement attempt admitted only through recorded terminal
+  lineage;
 - writer takeover before prepare, between prepare and start, while starting,
   and while running under drain-no-new-effects and kill policies;
 - symlink, rename, inode/device/mount substitution, file-digest change, DNS
@@ -1871,6 +1968,10 @@ successful recovery after one Carrier and its complete database are removed.
 - scheduler output unable to bypass writer fencing or the Execution Gate;
 - durable dispatch generation and takeover reconciliation for queued,
   dispatched, starting, running and ambiguous entries;
+- concurrent admission of mutually blocking cross-Agreement dependencies,
+  cycle formation across subcontract chains, cycle revalidation after restart
+  and takeover, and cancellation or timeout removing blocking edges so blocked
+  entries resolve;
 - upstream cancellation racing downstream irreversible work under independent
   cancellation policies;
 - subcontractor unavailable, late, unpaid, malicious, or requesting upstream
@@ -1953,16 +2054,18 @@ The generic autonomous-earning MVP is accepted only when:
     acyclic Agreement body with unambiguous participants and multi-obligation
     deliverable, payment, exchange, billing, evidence, cancellation, dispute,
     disclosure and per-obligation settlement fields;
-14. every required participant emits typed acceptance over the same exact body,
-    version, roles, obligation IDs and expiry before `AGREED`;
+14. every mandatory and additional authorizer's predicate is satisfied by the
+    selected acceptance profile's evidence over the same exact body, version,
+    roles, obligation IDs and expiry before `AGREED`;
 15. ordinary messages, transcript digests, model phrases, UI projections,
     Gifts, invoices and payment requests cannot create an Agreement or economic
     side effect;
 16. one active writer lease and rollback-resistant fencing high-water governs
     all economic actions for the owner/Agent across multiple processes or hosts;
-17. every side-effect sink receives the same action ID, request digest, writer
-    generation, policy, mandate, approval, expected state and expiry, persists
-    conflict-safe resolution, and supports query-before-retry;
+17. every side-effect sink receives the same action ID, request digest,
+    verified writer fence, resolved policy, mandate and approval content,
+    expected state and expiry, persists conflict-safe resolution, and supports
+    query-before-retry;
 18. compute, spend, capital, receivable risk, and counterparty/global exposure
     are atomically reserved before commitment, and aggregate portfolio limits
     cannot be bypassed by concurrent opportunities;

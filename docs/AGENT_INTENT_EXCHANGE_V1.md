@@ -1012,7 +1012,7 @@ AgreementObligationV1 {
   billing_terms?
   settlement_adapter_uri? # required when the obligation transfers value
   settlement_parameters?
-  required_authorizer_agent_ids[]
+  additional_authorizer_agent_ids[]
   required_extensions[]
   optional_extensions[]
 }
@@ -1053,6 +1053,20 @@ deposit, milestone, final balance, refund, or subcontract is another obligation
 with explicit dependencies. Every value-bearing obligation selects exactly one
 settlement adapter and binds the adapter parameters it requires. There is no
 body-global settlement mode that can ambiguously cover several obligations.
+
+Every obligation carries a specification-derived mandatory authorizer set that
+the proposer cannot reduce, override, or replace. It always contains
+`obligor_agent_id`. A value-transferring obligation additionally contains the
+payer or custody principal whose assets the obligation moves; a refund
+obligation contains the refunding custody principal; an obligation disclosing
+private data, credentials, or capabilities contains the authority owner of
+that data. `additional_authorizer_agent_ids` may only extend this set with
+further authorizers. The effective required authorization set of an obligation
+is the union of both. A body whose fields would permit acceptance without
+every mandatory authorizer — an omitted obligor, a proposer self-authorizing
+an obligation that binds another party, a substituted payer, or an omitted
+owner of disclosed data — fails closed at validation, before any acceptance is
+evaluated.
 
 Exact TOS asset profiles use atomic amounts. External asset profiles use a
 released canonical decimal and unit rule or fail closed. An amount cannot
@@ -1100,12 +1114,32 @@ AgreementAcceptanceV1 {
 }
 ```
 
-`AGREEMENT/PROPOSE` carries the exact canonical body. Each required participant
-then emits `AGREEMENT/ACCEPT` over the same domain-separated body digest,
-version, its roles, the obligations it accepts, and an expiry. An Agreement is
-accepted only when every obligation's required authorization set is satisfied
-by valid, non-expired acceptances. An acceptance for another digest, version,
-role, or obligation has no effect. Exact replay is idempotent; conflicting bytes
+`AGREEMENT/PROPOSE` carries the exact canonical body. `acceptance_profile`
+selects one released `AgreementAcceptanceProfileV1` that maps every
+specification-derived authorization predicate — each obligation's mandatory
+authorizers plus its listed additional authorizers — to the exact evidence
+that satisfies it. Under the generic off-chain profile each authorizer emits
+`AGREEMENT/ACCEPT` over the same domain-separated body digest, version, its
+roles, the obligations it authorizes, and an expiry. A chain-bound profile
+such as the Paid Demand Accepted Quote binding instead satisfies designated
+predicates with its own released evidence: Provider authorization by the exact
+signed Provider Offer, buyer commercial acceptance by the finalized
+buyer-wallet on-chain `accept` transition bound to the exact binding body, and
+funding by later separate finalized evidence. A profile that maps a predicate
+to chain evidence neither requires nor accepts a duplicate generic
+`AGREEMENT/ACCEPT` for that predicate, and a generic acceptance can never
+substitute for required chain evidence. Every implementation derives the same
+accepted state from the same profile evidence, so a chain-accepted Agreement
+cannot remain locally unaccepted and a locally accepted Agreement cannot claim
+chain acceptance that does not exist.
+
+An Agreement is accepted only when every obligation's authorization predicate
+is satisfied by valid, non-expired, profile-qualified evidence. Acceptance
+identity is `(agreement_body_digest, agreement_version, accepting_agent_id)`:
+one Agent emits exactly one acceptance covering the complete set of
+obligations it authorizes; partial obligation-subset acceptances are not
+accumulated by union. An acceptance for another digest, version, role, or
+obligation set has no effect. Exact replay is idempotent; conflicting bytes
 under the same acceptance identity are equivocation and fail closed.
 
 A proposal may be withdrawn before complete acceptance through a typed
@@ -1153,6 +1187,7 @@ AuthorizedActionV1 {
   stable_action_id
   exact_request_digest
   writer_generation
+  writer_fence_digest
   policy_revision
   mandate_digest
   approval_digest?
@@ -1171,12 +1206,29 @@ ActionResolutionV1 {
 }
 ```
 
-Each owner/Agent has one linearizable, rollback-resistant writer-generation
-high-water domain. A sink directly enforces that domain or is accessible only
-through a broker that does. Admission atomically validates generation, request
-digest, policy, mandate, approval, expiry and expected prior state while
-creating the action identity once. Exact retry is idempotent; the same action ID
-with different request bytes is `conflict`.
+`stable_action_id` is not caller-chosen. A released `SemanticActionIdentityV1`
+registry freezes, per `action_kind`, one domain-separated digest formula over
+the complete semantic key of the side effect — owner, Agent, and the exact
+object identities it binds, such as Agreement body digest, obligation ID,
+payment asset, amount and destination, or publication revision. Retry attempt,
+transport session, writer generation or lease, and wall time are forbidden
+inputs, so a retry, crash recovery, or takeover writer recomputes the
+identical ID for the same semantic action and is bound by its existing
+resolution. An unregistered `action_kind` or a non-canonical derivation fails
+closed.
+
+`writer_generation` is meaningful only inside a verifiable `WriterFenceV1`
+lease proof issued by the owner's Action Authority; the envelope binds that
+exact fence through `writer_fence_digest`. Each owner/Agent has one
+linearizable, rollback-resistant writer-generation high-water domain. A sink
+directly enforces that domain or is accessible only through a broker that
+does, verifies the fence proof, scope, and expiry rather than the bare
+integer, and advances the high-water only on a lease-authority-confirmed
+acquire or takeover, never from a larger integer carried by an ordinary action
+request. Admission atomically validates the fence, request digest, policy,
+resolved mandate and approval content, expiry and expected prior state while
+creating the action identity once. Exact retry is idempotent; the same action
+ID with different request bytes is `conflict`.
 
 A timeout queries `(stable_action_id, exact_request_digest)`. `prepared`,
 `submitted`, or `accepted` is not permission to create a replacement action.
@@ -1492,7 +1544,8 @@ selects them. Their interfaces do not multiply the Intent API.
 - apply rate, privacy, counterparty, and owner-policy limits;
 - distinguish ordinary messages from typed `AGREEMENT/PROPOSE` and
   `AGREEMENT/ACCEPT` actions;
-- require every obligation's exact acceptance set before `AGREED`; and
+- require every obligation's authorization predicate — mandatory authorizers
+  included — to be satisfied by profile-qualified evidence before `AGREED`; and
 - survive retry, duplicate delivery, device rotation, and restart.
 
 ### I3 — trusted low-risk earning
@@ -1569,7 +1622,8 @@ The first useful Intent-exchange MVP requires:
     Intent reference and writer-fenced stable action;
 12. natural-language negotiation compiles a canonical acyclic Agreement body
     with unambiguous participants and `AgreementObligationV1` records;
-13. every required participant emits typed acceptance over the same exact body,
+13. every mandatory and additional authorizer's predicate is satisfied — via
+    typed acceptance in the off-chain profile — over the same exact body,
     version, roles, obligation IDs and expiry before `AGREED`;
 14. changing negotiated terms changes the predecessor-bound Agreement digest
     and requires a new complete acceptance set;

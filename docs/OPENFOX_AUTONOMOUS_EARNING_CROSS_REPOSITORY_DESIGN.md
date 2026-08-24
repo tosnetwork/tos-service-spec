@@ -167,11 +167,15 @@ Messenger gives two Agents an authenticated open-ended negotiation channel.
 They may clarify any semantic detail without changing the Intent protocol.
 
 Ordinary conversation is always non-binding. When the parties decide to
-proceed, one participant sends a typed `AGREEMENT/PROPOSE` containing the exact
-canonical Agreement digest. Every required participant then sends a typed
-`AGREEMENT/ACCEPT` binding that same digest, version, role, and expiry. A
-transcript digest may be evidence attached to the Agreement, but can never
-substitute for acceptance.
+proceed, one participant sends a typed `AGREEMENT/PROPOSE` containing the
+exact canonical Agreement digest. Acceptance follows the Agreement's selected
+released acceptance profile: under the generic off-chain profile every
+required authorizer sends a typed `AGREEMENT/ACCEPT` binding that same digest,
+version, role, and expiry, while a chain-bound profile satisfies its
+designated predicates with its own evidence, such as the finalized
+buyer-wallet `accept` of the Paid Demand binding. A transcript digest may be
+evidence attached to the Agreement, but can never substitute for acceptance
+evidence.
 
 The Agreement is a generic canonical graph of participant roles and
 `AgreementObligationV1` records. Each obligation binds its deliverable or
@@ -337,8 +341,9 @@ does not satisfy the unpaid obligation.
 A and B negotiate
   -> select a released TOS escrow profile
   -> compile the exact escrow obligation into the canonical Agreement
-  -> perform generic typed Agreement acceptance and profile-specific bilateral
-     authorization
+  -> satisfy the Paid Demand acceptance profile: Provider authorization by the
+     exact signed Provider Offer, buyer commercial acceptance by the finalized
+     buyer-wallet on-chain accept (no duplicate generic acceptance)
   -> validate every adapter prerequisite and reserve aggregate exposure
   -> accept and fund exact escrow
   -> enter the Native Execution Gate with a one-shot execution slot
@@ -347,8 +352,12 @@ A and B negotiate
   -> resolve finalized provider-wallet outcome
 ```
 
-The Paid Demand binding documents govern this path. Generic Intent fields never
-silently fill missing escrow authority.
+The Paid Demand binding documents govern this path. The binding is a released
+acceptance profile of the generic Agreement: its chain evidence — not a second
+generic `AGREEMENT/ACCEPT` — satisfies the authorization predicates it maps,
+so the coordinator, Gate, Portfolio, and recovery flows all derive one
+acceptance state. Generic Intent fields never silently fill missing escrow
+authority.
 
 ### 7.4 Asset exchange or external settlement
 
@@ -966,8 +975,10 @@ opportunity must conform to Paid Demand.
 - ordinary prose cannot create Agreement or payment authority;
 - a canonical Agreement contains a deterministic acyclic graph of exact
   obligations and one settlement adapter per value-bearing obligation;
-- every required participant sends typed acceptance binding the same Agreement
-  digest, version, role, and expiry;
+- every obligation authorization predicate — always including the
+  specification-derived mandatory authorizers — is satisfied by the selected
+  acceptance profile's evidence binding the same Agreement digest, version,
+  role, and expiry;
 - missing, duplicate, expired, withdrawn, concurrent-version, conflicting, and
   unknown-required-extension cases fail closed;
 - changed negotiated or settlement terms produce a new digest and complete new

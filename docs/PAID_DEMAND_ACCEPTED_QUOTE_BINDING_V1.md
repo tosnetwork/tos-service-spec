@@ -274,6 +274,17 @@ notification. The wallet transaction authorization stays outside StateInit
 identity. This removes a second buyer-controlled signature byte string from
 Quote/StateInit identity and keeps a predeployment from consuming acceptance.
 
+Under the generic Agreement model this binding is a released
+`AgreementAcceptanceProfileV1`. The Provider's authorization predicate is
+satisfied by the exact signed Provider Offer; the buyer's commercial-
+acceptance predicate is satisfied by the finalized wallet-authenticated
+on-chain `accept` carrying this exact binding body; funding is later separate
+finalized evidence. A generic typed Agent acceptance is neither required nor
+accepted as a substitute for either predicate, and every coordinator derives
+Agreement acceptance state from this mapping, so an on-chain-accepted purchase
+cannot remain generically unaccepted and a generic projection cannot claim
+chain acceptance that does not exist.
+
 ### 4.2 `PaidDemandQuoteBindingBodyV1`
 
 The Provider constructs one unsigned canonical binding body from the exact
@@ -910,6 +921,11 @@ The extension requires frozen positive vectors and mutations for:
   cutoffs; delayed acceptance and funding finality at every committed pre-input
   pipeline boundary, and rejection when either complete pipeline bound is too
   small or unavailable;
+- cross-profile acceptance consistency: a finalized bound-wallet `accept` with
+  no generic `AGREEMENT/ACCEPT` recognized as complete buyer commercial
+  acceptance; a generic Agent acceptance without the finalized chain `accept`
+  never treated as accepted; and a chain `accept` from an unbound wallet, for
+  a different Quote identity, or over a different binding body rejected;
 - deterministic one-Offer/one-Quote reproduction; independent acceptance of two
   different Provider Offers; and rejection of a second Quote identity derived
   from one Offer;
