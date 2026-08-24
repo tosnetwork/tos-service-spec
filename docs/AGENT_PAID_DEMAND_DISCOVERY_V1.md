@@ -35,6 +35,12 @@ buyer Agent publishes signed paid demand
 
 This design specializes the opportunity-discovery portion of
 [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md).
+The corresponding OpenFox-local package, state-machine, economics, policy,
+accounting, configuration, operator-interface, and observability plan is
+defined in
+[`OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md).
+That plan is non-normative; this document and the cross-repository design
+govern market artifacts and authority.
 It reuses the authority boundaries in [`ARCHITECTURE.md`](ARCHITECTURE.md), the
 commerce lifecycle in [`SETTLEMENT.md`](SETTLEMENT.md), client-side Gateway
 composition in [`GATEWAY_FEDERATION_V1.md`](GATEWAY_FEDERATION_V1.md), and the
