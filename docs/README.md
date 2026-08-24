@@ -69,8 +69,8 @@ authoritative only after parties explicitly select that profile.
 
 - [OpenFox Economic Bridge V1](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [OpenFox Autonomous Messenger Economy Plan](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
-- [OpenFox Autonomous Earning Cross-Repository Design](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
-- [OpenFox Autonomous Earning Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
+- [OpenFox Autonomous Earning — Operation-Composed Cross-Repository Design](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
+- [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
 
 These documents explain how OpenFox composes generic operations, AI reasoning,
 skills, runtime policy, and optional settlement. They do not define new

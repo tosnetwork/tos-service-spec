@@ -1,4 +1,4 @@
-# OpenFox Autonomous Earning — Intent-First Implementation Plan
+# OpenFox Autonomous Earning — Operation-Composed Implementation Plan
 
 ## Status
 
@@ -18,10 +18,12 @@
   `d4d5e165831ace2e1e01e04f9fc17e90853814ef`
 
 This plan replaces the assumption that all earning opportunities are typed
-fixed-price software jobs. OpenFox instead consumes a general signed Intent
-exchange, uses its embedded AI to understand arbitrary opportunities, contacts
-the issuer through Messenger, negotiates final terms, and selects an execution
-and settlement adapter according to capability, trust, risk, and owner policy.
+fixed-price software jobs. OpenFox composes general Agent Operations: it
+discovers `PUBLICATION/POST` operations carrying an Intent profile, uses its
+embedded AI to understand arbitrary opportunities, contacts the issuer through
+Messenger, promotes negotiated terms into an explicit Agreement, dispatches an
+approved Skill, and selects a settlement adapter according to capability,
+trust, risk, and owner policy.
 
 No implementation claim may rely only on the historical source baseline. The
 current OpenFox repository must be re-audited at the commit selected for work.
@@ -36,20 +38,22 @@ Build OpenFox into:
 > agreed work through approved skills, selects an appropriate payment method,
 > and learns from verified outcomes.
 
-The primary loop is:
+The primary loop and component boundary are:
 
 ```text
-AI chooses bounded Intent sources and queries
-  -> retrieve and verify signed Intents
-  -> AI understands content and matches local capability
-  -> estimate revenue, cost, trust, and risk
-  -> ignore, watch, recommend, or contact issuer
-  -> negotiate through authenticated Messenger
+Capability Inventory
+  -> bounded Search Profile
+  -> Opportunity Collector verifies Agent Operations and signed Intent cards
+  -> deterministic card filters and diverse shortlist
+  -> selective detail retrieval and hostile-content AI analysis
+  -> Economic Evaluator computes feasibility, profit, ROI, trust, and risk
+  -> ignore, watch, request owner review, or contact issuer
+  -> Negotiation Manager uses authenticated Messenger
   -> freeze exact Agreement
-  -> reserve resources and authorize execution
-  -> perform and deliver work
-  -> Gift/direct transfer/TOS escrow/external settlement
-  -> reconcile outcome and update bounded learning records
+  -> Portfolio Ledger atomically reserves resources and exposure
+  -> Skill/Execution Gate performs and delivers approved work
+  -> Settlement Selector chooses none/Gift/direct/TOS escrow/external adapter
+  -> Portfolio Ledger reconciles evidence and bounded learning records
   -> repeat
 ```
 
@@ -87,18 +91,18 @@ generic autonomous business loop in this plan.
 | Intent-referenced contact | No complete coordinator turns a verified Intent into bounded authenticated first contact. |
 | Open negotiation | Existing earning design over-specializes Provider Offers and forbids general natural-language negotiation in the production path. |
 | Generic Agreement | No exact object cleanly separates ordinary chat from the final terms that authorize work or payment. |
-| Optional settlement | No common adapter boundary selects trusted Gift, direct transfer, TOS escrow, or external settlement without changing the market object. |
+| Optional settlement | No common adapter boundary selects trusted Gift, direct transfer, TOS escrow, or external settlement without changing the Intent or Agreement objects. |
 | Generic execution dispatch | The passive provider path is pinned to a narrow software profile rather than a locally selected approved skill. |
 | Business accounting | Expected Gift, unsecured receivable, external payment, escrowed receivable, cost, nonpayment, and settled revenue are not reconciled under evidence classes. |
 | Continuous operation | Pause, drain, restart, contact limits, unresolved Agreements, settlement recovery, and learning are not integrated into one durable loop. |
 
 ## 4. Architectural decisions
 
-### 4.1 Use one Intent market coordinator
+### 4.1 Use one operation-composed earning coordinator
 
-Create a generic Intent control plane. Do not create separate discovery APIs
-for smart-contract review, asset exchange, video work, data collection, or each
-future skill.
+Create a generic earning control plane over the Agent Operation layer. Do not
+create separate discovery APIs or coordinator state machines for smart-contract
+review, asset exchange, video work, data collection, or each future Skill.
 
 Buying, selling, requesting, offering, and exchanging share acquisition,
 verification, AI analysis, contact, and negotiation. Spending policy and
@@ -177,18 +181,25 @@ The package layout is illustrative. Existing packages should be reused when
 their semantics match exactly.
 
 ```text
-pkg/intentmarket/
+pkg/earning/
+  coordinator.go      # observe -> evaluate -> negotiate -> execute -> settle
+  lifecycle.go        # generic economic safety states, not business categories
+  actions.go          # typed semantic actions and idempotent action IDs
+  writer_lease.go     # owner/Agent single-writer lease and fencing generation
+  store.go            # restart-safe journal, recovery, pause and drain
+
+pkg/opportunity/
+  operation.go        # verified Agent Operation and Intent payload projection
+  collector.go        # bounded multi-Carrier acquisition and exact deduplication
   card.go             # signed Discovery Card and publisher fields
   detail.go           # selective detail/manifest/attachment retrieval
   taxonomy.go         # coarse classes and namespaced taxonomy helpers
   search_profile.go   # AI proposal plus deterministic policy clamp
   shortlist.go        # hard filters, cheap rank, diversity and quotas
-  model.go            # Intent observation and Opportunity projection
+  model.go            # verified observation and Opportunity projection
   reference.go        # generic Intent Reference / Opportunity Magnet
-  source.go           # bounded carrier interface
-  verify.go           # envelope, signature, revision, provenance
-  coordinator.go      # acquisition -> AI assessment -> decision
-  store.go            # restart-safe local journal and cursors
+  source.go           # bounded Carrier interface
+  verify.go           # operation, signature, revision, provenance
   policy.go           # contact and candidate-side deterministic limits
 
 pkg/negotiation/
@@ -198,14 +209,14 @@ pkg/negotiation/
   store.go            # durable conversation/Agreement projection
 
 pkg/business/
-  capability.go       # local current skills, models, tools, credentials, capacity
-  economics.go        # cost, revenue, trust, asset, and risk estimates
-  portfolio.go        # resource, spend, loss, and obligation limits
-  accounting.go       # evidence-class-aware P&L and receivables
+  inventory.go        # current Skills, models, tools, credentials and capacity
+  economics.go        # explainable expected profit, ROI, trust and risk
+  portfolio.go        # atomic reservations and aggregate exposure limits
+  ledger.go           # evidence-class-aware P&L, receivables and reconciliation
 
-pkg/fulfillmentadapter/
-  adapter.go          # generic bounded fulfillment interface
-  registry.go         # owner-approved installed adapters
+pkg/skilladapter/
+  skill.go            # generic bounded Skill interface
+  registry.go         # owner-approved installed Skills
   delivery.go         # authenticated result/artifact delivery
 
 pkg/settlementadapter/
@@ -217,22 +228,39 @@ pkg/settlementadapter/
 ```
 
 Do not duplicate protocol codecs in OpenFox. `tos-service-protocol` owns exact
-Intent, Agreement, Gift, Quote, Receipt, and settlement encodings.
+Agent Operation, Intent payload, Agreement, Gift, Quote, Receipt, and settlement
+encodings.
 
 ## 6. Small integration surfaces
 
-The common architecture needs four coarse boundaries rather than one interface
-per trade type.
+The common architecture needs coarse business-neutral boundaries rather than
+one interface per trade type.
 
-### 6.1 Intent source
+### 6.1 Opportunity collection and source adapters
 
 ```go
-type IntentSource interface {
-    SearchCards(ctx context.Context, query CardQuery, cursor Cursor, limit uint32) (CardBatch, error)
-    ResolveCard(ctx context.Context, ref IntentRef) (ExactIntentEnvelope, error)
-    FetchContent(ctx context.Context, descriptor ContentDescriptor) (ExactContent, error)
+type OpportunitySource interface {
+    SearchCards(
+        ctx context.Context,
+        query CardQuery,
+        cursor Cursor,
+        limit uint32,
+    ) (OperationBatch, error)
+    ResolveOperation(
+        ctx context.Context,
+        ref OperationRef,
+    ) (VerifiedAgentOperation, error)
+    FetchContent(
+        ctx context.Context,
+        descriptor ContentDescriptor,
+    ) (ExactContent, error)
 }
 ```
+
+The Opportunity Collector owns bounded polling, source-local cursors, exact
+deduplication, retry, and source provenance across these adapters. It never
+converts Carrier rank or availability into truth, latest-state, solvency, or
+profitability authority.
 
 Search returns exact bounded signed cards or exact references plus provenance;
 any derived labels or rank are separate attributed fields. Detail, attachment
@@ -242,7 +270,33 @@ lexical, taxonomy-, value-, time-, region-, language-, embedding-, room-, or
 application-based. A source's filtering or ranking never becomes OpenFox's
 decision or issuer authority.
 
-### 6.2 Conversation transport
+### 6.2 Capability inventory
+
+```go
+type CapabilityInventory interface {
+    Snapshot(ctx context.Context, owner OwnerID, agent AgentID) (InventorySnapshot, error)
+}
+
+type InventorySnapshot struct {
+    Revision       uint64
+    Skills         []SkillDescriptor
+    Models         []ModelDescriptor
+    Tools          []ToolDescriptor
+    Credentials    []CredentialDescriptor
+    Wallets        []WalletDescriptor
+    Assets         []AssetDescriptor
+    Capacity       ResourceCapacity
+    Reservations   []ResourceReservation
+    Obligations    []Obligation
+    CostEvidence   []UnitCostEvidence
+    OutcomeHistory []SkillOutcomeSummary
+}
+```
+
+The snapshot is local, versioned, and owner-scoped. Remote content cannot add a
+Skill, mark a credential available, change a cost, or release a reservation.
+
+### 6.3 Conversation transport
 
 ```go
 type ConversationTransport interface {
@@ -256,22 +310,47 @@ OpenFox supplies the canonical Agent recipient, Intent reference, and semantic
 message. Messenger owns routes, sessions, devices, encryption, replay, and
 delivery.
 
-### 6.3 Fulfillment adapter
+### 6.4 Economic evaluator
 
 ```go
-type FulfillmentAdapter interface {
-    Assess(ctx context.Context, agreement Agreement, inventory Inventory) (Feasibility, error)
+type EconomicEvaluator interface {
+    Evaluate(
+        ctx context.Context,
+        opportunity VerifiedOpportunity,
+        inventory InventorySnapshot,
+        portfolio PortfolioSnapshot,
+    ) (EconomicAssessment, error)
+}
+```
+
+The assessment records revenue, cost, payment and completion probabilities,
+capital lock, opportunity cost, loss reserves, expected net profit,
+risk-adjusted ROI, worst-case exposure, evidence provenance, confidence, and
+unknown material inputs. AI may propose estimates; deterministic policy applies
+minimum profit, ROI, confidence, capacity, asset, legal, and risk thresholds.
+
+### 6.5 Skill adapter
+
+```go
+type Skill interface {
+    DescribeCapabilities(ctx context.Context) (SkillDescriptor, error)
+    Assess(
+        ctx context.Context,
+        agreement Agreement,
+        inventory InventorySnapshot,
+    ) (Feasibility, error)
     Reserve(ctx context.Context, actionID ActionID, plan Plan) (Lease, error)
     Execute(ctx context.Context, lease Lease, input Input) (Outcome, error)
+    ProduceEvidence(ctx context.Context, outcome Outcome) (ExecutionEvidence, error)
 }
 ```
 
 Fulfillment means performing the locally controlled obligation: running a
-skill, delivering an artifact, releasing a good, providing compute, or taking
+Skill, delivering an artifact, releasing a good, providing compute, or taking
 one side of an asset exchange. Adapter-specific behavior is selected from the
-local registry and Agreement content, not from a new market API.
+local registry and Agreement content, not from a new business-category API.
 
-### 6.4 Settlement adapter
+### 6.6 Settlement adapter
 
 ```go
 type SettlementAdapter interface {
@@ -284,13 +363,37 @@ type SettlementAdapter interface {
 Adapters expose a shared operational shape but preserve their own guarantees.
 No generic method claims that all external settlement is atomic or finalized.
 
+### 6.7 Portfolio ledger and writer fencing
+
+```go
+type PortfolioLedger interface {
+    Snapshot(ctx context.Context, owner OwnerID, agent AgentID) (PortfolioSnapshot, error)
+    Reserve(ctx context.Context, fence WriterFence, reservation Reservation) (ReservationResult, error)
+    ApplyEvidence(ctx context.Context, fence WriterFence, actionID ActionID, evidence Evidence) error
+    Reconcile(ctx context.Context, fence WriterFence, scope ReconcileScope, apply bool) (ReconcileResult, error)
+}
+
+type WriterLease interface {
+    Acquire(ctx context.Context, owner OwnerID, agent AgentID, instance InstanceID) (WriterFence, error)
+    Renew(ctx context.Context, fence WriterFence) (WriterFence, error)
+    Release(ctx context.Context, fence WriterFence) error
+}
+```
+
+`WriterFence` contains a monotonically increasing generation. Every operation
+that creates contact, commitment, reservation, execution, delivery, or
+settlement exposure carries the current generation. Local storage and custody
+reject stale generations. A process mutex is required even for single-process
+deployments but does not replace cross-process or cross-host fencing.
+
 ## 7. Domain model
 
 ### 7.1 Verified Intent observation
 
 The local record contains:
 
-- exact envelope digest, canonical signed Discovery Card, and reference;
+- exact `PUBLICATION/POST` Agent Operation digest, canonical Intent payload,
+  signed Discovery Card, and reference;
 - issuer Agent and authorization evidence;
 - observed revision/predecessor/withdrawal state;
 - source, cursor, retrieval time, and provenance;
@@ -324,7 +427,7 @@ The assessment is not a signature or commitment.
 
 ```text
 IntentOpportunity {
-  exact_intent_key
+  exact_operation_key
   issuer_agent_id
   observation_evidence
   assessment_digest
@@ -335,7 +438,7 @@ IntentOpportunity {
 }
 ```
 
-`exact_intent_key` is stable. Later revisions create new exact observations and
+`exact_operation_key` is stable. Later revisions create new exact observations and
 update the current actionable view without erasing history.
 
 The pre-contact retrieval projection is explicit:
@@ -390,6 +493,33 @@ AGREED
 
 Adapter-specific substates are nested observations, not new generic business
 categories.
+
+### 7.6 Complete economic lifecycle
+
+The coordinator exposes one business-neutral safety lifecycle:
+
+```text
+DISCOVERED
+  -> FILTERED_OUT
+  -> SHORTLISTED
+  -> EVALUATED
+       -> IGNORED | WATCHED | OWNER_REVIEW
+       -> CONTACTING
+       -> NEGOTIATING
+       -> AGREEMENT_PROPOSED
+       -> AGREED
+       -> RESOURCE_RESERVED
+       -> EXECUTING
+       -> DELIVERED
+       -> SETTLEMENT_RESOLVING
+       -> SETTLED | UNPAID | REFUNDED | DISPUTED | FAILED | ABANDONED
+```
+
+The lifecycle is not a task schema. Profiles may skip states that do not apply,
+but no external side effect may skip its required policy, authorization,
+reservation, custody, or evidence boundary. Every transition records the
+expected prior revision, current writer-fence generation, stable action ID,
+policy revision, and triggering evidence.
 
 ## 8. Discovery and AI processing
 
@@ -530,10 +660,18 @@ worst-case exposure
     + asset/custody exposure
     + unresolved obligations
     + maximum nonpayment loss
+
+risk-adjusted ROI
+  = expected value / max(committed cost and exposure, minimum unit)
 ```
 
 Unknown material values require owner approval or rejection. A model estimate
 cannot silently become an exact price or probability.
+
+Automatic contact may use a lower informational threshold than automatic
+Agreement or execution. Commitment requires all configured minimum profit,
+ROI, confidence, capacity, liquidity, settlement, counterparty, and maximum-loss
+rules to pass against a fresh inventory and portfolio snapshot.
 
 ## 9. Contact and negotiation
 
@@ -588,7 +726,19 @@ a new version. Ordinary chat cannot trigger promotion.
 
 Before work begins, OpenFox reserves the exact plan's resources and worst-case
 cost. Reservation is keyed by Agreement and stable action ID. Concurrent
-instances cannot exceed shared local or custody-enforced exposure.
+instances cannot exceed shared local or custody-enforced exposure. Reservation
+requires the current owner/Agent writer-fence generation and atomically checks:
+
+- CPU, memory, disk, accelerator, token, API, time, and concurrency capacity;
+- external spend and locked capital;
+- outstanding Offers and accepted Agreements;
+- delivered-but-unpaid and other unsecured receivables;
+- dispute, refund, and maximum-loss reserves; and
+- per-counterparty and aggregate portfolio limits.
+
+A stale writer cannot reserve or release resources. Lease expiry initiates
+reconciliation; it does not by itself prove that external work or settlement
+stopped.
 
 Trusted mode may intentionally accept unsecured payment risk, but it cannot
 ignore execution cost or resource limits.
@@ -722,8 +872,13 @@ change settlement evidence, or erase adverse outcomes.
 ## 14. Configuration sketch
 
 ```yaml
-intent_market:
+earning:
   mode: observe                  # off | observe | contact | trusted | policy-gated
+  writer_lease:
+    backend: owner-scoped-durable-store
+    ttl_seconds: 30
+    renew_seconds: 10
+    require_custody_fence: true
   sources:
     - id: public-intents
       adapter: gateway
@@ -765,6 +920,10 @@ intent_market:
     max_concurrent_agreements: 2
     max_unsecured_cost_atomic: "0"
     maximum_external_spend_atomic: "0"
+    maximum_total_exposure_atomic: "0"
+    minimum_expected_profit_atomic: "0"
+    minimum_risk_adjusted_roi_bps: 3000
+    minimum_assessment_confidence_bps: 8000
     minimum_expected_margin_bps: 3000
   settlement:
     allowed:
@@ -781,32 +940,42 @@ Configuration is owner policy. Intent content cannot edit it.
 Read-only commands:
 
 ```text
-openfox intent sources
-openfox intent profile show
-openfox intent search <text>
-openfox intent card inspect <intent-ref>
-openfox intent detail inspect <intent-ref>
-openfox intent explain <intent-ref>
-openfox intent conversations
-openfox intent agreement inspect <agreement-id>
-openfox intent engagement list
-openfox intent accounting summary
-openfox intent settlement inspect <agreement-id>
+openfox earning sources
+openfox earning profile show
+openfox earning search <text>
+openfox earning opportunity inspect <operation-ref>
+openfox earning explain <operation-ref>
+openfox earning inventory show
+openfox earning portfolio show
+openfox earning writer status
+openfox earning conversations
+openfox earning agreement inspect <agreement-id>
+openfox earning engagement list
+openfox earning accounting summary
+openfox earning settlement inspect <agreement-id>
+openfox earning reconcile --dry-run
 ```
 
 Mutating commands require local authorization and stable action IDs:
 
 ```text
-openfox intent contact <intent-ref>
-openfox intent profile regenerate
-openfox intent agreement propose <conversation-id>
-openfox intent agreement accept <agreement-id>
-openfox intent engagement authorize <agreement-id>
-openfox intent settlement request <agreement-id>
-openfox intent pause [source|contact|skill|adapter|all]
-openfox intent drain
-openfox intent resume
+openfox earning contact <operation-ref>
+openfox earning profile regenerate
+openfox earning agreement propose <conversation-id>
+openfox earning agreement accept <agreement-id>
+openfox earning engagement authorize <agreement-id>
+openfox earning settlement request <agreement-id>
+openfox earning reconcile --apply
+openfox earning writer takeover
+openfox earning pause [source|contact|skill|adapter|all]
+openfox earning drain
+openfox earning resume
 ```
+
+`writer takeover` requires explicit owner authorization, increments the fencing
+generation, invalidates the prior writer, and forces reconciliation before new
+economic actions. `reconcile --dry-run` is read-only; `--apply` uses a stable
+action ID, audit record, writer fence, and crash recovery.
 
 The UI must distinguish AI suggestion, non-binding message, Proposal,
 Agreement, fulfillment authorization, delivery, expected payment, payment
@@ -843,20 +1012,21 @@ or unrestricted model context.
 ### Phase 0 — current-source audit and protocol fixtures
 
 - re-audit the selected OpenFox commit;
-- freeze generic Intent, signed Discovery Card, detail descriptor, publisher/
-  derived-field boundary, query, and Agreement vectors in `tos-service-spec`
-  and `tos-service-protocol`;
+- freeze the common Agent Operation Envelope plus the Intent payload, signed
+  Discovery Card, detail descriptor, publisher/derived-field boundary, query,
+  and Agreement vectors in `tos-service-spec` and `tos-service-protocol`;
 - freeze coarse modes/classes, taxonomy and region identifier syntax, keyword/
   language rules, canonical decimal value hints, schedule ordering, and all
   card/detail/attachment bounds;
 - decide whether existing opportunity storage can represent generic exact
-  Intent identity or needs `pkg/intentmarket`;
+  operation and Intent identity or needs `pkg/opportunity`;
 - build semantically varied fixtures; and
 - keep every external action disabled.
 
-Exit: one codec and local model represent unrelated goods, services, and asset
-exchange without new core fields, and a second implementation filters their
-signed cards without retrieving detail.
+Exit: two independent codecs/verifiers agree on the common operation and Intent
+payload, unrelated goods, services, and asset exchange require no new core
+opcode or fields, and a second implementation filters signed cards without
+retrieving detail.
 
 ### Phase 1 — read-only Intent scout
 
@@ -877,7 +1047,8 @@ signed cards without retrieving detail.
 Exit: seven days of restart-safe observation across varied Intent categories;
 most irrelevant cards are rejected without detail or general-model cost, all
 detail fetches are explainable and bounded, and no message or economic side
-effect occurs.
+effect occurs. A one-Carrier run is explicitly a local prototype and cannot be
+advertised as resilient decentralized public discovery.
 
 ### Phase 2 — authenticated contact and negotiation
 
@@ -912,7 +1083,7 @@ escrow. Nonpayment must be handled as a valid adverse business outcome.
 - prove disabling any adapter does not disable discovery or negotiation.
 
 Exit: the same Intent/Agreement path selects at least two settlement modes
-without category-specific market code.
+without category-specific core code.
 
 ### Phase 5 — optional untrusted TOS escrow
 
@@ -937,13 +1108,16 @@ be confused with trusted modes.
 - add canary learning changes with review and rollback.
 
 Exit: recurring varied commerce improves measured matching or profitability
-without expanding authority automatically.
+without expanding authority automatically. Production public-discovery claims
+additionally require at least two independently operated Carrier paths and
+successful recovery after one Carrier and its complete database are removed.
 
 ## 18. Test strategy
 
-### Intent and sources
+### Agent Operations, Intent, and sources
 
-- exact codec and signature vectors;
+- exact common Agent Operation codec, payload binding, signature, replay, and
+  profile vectors;
 - unrelated content categories under one envelope and common Discovery Card;
 - required card fields, field-count/text bounds, canonical decimals, amount
   ordering, schedule ordering, taxonomy/region syntax, and language tags;
@@ -965,6 +1139,22 @@ without expanding authority automatically.
 - source cursor replay, loss, corruption, and independent-source divergence;
   and
 - one-source verified contact without a false global-head claim.
+
+### Capability, economics, portfolio, and writer fencing
+
+- stale, missing, or internally inconsistent capability inventory;
+- unavailable model, Skill, tool, credential, wallet, asset, or capacity;
+- deterministic profit and risk-adjusted ROI calculations around threshold
+  boundaries, unknown costs, uncertain payment, and adverse outcomes;
+- atomic reservation and release of compute, spend, capital, receivables, loss
+  allowance, counterparty exposure, and total portfolio exposure;
+- two local processes and two hosts competing for the same owner/Agent writer
+  lease;
+- an expired or superseded fencing generation unable to contact, propose,
+  agree, reserve, execute, settle, reconcile with changes, or release another
+  writer's reservation; and
+- crash, lease expiry, takeover, journal replay, and evidence-driven
+  reconciliation without duplicate economic actions.
 
 ### AI and hostile content
 
@@ -1020,44 +1210,55 @@ without expanding authority automatically.
 
 The generic autonomous-earning MVP is accepted only when:
 
-1. the same core Intent codec represents at least five unrelated economic
-   intents, including a service request, service offering, asset buy, asset
-   sale, and open collaboration;
+1. the same common Agent Operation envelope and Intent payload profile
+   represent at least five unrelated economic intents, including a service
+   request, service offering, asset buy, asset sale, and open collaboration;
 2. each active Intent exposes a bounded signed Discovery Card containing a
    coarse direction/class, keywords, explicit value state, lifecycle, and
    digest-bound detail descriptor;
-3. OpenFox's embedded AI proposes a versioned bounded search profile from its
-   current skills/resources, and deterministic owner policy clamps it;
-4. card queries and deterministic filters cover category/keyword, approximate
+3. OpenFox builds a fresh, evidence-backed Capability Inventory covering its
+   current Skills, models, tools, credentials, wallets, assets, capacity,
+   reservations, obligations, costs, and relevant verified outcomes;
+4. OpenFox's embedded AI proposes a versioned bounded search profile from that
+   inventory, and deterministic owner policy clamps it;
+5. card queries and deterministic filters cover category/keyword, approximate
    value, time, fulfillment, region, and language without retrieving every
    Intent detail;
-5. publisher claims and derived classifications, translations, conversions,
+6. publisher claims and derived classifications, translations, conversions,
    embeddings, and ranks remain visibly separate and provenance-bound;
-6. hard filters plus diversity quotas reject irrelevant/flooding cards before
+7. hard filters plus diversity quotas reject irrelevant/flooding cards before
    general-model analysis, while an explicit exploration quota avoids a fully
    closed recommendation loop;
-7. only shortlisted detail and approved attachments are fetched, each under
+8. only shortlisted detail and approved attachments are fetched, each under
    separate budgets and exact digest/size verification;
-8. OpenFox explains search-profile, rejection, shortlist, detail-fetch,
+9. OpenFox explains search-profile, rejection, shortlist, detail-fetch,
    semantic, capability, resource, profit, and risk decisions;
-9. hostile content cannot control tools, credentials, models, routes, policies,
+10. the Economic Evaluator calculates explainable expected net profit and
+    risk-adjusted ROI, and deterministic thresholds reject opportunities whose
+    costs, payment probability, downside, or confidence are unacceptable;
+11. hostile content cannot control tools, credentials, models, routes, policies,
    execution, disclosure, or payment;
-10. OpenFox A contacts OpenFox B through authenticated Messenger using an exact
+12. OpenFox A contacts OpenFox B through authenticated Messenger using an exact
    Intent reference;
-11. A and B negotiate natural-language terms and produce a separate exact
+13. A and B negotiate natural-language terms and produce a separate exact
    Agreement;
-12. ordinary messages cannot create an Agreement or economic side effect;
-13. one owner-approved bounded skill executes and delivers under that
+14. ordinary messages cannot create an Agreement or economic side effect;
+15. one active writer lease and fencing generation governs all economic
+    actions for the owner/Agent, including across multiple processes or hosts;
+16. compute, spend, capital, receivable risk, and counterparty/global exposure
+    are atomically reserved before commitment, and aggregate portfolio limits
+    cannot be bypassed by concurrent opportunities;
+17. one owner-approved bounded skill executes and delivers under that
     Agreement;
-14. one trusted low-risk run records either verified Gift/direct payment or an
+18. one trusted low-risk run records either verified Gift/direct payment or an
    honest unpaid outcome;
-15. accounting reconciles actual cost and settlement evidence without calling
-   expected value revenue;
-16. restart and exact retry create no duplicate contact, Agreement, execution,
-    Gift, transfer, or settlement action;
-17. pause and drain work at source, contact, skill, adapter, and global scope;
-18. the entire MVP works with TOS escrow support disabled; and
-19. if TOS escrow is demonstrated, it separately passes every specialized
+19. the Portfolio Ledger reconciles actual cost and settlement evidence
+    without calling expected value revenue;
+20. restart, writer takeover, and exact retry create no duplicate contact,
+    Agreement, execution, Gift, transfer, or settlement action;
+21. pause and drain work at source, contact, skill, adapter, and global scope;
+22. the entire MVP works with TOS escrow support disabled; and
+23. if TOS escrow is demonstrated, it separately passes every specialized
     profile gate.
 
 Two independent carriers are required before claiming resilient decentralized
@@ -1070,6 +1271,7 @@ The implementation does not require:
 
 - a universal business taxonomy;
 - one interface per task or asset type;
+- one core coordinator or lifecycle per business category;
 - a task profile before conversation;
 - a central market database or global winner;
 - mandatory TOS escrow, stablecoin, Evaluator, or Receipt;
@@ -1080,8 +1282,8 @@ The implementation does not require:
 
 ## 21. Open decisions
 
-1. Should the first generic carrier be a Messenger public room, a Gateway
-   search endpoint, or both behind one `IntentSource` interface?
+1. Should the first generic Carrier be a Messenger public room, a Gateway
+   search endpoint, or both behind one `OpportunitySource` interface?
 2. What exact owner policy permits autonomous first contact?
 3. What minimum Agreement fields are required for trusted work?
 4. Which existing OpenFox skill is safe and useful for the first low-value
@@ -1095,6 +1297,10 @@ The implementation does not require:
    negotiation content?
 9. Which evidence class permits counterparty trust calibration?
 10. When does value at risk require owner approval or TOS escrow?
+11. Which durable store and custody boundary enforce owner/Agent writer fencing
+    across processes and hosts?
+12. Which reservation dimensions and evidence release each class of aggregate
+    portfolio exposure?
 
 Until these decisions are frozen and tested, OpenFox may implement the
 read-only scout. Autonomous contact, Agreement, execution, Gift, transfer,
