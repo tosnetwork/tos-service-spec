@@ -3,13 +3,13 @@
 **Status:** incubation design; implementation and external acceptance pending
 
 **Blocking status:** read-only discovery may proceed after its minimal schema
-freeze, but Provider Offer acceptance, paid execution, and automatic commercial
-action remain blocked until the D2 multi-source/independent-verifier gate, the
-complete mutation-bound buyer acceptance context, bilateral typed accepted-work
-authorization, portable market-delegation proofs, Provider-wide fenced
-admission, per-Offer single acceptance, contract-enforced demand-wide one-
-Provider selection, and proof-of-possession private-input delivery are
-implemented.
+freeze, but paid-demand-sourced Provider Offer acceptance, execution, and
+automatic commercial action remain blocked until the D2 multi-source/
+independent-verifier gate, complete mutation-bound `BuyerHandoffProfile`, typed
+Quote-binding body and Provider proof, portable market-delegation proofs,
+Provider-wide fenced admission, per-Offer deterministic acceptance, and proof-
+of-possession private-input delivery are implemented. The existing Capability-
+first commercial rail remains available under its own acceptance status.
 
 **Protocol:** `tos_service_v1`
 
@@ -33,13 +33,17 @@ Related specifications:
 - [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
 - [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md)
+- [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 - [`AGENT_ECONOMY_METRICS_V1.md`](AGENT_ECONOMY_METRICS_V1.md)
 - [`ROADMAP.md`](ROADMAP.md)
 
-For paid-demand artifact construction, verification, distribution gates,
-bilateral acceptance, private Provider admission, and recovery invariants,
+For paid-demand publication, verification, distribution, Provider Offers, and
+local buyer selection,
 [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md) is the
-specialized governing design and prevails over any abbreviated summary here.
+specialized governing design. For the versioned handoff from one exact Offer
+into the existing Accepted Quote rail, private input, and commercial recovery,
+[`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
+governs. Both prevail over any abbreviated summary here.
 The OpenFox-local projection and operator behavior are expanded in
 [`OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md);
 this document does not define an alternate signing order, state machine, or MVP
@@ -81,8 +85,15 @@ artifacts. The binding sufficiency review has established that the current
 Accepted Quote cannot express all facts required for D3: it omits buyer Agent,
 Demand Mutation, Provider Offer, task input/source, and task-level
 validator/evidence terms. D3 therefore requires a typed, reconstructible
-accepted-work extension to Quote, escrow, Execution Gate, Receipt, and safe
-handoff before any paid execution; this is not left to an application journal.
+versioned binding in the existing Accepted Quote, corresponding escrow parser/
+code identity, a recoverable `pending_acceptance` state and bound-wallet
+`accept` transition, resolver, Native Execution Gate comparison, and safe
+handoff before paid-demand-sourced execution. The extra state prevents a third-
+party deployment of the public deterministic StateInit from consuming buyer
+acceptance. The existing Receipt remains bound
+transitively through its Quote commitment and current input/source/result
+fields unless a separate review proves a concrete gap. No application journal
+or parallel settlement state may supply the missing authority.
 
 ## 2. Current baseline and exact gaps
 
@@ -124,11 +135,12 @@ configuration:
 - purpose-limited market delegation with portable historical authority,
   current authorization-eligibility, and acceptance-time revocation-ordering
   verification;
-- typed accepted-work convergence binding Demand, Offer, buyer, input,
-  evidence, reconstructible buyer acceptance, and reconstructible Provider
-  Offer authorization into finalized commercial state;
-- per-Offer single acceptance, demand-wide one-Provider selection, and
-  deterministic Quote/escrow derivation;
+- typed Quote-binding convergence connecting signed Demand context, Provider
+  Offer authorization, buyer Agent-to-wallet context, task input/evidence, and
+  the buyer-wallet-authenticated versioned escrow `accept` transition into
+  finalized commercial state;
+- deterministic one-Offer/one-existing-Quote derivation, without claiming
+  demand-wide exclusivity across independently funded Offers;
 - buyer-push private-input delivery to a Provider-bound ingress;
 - competitive pricing and offer revision without allowing model prose to
   authorize a commitment;
@@ -136,8 +148,8 @@ configuration:
   construction and before Provider authorization;
 - multiple bounded execution profiles beyond the current pinned software-work
   profile;
-- task-specific validation, evidence generation, result submission, dispute,
-  and recovery adapters;
+- task-specific validation, evidence generation, result submission, objective
+  refund, and recovery adapters;
 - finalized revenue attribution, cost allocation, realized P&L, receivables,
   and unresolved-exposure accounting inside OpenFox; and
 - a continuous operating loop that can restart, pause, drain, revoke, and
@@ -152,7 +164,7 @@ necessary before production autonomy may be claimed:
 - recurring public-network paid demand and useful Capability supply;
 - production custody, delegated limits, recovery, revocation, monitoring, and
   accounting procedures;
-- real fee, latency, failure, refund, dispute, and utilization observations;
+- real fee, latency, failure, refund, and utilization observations;
 - public conformance evidence across independent implementations;
 - production capacity and credential provisioning for each enabled skill; and
 - the external Gate D through Gate G evidence required by `ROADMAP.md`.
@@ -201,11 +213,13 @@ or payment. The authority transition remains:
 
 ```text
 active Demand Mutation + Provider fields + durable Offer identity
-  -> unsigned typed AcceptedWorkBody
+  -> unsigned typed PaidDemandQuoteBindingBodyV1
   -> Provider authorization creates one Provider Offer
-  -> buyer authorization completes AcceptedWorkTerms
-  -> exact buyer wallet atomically consumes the Demand Acceptance Key
-  -> finalized Accepted Quote and funded escrow embedding those terms
+  -> buyer verifies and selects the exact Offer locally
+  -> deterministic versioned escrow starts in pending_acceptance
+     and carries the versioned Quote
+  -> bound buyer wallet finalizes its on-chain accept transition
+  -> later exact stablecoin notification creates funded state
   -> Native Execution Gate
   -> bound execution and evidence
   -> canonical Receipt
@@ -238,13 +252,13 @@ policy decision merely because the same owner operates both roles.
 
 | Repository | Must own | Must not own |
 |---|---|---|
-| `tos-service-spec` | normative Demand Mutation, market delegation, Provider Offer, AcceptedWorkTerms, private-input, task/execution/validator/evidence schemas when approved; bounds; canonical encodings; authority/state-machine invariants; vectors; acceptance contract | runtime schedules, private policy, private credentials, mutable market indexes |
+| `tos-service-spec` | normative Demand Mutation, market delegation, Provider Offer, `PaidDemandQuoteBindingV1`, private-input, task/execution/validator/evidence schemas when approved; bounds; canonical encodings; authority/state-machine invariants; vectors; acceptance contract | runtime schedules, private policy, private credentials, mutable market indexes |
 | `tos-service-protocol` | generated types; canonical encoders/digests; signature and finalized-state verification; negotiation, Accepted Quote, provider, Receipt, settlement, and recovery SDKs; conformance helpers | opportunity ranking, model planning, operator portfolio policy, custody secrets |
 | `tos-service-gateway` | bounded searchable projection of non-expired demand; cursors; federation; rate limits; authenticated publish/withdraw/relay transport; explicit provenance and freshness | canonical task acceptance, buyer solvency truth, ranking authority, custody, provider execution, settlement truth |
 | `openfox` | durable earning coordinator; source federation; verifier orchestration; skill/capacity matching; economics; pricing strategy; deterministic policy; owner-private process lock; Provider writer-lease client/recovery; Offer/later-bid journal; execution orchestration; local P&L; operator explanation and control | protocol codecs, chain truth, raw chain keys, task-selected authority, unrestricted tool execution |
 | `tos-ai` | implementation/operation of spec-defined task, execution, validator, evidence and private-input profiles; deterministic estimates; durable body-bound runtime capacity leases; bounded executors; metering; artifacts; execution replay protection | freezing normative profiles, market authority, economic policy, wallet custody, final settlement recognition |
 | `tos-messenger` | paid-demand public-channel and direct-offer profiles; authenticated Agent conversations; replay-safe transport; verification/synchronization/persistence integration over TOS networking; device/session custody | generic DHT/Overlay/RLDP/Storage primitives, market ranking, Quote/escrow authority, execution authority, wallet authority from prose |
-| `tos` / contracts | generic DHT/Overlay/ADNL/RLDP/Storage primitives; canonical Agent delegation; demand-wide first-finalized acceptance key; accepted-work/Quote, escrow, Receipt, dispute, transfer, and final settlement transitions | task search, bid ranking, private cost models, OpenFox objectives, execution planning |
+| `tos` / contracts | generic DHT/Overlay/ADNL/RLDP/Storage primitives; canonical Agent delegation; existing Accepted Quote, escrow, Receipt, objective release/refund, transfer, and final settlement transitions; versioned Quote/escrow parser support for the paid-demand binding | task search, bid ranking, private cost models, OpenFox objectives, execution planning, demand-wide winner selection in V1 |
 | `tosctl` or equivalent custody boundary | Provider-wide exclusive writer lease; rollback-resistant generation and issuance ledger; unresolved Demand-tuple and aggregate-exposure admission across shared instances/keys/mandates/runtimes; stable-action conflict/replay handling; semantic confirmation; delegated signing; broadcast; ambiguous-submit resolution; revocation integration | opportunity selection, model prompts, execution or accounting policy; public market-artifact fields for private admission state |
 | `doc` | ecosystem-level product explanation synchronized after the design is accepted | normative schemas, implementation status without evidence, runtime behavior |
 
@@ -271,15 +285,16 @@ OpenFox earning scout
   -> deterministic mandate decision
 
 OpenFox provider
-  -> load the active Mutation's complete buyer authorization context
+  -> load the active Mutation's complete BuyerHandoffProfile
   -> choose one durable Offer identity and Provider terms
-  -> construct one unsigned typed AcceptedWorkBody
+  -> construct one unsigned typed PaidDemandQuoteBindingBodyV1
   -> reserve private capacity and pass Provider-wide admission
   -> sign that body to create one single-acceptance Provider Offer
   -> resolve ambiguity before any retry
-  -> buyer selects the Offer and signs the same unique typed AcceptedWorkBody
-  -> complete AcceptedWorkTerms carries both proofs
-  -> finalized extended Accepted Quote + funded escrow
+  -> buyer verifies and selects the exact Offer locally
+  -> deterministic escrow may be deployed only into pending_acceptance
+  -> bound buyer wallet finalizes the accept transition carrying the binding
+  -> later exact stablecoin notification creates funded state
 
 private input boundary
   -> buyer pushes committed bytes to Offer-bound Provider ingress
@@ -287,8 +302,8 @@ private input boundary
      archive bounds
 
 tos-ai execution boundary
-  -> Native Execution Gate compares every finalized accepted-work field
-  -> Gate claims the exact paid execution once
+  -> existing Native Execution Gate validates every paid-demand binding field
+  -> Gate claims the existing (Quote commitment, escrow address) slot once
   -> execute approved profile once
   -> validate output and produce immutable evidence
 
@@ -334,101 +349,100 @@ canonical encoding are not frozen by this document:
 
 - **Demand Mutation** — buyer identity, monotonic sequence, predecessor, kind
   (`active_revision` or `terminal_withdrawal`), task/input/evidence terms,
-  exact asset, deadlines, and one complete `BuyerAcceptanceProfile` that fixes
-  the buyer settlement wallet, exact `accepted-work.accept` key, constrained
-  delegation/proof/authority reference, and upload proof-of-possession key before
-  any Provider signature, plus expiry and signature;
-- **Provider Offer** — the Provider first combines the exact active Mutation,
-  preallocated Offer identity, and Provider-owned terms into one unsigned typed
-  `AcceptedWorkBody`; its `provider-offer.sign` authorization over that body
-  creates the Offer. The body fixes active Mutation digest, buyer context,
-  provider Agent and Capability/version, exact price, delivery window,
-  execution/evidence/private-input profiles, `max_acceptances=1`, and expiry;
-  private writer-generation, reservation, runtime-lease, and admission-ledger
-  data never enter these public bytes;
-- **Selection Notice** — buyer's non-canonical notice of a selected offer and
-  the terms expected in the Accepted Quote; and
-- **AcceptedWorkTerms** — a typed unsigned accepted-work body plus
-  reconstructible buyer `accepted-work.accept` and Provider
-  `provider-offer.sign` authorization proofs, committed by the unique Accepted
-  Quote and escrow. The body fixes the exact single delegated Ed25519 key and
-  proof profile, validity bounds, and canonical portable authority-reference
-  digest for each side, so alternate authorized keys, threshold subsets, proof
-  paths, or wrappers cannot create another Quote. Each signature also binds
-  the digest of its canonical proof context. The full Provider Offer digest is
-  derived from the unsigned body plus Provider proof and is never contained in
-  its own signed body. An Offer digest alone is not Provider consent.
+  exact asset, deadlines, and one complete `BuyerHandoffProfile`. That profile
+  fixes signed Demand authorization context, the exact settlement wallet already
+  represented by existing escrow terms, portable authority reference, and
+  upload proof-of-possession key before any Provider signature.
+- **Provider Offer** — the Provider combines the exact active Mutation,
+  preallocated Offer identity, and Provider-owned terms into one unsigned
+  `PaidDemandQuoteBindingBodyV1`. Its `provider-offer.sign` proof creates the
+  exact Offer. The body fixes Provider/Capability, price, task/input/evidence,
+  transport/private-input, existing-rail equality commitments,
+  `max_acceptances = 1`, and expiry. Private writer/reservation data never
+  enters public bytes.
+- **Selection Notice** — optional non-canonical buyer notice of a locally
+  selected Offer. It proves neither Accepted Quote finality, funding, nor global
+  exclusivity.
+- **PaidDemandQuoteBindingV1** — the exact body plus Provider proof, carried by a
+  versioned existing Accepted Quote. It is an extension payload, not separate
+  accepted state. The signed Demand establishes buyer Agent handoff context;
+  permissionless deployment creates only `pending_acceptance`; the finalized
+  escrow `accept` transition authenticated to the bound buyer wallet is
+  commercial acceptance; later exact stablecoin notification is funding.
+
+The exact Provider proof bytes are part of one exact Provider Offer identity.
+A different valid signature over the same body is a different conflicting
+Offer, not an alternate encoding that can silently derive another escrow. V1
+adds no post-Offer buyer Agent signature to Quote/StateInit identity.
 
 These artifacts are hostile, replayable Internet inputs. A valid signature
 proves origin only. It does not prove funding, solvency, availability, quality,
-selection, or payment.
+selection, or payment. Messenger, Selection Notice, Gateway, or index data
+cannot complete or rotate a missing buyer context; that requires a successor
+active Demand Mutation and newly authorized Provider Offer.
 
-Messenger, Selection Notice, Gateway, or index data cannot complete or rotate a
-missing buyer context. Such a change requires a successor active Demand Mutation
-and a newly constructed and authorized Provider Offer.
-
-Before an implementation PR adds these messages or services, the specification
-PR must place their canonical representations in the sole Native protobuf
-schema and define bounds, canonical ordering, digest domains, purpose-limited
-market delegation, Demand Mutation rules, rejection behavior, retry semantics,
-and frozen vectors first.
+The complete field mapping, Quote schema-version boundary, Provider admission,
+private-input adapter, and existing-rail integration are governed by
+[`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md).
 
 ### 6.3 Discovery semantics
 
 A Gateway may index, rank, filter, paginate, relay, and expire demand. Every
-result includes source Gateway, observation time, issuer, mutation sequence,
-mutation digest, envelope
-digest, and cursor provenance. A Gateway must not claim that a listing is:
-
-- accepted or funded;
-- still available merely because it has not expired locally;
-- profitable for a particular provider;
-- authorized for execution; or
-- guaranteed to settle.
+result includes source Gateway, observation time, issuer, Mutation sequence and
+digest, envelope digest, and cursor provenance. A Gateway must not claim that a
+listing is accepted, funded, profitable, execution-authorized, or guaranteed to
+settle.
 
 OpenFox deduplicates identical envelope digests across Gateways, rejects
-conflicting reuse of a buyer/demand/mutation sequence, and retains source
+conflicting reuse of one buyer/demand/Mutation sequence, and retains source
 provenance. Before offering it verifies historical signing authorization,
-fresh current Agent/delegation eligibility, and the integrity/freshness of the
-exact observed mutation chain. Because no canonical feed head exists, it does
-not claim that no unseen successor, withdrawal, or fork exists. Before
-execution it ignores the listing and verifies the complete bilateral finalized
-AcceptedWorkTerms, Quote, and escrow through the extended Native Execution
-Gate.
+current Agent/delegation eligibility, and the integrity/freshness of the exact
+observed Mutation chain. It never claims that no unseen successor, withdrawal,
+or fork exists.
+
+Before execution it ignores listing and Selection Notice state. It resolves the
+versioned binding from the existing finalized Accepted Quote, separately proves
+the exact funded escrow state, and enters the existing Native Execution Gate.
 
 A known terminal withdrawal or fork fails closed before Offer signing. Absence
-of one is only source-bounded evidence. Final acceptance instead relies on the
-Provider authorizing the exact accepted-work body, the buyer separately
-authorizing that body, and the committed buyer wallet atomically consuming the
-stable Demand Acceptance Key while finalizing/funding the exact Quote and escrow.
-Globally enforceable pre-acceptance cancellation would require a canonical
-on-chain demand head and is deliberately outside this profile.
+of one is only source-bounded evidence. Final acceptance relies on the signed
+Demand context, exact Provider proof, and finalized escrow `accept` transition
+authenticated to the bound buyer wallet. Permissionless deployment creates no
+acceptance. Funding is the later existing stablecoin transition. Globally
+enforceable pre-acceptance cancellation or exclusive Provider selection would
+require a separate on-chain coordinator and is outside V1.
 
 ### 6.4 Provider Offer and later-bid safety
 
-Every mutation, Offer, Selection Notice, input delivery, and submission has an
-OpenFox-generated durable action identity outside model control. Exact replay
-is idempotent. Reuse of an identity for different content is a conflict.
+Every Mutation, Offer, Selection Notice, and input-delivery action has an
+OpenFox-generated durable semantic identity outside model control. Exact replay
+is idempotent; reuse for different content is a conflict.
 
 An ambiguous network result never causes a blind retry. The coordinator first
-queries the destination, negotiation peer, or finalized TOS state appropriate
-to the action. If no authoritative resolution operation exists, the action is
-marked ambiguous and requires operator review or safe expiry.
+queries the destination, peer, or exact deterministic escrow appropriate to the
+action. If no reliable resolution operation exists, it remains ambiguous until
+operator review or safe expiry.
 
-One preallocated Provider Offer identity is buyer-specific and fixes
-`max_acceptances=1`. Together with the exact Mutation and Provider terms it
-determines one unsigned accepted-work body, Quote commitment, and escrow
-StateInit. The Provider authorization over that body creates the signed Offer;
-selection adds a distinct buyer Agent authorization, while the exact
-buyer wallet atomically consumes the stable Demand Acceptance Key while it
-authorizes/funds the finalized Quote transaction. The first finalized
-compare-and-set selects one Provider across every Offer and Mutation under the
-Demand identity; exact replay returns that winner and a competing acceptance
-conflicts. OpenFox atomically reserves capacity before signing and converts or
-releases that reservation only after resolving the deterministic escrow. Private input is
-buyer-pushed with proof of possession to the Provider ingress bound by the
-Offer and accepted terms; remote task content never selects a Provider fetch
-target or credential.
+One exact buyer-specific Provider Offer fixes `max_acceptances = 1` and maps to
+one deterministic existing Quote commitment and escrow address. The buyer
+cannot vary wallet, nonce, proof wrapper, input, deadline, or transport while
+preserving that Offer identity. Different Provider Offers remain independent:
+if the buyer finalizes and funds two, both are valid purchases. Buyer custody may
+enforce a local preference to accept one, but no UI or protocol component calls
+that a global winner.
+
+OpenFox reserves capacity before signing and converts the reservation when the
+Offer-specific Accepted Quote finalizes. The accepted-but-unfunded obligation
+then follows only the existing funding deadline; if no funds were accepted,
+there is nothing to refund. Execution begins only after exact funded finality,
+after which successful release or objective timeout refund applies. An
+unaccepted Offer releases only after its deadline and deterministic resolution
+of its exact escrow `accept` transition.
+
+Private input is buyer-pushed with proof of possession to the Provider ingress
+bound by the Offer and then mapped into an existing task transport and shared
+Gate claim. Remote task content never selects a Provider fetch target,
+credential, or execution authority.
 
 ## 7. OpenFox earning control plane
 
@@ -467,21 +481,24 @@ defined in the
 [`OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md#durable-task-state-machine).
 This overview does not define a shorter competing state machine. In particular:
 
-- capacity is privately reserved before Provider authorization and converted
-  only after the unique bilateral acceptance and funded escrow finalize;
+- capacity is privately reserved before Provider authorization, converts to an
+  accepted-awaiting-funding obligation after Offer-specific Quote finality, and
+  becomes executable only after exact escrow funding finality;
 - after Provider authorization, withdrawal, expiry, or local cancellation enters
   a resolving state and retains exposure until deterministic acceptance absence
   is proved;
 - every ambiguous state preserves its origin phase, operation, and stable action
   ID, and only its phase-specific resolver may advance or compensate it; and
-- execution, submission, Receipt, dispute, and settlement recovery cannot
-  regress to `ACCEPTED`, reopen a terminal state, or repeat an economic action.
+- execution, submission, Receipt, objective refund, and settlement recovery
+  cannot regress to an earlier execution-eligible state, reopen a terminal
+  state, or repeat an economic action.
 
 No local transition creates a protocol fact. From acceptance onward, the
-record stores immutable references to the typed accepted-work body, both
-bilateral authorization proofs, unique Quote commitment, escrow address,
-execution identity, Receipt, and finalized checkpoints. On disagreement,
-verified chain state wins and the local projection is rebuilt or quarantined.
+record stores immutable references to the paid-demand Quote-binding body,
+Provider Offer proof, deterministic Offer-specific Quote commitment, escrow
+address, separate funding state, execution identity, Receipt, and finalized
+checkpoints. On disagreement, verified chain state wins and the local
+projection is rebuilt or quarantined.
 
 ### 7.3 Typed skill matching
 
@@ -528,14 +545,14 @@ expected_net_profit
   - subcontractor_cost
   - network_bid_and_settlement_fees
   - retry_and_failure_allowance
-  - dispute_and_refund_reserve
+  - failure_and_timeout_refund_reserve
   - capacity_opportunity_cost
 
 worst_case_exposure
   = external_spend
   + non_refundable_execution_cost
   + locked_capital
-  + dispute_or_penalty_reserve
+  + refund_or_penalty_reserve
 ```
 
 The actual implementation represents probabilities as bounded fixed-point
@@ -559,7 +576,7 @@ over:
 
 - total and per-asset worst-case exposure;
 - daily and rolling-window external spend and realized loss;
-- concurrent accepted, executing, and disputed tasks;
+- concurrent accepted, executing, and refund-resolving tasks;
 - resource-class capacity and reservation headroom;
 - counterparty and task-profile concentration;
 - unresolved bids, submissions, settlement intents, and receivables;
@@ -587,7 +604,7 @@ Self-learning must never automatically:
 - install or approve executable code;
 - lower evidence or isolation requirements;
 - convert unfinalized revenue into success labels;
-- hide losses, refunds, disputes, or unresolved exposure; or
+- hide losses, refunds, or unresolved exposure; or
 - publish a strategy change without versioning and rollback.
 
 Promotion of a learned strategy requires offline replay, holdout evaluation,
@@ -603,9 +620,11 @@ the execution profile, resource class, estimate version, validity deadline,
 and reservation identity; it does not authorize chain or market actions.
 
 After commercial acceptance, OpenFox must reconcile the reserved profile with
-the complete finalized `AcceptedWorkTerms`, Accepted Quote, and escrow. A
+the complete finalized `PaidDemandQuoteBindingV1`, Accepted Quote, and escrow. A
 mismatch causes rejection or a new Offer, not silent substitution. Reservations
-convert to accepted obligations on unique Quote/escrow finality. Before Provider
+never convert on permissionless deployment; they convert to accepted-awaiting-
+funding obligations only on the Offer-specific bound-wallet `accept` transition
+and Quote finality. Before Provider
 authorization they may compensate on a verified terminal path; after Provider
 authorization they remain held through withdrawal/expiry/cancellation
 resolution and release only after the acceptance deadline plus deterministic
@@ -613,16 +632,17 @@ proof that no valid acceptance can still finalize.
 
 ### 8.2 Execution admission
 
-Every transport must reach the shared Native Execution Gate after its mandatory
-accepted-work extension is implemented. The extended Gate independently decodes
-the finalized `AcceptedWorkTerms` and verifies the Accepted Quote, funded
-escrow, buyer authorization, exact buyer-wallet acceptance, Provider Offer
-authorization, the body-derived Demand Acceptance Key and its exact finalized
-winner, portable issuance references and acceptance-time revocation ordering,
-Demand Mutation, provider, Capability/version, manifest, execution signer,
-transport binding, input/source, validator/evidence, asset/amount, and deadlines
-before atomically claiming the execution slot. The current narrower Gate is
-reusable infrastructure, not sufficient admission for paid D3 work.
+Every transport must reach the existing shared Native Execution Gate after its
+paid-demand binding parser is implemented. The Gate retains its current
+`(Quote commitment, escrow address)` slot and independently verifies the
+versioned binding, Accepted Quote, exact funded escrow, signed Demand context,
+the buyer-wallet-authenticated escrow `accept` transition, Provider Offer
+authorization, portable issuance references and acceptance-time revocation
+ordering, Demand Mutation, Provider,
+Capability/version, manifest, execution signer, transport binding,
+input/source, validator/evidence, asset/amount, and deadlines. The current Gate
+is reusable infrastructure; D3 adds binding validation rather than a second
+execution authority.
 
 The executor receives only provider-approved configuration. Remote tasks and
 model output cannot select images, commands, environment variables, host
@@ -644,8 +664,10 @@ generated or verified, OpenFox must not submit a successful Receipt.
 OpenFox distinguishes:
 
 - **quoted revenue** — non-authoritative offer value;
-- **contracted receivable** — finalized Accepted Quote/funded escrow, still not
-  earned cash;
+- **accepted-unfunded commitment** — finalized Accepted Quote awaiting exact
+  funding, not a receivable or execution permission;
+- **contracted receivable** — finalized exact funded escrow, still not earned
+  cash;
 - **submitted receivable** — result or Receipt submitted, still unresolved;
 - **settled provider receipt** — authenticated finalized provider-wallet
   credit; and
@@ -687,14 +709,15 @@ revenue, profit, or taxable income.
     obligations; revoke prevents new signatures and triggers reconciliation.
 14. Restart rebuilds commercial truth from durable journals and independently
     verified finalized state.
-15. An Offer identity or digest alone is not Provider consent. Finalized paid
-    execution requires both Agent-level authorizations over the same typed body
-    plus the exact buyer-wallet acceptance transaction.
-16. The accepted-work body fixes one delegated Ed25519 key, canonical proof
-    context, portable authority-reference digest, validity bounds, and encoding
-    per side; authorization-proof choice cannot change the unique Quote or
-    escrow identity.
-17. Every active Demand Mutation fixes the complete buyer acceptance and upload
+15. An Offer identity or digest alone is not Provider consent. Every paid-
+    demand Quote carries the exact Provider-authorized binding body and proof;
+    permissionless deployment creates only `pending_acceptance`, and buyer
+    commercial acceptance is the finalized escrow `accept` transition
+    authenticated to the wallet fixed by the active Demand Mutation.
+16. One exact Provider Offer maps to one deterministic versioned Accepted Quote
+    and escrow identity. Alternate proof wrappers, encodings, or StateInit
+    inputs cannot create another identity for that same Offer.
+17. Every active Demand Mutation fixes the complete buyer handoff and upload
     context before Provider authorization; chat, selection, Gateway, or index
     data cannot complete or rotate it.
 18. No commercial phase or MVP may pass on one source: D2 requires at least two
@@ -704,10 +727,11 @@ revenue, profit, or taxable income.
     fence and aggregate admission boundary spanning all shared instances, keys,
     mandates, runtimes, unexpired Offers, and unsettled obligations. That private
     state is not copied into public market artifacts.
-20. Per-Offer `max_acceptances=1` is supplemented by one contract-enforced
-    Demand Acceptance Key. Its first finalized atomic consumption binds the
-    exact winning Mutation, Offer, terms, Quote, escrow, and buyer-wallet funding
-    across all competing Providers and Demand revisions.
+20. Permissionless escrow deployment, buyer-wallet Quote acceptance, and
+    stablecoin funding are three separate events in the versioned existing
+    rail. Different Provider Offers accepted or funded by the buyer are
+    independent purchases; V1 does not claim a demand-wide winner or add a
+    coordinator contract that would make that claim true.
 
 ## 10. Cross-repository interfaces
 
@@ -724,10 +748,10 @@ commercial action:
 | Demand Mutation / Offer | protocol/Messenger adapter | OpenFox | market-purpose authorization, sequence/single-acceptance, exact action, idempotency, ambiguity resolution |
 | mandate decision | OpenFox deterministic policy | custody adapter | exact action digest, limits, mandate version, expiry |
 | Provider-private admission | custody adapter | OpenFox coordinator | exclusive writer lease, rollback-resistant fencing high-water mark, stable-action replay, unresolved-tuple and aggregate exposure across every shared signer/runtime; atomic record before signature release |
-| accepted-work convergence | protocol + TOS contracts | Gate/custody/OpenFox | unsigned typed body plus reconstructible buyer/Provider authorization proofs embedded in unique Quote/escrow; exact buyer-wallet finality |
-| demand-wide acceptance | TOS Accepted Quote/escrow contract | buyer, Providers, Gate, recovery clients | deterministic key from stable Demand identity; first-finalized atomic compare-and-set records exact Mutation/Offer/terms/Quote/escrow and funding; exact replay or conflict resolution |
+| paid-demand Quote binding | protocol + TOS contracts | Gate/custody/OpenFox | exact Provider-authorized binding body embedded in a versioned existing Accepted Quote/escrow; one deterministic Quote per exact Offer; permissionless `pending_acceptance` deployment plus one buyer-wallet-authenticated `accept` transition |
+| escrow funding | existing stablecoin escrow contract | buyer, Provider, Gate, recovery clients | asynchronous exact-asset funding after Quote acceptance; idempotent finalized-state resolution without a demand-wide winner claim |
 | private-input push | Provider ingress | buyer + `tos-ai` | Offer-bound endpoint/challenge, buyer upload proof of possession, exact committed bytes, idempotent status resolution, no Provider pull |
-| execution admission | Native Execution Gate | `tos-ai` runner | verify both authorizations/revocation ordering, compare every finalized accepted-work field, and admit one shared claim |
+| execution admission | Native Execution Gate | `tos-ai` runner | verify the paid-demand binding and Provider authorization, compare every finalized Quote/escrow field, require funding, and admit one existing shared claim |
 | outcome/evidence | `tos-ai` | protocol provider SDK | immutable digests, typed validator result, bounded metadata |
 | Receipt/settlement resolution | protocol SDK | OpenFox accounting | quorum-finalized escrow and wallet outcome |
 | strategy observation | OpenFox accounting | learning/ranking | evidence references, immutable adverse outcomes, no authority |
@@ -743,16 +767,15 @@ Repositories: `tos-service-spec` first, then `tos-service-protocol`.
 
 - decide the first fixed-price paid-demand profile;
 - perform the product-strategy decision filter;
-- freeze bounded Demand Mutation with complete `BuyerAcceptanceProfile` and
+- freeze bounded Demand Mutation with complete `BuyerHandoffProfile` and
   single-acceptance Provider Offer artifacts in Native protobuf;
 - freeze market delegation scopes/static bounds, portable historical authority,
   current authorization eligibility, acceptance-time revocation ordering,
   signatures, sequences, terminal withdrawal, the non-canonical-head boundary,
   digests, ordering, errors, retry behavior, and vectors;
-- freeze the field-level binding sufficiency matrix, typed AcceptedWorkBody,
-  bilateral authorization proofs, complete AcceptedWorkTerms, unique Quote/
-  escrow derivation, shared Demand Acceptance Key, and Execution Gate
-  comparisons;
+- freeze the field-level paid-demand binding matrix, Provider authorization,
+  versioned Accepted Quote/escrow mapping, one-Offer/one-Quote derivation,
+  asynchronous funding transition, and existing Execution Gate comparisons;
 - freeze Provider-private writer-fencing, rollback-resistant issuance,
   aggregate-admission, and recovery invariants without adding private state to
   public artifacts;
@@ -797,15 +820,18 @@ database shutdown recovery, and a second independent codec/verifier.
   reservations;
 - implement the spec-defined software-work execution, validator, evidence, and
   private-input profiles;
-- create one typed AcceptedWorkBody, Provider authorization, buyer acceptance
-  authorization, and unique extended Accepted Quote/escrow whose funding
-  atomically consumes the shared Demand Acceptance Key;
-- race a synthetic competing Provider Offer and Mutation revision to prove one
-  first-finalized demand-wide winner before product-level competitive bidding;
+- create one `PaidDemandQuoteBindingBodyV1` plus Provider authorization and map
+  it into one versioned existing Accepted Quote/escrow;
+- permit permissionless deployment only into `pending_acceptance`, finalize the
+  exact buyer wallet's `accept` transition, then observe the later asynchronous
+  stablecoin funding transition before execution admission;
+- race duplicate encodings of one exact Offer to prove one deterministic Quote,
+  and separately prove that distinct buyer-accepted Offers remain independent
+  purchases without a global-winner claim;
 - push exact private input through the Offer-bound proof-of-possession Provider
   ingress;
-- make the Native Execution Gate verify both authorizations and compare every
-  finalized accepted-work field;
+- make the Native Execution Gate verify the Provider-authorized binding and
+  compare every finalized paid-demand Quote/escrow field;
 - execute and submit exactly once; and
 - reconcile final provider credit, costs, and realized P&L.
 
@@ -862,12 +888,12 @@ S0  tos-service-spec: Demand Mutation, delegation, discovery, vectors
 P0 + G0 + O0 + A0
   -> D1/D2 read-only discovery evidence only
 
-S1  tos-service-spec: AcceptedWorkBody/bilateral authorization/Demand Acceptance Key/
+S1  tos-service-spec: paid-demand Quote-binding body/Provider authorization/
     private-input vectors + Provider-private fencing/admission invariants
  |
- +-> C1  tos: demand-wide acceptance CAS + extended Quote/escrow typed body/proofs
- +-> P1  tos-service-protocol: accepted-work resolver/SDK/safe handoff
- +-> E1  execution Gate: compare every finalized accepted-work field
+ +-> C1  tos: versioned Quote/escrow parser and code identity + pending/accept state
+ +-> P1  tos-service-protocol: binding resolver/SDK/safe handoff
+ +-> E1  execution Gate: compare every finalized paid-demand binding field
  +-> A1  tos-ai: private ingress + exact executor/validator/evidence mapping
  +-> F1  custody: exclusive writer lease + rollback-resistant generation/issuance
           + unresolved-tuple and Provider-wide aggregate admission
@@ -879,12 +905,13 @@ S1 + C1 + P1 + E1 + A1 + F1 + D1/D2 acceptance
   -> competitive bidding and additional profiles
 ```
 
-The binding review has already proven that the current Accepted Quote/escrow
-does not express all required accepted-work facts, so C1 is mandatory before
-paid D3 execution. Messenger receives a PR only for public-channel and selected
-negotiation/approval transport integration; generic DHT/Overlay/RLDP/Storage
-primitives remain in `tos`, and OpenFox must also work through a non-Messenger
-protocol adapter.
+The binding review has already proven that schema-1 Accepted Quote/escrow bytes
+do not express all required paid-demand facts, so C1 is mandatory before paid
+D3 execution. This is a versioned integration into the existing commercial
+rail, not a second lifecycle. Messenger receives a PR only for public-channel
+and selected negotiation/approval transport integration; generic DHT/Overlay/
+RLDP/Storage primitives remain in `tos`, and OpenFox must also work through a
+non-Messenger protocol adapter.
 
 Every implementation PR records the specification commit it implements. No
 downstream repository may freeze incompatible fields while the specification
@@ -905,9 +932,10 @@ decision is unresolved.
 - Removing a frozen field reserves its protobuf number. Digest changes require
   new domains and frozen positive and negative vectors.
 - Existing Quote/escrow/Receipt semantics remain the compatibility baseline,
-  but paid-demand execution requires an explicitly versioned accepted-work
-  extension. Pre-acceptance market data cannot reinterpret an old Quote as if
-  it carried the new bindings.
+  but paid-demand execution requires an explicitly versioned paid-demand Quote-
+  binding extension. Schema 1 keeps deployment-as-acceptance; only the successor
+  has recoverable `pending_acceptance` and bound-wallet `accept`. Pre-acceptance
+  market data cannot reinterpret an old Quote as if it carried the new bindings.
 
 ## 14. Test and evidence matrix
 
@@ -921,13 +949,15 @@ decision is unresolved.
 - unknown schema/profile versions and trailing data;
 - integer overflow, asset mismatch, and conservative rounding;
 - ambiguous mutation resolution;
-- typed AcceptedWorkBody, non-circular bilateral authorization proofs, complete
-  AcceptedWorkTerms, and deterministic Quote/escrow reproduction;
-- shared Demand Acceptance Key derivation across Mutations/Offers, atomic
-  funding and first-finalized winner update, exact replay, conflicting winner,
-  and resolver recovery;
-- explicit body → Provider proof/Offer digest → buyer proof → terms digest
-  reproduction with rejection of every circular digest dependency;
+- typed `PaidDemandQuoteBindingBodyV1`, exact Provider proof, and deterministic
+  versioned Quote/escrow reproduction for one exact Offer;
+- separate permissionless `pending_acceptance` deployment, finalized bound-
+  wallet `accept`, and asynchronous exact-asset funding, including front-run,
+  replay, ambiguity, and resolver recovery;
+- rejection of alternate signatures, proof wrappers, field encodings, or
+  StateInit inputs that attempt to map one exact Offer to multiple Quotes;
+- independent validity of two distinct buyer-accepted Provider Offers, with no
+  false demand-wide winner claim;
 - alternate authorized key, threshold-signature subset, portable authority
   reference/proof path, proof wrapper/ordering, and non-canonical Ed25519
   encoding for one otherwise identical body;
@@ -958,10 +988,12 @@ decision is unresolved.
 - concurrent budget and capacity races;
 - Provider Offer/later-bid crash at every journal transition;
 - Offer single-acceptance and capacity reserve/convert/release races;
-- competing Provider/Mutation acceptance races under one Demand Acceptance Key;
+- duplicate-encoding races for one exact Offer and independent acceptance of
+  different Provider Offers;
 - same-host duplicate writer, partitioned stale generation, aggregate exposure,
   rollback-resistant issuance restore, and full-exposure fail-closed recovery;
-- restart with accepted, executing, submitted, disputed, and settling work;
+- restart with accepted, executing, submitted, refund-resolving, and settling
+  work;
 - pause, drain, mandate expiry, custody revocation, and emergency stop;
 - hostile task prompt and tool/credential/network escalation attempts;
 - stale estimates, cost spikes, fee exhaustion, and settlement delay; and
@@ -975,10 +1007,12 @@ decision is unresolved.
   concurrent/conflicting upload, exact retry, ambiguous ACK, and status
   resolution;
 - reservation expiry and accepted-profile mismatch;
-- Execution Gate comparison against every AcceptedWorkTerms field;
+- Execution Gate comparison against every paid-demand binding and existing
+  funded-escrow field;
 - cross-transport duplicate execution reaching one shared claim;
 - validator failure despite process success;
-- evidence tampering, Receipt signer mismatch, refund race, and dispute path;
+- evidence tampering, Receipt signer mismatch, and objective timeout-refund
+  race;
 - provider-wallet credit checked through independent endpoints; and
 - exact reconciliation after Gateway, OpenFox, worker, or custody restart.
 
@@ -990,7 +1024,7 @@ independent source records
 operator/signing identity, host/process/store, network path, upstream carrier,
 implementation/codec dependency, and failure domain. Evidence also records
 repository commits, network domain, Agent and Capability/version, Demand
-Mutation/Offer/AcceptedWorkBody/authorization-proof digests, Quote commitment,
+Mutation/Offer/binding-body/Provider-proof digests, Quote commitment,
 escrow, private-input profile, execution, artifact and Receipt digests,
 settlement transaction, provider-wallet delta, exact costs, unresolved items,
 and signed role declarations. Credentials and private keys are forbidden in
@@ -1011,25 +1045,28 @@ is demonstrated. The cross-repository evidence must therefore include at least:
    and its complete database stop, plus frozen-vector verification by a second
    independent codec/verifier;
 3. historical and current authorization verification of one active Mutation and
-   its complete mutation-bound `BuyerAcceptanceProfile`, with no global market-
+   its complete mutation-bound `BuyerHandoffProfile`, with no global market-
    head claim or Messenger/Gateway completion;
 4. typed skill/capacity matching and reproducible exact-asset economics under a
    narrow owner mandate;
 5. same-host process exclusion plus rollback-resistant Provider-wide writer
    fencing, unresolved-tuple and aggregate-exposure admission across every
    shared instance, key, mandate, runtime, unexpired Offer, and obligation;
-6. one privately reserved, idempotent, buyer-specific, single-acceptance
-   Provider Offer whose Provider and buyer authorize the same deterministic
-   `AcceptedWorkBody`, followed by the exact buyer-wallet-funded unique Quote and
-   escrow atomically recorded as the first and only winner under the stable
-   Demand Acceptance Key across competing Providers and revisions;
+6. one privately reserved, idempotent, buyer-specific Provider Offer whose
+   Provider authorizes the exact `PaidDemandQuoteBindingBodyV1`, followed by
+   permissionless deterministic versioned escrow deployment into
+   `pending_acceptance`, the bound buyer wallet's finalized `accept` transition,
+   and a later finalized exact-asset funding transition; the evidence proves a
+   wrong-sender predeployment cannot consume acceptance, one exact Offer cannot
+   create multiple Quotes, and no global-winner claim is made;
 7. private input admitted only through the Mutation- and Offer-bound proof-of-
    possession buyer-push ingress;
 8. one Native Execution Gate admission, bounded execution, objective validation,
    immutable evidence, Receipt submission, and independently resolved finalized
    provider credit;
-9. restart, takeover, duplicate, ambiguity, withdrawal/finality race, dispute,
-   refund, and stale-writer tests without duplicate work or excess exposure;
+9. restart, takeover, duplicate, ambiguity, withdrawal/finality race, objective
+   timeout-refund, and stale-writer tests without duplicate work or excess
+   exposure;
 10. append-only realized P&L reconciliation, explanation, owner pause/revoke/
     drain controls, and recovery without a Gateway, market database, or local
     journal becoming settlement authority.
@@ -1066,14 +1103,16 @@ The initial implementation does not include:
    design?
 3. Which buyer proof, deposit, or anti-spam mechanism is sufficient before an
    earning Agent spends material resources evaluating demand?
-4. What exact AcceptedWorkBody, non-circular buyer/Provider authorization
-   proofs, complete AcceptedWorkTerms, Quote/TVM, escrow StateInit, resolver,
-   Execution Gate, Receipt, and safe-handoff encodings implement the mandatory
-   binding matrix?
-5. What exact contract/state owner, Demand Acceptance Key derivation, TVM layout,
-   atomic buyer-wallet funding/winner update, per-Offer enforcement, exact-
-   replay/conflict resolver, finalized query, and recovery semantics guarantee
-   one accepted Provider across every Offer and Mutation of a stable Demand?
+4. What exact `PaidDemandQuoteBindingBodyV1`, Provider proof, versioned Accepted
+   Quote/TVM schema, escrow StateInit/code identity, `pending_acceptance` state,
+   bound-wallet `accept` operation, resolver, existing Gate comparison, and
+   safe-handoff encodings implement the mandatory binding matrix without
+   changing the existing Receipt lifecycle?
+5. What exact per-Offer StateInit derivation, parser-version dispatch, finalized
+   Quote query, wrong-sender predeployment recovery, acceptance deadline,
+   asynchronous funding resolution, replay/conflict handling, and recovery
+   semantics guarantee one Quote identity for one exact Offer while treating
+   different accepted Offers as independent purchases?
 6. What exact ingress/challenge, buyer upload proof-of-possession, status,
    encryption, and retention profile implements buyer-push private input
    without Provider pull, task-selected endpoints, bearer-only authority, or

@@ -5,6 +5,14 @@ first-contact Messenger initiation and policy-gated execution is defined in
 [`OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md`](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md).
 This document remains the authority boundary for the commercial lifecycle.
 
+The paid-demand front end is split deliberately: signed publication,
+permissionless propagation, discovery, and Provider Offers are defined in
+[`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md), while
+[`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
+defines the minimal versioned adapter from one exact Offer into this existing
+Quote, escrow, execution, Receipt, and settlement rail. Neither document creates
+a second commercial lifecycle.
+
 Optional person-to-person Agent Gifts are a separate non-purchase profile in
 [`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md). A Gift MUST NOT reuse
 this bridge's Quote, Capability, software-work Receipt, or provider-settlement
@@ -57,16 +65,22 @@ candidate is re-resolved from finalized TOS state before spending.
 4. Apply the owner-signed spending policy: asset, maximum amount, expiry,
    Capability allow-list, daily budget, and confirmation mode.
 5. Build the Accepted Quote and deterministic escrow StateInit.
-6. Sign and fund through the `tosctl` custody boundary; persist the crash-safe
-   purchase journal.
-7. Submit the task over A2A, MCP, or Agent Packet only after finalized funding.
-8. Verify the Receipt and settlement from finalized escrow and wallet state.
+6. Authorize and submit the exact acceptance action through the `tosctl` custody
+   boundary, then wait for finalized Quote acceptance. For schema-1 Capability-
+   first escrow this is finalized deployment; a paid-demand schema successor
+   uses its bound-buyer-wallet `pending_acceptance -> awaiting_funding`
+   transition.
+7. Send the exact stablecoin funding through the bound buyer wallet, enter
+   funding resolution, and wait for the finalized exact transfer notification.
+8. Submit the task over A2A, MCP, or Agent Packet only after finalized funding.
+9. Verify the Receipt and settlement from finalized escrow and wallet state.
 
 The OpenFox loop may sleep and resume. Journal phases are intent, prepared,
-funding lease, funded, execution, Receipt, release, and resolved. Ambiguous
-funding or release always resolves finalized state before retry. Every task
-transport passes the shared Native execution Gate, so one funded purchase
-admits at most one runner execution across A2A, MCP, and Agent Packet.
+acceptance resolving, accepted-awaiting-funding, funding resolving, funded,
+execution, Receipt, release, and resolved. Ambiguous acceptance, funding, or
+release always resolves finalized state before retry. Every task transport
+passes the shared Native execution Gate, so one funded purchase admits at most
+one runner execution across A2A, MCP, and Agent Packet.
 
 ## Provider flow
 

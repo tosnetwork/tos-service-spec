@@ -117,6 +117,12 @@ refine these rules but cannot contradict them.
   roadmap gates, and cannot be cited as gate acceptance evidence.
 - [OpenFox Economic Bridge V1](docs/OPENFOX_ECONOMIC_BRIDGE_V1.md) defines the
   autonomous runtime's buyer/provider integration with the Native lifecycle.
+- [Agent Paid Demand Discovery V1](docs/AGENT_PAID_DEMAND_DISCOVERY_V1.md)
+  defines signed paid-demand publication, permissionless propagation,
+  federated discovery, Provider Offers, and local buyer selection.
+- [Paid-Demand Binding to the Existing Accepted Quote Rail V1](docs/PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
+  defines the minimal versioned handoff from one selected Provider Offer into
+  the existing Quote, escrow, execution, Receipt, and settlement lifecycle.
 - [TOS Edge CDN Architecture V1](docs/EDGE_CDN_ARCHITECTURE_V1.md) defines an
   incubation architecture for standard HTTP content delivery over an open
   market of verified Provider and Worker Agents. It keeps high-frequency
