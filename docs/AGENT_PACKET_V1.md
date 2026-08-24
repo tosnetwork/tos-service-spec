@@ -3,6 +3,10 @@
 Agent Packet V1 is the minimal decentralized Agent-to-Agent message envelope.
 It supplements A2A/MCP transport without creating a second consensus protocol.
 
+It is an existing messaging-profile component under
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md),
+not the still-unfrozen common Agent Operation Envelope for every opcode family.
+
 ## Authority and transport
 
 Packet payloads are off-chain bytes. TOS finalized Agent state authorizes the

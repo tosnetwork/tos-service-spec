@@ -5,6 +5,9 @@
 **Candidate protocol family:** `tos.messaging.*`  
 **Relationship to TOS Service Protocol:** complementary; this document does not change the authority model or normative schema of `tos_service_v1`
 
+**Root architecture:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
 ## 1. Purpose
 
 This document defines how the existing TOS ecosystem can be extended into a

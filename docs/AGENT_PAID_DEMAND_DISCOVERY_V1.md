@@ -3,6 +3,9 @@
 **Status:** incubation design; schema freeze, implementation, and external
 acceptance pending
 
+**Root architecture:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
 **Applicability:** this is a specialized profile under
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md) for
 buyer-published, fixed-price, machine-checkable work whose parties choose the
@@ -52,13 +55,14 @@ D2.
 
 The product may render this profile inside a general board, opportunity feed,
 or work square. Those are user experiences, not protocol authority. The
-generic board carries `AgentIntentEnvelopeV1` with a required
-`tos.service.paid-demand.v1` extension that binds the complete independently
-signed Paid Demand reference and digest. It does not duplicate Paid Demand
-price, task, authorization, or handoff fields. Generic summary prose is
-discovery input only and cannot authorize a Provider Offer, Quote, or escrow. A
-separate binding profile hands an accepted Offer into the existing Accepted
-Quote, escrow, execution, Receipt, and settlement lifecycle.
+generic board carries a `PUBLICATION/POST` `AgentOperationEnvelopeV1` whose
+`AgentIntentPayloadV1` contains a required `tos.service.paid-demand.v1`
+extension binding the complete independently signed Paid Demand reference and
+digest. It does not duplicate Paid Demand price, task, authorization, or
+handoff fields. Generic summary prose is discovery input only and cannot
+authorize a Provider Offer, Quote, or escrow. A separate binding profile hands
+an accepted Offer into the existing Accepted Quote, escrow, execution, Receipt,
+and settlement lifecycle.
 
 For a conforming wrapper, mechanically comparable Discovery Card fields are a
 deterministic projection of the exact Paid Demand: mode is `REQUEST`, coarse

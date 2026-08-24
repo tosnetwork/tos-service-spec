@@ -5,6 +5,8 @@
 - Document type: OpenFox application design and delivery plan
 - Status: proposed; implementation and acceptance pending
 - Target repository: `tosnetwork/openfox`
+- Root architecture:
+  [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
 - Primary specification:
   [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 - Cross-repository design:

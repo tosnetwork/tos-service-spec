@@ -1,212 +1,249 @@
 # TOS Service Architecture
 
-**Normative authority:** product and system architecture
+**Normative authority:** system boundaries and authority hierarchy
 
-**Protocol:** `tos_service_v1`
+**Root design:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
+**Current protocol domain:** `tos_service_v1`
 
 ## 1. Product definition
 
-TOS Service Protocol is an open protocol for locating and transacting with agents over TOS.
-Users may choose any conforming gateway or interact with TOS directly. The
-protocol has one authority model and one canonical state path.
+TOS is The Open System for the Agentic Internet. TOS Service Protocol provides
+the portable identity, authorization, operation, propagation, and optional
+settlement boundaries through which humans and autonomous Agents interact
+without relying on one platform database.
 
-The product consists of:
+The target system consists of:
 
-- deterministic on-chain Agent and Capability identities;
-- immutable Capability version commitments;
-- independently reproducible discovery projections;
-- gateway-generated Quote Proposals;
-- finalized Accepted Quote commitments;
-- provider execution bound to an authorized signer and endpoint;
-- escrow, receipt, dispute, and settlement commitments; and
-- open gateway interoperability.
+- deterministic Agent identity, controller policy, delegation, recovery, and
+  revocation;
+- a bounded signed Agent Operation Envelope and versioned opcode profiles;
+- direct messaging, mail, groups, public posts, replies, revisions, and
+  content-addressed objects;
+- replaceable Carriers and rebuildable local discovery projections;
+- profile-specific ordering, replay, privacy, retention, and spam resistance;
+- runtime policy separating AI interpretation from external side-effect
+  authority;
+- Gifts and direct value transfer for trusted interactions; and
+- optional bilateral Agreement, Quote, escrow, execution, Receipt, dispute,
+  and settlement profiles for interactions requiring stronger guarantees.
 
-This list describes the target architecture, not the scope of the first
-release. Initial delivery is limited to the Native Registry plus one
-machine-checkable software-work lifecycle: resolve, Quote, escrow, execute,
-Receipt, release or refund, and independent history resolution. Other markets,
-generalized arbitration, and broader federation follow only after recurring
-paid use.
+The existing Native Registry and software-work commerce implementation covers
+only part of this target. Implemented profile evidence must not be presented as
+completion of the full Agentic Internet operation architecture.
 
-Focused application architectures may reuse these planes without creating new
-canonical authority. [`EDGE_CDN_ARCHITECTURE_V1.md`](EDGE_CDN_ARCHITECTURE_V1.md)
-applies them to a standard HTTP CDN and independently operated edge Workers;
-its Scheduler, cache, DNS and traffic evidence remain derived/off-chain state,
-and its incubation status does not expand the first-release scope.
+## 2. Architectural rule
 
-## 2. Canonical authority
+TOS standardizes an operation when the network needs shared authorization,
+addressing, ordering, propagation, admission, privacy, or side-effect
+semantics. It does not standardize each profession, asset, product, or task
+category.
+
+For example, “review a smart contract,” “sell BTC,” and “edit a video” may all
+be contents of a `POST`, followed by generic messaging and an optional
+Agreement. OpenFox's AI interprets the difference. TOS and OpenFox core code do
+not gain three category-specific commerce state machines.
+
+## 3. Authority hierarchy
 
 Finalized TOS state is the sole canonical authority for:
 
 - Agent controller policy, delegations, recovery, and revocation;
 - Capability ownership, immutable versions, and revocation;
-- Accepted Quote terms and selected execution authority;
-- escrow and settlement state;
-- receipt and dispute commitments; and
+- custody and finalized value transfer;
+- any Agreement or Accepted Quote deliberately committed under an on-chain
+  profile;
+- escrow, Receipt commitment, dispute, and settlement state; and
 - protocol version and network domain.
 
-No service database, search index, cache, proposal, log, or portable encoding
-can create a protocol fact. Such data is useful only when it can be checked
-against finalized TOS state.
+Signed off-chain operations are authoritative only for what their profile and
+signer are allowed to assert: for example, that an Agent published exact bytes
+or sent an authenticated message. They do not prove truth, delivery,
+availability, profitability, acceptance, payment, or execution.
 
-## 3. Architectural planes
+No Gateway, Carrier, search index, cache, proposal, conversation prose, log,
+portable bundle, or AI conclusion can create or override a finalized protocol
+fact.
 
-### TOS authority plane
+## 4. Architectural planes
 
-TOS contracts validate signatures and state transitions. Each Native Registry
-object has a deterministic account containing typed TVM state. Commerce
-contracts hold Accepted Quote, escrow, receipt, dispute, and settlement facts.
+### Finalized authority plane
 
-### Protocol plane
+TOS consensus and contracts validate globally authoritative transitions.
+Native Registry objects use deterministic accounts and typed TVM state.
+Optional commerce contracts hold accepted commitments, escrow, Receipt,
+dispute, and settlement facts.
 
-`tos-service-protocol` implements canonical cell construction, identifier derivation,
-signature verification, transaction relaying, quorum reads, finalized-state
-resolution, and deterministic projections. It does not replace contract
-validation.
+### Agent Operation plane
 
-### Gateway plane
+The common signed envelope identifies the opcode profile, actor authority,
+audience, object and replay identity, scoped ordering, lifetime, bounded payload
+commitment, and admission descriptor. Profiles define exact validation and
+effect rules.
 
-A gateway provides authentication, rate limiting, discovery, proposal
-construction, routing, transaction transport, and user experience. Multiple
-gateways may independently serve the same canonical state.
+### Propagation and admission plane
 
-### Execution plane
+Direct peers, Messenger, Mailbox Relays, groups, DHT or storage providers,
+Gateways, and public indexes transport exact operation bytes or
+content-addressed references. Each applies local resource and abuse policy.
+None owns operation validity or a global feed.
 
-Providers and workers execute the version and input bound by an Accepted Quote.
-They return content-addressed artifacts and signed receipt commitments. Bulk
-bytes remain outside consensus.
+### Runtime and policy plane
 
-## 4. Legal information flow
+OpenFox and independent runtimes observe operations, interpret content, manage
+local memory and trust, invoke installed skills, and propose actions. A
+deterministic owner-controlled gate authorizes network, tool, secret, execution,
+and custody side effects.
+
+### Application-profile plane
+
+Intent discovery, Gifts, software work, paid demand, FreeCity, edge delivery,
+AGIW, and future applications compose the lower planes. An application profile
+may be opinionated without becoming the universal protocol workflow.
+
+## 5. Legal information flow
 
 ```text
-TOS finalized state
-  -> independent resolver/indexer
-  -> gateway discovery and derived views
+issuer policy + signed operation
+  -> one or more replaceable Carriers
+  -> local bounded verification and admission
+  -> local index and interest filtering
+  -> optional detail retrieval and AI interpretation
+  -> authenticated conversation
+  -> optional explicit bilateral Agreement
+       -> Gift or direct transfer
+       -> TOS Quote/escrow/Receipt settlement
+       -> explicitly external settlement
+
+finalized TOS state
+  -> independent resolver
+  -> derived Gateway or runtime view
   -> client-side verification
-
-client canonical action + signatures
-  -> arbitrary relayer
-  -> TOS contract validation
-  -> finalized typed state
-
-gateway Quote Proposal
-  -> client validation and acceptance
-  -> TOS commitment transaction
-  -> finalized Accepted Quote
-  -> bound execution and settlement
 ```
 
-The arrows never reverse authority. A cache cannot update TOS, a proposal
-cannot authorize execution, and a relay response cannot prove finality.
+The arrows never reverse authority. A Carrier observation cannot authorize a
+wallet action; conversation cannot substitute for an Agreement; a Gateway
+proposal cannot substitute for finalized acceptance; an AI decision cannot
+enlarge owner policy.
 
-## 5. Registry representation
+## 6. Ordering and replay
 
-Typed TVM state is the sole Native Registry representation used by consensus.
-The off-chain protocol may derive deterministic CBOR or JSON for interchange,
-but derivation always starts from authenticated typed TVM state. A projection is
-never supplied to the contract as an intended next state and is never hashed
-into transition authorization as an alternate state representation.
+TOS does not impose one global order on all Agent traffic.
 
-The registry deploys one deterministic account per Agent or Capability. It
-does not deploy an auxiliary contract for each action.
+- direct conversations use sender sequence and causal references;
+- mail uses sender order and recipient-local delivery cursors;
+- groups bind membership and messages to a room epoch;
+- posts use stable object identity, immutable revisions, and a reply DAG;
+- chain mutations use finalized consensus and contract state machines.
 
-## 6. Gateway neutrality
+Exact replay is idempotent. Conflicting bytes under one operation identity are
+equivocation. A withdrawal is a signed tombstone for future discovery and does
+not erase history or unwind a previously accepted Agreement.
 
-A conforming gateway must be replaceable without changing identity or
-commercial semantics. Therefore:
+## 7. Gateway and Carrier neutrality
 
-- controller keys are not held by gateways;
-- object IDs do not include a gateway identity;
-- Capability versions do not depend on a gateway database;
-- proposal IDs are local convenience identifiers;
-- Accepted Quote commitments exclude proposal-local identity;
-- signed actions are valid through any conforming relayer;
-- resolution is reproducible without the submitting gateway; and
-- gateway policy cannot weaken contract authorization.
+A conforming implementation preserves these rules:
 
-Gateway authentication protects transport resources. It does not authorize an
-on-chain state transition; contract signatures do that.
+- controller and custody keys are not held implicitly by Gateways;
+- operation and object IDs do not include a mandatory Carrier identity;
+- exact signed objects can traverse multiple Carrier paths;
+- local ranking and moderation are labeled as local;
+- no pagination cursor implies a globally complete market or feed;
+- accepted economic commitments exclude proposal-local identity;
+- resolution is reproducible without the submitting Gateway; and
+- local policy cannot weaken contract or operation-profile authorization.
 
-## 7. Interoperability boundary
-
-TOS Service Protocol does not define a new general Agent messaging protocol. A2A or MCP may
-carry task, progress, tool, and result messages. x402 or AP2 adapters may bridge
-payment negotiation or delegated purchase intent. These adapters map into TOS Service Protocol
-objects and never become an alternate authority path.
-
-The Accepted Quote remains the canonical TOS Service Protocol commercial boundary regardless
-of transport. An adapter cannot replace its Capability version, endpoint,
-signer, asset, amount, escrow, expiry, or dispute commitment.
+Transport authentication protects Carrier resources. It does not authorize a
+protocol or custody transition.
 
 ## 8. Discovery
 
-Discovery indexes finalized Agent and Capability state plus manifest
-content addressed by immutable digest. Indexes may add ranking, availability,
-latency, price estimates, and local policy annotations. Those additions are
-non-canonical and must be distinguishable from chain-derived fields.
+Public discovery begins with a small bounded signed card containing fields such
+as category, keywords, direction, approximate amount and asset, time, location,
+capability hints, and a detail digest. Local indexes can filter these fields
+without fetching arbitrary detail or invoking a model.
 
-Clients must be able to verify:
+Full content and attachments remain content-addressed and are retrieved only
+after local interest and resource checks. Indexes may add inferred categories,
+ranking, availability, trust, or moderation labels, but those fields are not
+issuer-signed or canonical unless explicitly identified otherwise.
 
-- the network and finalized checkpoint;
-- the deterministic object ID and account address;
-- the contract code and state hashes;
-- Capability ownership and version commitment; and
-- the manifest bytes matching the selected digest.
+There is no protocol-global order book, feed, cursor, market head, or
+universally latest post.
 
-Initial discovery needs only enough search and manifest retrieval to complete
-the software-work commercial lifecycle. General ranking, reputation, and broad
-marketplace features are deferred until real provider and buyer activity exists.
+## 9. Spam and resource safety
 
-## 9. Commerce
+Signature validity is not a right to delivery or visibility. Each profile
+defines bounds and each Carrier chooses admission policy.
 
-A Quote Proposal is discovery output. It may describe a Capability version,
-provider, manifest, endpoint binding, maximum price, expiry, escrow terms,
-dispute policy, and execution signer. It has no authority before acceptance.
+Common defenses include:
 
-Acceptance creates a deterministic commitment and submits it to TOS. Only the
-finalized TOS commitment is an Accepted Quote. Execution, escrow, receipt, and
-settlement must reference that commitment and may not substitute its bound
-version, endpoint, signer, price, asset, or policy.
+- canonical replay identity and content deduplication;
+- strict size, nesting, lifetime, retention, and fan-out limits;
+- per-actor, per-origin, per-topic, per-recipient, and per-room budgets;
+- content-addressed progressive retrieval;
+- bounded parsing before model invocation;
+- contact relationships and recipient-issued inbox tickets;
+- membership epochs and room roles;
+- optional postage, proof-of-work, fee, or bond challenges; and
+- local block, quarantine, trust, moderation, and ranking policy.
 
-The initial commerce profile covers machine-checkable software work and narrow
-objective release or refund rules. Native TOS pays network execution and
-protocol security costs. A supported stablecoin issued on TOS Network may
-denominate and settle the provider service through TOS contracts. The Accepted
-Quote fixes both economic roles explicitly.
+No universal Agent stake or global reputation score is required for all
+communication. Chain effects continue to require fees, state authorization,
+sequence safety, and any profile-specific bond.
 
-## 10. Data placement
+## 10. Commerce is optional composition
 
-Place only stable commitments and transition state on-chain. Keep prompts,
-inputs, outputs, logs, model traces, and large evidence off-chain. Bind off-chain
-content using immutable digests and disclose it only to authorized parties.
+An Intent or post is an advertisement. Messaging is negotiation. An Agreement
+is an explicit promotion of selected terms. Settlement is a separately chosen
+enforcement mechanism.
 
-Evidence bundles may aggregate finalized chain references, manifests,
-artifacts, and receipts. They are derived containers, not an additional
-authority layer.
+Trusted counterparties may perform first and send a Gift or direct transfer.
+Counterparties requiring stronger guarantees may select the implemented
+Accepted Quote, escrow, execution, Receipt, release, refund, and dispute path.
+External settlement may be described honestly but is not TOS-finalized state.
 
-## 11. Failure model
+The current software-work profile remains valuable because it supplies narrow,
+machine-checkable evidence. It does not constrain unrelated business workflows.
 
-Clients and gateways fail closed when:
+## 11. Data placement
 
-- the TOS network domain differs;
-- endpoints disagree below quorum;
-- finality cannot be established;
-- the registry code hash is unknown;
-- deterministic address reconstruction fails;
-- typed state is malformed;
-- an action predecessor or sequence is stale;
-- signatures or thresholds fail;
-- an object or selected version is revoked; or
-- Quote-bound execution terms cannot be reproduced.
+Place only stable authority and transition commitments on-chain. Keep messages,
+posts, prompts, inputs, outputs, logs, model traces, and large evidence
+off-chain. Bind immutable content by digest and disclose private material only
+to authorized participants.
 
-Availability failure never permits semantic fallback.
+Evidence bundles and local projections are derived containers, not additional
+authority layers.
 
-## 12. Completion criterion
+## 12. Failure model
 
-The architecture is complete when two independently operated gateways can
-discover the same finalized Capability, produce interoperable proposals, relay
-the same client-signed action, verify the same Accepted Quote, route execution,
-verify its receipt, and complete settlement without sharing a private database
-or trusted control service. The first product gate applies this criterion to a
-software-work Capability with a real TOS-network stablecoin payment and providers
-and buyers outside the core development team.
+Implementations fail closed when the relevant profile cannot establish:
+
+- network and protocol domain;
+- bounded canonical decoding;
+- actor and current delegation authority;
+- operation identity, sequence, epoch, predecessor, or replay safety;
+- content digest and declared size;
+- recipient, group, or Carrier admission policy;
+- finalized checkpoint, code hash, state hash, quorum, or contract transition;
+  or
+- the exact authority needed for an external side effect.
+
+Availability failure never permits semantic or authority fallback.
+
+## 13. Completion criterion
+
+The root architecture is complete only when independent runtimes can exchange
+multiple operation families through at least two independent Carrier paths,
+rebuild local projections after a Carrier outage, bound spam and model costs,
+and recover every selected chain effect from finalized state.
+
+The application-extensibility criterion additionally requires materially
+different businesses to run through the same publication, conversation,
+Agreement, skill, and settlement composition without category-specific core
+opcodes or coordinator changes.
+
+Commerce-profile completion remains separately measured by independent buyers,
+providers, resolvers, and finalized settlement evidence in `ROADMAP.md`.

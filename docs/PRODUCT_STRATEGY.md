@@ -4,23 +4,35 @@
 
 **Planning horizon:** 2026–2027
 
+**Architectural dependency:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
+This document selects an initial commercial validation profile. It does not
+redefine TOS as a task marketplace or make the Accepted Quote lifecycle a
+prerequisite for messaging, groups, publications, Gifts, or other Agentic
+Internet operations.
+
 ## 1. Executive conclusion
 
-TOS Service Protocol is pursuing a credible and timely market: autonomous software will need to
-discover, authorize, purchase, execute, and settle services across organizational
-boundaries. The Native architecture is technically strong because it separates
-public authority from gateway convenience and binds commercial execution to
-finalized TOS commitments.
+TOS Service Protocol is the open operation and authority substrate for the
+Agentic Internet. Autonomous software needs portable identity, communication,
+publication, discovery, coordination, value transfer, and optional trusted
+settlement across organizational boundaries. The architecture is technically
+strong because it separates signed and finalized authority from Carrier and
+Gateway convenience.
 
-The opportunity is real, but protocol quality alone does not create a business.
-TOS Service Protocol succeeds only if independent buyers and providers complete recurring paid
-transactions. Development must therefore move from broad protocol construction
-to one narrow, production-quality commercial loop.
+Protocol adoption and commercial validation are related but distinct. The root
+protocol succeeds when independent runtimes and Carriers exchange useful
+operations without one database controlling truth. The first commerce profile
+succeeds when independent buyers and providers complete recurring paid
+transactions. A narrow software-work loop is a useful commercial wedge, not a
+restriction on the protocol's product definition.
 
 The strategic objective is:
 
-> Make TOS Service Protocol the open authority and settlement layer for high-value Agent work,
-> while interoperating with established communication and payment protocols.
+> Make TOS the open operation, authority, and optional settlement substrate for
+> the Agentic Internet, and prove its economic value first through one narrow,
+> production-quality software-work profile.
 
 ## 2. Market signal
 
@@ -127,36 +139,38 @@ rather than peers.
 
 ### Positioning consequence
 
-TOS Service Protocol is differentiated less by any single capability than by the combination it
-insists on: identity authority and the full Accepted-Quote-to-settlement
-lifecycle converged on one purpose-built settlement layer, with every
-trust-bearing fact independently resolvable and no gateway-owned canonical truth.
-The nearest peers each hold one half of that combination. The strategy is to
-complete both halves together and to interoperate at the payment and
-communication edges rather than compete there.
+TOS is differentiated by combining portable Agent authority, open signed
+operations, replaceable propagation, and optional finalized economic effects
+without a Gateway-owned canonical truth. ACP-like commercial lifecycles and
+registry systems validate important profiles, but TOS does not require every
+Agent interaction to enter a marketplace or Accepted Quote. The strategy is to
+complete the operation substrate and prove one strong commerce profile while
+interoperating with external communication, payment, and marketplace systems.
 
 ## 4. Strategic position
 
-TOS Service Protocol should not replace every layer of the Agent stack.
+TOS should define the open interoperability and authority boundary, not replace
+every Agent runtime, skill, content taxonomy, or commercial application.
 
 ```text
-A2A and MCP
-  communication, tasks, tools, progress, and result transport
+OpenFox and other runtimes
+  AI interpretation, local policy, skills, resources, and business strategy
 
-x402 and AP2 adapters
-  simple payment negotiation and delegated purchase interoperability
+TOS Agent Operations
+  identity, messages, groups, posts, Gifts, Agreements, propagation semantics
 
-TOS Native Service
-  Agent authority, Capability ownership and versions, Accepted Quotes,
-  execution binding, escrow, Receipts, disputes, and settlement
+Optional profiles and adapters
+  A2A, MCP, x402, AP2, Accepted Quote, escrow, Receipts, external marketplaces
 
 TOS
-  final state, contract execution, fees, and economic security
+  finalized authority, contract execution, custody, value, and economic security
 ```
 
-TOS Service Protocol differentiates itself by connecting identity, immutable Capability
-versions, commercial terms, execution authority, result commitments, and
-settlement in one independently resolvable lifecycle.
+The commerce profile differentiates itself by connecting identity, immutable
+Capability versions, commercial terms, execution authority, result
+commitments, and settlement in one independently resolvable lifecycle. The
+root protocol additionally enables useful non-commerce and trusted interactions
+without forcing them through that lifecycle.
 
 The product promise is not that every message is on-chain. The promise is that
 every fact requiring shared trust is independently checkable after a gateway
@@ -175,7 +189,9 @@ from a provider it does not operate. The customer values:
 - refund or dispute rules fixed before work begins; and
 - accounting reconstructed from finalized transactions.
 
-Internal, free, low-risk calls within one security domain do not need TOS Service Protocol.
+Internal, free, or low-risk interactions may still use TOS identity,
+publication, messaging, group, or Gift profiles. They normally do not need the
+Accepted Quote and escrow profile.
 
 ## 6. Initial market wedge
 
@@ -201,18 +217,18 @@ batch inference, GPU jobs, and multi-Agent work supply chains.
 
 ### 6.1 First society application: FreeCity
 
-[FreeCity](FREECITY_APPLICATION_V1.md) is the first application-layer use case
-for turning the commercial spine into an observable society of humans and AI
-Agents. FreeCity supplies resident profiles, relationships, communities,
-organizations, workspaces, opportunity discovery, human approvals, and public
-history. It reuses finalized Agent, Capability, Accepted Quote, escrow, Receipt,
-and settlement state rather than creating a separate Agent economy.
+[FreeCity](FREECITY_APPLICATION_V1.md) is an application-layer use case for
+turning Agent identity and generic operations into an observable society of
+humans and AI Agents. FreeCity supplies resident profiles, relationships,
+communities, organizations, workspaces, opportunity discovery, human approvals,
+and public history. It may reuse finalized Agent, Capability, Accepted Quote,
+escrow, Receipt, and settlement state when a particular interaction needs them.
 
-This selection does not broaden the initial market wedge or reorder the gates.
-The first paid FreeCity workflow must expose machine-checkable software work
-through the exact lifecycle below. General marketplaces, nested subcontracting,
-subjective creative arbitration, consumer retail, and speculative token
-flywheels remain later expansion decisions.
+This application does not reorder implementation gates. Its communication and
+publication features depend on the operation and Carrier gates; its first paid
+workflow may use the machine-checkable software-work profile. General
+marketplaces, nested subcontracting, subjective arbitration, consumer retail,
+and speculative token flywheels remain separate application decisions.
 
 FreeCity is evidence-bearing only when an external buyer, provider, and
 independent resolver can reproduce the current-domain lifecycle through public

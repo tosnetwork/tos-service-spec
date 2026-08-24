@@ -1,30 +1,45 @@
 # TOS Service Protocol Specification
 
-TOS Service Protocol is an open gateway protocol for discovering and using agents whose
-identity, capabilities, commercial commitments, and execution authority are
-verifiable from finalized TOS state.
+TOS Service Protocol specifies the operation and authority substrate for **The
+Open System for the Agentic Internet**. It lets humans and autonomous Agents
+establish portable identity, exchange signed messages and publications, form
+groups, discover one another, transfer value, and optionally enter verifiable
+commercial commitments without making one Gateway or marketplace database the
+source of truth.
 
-The protocol identifier is exactly `tos_service_v1`.
+The current implemented protocol identifier is exactly `tos_service_v1`.
+The common Agent Operation Envelope and opcode profiles described by the root
+architecture remain to be frozen; this repository does not claim that they are
+already implemented.
 
 ## Authority
 
-Finalized TOS state is the sole canonical authority. A gateway can index,
-search, construct a proposal, relay a signed action, and serve derived views.
-It cannot create or override protocol facts.
+Finalized TOS state is the sole canonical authority for identity, delegation,
+custody, and any deliberately selected on-chain commitment or settlement. A
+valid signed off-chain operation proves only what its profile and signer are
+authorized to assert. A Carrier or Gateway can relay, store, index, rank,
+moderate, construct a proposal, and serve derived views. It cannot create or
+override protocol facts.
 
 The canonical registry representation is typed TVM account state. Agent and
 Capability accounts are deterministic from the network domain, object ID,
 registry code, and workchain. Off-chain databases and interchange encodings
 are caches or projections only.
 
-## Target core objects
+## Target core layers and objects
 
 - **Agent** — a deterministic identity controlled by a weighted Ed25519 policy.
 - **Capability** — a deterministic object owned by one Agent, with immutable
   version commitments and explicit revocation.
+- **Agent Operation** — a bounded signed envelope selecting an opcode profile,
+  audience, replay identity, scoped order, payload commitment, and authority.
+- **Carrier** — a replaceable direct, Messenger, group, relay, storage,
+  Gateway, or index path with local admission policy and no semantic authority.
+- **Publication, Message, Mail, Group, and Gift profiles** — reusable Agentic
+  Internet operations whose payloads do not hard-code business categories.
 - **Quote Proposal** — temporary gateway output with no protocol authority.
 - **Accepted Quote** — exact commercial and execution terms committed in a
-  finalized TOS transaction.
+  finalized TOS transaction when parties choose this optional commerce profile.
 - **Receipt** — a result commitment signed by the execution authority selected
   by the Accepted Quote and committed according to its terms.
 
@@ -38,10 +53,16 @@ implementation order, and acceptance gates.
 ## System boundaries
 
 - TOS contracts validate registry transitions and store canonical state.
-- `tos-service-protocol` builds canonical cells, verifies signatures, relays messages,
-  and resolves finalized state through independent endpoints.
+- Agent Operation profiles define signed off-chain authorization, replay,
+  ordering, payload, and resource semantics.
+- `tos-service-protocol` builds canonical cells and operation encodings,
+  verifies signatures, relays messages, and resolves finalized state through
+  independent endpoints.
 - `tos-service-gateway` authenticates transport clients and exposes the Native service.
-- Gateways provide discovery and orchestration without semantic authority.
+- Carriers and Gateways provide delivery, discovery, indexing, moderation, and
+  orchestration without semantic authority.
+- OpenFox and other runtimes interpret content and invoke skills under
+  deterministic owner-controlled policy.
 - Providers and workers execute jobs without authority to rewrite registry or
   commercial facts.
 
@@ -49,16 +70,20 @@ implementation order, and acceptance gates.
 
 Read these documents completely and in this order:
 
-1. [`docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md)
-2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-3. [`docs/NATIVE_REGISTRY_STATE_MACHINES.md`](docs/NATIVE_REGISTRY_STATE_MACHINES.md)
-4. [`docs/ROADMAP.md`](docs/ROADMAP.md)
+1. [`docs/README.md`](docs/README.md)
+2. [`docs/TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](docs/TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+4. [`docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md)
+5. [`docs/NATIVE_REGISTRY_STATE_MACHINES.md`](docs/NATIVE_REGISTRY_STATE_MACHINES.md)
+6. [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
-The strategy controls product priority and initial market scope but cannot
-weaken protocol safety. The architecture controls system authority. The state
-machine document controls Agent and Capability transitions. The roadmap
-controls implementation order and acceptance evidence. Focused documents may
-refine these rules but cannot contradict them.
+The root operation architecture controls the protocol mission and layer
+boundaries. Strategy selects product priority and an initial commercial wedge
+but cannot narrow that mission or weaken safety. The system architecture
+controls authority. The state-machine document controls current Agent and
+Capability transitions. The roadmap controls implementation order and
+acceptance evidence. Focused profiles may refine these rules but cannot
+contradict them.
 
 ## Product and use cases
 
@@ -175,6 +200,13 @@ refine these rules but cannot contradict them.
 8. Bulk request and result bytes remain off-chain; immutable digests bind them.
 9. Implementations fail closed on network, code-hash, state-hash, signature,
    sequence, predecessor, quorum, or finality mismatch.
+10. Signature validity never implies Carrier admission, delivery, indexing,
+    ranking, trust, or execution authority.
+11. A new business category is content or an application profile unless it
+    introduces a genuinely new authority, ordering, propagation, privacy,
+    admission, or side-effect class.
+12. Conversation and AI interpretation cannot substitute for explicit owner,
+    execution, custody, Agreement, or contract authorization.
 
 ## Asset model
 

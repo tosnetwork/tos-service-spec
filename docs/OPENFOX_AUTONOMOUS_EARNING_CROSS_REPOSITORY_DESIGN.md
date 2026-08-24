@@ -3,6 +3,9 @@
 **Status:** proposed cross-repository architecture; implementation and external
 acceptance pending
 
+**Root architecture:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
 **Primary market specification:**
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 
@@ -215,8 +218,9 @@ The repositories already provide much of the required foundation:
 
 The principal missing capabilities are:
 
-- one bounded generic Intent envelope with signed Discovery Card, selective
-  detail retrieval, and exact reference;
+- one frozen common Agent Operation Envelope plus a bounded Intent payload
+  profile with signed Discovery Card, selective detail retrieval, and exact
+  reference;
 - interoperable coarse categories plus extensible taxonomies, approximate
   value/time/region filters, derived-field provenance, and cheap local
   shortlisting before model analysis;
@@ -541,11 +545,12 @@ delivery phase determines the actual PR set.
 
 Repositories: `tos-service-spec`, then `tos-service-protocol`.
 
-- freeze the minimal Intent envelope and signed Discovery Card, modes/classes,
-  taxonomy paths, keywords, decimal value hints, schedule/region/language/
-  fulfillment fields, detail descriptor, publisher/derived-field boundary,
-  bounds, signature context, revision/withdrawal behavior, extensions,
-  settlement preferences, compact reference, and generic Agreement core;
+- freeze the common Agent Operation Envelope and the minimal Intent payload
+  profile: signed Discovery Card, modes/classes, taxonomy paths, keywords,
+  decimal value hints, schedule/region/language/fulfillment fields, detail
+  descriptor, publisher/derived-field boundary, bounds, publication signature
+  context, revision/withdrawal behavior, extensions, settlement preferences,
+  compact reference, and generic Agreement core;
 - freeze error classes and exact-byte vectors;
 - include semantically unrelated examples without category-specific core
   fields; and
@@ -678,9 +683,10 @@ No escrow PR blocks the first three outcomes.
 - A UI must distinguish generic Intent, conversation, Proposal, Agreement,
   payment request, funded escrow, and settled outcome.
 
-The preferred migration is additive: release the generic Intent envelope,
-adapt existing Paid Demand discovery as one profile, then remove any product
-claim that every economic opportunity must conform to Paid Demand.
+The preferred migration is additive: release the common Agent Operation
+Envelope and generic Intent payload profile, adapt existing Paid Demand
+discovery as one profile, then remove any product claim that every economic
+opportunity must conform to Paid Demand.
 
 ## 17. Acceptance matrix
 

@@ -2,10 +2,17 @@
 
 This roadmap defines implementation order and acceptance gates. Product
 priority is defined by `PRODUCT_STRATEGY.md`. Authority boundaries are defined
-by `ARCHITECTURE.md`; Agent and Capability transitions are defined by
+by `TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md` and `ARCHITECTURE.md`;
+Agent and Capability transitions are defined by
 `NATIVE_REGISTRY_STATE_MACHINES.md`.
 
 No later gate may weaken an earlier authority or security invariant.
+
+The historical Gates A--G below primarily measure the Native Registry and the
+first software-work commerce profile. Their evidence remains valid for those
+scopes, but none of those gates alone establishes completion of the root
+Agentic Internet operation, propagation, messaging, group, publication, or
+spam-resistance architecture.
 
 ## Status convention
 
@@ -13,6 +20,37 @@ No later gate may weaken an earlier authority or security invariant.
 - 🟡 Partial: implementation or design exists, but the task or its acceptance
   evidence is incomplete.
 - ⬜ Pending: not implemented, or no qualifying evidence was found.
+
+## Root Gate O — Agentic Internet operations
+
+Deliver:
+
+- ⬜ frozen canonical Agent Operation Envelope, signature domains, replay
+  identity, opcode namespace, extension rules, and bounded negative corpus;
+- ⬜ independent codecs and verifiers;
+- ⬜ direct message, mail, group, post, reply, revision, withdrawal, and
+  content-reference profiles;
+- ⬜ at least two independent Carrier paths for public operations and a local
+  projection rebuild after one Carrier and its database are removed;
+- ⬜ per-profile size, expiry, retention, fan-out, inbox, membership, fee,
+  proof-of-work, bond, and local admission controls;
+- ⬜ telemetry separating validity, admission, delivery, indexing, ranking,
+  trust, authorization, and execution;
+- ⬜ OpenFox policy gates for operation rate, tools, credentials, resources,
+  spending, and owner approval; and
+- ⬜ materially different applications composed without category-specific core
+  opcodes or coordinator state machines.
+
+Accept when two independent runtimes exchange multiple operation families over
+two independent Carrier paths, remain resource-bounded under the adversarial
+corpus, recover signed objects and finalized authority after a Carrier outage,
+and demonstrate that AI interpretation cannot bypass deterministic owner or
+custody policy.
+
+**Gate status: ⬜ Pending.** Existing Messenger, Packet, Intent, Gift, Registry,
+and settlement designs provide components, but the common envelope, opcode
+registry, cross-profile admission model, independent Carrier evidence, and
+cross-implementation conformance suite are not frozen or complete.
 
 ### 2026-08-15 protocol-domain migration
 

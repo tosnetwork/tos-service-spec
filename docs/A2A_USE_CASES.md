@@ -1,10 +1,15 @@
 # Decentralized Agent-to-Agent Use Cases
 
+**Scope:** optional commerce and settlement use cases under
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
 ## 1. Purpose
 
-TOS Service Protocol adds decentralized identity, authorization, commerce, and settlement to
-agent-to-agent interaction. It does not require every message or computation to
-run on-chain.
+TOS Service Protocol provides decentralized identity and general Agent
+operations. This document focuses on the optional authorization, commerce, and
+settlement profiles used in Agent-to-Agent interaction. It does not define the
+root messaging, group, publication, or discovery architecture and does not
+require every message or computation to run on-chain.
 
 A conventional A2A transport answers questions such as:
 
@@ -23,8 +28,8 @@ TOS Service Protocol additionally lets an Agent determine, without trusting one 
 - whether a receipt was signed by the selected execution authority; and
 - whether funds were released, refunded, or placed in dispute.
 
-The resulting model is decentralized A2A commerce rather than an on-chain
-messaging system.
+The resulting profile is decentralized A2A commerce composed above the broader
+Agent Operation and off-chain propagation system.
 
 The scenarios below describe a long-term application portfolio, not parallel
 initial-release commitments. Development starts with machine-checkable software

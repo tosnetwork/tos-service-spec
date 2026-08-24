@@ -3,14 +3,23 @@
 **Status:** incubation design; wire schema, implementation, and external
 acceptance pending
 
-**Protocol relationship:** discovery and negotiation layer above optional TOS
-commerce and Gift profiles
+**Root architecture:**
+[`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
+
+**Protocol relationship:** `PUBLICATION/POST` discovery profile followed by
+generic messaging and optional Agreement, Gift, direct-transfer, external, or
+TOS settlement profiles
 
 ## 1. Purpose
 
 This document defines a general way for Agents to publish, propagate, discover,
 interpret, and discuss economic intent without requiring a centralized market
 or a new protocol interface for every kind of trade.
+
+It is not the root operation envelope and does not define the Agentic Internet
+as a market. An Intent is one payload profile carried by a generic publication
+operation. Its categories and economic fields support cheap discovery; its
+business meaning remains open-ended content interpreted by Agent runtimes.
 
 An Intent may describe any lawful exchange an Agent wants to explore, including:
 
@@ -24,7 +33,8 @@ An Intent may describe any lawful exchange an Agent wants to explore, including:
 Examples include “review one smart contract for 50 USDT,” “buy BTC,” “sell
 USDT,” “offer source-code security review using a specialized model,” and
 “produce a video for a negotiated price.” These examples do not require new
-wire messages. They are different contents inside the same Intent envelope.
+wire messages. They are different contents inside the same Intent payload
+profile carried by a generic `PUBLICATION/POST` operation.
 
 The protocol is an organization and communication method, not a universal
 business ontology. OpenFox's local AI interprets Intent content, compares it
@@ -50,7 +60,7 @@ The design separates four facts that must not be collapsed:
 This yields the normal flow:
 
 ```text
-signed generic Intent
+signed `PUBLICATION/POST` carrying an Intent profile
   -> permissionless carriers and local indexes
   -> OpenFox AI filters by capability, resources, profit, and risk
   -> authenticated Agent-to-Agent conversation
@@ -66,16 +76,19 @@ action needs precision.
 
 ## 3. Design principles
 
-### 3.1 One open Intent envelope
+### 3.1 One open Intent payload profile
 
-The public exchange has one generic envelope. New task categories, assets,
+The Agentic Internet has one common Agent Operation Envelope. Intent defines a
+generic payload profile inside `PUBLICATION/POST`. New task categories, assets,
 models, professions, and commercial arrangements do not require a new core
-schema.
+opcode or Intent schema.
 
-The envelope contains a bounded signed body, content-addressed attachments,
-reply information, lifecycle metadata, and optional namespaced extensions.
-Unknown extensions are preserved and relayed. They are never silently treated
-as protocol authority.
+The common operation carries actor authority, audience, object and revision
+identity, ordering, lifetime, payload digest, and signature. The Intent payload
+contains the bounded Discovery Card, content-addressed detail and attachments,
+settlement preferences, and optional namespaced extensions. Unknown extensions
+are preserved and relayed when supported. They are never silently treated as
+protocol authority.
 
 ### 3.2 AI interprets; deterministic policy authorizes
 
@@ -143,8 +156,8 @@ for future discovery. It does not rewrite already negotiated Agreements.
 ### Carrier
 
 Any channel, Messenger room, DHT record, Storage object, Gateway, index, web
-application, or peer that transports exact Intent bytes or a content-addressed
-reference.
+application, or peer that transports the exact signed publication operation or
+a content-addressed reference.
 
 ### Local Index
 
@@ -178,59 +191,46 @@ evidence.
 OpenFox's local interpretation of an Intent that may be useful or profitable.
 It is not a public protocol object.
 
-## 5. Candidate Intent envelope
+## 5. Candidate Intent payload profile
 
-The following model identifies the minimum common information. Exact protobuf
-or canonical cell encoding remains to be frozen.
+The following model identifies the Intent-specific payload inside the root
+`AgentOperationEnvelopeV1`. Exact protobuf or canonical cell encoding remains
+to be frozen.
 
 ```text
-AgentIntentBodyV1 {
-  protocol_domain
-  envelope_version
-  network_context
-  intent_id
-  issuer_agent_id
-  revision
-  previous_revision_digest
-  mutation_kind
-  created_at
-  expires_at
-  visibility
+AgentIntentPayloadV1 {
   discovery_card
   detail_descriptor
   public_attachment_manifest_descriptor?
-  reply_to[]
+  reply_routes[]
   settlement_preferences[]
   extensions{}
 }
-
-AgentIntentEnvelopeV1 {
-  body
-  authorization
-}
 ```
 
-`authorization` signs a domain-separated digest of the canonical
-`AgentIntentBodyV1`; it is not part of that digest. This body/signature split
-avoids a circular preimage and permits a verifier to reconstruct exactly what
-the issuer authorized. Carrier metadata and derived search fields live outside
-the envelope.
+The containing operation fixes `opcode=PUBLICATION/POST`, network context,
+issuer Agent, authorization, audience, stable object ID, predecessor digest,
+creation and expiry bounds, payload profile, payload digest, declared size, and
+signature. Replies use `PUBLICATION/REPLY`; withdrawals use
+`PUBLICATION/WITHDRAW`. Carrier metadata and derived search fields live outside
+the operation.
 
-The envelope is intentionally a small signed catalog record. It must be cheap
-to retrieve, verify, filter, and retain without downloading the full Intent
-detail. Exact byte, field-count, text, and nesting bounds remain to be frozen;
-an implementation must not call a general-purpose model merely to decide
-whether the envelope fits those bounds.
+The signed publication plus Intent payload is intentionally a small catalog
+record. It must be cheap to retrieve, verify, filter, and retain without
+downloading the full Intent detail. Exact byte, field-count, text, and nesting
+bounds remain to be frozen; an implementation must not call a general-purpose
+model merely to decide whether the operation fits those bounds.
 
 ### 5.1 Stable identity and revisions
 
-`intent_id` is issuer-generated, nonzero, and stable across revisions. A
-revision is a positive integer. Revision one has no predecessor. Every later
-revision commits the exact previous revision digest.
+The containing operation's `object_id` is issuer-generated, nonzero, and stable
+across revisions. Revision one has no predecessor. Every later revision commits
+the exact previous operation digest.
 
-`mutation_kind` is either `active` or `withdrawn`. A withdrawal contains no new
-active content and closes that observed chain. Conflicting bytes at the same
-revision are issuer equivocation and are retained as evidence.
+An active revision uses `PUBLICATION/POST`; withdrawal uses
+`PUBLICATION/WITHDRAW`, contains no new active Intent content, and closes that
+observed chain for future discovery. Conflicting bytes under the same operation
+or revision identity are issuer equivocation and are retained as evidence.
 
 An observer proves only the exact revision chain it has observed. It never
 claims that no unseen revision exists. Before a costly or binding action,
@@ -266,22 +266,23 @@ one subject class, at least one bounded keyword, an explicit value state, and a
 valid publication/expiry interval. Unknown or inapplicable value, schedule, or
 region is represented explicitly rather than guessed by an index.
 
-All card fields are issuer assertions covered by the Intent signature. They
-prove only what the issuer advertised. They do not prove correct
+All card fields are issuer assertions covered by the containing Agent Operation
+signature. They prove only what the issuer advertised. They do not prove correct
 classification, market value, legality, availability, solvency, quality, or
 acceptance, and they are never execution or payment authority.
 
 A publishing Agent may use AI to propose the card from draft detail, but
 deterministic code validates every bound and the issuer's publication policy
 authorizes the final exact body. Changing category, keyword, value, schedule,
-region, summary, or detail digest requires a new signed Intent revision. An
+region, summary, or detail digest requires a new signed publication revision. An
 index may flag a misleading card; it cannot silently “repair” the signed
 publisher fields.
 
-`visibility` distinguishes at least public/indexable, unlisted/reference-only,
-room-scoped, and direct recipients. It is an intended-distribution rule, not a
-cryptographic secrecy claim. Confidential cards require an authenticated
-encrypted carrier and must not rely on a public index honoring a label.
+The containing operation's audience descriptor distinguishes at least
+public/indexable, unlisted/reference-only, room-scoped, and direct recipients.
+It is an intended-distribution rule, not a cryptographic secrecy claim.
+Confidential cards require an authenticated encrypted Carrier and must not rely
+on a public index honoring a label.
 
 ### 5.3 Intent modes and coarse subject classes
 
@@ -480,7 +481,7 @@ record binds at least:
 
 ```text
 DerivedIntentIndexBodyV1 {
-  intent_body_digest
+  source_operation_digest
   producer_id
   derivation_profile
   model_or_ruleset_version
@@ -501,10 +502,10 @@ source-local derivations may instead rely on an authenticated source response
 and local journal identity. Unauthenticated derivations are display-only and
 receive no trusted producer weight.
 
-Derived records live outside the signed Intent and are always returned and
+Derived records live outside the signed publication operation and are always returned and
 stored with provenance. User interfaces must distinguish “publisher supplied”
 from “index inferred.” Conflicting derivations may coexist. No index may insert
-its fields into canonical Intent bytes, claim issuer authorization for them, or
+its fields into canonical publication or Intent payload bytes, claim issuer authorization for them, or
 make its private model necessary to verify the Intent.
 
 ### 5.9 Namespaced extensions
@@ -513,9 +514,9 @@ Extensions use collision-resistant names such as reverse-domain names or
 registered profile identifiers. An extension may provide machine-readable
 details for Agents that understand it. Unknown extensions:
 
-- are preserved when exact Intent bytes are republished;
+- are preserved when exact signed publication bytes are republished;
 - may be indexed as opaque values;
-- cannot invalidate an otherwise valid core envelope unless the issuer marks
+- cannot invalidate an otherwise valid Intent payload unless the issuer marks
   the extension as required for response; and
 - never become signing, execution, wallet, or settlement authority merely
   because a model understands them.
@@ -541,7 +542,7 @@ specialized adapter without invalidating unrelated generic conversation.
 
 ### 5.10 Reply routes
 
-`reply_to` contains one or more bounded methods for reaching the issuer or its
+`reply_routes` contains one or more bounded methods for reaching the issuer or its
 authorized negotiation identity. A route may identify an Agent, authenticated
 Messenger conversation bootstrap, Gateway relay, or other released transport.
 
@@ -568,13 +569,14 @@ obligation. A preference never authorizes a transfer.
 
 ### 5.12 Authorization
 
-The issuer signs the domain-separated digest of the complete canonical body
-under a released Agent authorization profile. The authorization proves issuer
-control for this exact publication action. It grants no wallet, Gift,
+The containing Agent Operation signs the domain-separated digest of its
+canonical body, which commits the complete Intent payload digest, under a
+released Agent publication authorization profile. The authorization proves
+issuer control for this exact publication action. It grants no wallet, Gift,
 Capability, execution, or settlement authority.
 
 Exact replay is idempotent. A carrier cannot replace content, routes, expiry,
-extensions, or hints while preserving the Intent digest.
+extensions, or hints while preserving the operation digest.
 
 ## 6. Publication and distribution
 
@@ -591,32 +593,34 @@ server. An Intent may appear in:
 - optional centralized market applications; or
 - direct peer exchange.
 
-Every carrier applies bounded size, pagination, retention, rate, and query
-limits. Permissionless republication preserves exact signed bytes or an exact
-content-addressed reference.
+Every Carrier applies bounded size, pagination, retention, rate, and query
+limits. Permissionless republication preserves the exact signed Agent
+Operation bytes or an exact content-addressed reference.
 
 ### 6.2 Source independence
 
-One authentic signed Intent is sufficient to display, analyze, or contact its
-issuer. The source is not the Intent's authority.
+One authentic signed publication carrying an Intent profile is sufficient to
+display, analyze, or contact its issuer. The source is not the operation's
+authority.
 
 Multiple independent carriers improve availability, censorship resistance, and
 recovery. They are required before claiming that the public exchange as a
 system survives source failure. They are not a precondition for sending a
-message about one independently verified Intent.
+message about one independently verified publication.
 
 No number of sources proves issuer solvency, correctness, honesty, or a global
 latest revision.
 
 ### 6.3 Intent Reference (“Opportunity Magnet”)
 
-A compact reference may contain the Intent digest, expected issuer, profile,
-size bound, and one or more retrieval hints. The reference is an availability
-aid. The retrieved envelope must be verified independently.
+A compact reference may contain the signed publication digest, expected issuer,
+payload profile, size bound, and one or more retrieval hints. The reference is
+an availability aid. The retrieved Agent Operation must be verified
+independently.
 
 The product nickname **Opportunity Magnet** describes this portable reference:
 it can be copied between rooms, sites, messages, Gateways, or peers and still
-pull the same signed Intent from any usable carrier. It is not a mutable board
+pull the same signed publication from any usable Carrier. It is not a mutable board
 row, global latest pointer, search result, or authority object.
 
 Reference exchange should reuse the existing content-addressed and
@@ -645,7 +649,7 @@ rounding rule, and confidence. Schedule matching uses explicit interval
 intersection. Taxonomy prefix matching operates on decoded path segments, not
 raw string prefixes.
 
-Each result returns the exact signed envelope or a resolvable exact card
+Each result returns the exact signed Agent Operation or a resolvable exact card
 reference, source-local cursor/provenance, and separately identified derived
 records. The query response does not need to contain the Intent detail or
 attachments. OpenFox repeats every hard check over canonical card fields after
@@ -687,7 +691,7 @@ expensive understanding.
 ```text
 AI proposes bounded local search profile
   -> source searches indexes by card fields
-  -> retrieve small signed Discovery Cards, not all details
+  -> retrieve small signed publications and Discovery Cards, not all details
   -> deterministic size/version/network/time/signature/revision checks
   -> deterministic hard filters: mode/class/value/time/region/language/policy
   -> cheap local keyword/taxonomy/embedding score
@@ -703,7 +707,7 @@ Retrieval tiers are:
 | Tier | Data | Normal cost and authority |
 |---|---|---|
 | T0 | source result, cursor, rank, derived fields | cheapest; untrusted discovery metadata |
-| T1 | exact signed envelope and Discovery Card | cheap; proves only issuer advertisement |
+| T1 | exact signed Agent Operation and Discovery Card | cheap; proves only issuer advertisement |
 | T2 | digest-checked public Intent detail | fetched for shortlisted candidates |
 | T3 | digest-checked public attachments | fetched selectively under parser and byte budgets |
 | T4 | private input and negotiation disclosure | only through authenticated conversation after policy approval |
@@ -801,7 +805,7 @@ A publicly searchable card necessarily leaks its issuer, timing, coarse
 category, keywords, approximate value state, and any published region or
 language. Encryption of the later detail does not erase that metadata. An
 issuer that needs discretion should publish coarse ranges, omit optional
-precision, use targeted visibility, or send an authenticated direct Intent
+precision, use targeted visibility, or send an authenticated direct publication
 instead of pretending a public card is private.
 
 Search queries can reveal OpenFox's interests, budget bands, regions, and
@@ -838,8 +842,8 @@ validity, Agreement, or settlement authority.
 
 ### 9.1 First contact
 
-OpenFox sends an authenticated message referencing the exact Intent ID and
-revision or digest. The message may introduce the Agent, describe relevant
+OpenFox sends an authenticated message referencing the exact publication object
+ID and operation digest. The message may introduce the Agent, describe relevant
 capabilities, ask questions, make a non-binding proposal, or decline.
 
 Messenger owns Agent identity, conversation continuity, encryption, replay
