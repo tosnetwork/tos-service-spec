@@ -49,7 +49,11 @@ independence and independent-verifier gate in
 complete `BuyerHandoffProfile`, `PaidDemandQuoteBindingBodyV1`, exact Provider
 proof, per-Offer deterministic versioned Quote/escrow construction, Provider-
 wide rollback-resistant writer fencing and aggregate admission, existing-rail
-resolver and Gate integration, and proof-of-possession private-input delivery in
+resolver and Gate integration, proof-of-possession private-input delivery,
+strict duration/preflight/release-pipeline enforcement, a zero-bounce initial
+wallet-request proof with replay-aware recovery, query-independent semantic
+action identity, fresh same-claim
+first-start preflight, and successor release-time execution-deadline enforcement in
 [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 are frozen, implemented, and independently verified.
 
@@ -221,6 +225,12 @@ RPC ambiguity, or model retry must query or resume the same action and must not
 create a second Offer, later bid, acceptance, execution, submission, or payment
 action.
 
+This is semantic-action idempotency, not an assertion that frozen escrow V1
+remembers every query-specific transfer attempt. After an authenticated bounce,
+an old public attempt may be replayed into another wallet request; the journal
+groups it under the same action, disables automatic retry, and delegates
+recovery to the resolver/operator.
+
 ### 6. Consume the canonical discovery and existing-rail binding profiles
 
 OpenFox implements a local control plane; it does not define market authority.
@@ -304,6 +314,7 @@ flowchart TB
     Ingress["Runtime private-input ingress<br/>buyer push + proof of possession"]
     Gate["Existing Native Execution Gate<br/>same slot + binding comparisons"]
     State["Durable earning journal<br/>state + idempotency"]
+    Projection["Opportunity + Commerce Job projections<br/>local events + advisory actions"]
     Exec["Execution adapters<br/>OpenFox skills / tos-ai / approved services"]
     Validate["Validation + evidence<br/>schema / tests / verifier"]
     Protocol["Protocol client<br/>submit + Receipt + settlement resolution"]
@@ -317,6 +328,9 @@ flowchart TB
     Policy --> Writer --> Body --> Portfolio --> Capacity --> Admission --> Signer --> Offer
     Offer --> Select --> Quote --> Accept --> Funding --> Ingress --> Gate --> Exec --> Validate --> Protocol
     Protocol --> State
+    State --> Projection
+    Protocol --> Projection
+    Projection --> Owner
     State --> Ledger
     Writer --> State
     Portfolio --> Ledger
@@ -336,12 +350,15 @@ pkg/earning/
   economics.go         # fixed-precision conservative estimates
   policy.go            # deterministic decisions and limits
   state.go             # transition rules and idempotency
+  projection.go        # Opportunity/Job reducers over journal + resolvers
+  reasons.go           # stable machine reason codes and retry disposition
   store.go             # durable bounded journal
   admission.go         # Provider writer-lease and custody admission client
   process_lock.go      # lifetime FD lock for canonical owner-private state
   coordinator.go       # orchestration, no custody
   accounting.go        # estimates, reservations, accruals, realized P&L
-  events.go             # redacted runtime events and metrics
+  events.go             # at-least-once redacted derivative notifications
+  api.go                # read/query/subscribe and policy-gated action surface
 
 pkg/earning/adapters/
   tos_tasks.go          # released TOS paid-task discovery/protocol client
@@ -388,9 +405,12 @@ It records at least:
   separate native TOS fee responsibility;
 - proposed existing-rail Quote/escrow, paid-demand binding, private-input,
   objective release, and timeout-refund terms;
-- Offer acceptance, input, execution, submission, and settlement deadlines;
+- Offer acceptance, funding, input delivery, execution admission/completion,
+  refund deadlines, and the nonzero release-pipeline margin;
 - confidentiality, retention, region, and permitted-egress constraints;
-- cancellation, rejection, partial-completion, and refund behavior.
+- pre-acceptance withdrawal/expiry behavior and the objective full timeout-
+  refund rule; post-acceptance cancellation, discretionary rejection, and
+  partial completion are unsupported in V1.
 
 Display text and marketplace ranking remain advisory. They are never copied
 into an authorization object. Quote acceptance and escrow funding do not exist
@@ -457,9 +477,9 @@ DISCOVERED
   -> INPUT_READY
   -> EXECUTING
   -> VALIDATING
-  -> SUBMITTING
-  -> SUBMITTED
-  -> SETTLING
+  -> RESULT_READY
+  -> SETTLEMENT_REQUESTING
+  -> SETTLEMENT_PENDING
   -> SETTLED
 
 OFFER_SENT
@@ -493,11 +513,24 @@ FUNDING_RESOLVING
      | AMBIGUOUS(origin = FUNDING_RESOLVING)
 
 FUNDED | INPUT_DELIVERING | INPUT_READY | EXECUTING | VALIDATING
-  | SUBMITTING | SUBMITTED | SETTLING
+  | RESULT_READY
   -> REFUND_RESOLVING(origin_state)
 
+SETTLEMENT_REQUESTING
+  -> REFUND_RESOLVING(exact_release_resolved_not_accepted_and
+       finalized_funded_at_or_after_refund)
+
 REFUND_RESOLVING(origin_state)
-  -> REFUNDED | AMBIGUOUS(origin = REFUND_RESOLVING)
+  -> REFUNDED
+  | REFUND_RESOLVING(bounce_recovery_operator_only_same_action_
+       old_or_new_query_may_win)
+  | AMBIGUOUS(origin = REFUND_RESOLVING)
+
+SETTLEMENT_PENDING
+  -> SETTLEMENT_REQUESTING(bounce_recovery_before_refund_operator_only_
+       same_action_old_or_new_query_may_win)
+  | REFUND_RESOLVING(bounce_recovery_at_or_after_refund_after_release_
+       impossible_operator_only)
 ```
 
 `AMBIGUOUS(origin_state, operation, action_id)`, `WITHDRAWAL_OBSERVED`,
@@ -507,13 +540,13 @@ the recorded operation and may converge only to that operation's legal
 predecessor or successor after querying its exact idempotency identity and
 authoritative status. It cannot
 erase the origin, jump to an unrelated phase, or regress funded/executing/
-submitted/settling work to an earlier execution-eligible state for replay. Only
-ambiguity originating in the signed pre-Quote Offer/acceptance phase may enter
-`CANCELLATION_RESOLVING`; execution, submission, Receipt, refund, and settlement
-ambiguities resolve within their own phase. Funding ambiguity resolves only by
-querying the exact deterministic existing escrow and finalized stablecoin
-notification. `SETTLED`, `REFUNDED`, and a safely resolved pre-Quote `REJECTED`,
-`EXPIRED`, `WITHDRAWN`, `UNFUNDED_EXPIRED`, or `FAILED` are terminal.
+result-ready/settlement work to an earlier execution-eligible state for replay.
+Only ambiguity originating in the signed pre-Quote Offer/acceptance phase may
+enter `CANCELLATION_RESOLVING`; execution, result, Receipt, refund, and
+settlement ambiguities resolve within their own phase. Funding ambiguity
+resolves only by querying the exact deterministic existing escrow and finalized
+stablecoin notification. `SETTLED`, `REFUNDED`, and a safely resolved pre-Quote
+`REJECTED`, `EXPIRED`, `WITHDRAWN`, `UNFUNDED_EXPIRED`, or `FAILED` are terminal.
 
 `UNFUNDED_EXPIRED` is legal only after the funding deadline and finalized
 resolution prove that the exact funding notification cannot still become
@@ -521,9 +554,34 @@ authoritative. It releases retained capacity, creates no receivable, and does
 not masquerade as a refund of funds that were never accepted by escrow.
 
 A refund resolver preserves its recorded origin and follows only the committed
-objective timeout-refund path. It may converge only to `REFUNDED` or remain
-ambiguous; it cannot invent cancellation, discretionary dispute, partial
-payment, or reopen a terminal state. `SETTLED` has no outgoing transition.
+objective timeout-refund path. An authenticated initial bounce of
+`refund_pending` back to `funded` leaves only the same semantic refund action.
+Honest tooling may construct a new lower-level query, but the contract retains
+no consumed-query history and an old public refund attempt may win a
+permissionless replay race. Automatic policy submits no post-bounce retry. An
+ambiguous downstream wallet outcome remains pending and cannot be replayed. The
+resolver may therefore converge only to `REFUNDED`, continue resolving that
+same action, or remain ambiguous; it cannot invent cancellation, discretionary
+dispute, partial payment, or reopen a terminal state. `SETTLED` has no outgoing
+transition.
+
+An authenticated bounce of the escrow's initial wallet transfer may restore
+the escrow from `release_pending` to `funded`. The local projection first
+resolves that same pending attempt. If the authoritative escrow is funded and
+still before the refund boundary, every public old release attempt and any
+honest new-query attempt remains a child of the same semantic action; the first
+valid finalized transaction may win. Automatic policy submits none of them
+after bounce and requires operator/resolver recovery. If the escrow is funded
+at or after the boundary, only the objective timeout-refund semantic action is
+legal once the release is resolved as not accepted. Neither branch may reopen
+input, execution, validation, or result construction.
+
+Once `SETTLEMENT_REQUESTING` records or broadcasts a release action, merely
+reaching the refund time cannot authorize a different economic action. The
+exact release action must first resolve as not accepted, including an
+authenticated initial bounce where applicable, and the finalized escrow must
+again be `funded` at or after the refund boundary. Until then it remains
+`AMBIGUOUS(origin=SETTLEMENT_REQUESTING, SAME_ACTION_ONLY)`.
 
 Later competitive bidding may introduce typed `BID_PREPARED` and `BID_SENT`
 states only after its protocol profile is frozen. A future unilateral claim
@@ -596,7 +654,7 @@ Requirements:
   shorten that fail-closed recovery;
 - authoritative state is re-read before Offer authorization, Quote-acceptance
   conversion, funding conversion, private-input admission, execution dispatch,
-  submission, and every settlement-sensitive action;
+  result/Receipt signing, and every settlement-sensitive action;
 - bounded reconciliation resumes ambiguous actions instead of repeating them;
 - before Provider signing, a verified terminal Demand withdrawal may compensate
   reservations once and finish as `WITHDRAWN`. From `OFFER_AUTHORIZED` until
@@ -625,6 +683,238 @@ Requirements:
 - records, attachments, evidence, and unresolved exposure have explicit size,
   count, and retention bounds.
 
+`RESULT_READY` means that OpenFox durably stored the canonical Receipt and a
+query-independent semantic release template/digest for this exact purchase. It
+is not a chain transition. `SETTLEMENT_REQUESTING` records or resolves the one
+retry-stable semantic release action and its exact query-specific signed intent
+attempt. `SETTLEMENT_PENDING` is reached only after a finalized resolver
+proves that the exact escrow entered `release_pending`; it is V1's closest
+analogue to ACP `Submitted`, although V1 immediately starts objective payment
+transfer rather than waiting for an Evaluator. A true
+`submitted -> evaluation -> settlement` contract lifecycle requires a new,
+explicitly versioned escrow profile.
+The detailed state reaches `SETTLED` only after the finalized wallet transaction
+proof establishes provider credit; that state projects as Commerce Job
+`RELEASED`. `release_pending` alone projects only as `SETTLEMENT_PENDING`.
+
+## Opportunity and Commerce Job Projections
+
+ACP's most useful integration property is that an Agent developer can react to
+a small role-aware lifecycle instead of reverse-engineering every carrier,
+contract, and recovery journal. OpenFox should provide that convenience through
+two participant-local, rebuildable read models, not a new ledger or global event
+service.
+Unlike ERC-8183, whose Job may exist in `Open` before funding and before a
+Provider is selected, this Commerce Job begins only when one exact Quote is
+accepted under its TOS schema.
+
+Demand-first pre-acceptance work stays in this Opportunity projection:
+
+```text
+OBSERVED -> OFFER_PREPARED -> OFFERED -> QUOTE_ACCEPTED
+
+OBSERVED | OFFER_PREPARED
+  -> WITHDRAWN | EXPIRED | REJECTED
+
+OFFERED
+  -> WITHDRAWAL_OBSERVED -> CANCELLATION_RESOLVING
+  -> CANCELLATION_RESOLVING(expiry_observed)
+
+CANCELLATION_RESOLVING
+  -> QUOTE_ACCEPTED | WITHDRAWN | EXPIRED
+
+Any non-terminal pre-acceptance state
+  -> AMBIGUOUS(origin_state, operation, action_id)
+```
+
+Capability-first acquisition retains its existing finalized Capability/version
+and complete-preimage Quote-Proposal projection. It has no Demand Mutation or
+Provider Offer key and is not coerced into this Demand-first state machine.
+
+The Commerce Job begins only for one exact accepted Quote:
+
+```text
+QUOTE_ACCEPTED
+  |-> UNFUNDED_EXPIRED
+  `-> FUNDED
+       -> EXECUTING
+       -> RESULT_READY
+       -> SETTLEMENT_REQUESTING
+       -> SETTLEMENT_PENDING
+       -> RELEASED
+
+Any state from FUNDED through RESULT_READY
+  -> REFUND_RESOLVING -> REFUNDED
+
+SETTLEMENT_REQUESTING
+  -> REFUND_RESOLVING(only after exact release action is resolved as not
+       accepted and finalized escrow is funded at/after refund)
+
+SETTLEMENT_PENDING
+  -> SETTLEMENT_REQUESTING(bounce recovery before refund; operator/resolver
+       only; SAME_ACTION_ONLY; old_or_new_query_may_win)
+  | REFUND_RESOLVING(bounce recovery at/after refund after release is
+       impossible; operator/resolver only)
+
+REFUND_RESOLVING
+  -> REFUND_RESOLVING(bounce recovery; operator/resolver only;
+       same action; old_or_new_query_may_win)
+
+Any non-terminal state
+  -> AMBIGUOUS(origin_state, operation, action_id)
+  -> that operation's legal predecessor or successor
+```
+
+Before acceptance, the projection key is `(network, demand identity, mutation
+digest)` and, for an Offer row, its exact Provider Offer digest. Different
+Offers are never merged. Quote acceptance terminalizes that immutable-key
+Opportunity row with an `accepted_job_ref` and creates a separate Commerce Job
+row keyed by `(quote_commitment, escrow_address)`. Neither row changes key. A
+local Job ID is correlation only and cannot replace either key; every derivative
+event names exactly one immutable projection key.
+The reducer atomically records the cross-reference. Its local notification log
+emits linked `opportunity_accepted` and `commerce_job_created` events rather
+than one event that changes key.
+
+The reducer consumes owner-private durable journal records plus independently
+verified signed artifacts and finalized resolver snapshots. Redacted runtime
+events are derivative notifications and cannot rebuild authority by themselves.
+Deleting a projection or event stream cannot delete or change an Offer, Quote,
+escrow, Gate record, Receipt, Provider admission record, or payment.
+After Offer authorization, observed withdrawal or expiry remains resolving
+until the exact acceptance identity and deadline prove that no concurrent
+accepted Quote exists; it cannot release reservation or exposure from a feed
+event alone.
+
+The bounded journal may compact only after atomically publishing a verified
+reducer snapshot that binds its schema version, journal-head digest, last local
+sequence, source/resolver checkpoints, and every unresolved action, artifact,
+evidence, and authority reference needed for replay. The snapshot and all
+referenced immutable objects survive deletion of the covered prefix. Restart
+verifies the head and replays the retained tail. If required records have aged
+out, the API reports retention-limited history rather than claiming a complete
+deterministic rebuild.
+
+Every participant-local event envelope binds at least:
+
+```text
+schema_version
+local_event_id
+local_sequence
+projection_key
+kind
+authority_class
+source_reference_or_checkpoint
+stable_action_id_optional
+payload_digest
+```
+
+Kinds include `demand_observed`, `offer_authorized`, `opportunity_accepted`,
+`commerce_job_created`, `withdrawal_observed`, `cancellation_resolved`,
+`funding_finalized`, `execution_admitted`, `result_ready_recorded`,
+`settlement_request_recorded`, `release_pending_finalized`,
+`refund_request_recorded`, `refund_pending_finalized`, `release_finalized`, and
+`refund_finalized`. The envelope's authority class and source reference keep a
+local request record distinct from a finalized contract transition.
+
+Delivery is at least once. Duplicate and reordered events reduce
+deterministically under frozen authority-precedence rules. A cursor orders only
+one participant's retained notification log; it proves neither global order nor
+completeness. Cursor expiry returns `CURSOR_EXPIRED` and requires bounded
+snapshot/resync from durable records and resolvers. Time remaining is computed
+at read time from a reported conservative `as_of_lower`/`as_of_upper` interval;
+it is not replayed as an immutable historical fact.
+
+Conflicting facts at the same authority and finality class are quarantined as
+`AUTHORITY_UNRESOLVED`, expose no mutating action, and require authoritative
+resolution. Arrival order, local sequence, source count, source rank, or market
+reputation cannot break that tie.
+
+Each projection row carries the exact artifact/action/checkpoint references,
+evidence class, coarse and detailed local state, originating ambiguous
+operation, stable action ID, projection revision, and role-constrained advisory
+actions. Participant role is derived from the exact bound artifact/Quote and
+the authenticated local control-plane principal. A caller-supplied role may be
+used only as a labelled read-only `view_as`; it grants no action.
+
+At minimum, the developer surface should support:
+
+```go
+GetProjection(ctx, projectionKey) (Projection, error)
+ListProjections(ctx, filter, cursor, limit) (ProjectionPage, error)
+Subscribe(ctx, afterLocalSequence, filter) (EventStream, error)
+AvailableActions(ctx, projectionKey) ([]ProposedAction, error)
+RequestAction(ctx, ActionRequest{
+    ProjectionKey,
+    Kind,
+    StableActionID,
+    ExpectedProjectionRevision,
+    TypedParams,
+}) (ActionReceipt, error)
+```
+
+`Get`, `List`, `Subscribe`, and `AvailableActions` are read-only. A frozen
+role-by-state-by-action matrix controls the proposed action set. In Provider V1,
+buyer acceptance, funding, and input delivery appear only as external waits;
+there is no Evaluator action. Phase 1 disables `RequestAction`. Phase 2 enables
+only the exact action kinds frozen for the fixed-price Provider path.
+
+`RequestAction` rejects a target-state request, free-form callback or URL,
+unknown kind, role mismatch, and same-action-ID/different-body reuse. Its
+expected projection revision is only a stale-view compare-and-swap guard, never
+commercial authority or finality. After that guard and before every mutation,
+the implementation re-reads authoritative state, deterministically recomputes
+the stable action ID from the frozen semantic preimage for that action kind, and
+passes it through the existing policy, custody, Gate, or settlement boundary.
+That preimage contains the domain/version, action kind, immutable Opportunity
+or purchase identity, exact authority references, and canonical economic/action
+parameters. It explicitly excludes `StableActionID`,
+`ExpectedProjectionRevision`, local cursor/sequence, authentication/session
+data, observation or wall time, and every per-attempt broadcast/query ID. Those
+lower-level attempts are append-only children of one semantic action. A caller-
+supplied ID is only an exact retry assertion and cannot select another identity.
+Exact retry returns the prior receipt; `next_actions` remain advisory.
+
+Reason dispositions are machine enums:
+
+```text
+NOT_RETRYABLE
+RETRY_AFTER_EXTERNAL_CHANGE
+SAME_ACTION_ONLY
+OPERATOR_ACTION_REQUIRED
+```
+
+A structured error carries `code`, `disposition`, `projection_revision`, and,
+where relevant, `origin_state`, `stable_action_id`, and `authority_reference`.
+The initial reason-code set includes at least:
+
+| Reason code | Required disposition or handling |
+|---|---|
+| `OBSERVATION_INCOMPLETE` | `RETRY_AFTER_EXTERNAL_CHANGE` |
+| `AUTHORITY_UNRESOLVED` | `RETRY_AFTER_EXTERNAL_CHANGE` |
+| `POLICY_REJECTED` | `NOT_RETRYABLE` for this policy revision |
+| `APPROVAL_REQUIRED` | `OPERATOR_ACTION_REQUIRED` |
+| `ROLE_FORBIDDEN` | `NOT_RETRYABLE` |
+| `STATE_FORBIDDEN` | `NOT_RETRYABLE` for the observed authoritative state |
+| `PROJECTION_STALE` | `RETRY_AFTER_EXTERNAL_CHANGE`; refresh without creating an action |
+| `CURSOR_EXPIRED` | `RETRY_AFTER_EXTERNAL_CHANGE`; bounded snapshot/resync |
+| `WRITER_FENCE_STALE` | `RETRY_AFTER_EXTERNAL_CHANGE`; reacquire, never reuse the generation |
+| `CAPACITY_UNAVAILABLE` | `RETRY_AFTER_EXTERNAL_CHANGE` within the same bounds |
+| `AWAITING_BUYER_ACCEPTANCE` | `RETRY_AFTER_EXTERNAL_CHANGE`; Provider cannot synthesize it |
+| `AWAITING_FINALIZED_FUNDING` | `RETRY_AFTER_EXTERNAL_CHANGE`; do not execute |
+| `INSUFFICIENT_SETTLEMENT_SLACK` | `NOT_RETRYABLE` for this accepted timeline |
+| `ACTION_ID_CONFLICT` | `NOT_RETRYABLE`; same ID has different canonical bytes |
+| `ACTION_AMBIGUOUS` | `SAME_ACTION_ONLY`; origin state and action ID required |
+| `AWAITING_SETTLEMENT_RESOLUTION` | `SAME_ACTION_ONLY` finalized-state resolution |
+| `UNSUPPORTED_VERSION` | `NOT_RETRYABLE` until software/profile change |
+
+Unknown codes and dispositions fail closed. SDKs may add display text, but
+automation branches only on released machine values. Event, projection,
+action, role/action-matrix, and error schemas require bounds, redaction,
+unknown-version behavior, and replay/conformance vectors before public release.
+`ACTION_AMBIGUOUS` without both `origin_state` and `stable_action_id` is
+malformed and cannot be treated as retryable.
+
 ## Discovery and Verification
 
 Separate bounded source observation from independent verification:
@@ -651,12 +941,13 @@ availability.
 Discovery must be bounded by source, query, page size, cycle count, wall-clock
 time, retained candidates, and cursor history. A source that cannot preserve
 stable identity and exact bytes is display-only and cannot feed automatic
-commercial action.
+paid-demand commercial action.
 
 A single source may feed fixtures and a read-only observer, but it cannot unlock
 Provider Offer signing, paid execution, production status, or MVP acceptance.
-Before any commercial action is reachable, OpenFox must satisfy Section 9.1,
-Phase D2, and the applicable V1 discovery acceptance criteria of
+Before any public Demand-first Provider Offer signature or later paid-demand
+commercial action is reachable, OpenFox must satisfy Section 9.1, Phase D2, and
+the applicable V1 discovery acceptance criteria of
 [`AGENT_PAID_DEMAND_DISCOVERY_V1.md`](AGENT_PAID_DEMAND_DISCOVERY_V1.md):
 
 - at least two carriers or indexes are independent in operator,
@@ -670,7 +961,12 @@ Phase D2, and the applicable V1 discovery acceptance criteria of
   every source.
 
 This is a promotion gate, not a claim that two sources establish a global
-market head.
+market head and not a requirement that every later private opportunity be
+observed twice. After the implementation-level D2 gate has passed, an owner may
+allow an exact directly delivered private Demand artifact under separate local
+policy. That lead does not count toward D2 evidence and remains non-actionable
+unless its full bytes, authority, handoff, terms, and commercial rail are
+independently verified.
 
 ## Matching and Planning
 
@@ -812,7 +1108,12 @@ The fixed-price construction order is deterministic:
 11. record finality of that transition as
     `QUOTE_ACCEPTED_AWAITING_FUNDING`;
 12. resolve the later asynchronous stablecoin transfer notification and move
-    through `FUNDING_RESOLVING` to `FUNDED` only after exact finality; and
+    through `FUNDING_RESOLVING` to `FUNDED` only after exact finality; for the
+    paid-demand successor, reject it before acceptance, then require its
+    handling transaction's contract time to satisfy `now <= funding_deadline`
+    without reapplying `accept_by == Quote.expires_at`, while preserving schema
+    1's frozen dual-cutoff predicate; later finality observation does not change
+    either transaction-time result; and
 13. dispatch private input and execution only from `FUNDED`.
 
 No buyer Agent signature is added after the Offer. No handoff authority
@@ -846,13 +1147,28 @@ replace Provider-wide admission.
 The public body copies the active Demand Mutation's exact buyer Agent, bound
 settlement wallet, `BuyerHandoffProfile`, and upload proof-of-possession key/
 profile. It commits the Provider Agent and Capability version, input/source,
-output, validator, evidence, execution, private-input, exact asset/amount,
-deadlines, objective release/timeout-refund terms, and equality constraints to
-the existing typed Quote/escrow preimages, and `max_acceptances = 1`. It also names one purpose-
+output, validator, evidence, execution, private-input ingress and attestation,
+exact asset/amount,
+the complete acceptance/funding/input/admission/completion/refund timeline,
+exact effective duration, maximum preflight-to-start delay, nonzero acceptance-
+to-funding, funding-to-input, input-to-admission, and release-pipeline margins,
+objective release/timeout-refund terms, and equality
+constraints to the existing typed Quote/escrow preimages, and
+`max_acceptances = 1`. It also names one purpose-
 limited Provider key, proof profile, authority reference, validity bounds, and
 owner mandate. Writer generation, private reservation/lease data, and admission-
 ledger references remain private and never enter public Offer, body, or proof
-bytes. No buyer field may be guessed or selected after this point.
+bytes. The release-pipeline margin covers the bounded post-run validation,
+evidence/report and Receipt construction, query-specific signing, initial
+release inclusion, and definitive downstream acceptance of the initial wallet
+request without bounce; it is not task-runner time. Frozen escrow V1 forgets
+pending-query history on bounce, so old public attempts can be permissionlessly
+replayed without a finite contract-enforced retry bound. A separately versioned
+settlement-critical successor may preserve valid pre-cutoff release priority or
+a consumed-query generation across bounces, but it is outside this V1 paid-
+demand binding. If a zero-bounce initial request is not frozen and tested,
+automatic V1 paid-demand execution remains blocked. No buyer field may be
+guessed or selected after this point.
 
 The Provider signs the canonical `PaidDemandQuoteBindingBodyV1` digest in its
 fixed proof context; the full Offer digest includes the exact canonical Provider
@@ -903,7 +1219,36 @@ signed Demand Mutation, exact Provider proof, authority bounds and revocation
 ordering, bound-wallet-authenticated escrow `accept` transition,
 task/input/source, validation/evidence, transport, signer, amount, and
 deadlines. The integration must not create a second Gate or a second execution
-slot:
+slot. Before dispatch it must:
+
+- resolve and recompute the exact committed effective completion duration from
+  the accepted binding's exact signed Mutation and manifest, never a later
+  Mutation/withdrawal/feed head, and verify the exact preflight-to-start delay
+  and release-pipeline margin against the released profile ranges;
+- reject after the committed execution-admission deadline or unless the
+  conservative admission-time upper bound plus start delay, effective duration,
+  and release-pipeline margin is strictly less than `refund_available_at`;
+- immediately before first process start, obtain a fresh preflight over the
+  same Gate claim and repeat the complete finalized authority check at coherent
+  fresh monotonic checkpoints. First current-quorum resolve a finalized network
+  anchor within frozen maximum age/head-lag bounds; then prove exact escrow/
+  Registry code, funded escrow and Quote, Agent non-tombstone state, and
+  Capability ownership/exact unrevoked version/manifest at or through that
+  anchor with required cross-shard order, plus execution deadline and strict
+  refund slack; a queue delay
+  beyond the committed bound permits another same-claim preflight only while
+  the runner is durably `prepared` with no possible runtime side effect, and
+  that refresh repeats the same complete check; treat the final fresh preflight
+  as the linearization point for one short start-authority ticket—an adverse
+  change finalized at/before its checkpoint rejects, a change finalized only
+  afterward is non-retroactive through checked `start_not_after`, and original
+  admission freezes nothing; atomically bind that ticket on
+  `prepared -> starting`; crash/uncertainty afterward is execution ambiguity,
+  never a refresh or another execution;
+- retain the checked inputs in the durable Gate claim so retry cannot recompute
+  a more permissive prior admission.
+
+Only then may it dispatch through one of:
 
 - restricted AgentLoop turn using a task-specific turn profile;
 - owner-operated `tos-ai` terminal capability;
@@ -912,12 +1257,21 @@ slot:
 
 Private bytes arrive only through buyer push to the Provider-selected,
 Offer-bound proof-of-possession ingress operated by the selected runtime or
-capacity owner. OpenFox verifies the bound admission receipt but does not
-replace the runtime's capacity or ingress authority with local state. The
-Provider never follows a task-selected URL, redirect, repository, host, object
-store, proxy, or credential. Challenge consumption and immutable input
-admission are one atomic durable operation, and replay or concurrent
-replacement fails closed.
+capacity owner. OpenFox verifies the bound signed
+`InputAcceptanceRecordV1` but does not replace the runtime's capacity or ingress
+authority with local state. The Provider never follows a task-selected URL,
+redirect, repository, host, object store, proxy, or credential. Challenge
+consumption and immutable input
+admission are one atomic durable operation. That operation binds the exact
+bytes, consumes the challenge, and commits the ingress-attestation signature,
+clock-profile evidence/checkpoint, monotonic journal sequence/head, and
+`input_accept_time_upper_bound <= input_delivery_deadline`. Replay, concurrent
+replacement, backdating, clock/journal rollback, or missing accepted bytes fail
+closed. A valid on-time record may reach the Gate later, through the separate
+`execution_admission_deadline`. Every paid-demand task-admitting adapter carries
+the exact `input_acceptance_record_digest` as a Quote-versioned extension of the
+five schema-1 Gate claim fields; omission or substitution conflicts under the
+unchanged shared purchase slot.
 
 The ingress accepts only the upload key/profile copied without change from the
 active Demand Mutation's `BuyerHandoffProfile` into
@@ -937,11 +1291,17 @@ verifier signatures, or bounded independent evaluation. Model review alone is
 not sufficient evidence for payment-bearing submission unless the task profile
 explicitly permits it and policy requires approval.
 
-Submission records the result commitment, evidence commitment, exact Demand,
-Provider Offer, binding body, exact Provider proof, Quote, escrow, and execution
-identities, executor revision, costs accrued, and a retry-stable submission key.
-Large artifacts stay in bounded content-addressed storage rather than the
-AgentLoop transcript.
+The `RESULT_READY` record binds the result and evidence commitments, exact
+Demand, Provider Offer, binding body, Provider proof, Quote, escrow, execution,
+executor revision, costs accrued, and the canonical query-independent semantic
+release template/digest. The later `SETTLEMENT_REQUESTING` record adds the
+retry-stable release action ID and exact query-specific settlement-intent bytes,
+signature, and append-only protocol attempt identity. An ambiguous broadcast
+reuses that exact attempt. After an authenticated bounce back to `funded`,
+tooling may record a proposed new query-specific child, but any old public child
+may be replayed and accepted; all remain under the unchanged semantic action,
+and automatic policy issues no retry. Large artifacts stay in bounded content-
+addressed storage rather than the AgentLoop transcript.
 
 The existing software-work Receipt remains the objective result and release
 input. Its existing Quote commitment transitively binds the versioned paid-
@@ -963,7 +1323,7 @@ The accounting journal should record immutable entries for:
 - bid and protocol fees;
 - model/API/tool/subcontractor usage;
 - accrued local execution cost;
-- submitted receivables;
+- result-ready and settlement-pending receivables;
 - released payment, timeout refund, and write-off;
 - realized gross revenue, cost, and net income by task, skill, source, buyer,
   asset, and time window.
@@ -980,7 +1340,7 @@ Owner-facing reporting must distinguish:
 
 - offered payment;
 - expected profit;
-- submitted but unsettled revenue;
+- result-ready or settlement-pending receivables, neither yet realized;
 - finalized gross revenue;
 - realized cost;
 - realized net income;
@@ -989,7 +1349,8 @@ Owner-facing reporting must distinguish:
 ## Continuous Operation and Learning
 
 The service should run as a bounded scheduler with separate queues for
-discovery, verification, decisions, execution, submission, and reconciliation.
+discovery, verification, decisions, execution, result construction, settlement
+request/resolution, and reconciliation.
 Backpressure in a later stage must reduce earlier admission rather than create
 unbounded goroutines or records.
 
@@ -1159,7 +1520,7 @@ Emit redacted runtime events for:
 - estimate inputs and confidence classes;
 - policy decisions and approvals;
 - Offer, later bid, acceptance, private-input, execution, validation, and
-  submission transitions;
+  result/settlement-request transitions;
 - settlement reconciliation;
 - circuit breakers and pauses.
 
@@ -1185,7 +1546,31 @@ enter logs or metric labels.
   extension, its escrow code/parser identity, recoverable
   `pending_acceptance -> awaiting_funding` bound-wallet transition, and resolver,
   safe-handoff, and existing-Gate support. Keep schema-1 Quotes and escrow
-  contracts unchanged.
+  contracts unchanged. Freeze successor version dispatch so contract time
+  `now < Quote.expires_at` gates `pending_acceptance -> awaiting_funding`,
+  whereas an accepted escrow admits exact funding under contract time
+  `now <= funding_deadline` without reapplying that expiry; preserve schema 1's
+  existing dual-cutoff funding predicate and vectors. Finality observation time
+  is not a deadline input.
+- Freeze the Gate's immutable dispatch tuple from network/Quote schema/binding
+  profile to exact Quote parser, escrow StateInit/state parser and code hash,
+  claim extension, and predicate set. Bind the selected entry into the first
+  claim; unknown/mismatched versions and retry/preflight redispatch fail closed.
+- Freeze the checked paid-demand deadline ordering, exact effective-duration
+  derivation/enforcement, preflight-to-start bound and fresh preflight,
+  conservative network-time upper bound, exact nonzero acceptance-to-funding,
+  funding-to-input, input-to-admission, and release-pipeline margins with
+  complete step bounds, strict refund inequality, zero-bounce initial-wallet-
+  request proof, permissionless old-query replay/resolver rules, and exact
+  wallet/attached-value/fee assumptions. Freeze `InputAcceptanceRecordV1`, its
+  ingress-attestation key, clock evidence, journal high-water mark, and distinct
+  delivery/admission time comparisons. Bind execution-signer custody to the
+  Gate claim, immutable runner completion record, and conservative clock
+  interval so a Provider cannot backdate `completed_at`. The Gate must reject a
+  funded claim or delayed first start that lacks worst-case completion and
+  release-priority slack. Freeze finalized-anchor max-age/max-head-lag and
+  current-quorum/cross-shard proof rules plus the bounded start-ticket
+  linearization point; monotonic old checkpoints are insufficient.
 - Define the Provider-private admission interface, stable semantic action ID,
   custody-side writer lease/fencing and aggregate-exposure ledger, owner-
   private process lock, takeover/recovery rules, and runtime capacity-lease
@@ -1201,6 +1586,10 @@ authority for every transition are unambiguous.
 
 - Implement `pkg/earning` types, store, source bounds, verifier, matcher,
   economics engine, and read-only policy decisions.
+- Build the Opportunity and role-aware Commerce Job projections from durable
+  records plus verified resolvers; expose bounded `Get`, `List`, `Subscribe`,
+  and `AvailableActions` read APIs and derivative events with stable machine
+  reasons; keep `RequestAction` disabled in this phase.
 - Add `EARNING.json` support without executing tasks.
 - Add CLI inspection, explanations, accounting estimates, and runtime events.
 - Start with static fixtures and one released read-only TOS task source only as
@@ -1244,19 +1633,32 @@ completed D2 gate permits this phase to begin.
 - Reserve capacity before Offer signing. Permissionless deployment of the one
   deterministic versioned escrow creates only `pending_acceptance`; convert the
   reservation to an accepted obligation only after the finalized `accept`
-  transition is authenticated to the bound buyer wallet. Keep execution blocked through
-  `QUOTE_ACCEPTED_AWAITING_FUNDING` and `FUNDING_RESOLVING` until the later exact
-  stablecoin notification is finalized as `FUNDED`.
-- Add Offer-bound buyer-push proof-of-possession private-input delivery.
+  transition is authenticated to the bound buyer wallet. Keep execution blocked
+  through `QUOTE_ACCEPTED_AWAITING_FUNDING` and `FUNDING_RESOLVING` until the
+  later exact stablecoin notification is finalized as `FUNDED`. Dispatch the
+  successor funding predicate explicitly: reject funding before acceptance;
+  after acceptance, accept a handling transaction whose contract time is
+  `now <= funding_deadline` without reapplying the acceptance-only
+  `accept_by == Quote.expires_at` cutoff. Treat later finality observation as
+  timely when that transaction time was timely. Preserve schema 1's frozen
+  requirement that funding satisfy both of its cutoffs.
+- Add Offer-bound buyer-push proof-of-possession private-input delivery with
+  atomic signed `InputAcceptanceRecordV1`, conservative accept-time evidence,
+  rollback-resistant ingress journal high-water marks, and a Gate check that
+  distinguishes the delivery deadline from the later admission deadline.
 - Dispatch one deterministic, allowlisted skill to a pinned executor.
-- Validate, submit, and reconcile testnet settlement.
+- Enforce the complete pre-input margins, exact effective duration, preflight-
+  to-start delay, admission deadline, strict release slack, and fresh same-claim
+  preflight before first process start.
+- Validate, construct the Receipt, request the one release action, and reconcile
+  testnet settlement.
 - Add global pause, per-source/skill pause, exposure limits, and loss circuit
   breakers.
 
 Exit criterion: repeated crash, ambiguity, race, and replay tests prove one
 exact Offer derives one deterministic versioned Quote/escrow and at-most-once
-input admission, execution, submission, and settlement behavior for each funded
-testnet task; two separately accepted and funded Offers remain independent;
+input admission, execution, result construction, and settlement behavior for
+each funded testnet task; two separately accepted and funded Offers remain independent;
 same-host duplicate writers and stale or partitioned cross-host generations
 cannot sign, and takeover preserves every unresolved Offer.
 
@@ -1307,8 +1709,29 @@ quality without automatically expanding authority or weakening policy.
   custody effect; exact one-shot proposal binding, revalidation, and no
   persistent authority-mode change;
 - legal and illegal state transitions;
+- deterministic Opportunity and Commerce Job projection rebuild from durable
+  records/resolvers under duplicate, reordered, and resumed derivative events;
+  distinct Offer/purchase keys; local-ID non-authority; role derived from bound
+  artifacts and authenticated principal; read-only `view_as`; role-gated
+  `AvailableActions`; expected-revision conflicts; cursor expiry; and stable
+  reason-code/disposition mapping;
+- checked deadline ordering, `wall_clock_millis` round-up, exact-boundary
+  rejection, one-second-insufficient slack, exact committed pre-input and
+  release-pipeline margin use, delayed acceptance/funding finality, queue/
+  restart delay while `prepared`, fresh same-claim preflight, atomic
+  `prepared -> starting`, crash ambiguity after that boundary, escrow/Agent/
+  Capability/code-identity change or finalized-checkpoint regression/fork
+  between admission and preflight, adverse change finalized at/before versus
+  only after the final preflight checkpoint, start inside versus after checked
+  `start_not_after`, monotonic-but-stale anchor, excessive anchor age/head lag,
+  current-quorum disagreement/unavailability, missing cross-shard proof, schema
+  version dispatch, clock-skew/finality assumptions, and overflow;
 - stable semantic action IDs across retry attempts and writer generations,
-  conflicting canonical bytes, and canonical encodings;
+  exclusion of projection revision, cursor/sequence, session, wall time, and
+  per-attempt query IDs; exact ambiguous-attempt reuse; authenticated-bounce old
+  and proposed-new query children under the same semantic action; permissionless
+  old-query replay and old/new race attribution; conflicting canonical bytes;
+  and canonical encodings;
 - canonical `PaidDemandQuoteBindingBodyV1` and exact Provider-proof digests;
   deterministic one-Offer/one-versioned-Quote/escrow derivation; exact replay;
   rejection of buyer-controlled nonce, wallet, or proof-wrapper variance; and
@@ -1330,6 +1753,9 @@ quality without automatically expanding authority or weakening policy.
 
 - prompt injection in every market-controlled field and attachment;
 - forged gateway ranking, identity, escrow, reputation, and settlement state;
+- optional-market login/order/balance/accepted/funded/completed/support fields,
+  application removal, and correlated replicas attempting to substitute TOS
+  authority or D2 independence;
 - unseen withdrawal, mutation fork, stale source, and mutation replacement
   after scoring, without any false global-head claim;
 - missing, expired, revoked, unresolvable, or substituted mutation-bound
@@ -1337,7 +1763,18 @@ quality without automatically expanding authority or weakening policy.
   profile rebound into an old Offer; and handoff/upload-key rotation after
   Provider signing;
 - fee, deadline, asset-decimal, and price manipulation;
+- late execution admission, zero or substituted release-pipeline margin,
+  understated manifest/validation/wallet-request duration, inability to prove
+  zero-bounce, permissionless old-query release/refund replay, concurrent old/
+  new attempt race, repeated replay/fee consumption, incorrect semantic-action
+  grouping, clock rollback, and a Receipt timestamp that attempts to extend the
+  escrow refund boundary;
+- arbitrary/backdated completion time and an execution signer detached from the
+  Gate claim, runner journal, or conservative clock interval;
 - duplicate, reordered, delayed, and conflicting events;
+- forged derivative events, global-cursor/completeness claims, redacted-event-
+  only reconstruction, caller-supplied role escalation, target-state action,
+  free-form callback, and stable-action-ID/body conflict;
 - RPC disagreement, reorganization, ambiguous broadcast, and stale finality;
 - signer refusal, timeout, crash, conflicting response, alternate delegated
   key, authorization path, signature encoding, proof wrapper, and revocation
@@ -1365,8 +1802,11 @@ quality without automatically expanding authority or weakening policy.
   Quote finality and later asynchronous funding in every event order, restart
   during cancellation/funding resolution, and post-Quote Demand withdrawal;
 - private-upload bearer-only authorization, replay, concurrent overwrite,
-  challenge substitution, redirect, decompression bomb, and buyer-selected
-  egress;
+  challenge substitution, redirect, decompression bomb, buyer-selected egress,
+  input acceptance exactly at and after its deadline, on-time input admitted
+  later through the admission deadline, wrong ingress-attestation key, backdated
+  clock evidence, journal/checkpoint rollback, missing immutable bytes, and
+  substitution of Gate arrival/admission time for input acceptance time;
 - executor escape attempts, decompression bombs, oversized output, and egress
   attempts;
 - model attempts to select tools, credentials, endpoints, or policy;
@@ -1400,9 +1840,13 @@ quality without automatically expanding authority or weakening policy.
 - resolve ambiguous Offer send, escrow predeployment, buyer-wallet `accept`,
   asynchronous funding, input upload, Receipt, and settlement outcomes before
   any retry or reservation release;
-- resolve execution, submission, Receipt, and settlement ambiguity only within
+- resolve execution, result, Receipt, and settlement-request ambiguity only within
   the recorded origin phase and action ID, without regression to an earlier
-  execution-eligible state or duplicate execution/submission;
+  execution-eligible state or duplicate execution/release action;
+- rebuild the same Opportunity and Commerce Job projections from durable
+  records/resolvers and resume the participant-local derivative event cursor
+  after restart, proving advisory actions cannot bypass role, policy, custody,
+  funding, Gate, or finality checks;
 - exact one-shot owner Offer authorization, rejection, pause, revocation, and
   recovery, proving recommend mode itself never signs;
 - reconcile one pinned finalized checkpoint through dry-run and authorized
@@ -1463,23 +1907,41 @@ testnet:
    Permissionless deployment creates only `pending_acceptance`; the finalized
    `accept` transition authenticated to the bound buyer wallet is commercial
    acceptance, and the later exact stablecoin notification is separately
-   finalized as funding. Wrong-sender deployment or `accept` cannot consume or
-   block the buyer's canonical transition. One Offer cannot derive a second
-   Quote or escrow, while separately accepted and funded Offers remain
-   independently valid. Schema-1 Quotes and escrow contracts remain unchanged.
+   finalized as funding only when its handling transaction's contract time
+   satisfies successor `now <= funding_deadline`, without reapplying the
+   acceptance-only Quote expiry. Funding before acceptance or with a contract
+   time after that deadline is rejected; later finality observation does not
+   alter the result. Wrong-sender deployment or `accept` cannot consume or block
+   the buyer's canonical transition. One Offer cannot derive a second Quote or
+   escrow, while separately accepted and funded Offers remain independently
+   valid. Schema-1 Quotes and escrow contracts, including their dual-cutoff
+   funding predicate, remain unchanged.
 10. The buyer pushes the committed private input through the Offer-bound proof-
    of-possession ingress, which admits one immutable body without task-selected
    network targets or credentials, accepts only the upload key/profile fixed by
-   that active Mutation, and opens only after `FUNDED` finality.
+   that active Mutation, and opens only after `FUNDED` finality. Its one atomic
+   signed `InputAcceptanceRecordV1` binds the bytes, challenge, ingress-
+   attestation key, conservative accept-time evidence, and monotonic journal
+   state; it proves `input_accept_time_upper_bound <= input_delivery_deadline`
+   and may be presented later through the separate admission deadline.
 11. The existing Native Execution Gate retains its existing
    `(Quote commitment, escrow address)` claim slot, reconstructs the versioned
    binding and exact Provider proof, checks the bound-wallet `accept` transition,
-   finalized funding, escrow, and exact input, and admits one pinned, sandboxed
-   adapter at most once without creating a second Gate or execution slot.
+   finalized funding, escrow, and exact input, and requires every paid-demand
+   adapter to carry the exact `input_acceptance_record_digest` in addition to
+   the frozen five schema-1 claim fields. It admits one pinned, sandboxed
+   adapter at most once without creating a second Gate or execution slot. It
+   rejects unless the exact committed pre-input margins are complete and the
+   admission deadline/start delay, effective runtime, and release-pipeline
+   margin fit strictly before the refund boundary, and it repeats the same-
+   claim preflight before first process start using a current-quorum finality
+   anchor inside frozen age/head-lag bounds and a bounded authority ticket
+   through `start_not_after`.
 12. Output passes the skill's declared deterministic validation and evidence
-   checks; the result is submitted once against the exact Demand, Offer, Quote,
-   escrow, and execution identities; and the existing Receipt remains the
-   objective release/refund input.
+   checks; one `RESULT_READY` record and one stable settlement action are bound
+   to the exact Demand, Offer, Quote, escrow, and execution identities; the
+   existing Receipt remains the objective release/refund input; and only
+   finalized `release_pending` projects as `SETTLEMENT_PENDING`.
 13. Finalized settlement credits the exact provider wallet and reconciles with
     the append-only local accounting journal before revenue is realized.
 14. Concurrent acceptance, restart, writer takeover, replay, ambiguity,
@@ -1489,7 +1951,10 @@ testnet:
     unresolved exposure, run a truly read-only reconciliation, apply an
     authorized stable reconciliation plan, authorize exactly one proposal
     without widening `recommend`, pause or drain the system, revoke delegation,
-    restart safely, and recover without hidden authority.
+    restart safely, and recover without hidden authority. SDK consumers can
+    rebuild the same bounded Opportunity and role-aware Commerce Job projections
+    from durable records/resolvers, resume their local derivative event cursor,
+    and receive only stable, policy-compatible actions and machine reasons.
 
 Until these criteria are met, OpenFox should describe autonomous earning as a
 target architecture rather than a deployed capability.

@@ -61,21 +61,46 @@ this specification.
 ## Escrow
 
 Escrow creation references the Accepted Quote commitment and locks no more than
-its maximum price in the selected asset. State transitions are contract-defined
-and idempotent. Gateway accounting is a projection of finalized escrow and
+its maximum price in the selected asset. State transitions are contract-
+defined. Exact replay cannot create another wallet request while escrow is
+pending or terminal. After an authenticated bounce restores `funded`, frozen
+schema 1 may accept an old public request again because it retains no consumed-
+query history; resolver-level idempotency groups that transition under the same
+semantic action. Gateway accounting is a projection of finalized escrow and
 settlement transactions.
 
-At minimum, the lifecycle distinguishes funded, accepted for execution,
-release pending, refund pending, and the chain-derived economic outcomes
-released or refunded. Mutually exclusive pending states prevent a second
-economic transfer request. The finalized resolver derives the terminal outcome
-from the exact stablecoin wallet transaction chain; a gateway callback or the
-standard wallet's unbound `excesses` message is not settlement authority.
+The first escrow contract distinguishes `awaiting_funding`, `funded`,
+`release_pending`, and `refund_pending`, plus the chain-derived economic
+outcomes released or refunded. `accepted_for_execution`, `result_ready`,
+and any future `evaluating` label are Gate or SDK projections, not V1 escrow
+states. Mutually exclusive pending states prevent a second economic transfer
+request. The finalized resolver derives the terminal outcome from the exact
+stablecoin wallet transaction chain; a gateway callback or the standard
+wallet's unbound `excesses` message is not settlement authority.
 
-For the first release, escrow supports fixed-price release and timeout refund.
-A disputed state is added only if a concrete software-work failure cannot be
-decided from committed objective evidence. It must not require a
-general-purpose arbitration platform.
+For the first release, escrow supports fixed-price release before the committed
+refund boundary and timeout refund at or after it. The Execution Gate must
+reserve the schema-dispatched worst case. For the paid-demand successor, that
+means the exact committed preflight-to-start delay, effective runtime derived
+no greater than the manifest limit, and a nonzero margin for bounded objective
+validation; evidence/report and Receipt construction; query-specific signing;
+initial release inclusion; and definitive downstream acceptance of that initial
+wallet request without bounce, strictly before the refund boundary, with a
+fresh same-claim preflight before first process start. Frozen escrow V1 forgets
+the pending query on bounce, so a public old release/refund attempt may be
+permissionlessly replayed from `funded`; distinct queries do not create a finite
+contract-enforced retry bound. Automatic execution therefore requires a proven
+zero-bounce initial release path, otherwise it remains disabled. A separately
+versioned settlement-critical successor may preserve the valid pre-cutoff
+semantic release action or consumed-query generation across bounces; that is
+outside current V1. Merely starting before the refund time is unsafe. A
+downstream accepted transfer may finalize provider
+credit later because `release_pending` already blocks refund; the bound
+establishes release priority, not terminal payout latency. A binding Evaluator,
+disputed state, fee split, or challenge flow
+requires a separately versioned Quote and escrow profile with an explicit
+timeout fallback. It cannot be added by a general-purpose arbitration callback
+or by reinterpreting V1 state.
 
 For the first lifecycle, escrow deployment embeds the complete Accepted Quote
 cell in StateInit. Its finalized deployment transaction is the canonical Quote
@@ -117,10 +142,15 @@ evidence remain off-chain and are checked by digest.
 
 Settlement verifies Accepted Quote, escrow, receipt signature, signer
 authorization, immutable version, amount bounds, and prior state. It then
-records one replay-blocking transfer intent and asks the bound stablecoin wallet
-to perform the economic transition. The terminal projection requires finalized
-wallet transaction evidence. Replaying or conflicting receipt or amount data
-cannot create another transfer request.
+records one pending transfer intent and asks the bound stablecoin wallet to
+perform the economic transition. While escrow remains pending or reaches a
+terminal outcome, replay or conflicting receipt/amount data cannot create
+another transfer request. Frozen schema 1 clears the pending query if that
+wallet request authentically bounces, however, so an old public release/refund
+attempt may recreate the same semantic action from restored `funded` and race a
+new operator attempt. The resolver groups those attempts; automatic policy does
+not retry after bounce and requires a proven zero-bounce initial release path.
+The terminal projection requires finalized wallet transaction evidence.
 
 ## Disputes
 
@@ -149,4 +179,4 @@ show stablecoin service payment and native TOS fees separately.
 5. One escrow creates at most one terminal economic transfer, and its outcome
    is derived from finalized wallet transaction evidence.
 6. Gateway balances and histories are rebuildable from finalized chain state.
-7. Ambiguous submission is resolved from chain state before retry.
+7. An ambiguous settlement request is resolved from chain state before retry.

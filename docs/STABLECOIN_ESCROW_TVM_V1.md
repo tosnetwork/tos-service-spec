@@ -97,28 +97,55 @@ V1 reserves these typed states:
 3 refund_pending
 ```
 
-The two pending states are mutually exclusive and permanently prevent another
-economic transfer request. TOS-network stablecoin transfer is asynchronous, so
+V1 has no on-chain `accepted_for_execution`, `submitted`, `evaluating`, or
+`approved` state. Execution admission and result submission may appear in
+rebuildable provider or SDK projections, but they cannot delay, redirect, or
+replace these contract transitions.
+
+The two pending states are mutually exclusive and block another economic
+transfer request while pending. Only an authenticated bounce of the initial
+request from the escrow's own wallet restores `funded`; otherwise the pending
+state cannot be retried or replaced. TOS-network stablecoin transfer is
+asynchronous, so
 the escrow may not claim a terminal outcome merely because it sent a transfer
 request to its token wallet. Standard-wallet `excesses` messages commit only to
 a caller-selected query ID; they do not bind the transferred asset amount or
 source and are therefore non-authoritative. The contract deliberately ignores
 them. A resolver derives the terminal `released` or `refunded` outcome only
 from the finalized escrow-to-wallet transaction chain and exact wallet balance
-changes. An initial request bounce from the escrow's own wallet restores
-`funded`; an ambiguous downstream outcome remains pending without authorizing
-a second economic transfer.
+changes. An ambiguous downstream outcome remains pending without authorizing a
+second economic transfer.
+
+The bounce transition clears `pending_query_id`; schema 1 retains no consumed-
+query set or settlement generation. Therefore, after a bounce restores
+`funded`, any previously public valid release or refund message may be
+permissionlessly replayed with its old query ID and may win the next valid
+transition. Distinct query IDs are client hygiene, not contract replay
+protection. The resolver groups every such old/new attempt under its unchanged
+semantic release or refund action and follows finalized transaction order and
+the currently stored pending query. A consumed-query or generation guarantee
+requires a successor escrow schema and code hash.
 
 Funding must arrive through the standard stablecoin transfer-notification path
 from the exactly derived escrow wallet. The notification must identify the
-exact buyer and asset, arrive before the funding deadline, and equal the Quote
-amount. Direct native TOS value is not funding.
+exact buyer and asset, be accepted in a handling transaction whose contract
+time is at or before both the funding deadline and the schema-1 Quote
+`expires_at` cutoff, and equal the Quote amount. Equivalently, schema 1 requires
+`now <= min(funding_deadline, Quote.expires_at)`. The transaction may be
+observed as finalized later; resolver observation time is not the deadline
+input. Direct native TOS value is not funding. A successor schema may version-
+dispatch a different funding predicate, but it does not reinterpret this
+frozen schema-1 rule.
 
 Release requires the canonical Receipt, an Ed25519 signature from the committed
 execution signer over a domain-separated settlement intent, an exact-price
 charge equal to the funded balance and Quote amount, and the exact prior state.
-Refund is available only under the committed objective rule, including the
-timeout path after `refund_available_at`.
+The contract accepts that release only from `funded` while its current time is
+strictly less than `refund_available_at`. Refund is accepted only from `funded`
+at or after `refund_available_at` under the committed objective timeout rule.
+Finalized transaction ordering resolves a boundary race: the first valid
+transition changes the state, and the mutually exclusive pending state rejects
+the other action. An off-chain submission timestamp cannot reserve priority.
 
 The V1 contract attaches exactly `0.1 TOS` to the outbound request sent to its
 stablecoin wallet. This fixed upper bound covers the wallet-to-wallet transfer
@@ -133,6 +160,18 @@ successful work releases the complete fixed price to the provider; timeout
 refunds the complete fixed price to the buyer. Supporting a partial charge plus
 change would require two asynchronous transfers that cannot be made atomic by
 the standard wallet-owner callback. That feature is outside V1.
+
+Contract and resolver vectors must cover an authenticated bounce followed by
+old-query permissionless replay, old/new attempt races for both release and
+refund, repeated bounce/replay fee consumption, and exact attribution of the
+one accepted pending transition. No vector may assume the new query wins.
+
+An ACP-style `submitted -> evaluator decision -> settlement` lifecycle, an
+Evaluator fee split, or any extension allowed to decide release/refund requires
+a separately versioned escrow schema, code hash, resolver, deadline/fallback
+analysis, and conformance suite. It cannot be introduced as an application
+callback or by reinterpreting these four states. Any successor must preserve a
+bounded refund escape path that an unavailable Evaluator cannot block.
 
 ## Resolver requirements
 
@@ -166,6 +205,7 @@ Before the first public-testnet deployment, independent implementations must
 reproduce the StateInit and address from a frozen vector. The TVM emulator
 matrix must cover correct funding, fixed-price release, full refund,
 replay, wrong wallet/master/buyer, overfunding, early and late messages,
-forged Receipt/signature, conflicting settlement actions, bounced transfers,
+forged Receipt/signature, release immediately before and at the refund boundary,
+conflicting release/refund ordering, bounced transfers,
 forged `excesses`, crash/restart resolution, malformed cells, and
 native-TOS/stablecoin accounting separation.

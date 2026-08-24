@@ -76,15 +76,46 @@ fails closed.
 
 ## At-most-once execution
 
-Before the container can start, the provider atomically creates and durably
-syncs a journal record keyed by execution ID. The record binds a fingerprint of
-the manifest, Quote, execution, input, and source commitments.
+Immediately before any first transition that can start the container, the
+runner verifies a fresh start-preflight receipt from the shared Native Execution
+Gate over the same `(quote_commitment, escrow_address)` claim and execution
+fingerprint. For a paid-demand successor, that receipt binds the exact effective
+duration, preflight-to-start bound, execution/refund deadlines, release-pipeline
+margin, complete fresh escrow/Quote/Registry/Agent/Capability authority
+snapshot, coherent fresh monotonic checkpoints, exact code identities,
+current-quorum finalized anchor identity/time/sequence and proof digest,
+max-age/head-lag results, and conservative time upper bound. The Gate must have
+repeated the complete authority check through that anchor, not only funding
+resolution or a monotonic old checkpoint. This final fresh preflight is the linearization point
+for one bounded start-authority ticket. A change finalized at or before its
+checkpoint rejects; one finalized only afterward is non-retroactive until the
+checked `start_not_after`. Original Gate admission freezes no authority. The
+runner rejects an expired ticket; the caller must refresh the same claim and
+repeat all checks, never create a second admission. A durable Gate claim without
+a fresh first-start receipt is insufficient.
 
-- A different fingerprint under the same execution ID is a conflict.
+Before the container can start, the provider atomically creates and durably
+syncs a journal record keyed by execution ID. Its stable execution fingerprint
+binds the manifest, Quote, execution, input, source, Gate claim, and committed
+timing policy, but not the timestamp-specific start-preflight receipt. The
+journal separately retains every preflight attempt and its resolution.
+
+The local start states are `prepared`, `starting`, `running`, and `completed`.
+Only `prepared`, which is durably proven to have caused no runtime side effect,
+may replace an expired preflight with a fresh receipt for the same Gate claim
+and stable execution fingerprint. Immediately before calling any runtime API
+that could start work, one atomic durable transition binds the current
+preflight and changes `prepared -> starting`. The actual process start must
+remain inside that preflight's bound.
+
+- A different stable execution fingerprint under the same execution ID is a
+  conflict.
 - A completed matching record returns the immutable prior outcome without
   executing again.
-- A matching `running` record after a crash is ambiguous and is never retried
-  automatically.
+- A matching `starting` or `running` record after a crash is ambiguous and is
+  never retried automatically.
+- Refresh never changes the execution ID, Gate claim, stable fingerprint, or
+  prior append-only preflight history.
 
 This intentionally chooses safety over automatic availability. The runtime
 interface cannot prove that a connection failure happened before execution, so
@@ -136,6 +167,16 @@ Unit and race tests must cover exact manifest-to-runtime mapping, traversal and
 link rejection, read-only source mounting, network isolation configuration,
 output and storage bounds, tamper detection, idempotent object insertion,
 completed replay, conflicting execution identity, and crash/restart ambiguity.
+A deadline matrix must additionally cover a stale/mismatched start-preflight,
+queue delay within and beyond the committed bound, crash before first process
+start while still `prepared`, atomic `prepared -> starting` binding, same-claim
+preflight refresh, escrow/Agent/Capability/code-identity change and checkpoint
+regression/fork between admission and each preflight, an adverse change
+finalized at/before versus only after the final checkpoint, start inside versus
+after `start_not_after`, stale/excess-age/head-lag anchor, endpoint disagreement,
+missing cross-shard proof, crash in `starting`, and refusal to turn refresh into
+a second execution identity or to replace a preflight after a possible runtime
+side effect.
 A production provider additionally requires the existing live containerd
 conformance suite against the exact pinned toolchain image. Unit tests alone do
 not attest host or runtime isolation.

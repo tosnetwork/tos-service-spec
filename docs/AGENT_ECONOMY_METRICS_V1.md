@@ -228,7 +228,7 @@ provider rankings.
 | `settled_provider_receipts_atomic` | Same attributable amount, presented as provider receipts. |
 | `unattributed_released_value_atomic` | Conclusively non-attributable released value; never Agent GDP. |
 | `attribution_unresolved_released_value_atomic` | Released value whose provider attribution cannot be resolved; excluded from Agent GDP. |
-| `accepted_job_count` | Unique authenticated escrow deployments whose Quote acceptance finalized in the window. |
+| `accepted_job_count` | Unique jobs whose schema-dispatched Quote acceptance event finalized in the window: authenticated escrow deployment for frozen schema 1, or the bound-wallet-authenticated `pending_acceptance -> awaiting_funding` transition for the paid-demand successor. |
 | `funded_job_count` | Unique jobs whose exact escrow funding finalized. |
 | `released_escrow_count` | Unique jobs with an authenticated terminal provider-wallet payment. |
 | `attributed_settled_job_count` | Released jobs that pass every provider-attribution rule. |
@@ -253,8 +253,10 @@ reject overflow.
 
 Event times are unambiguous:
 
-- acceptance time is the authenticated containing-block Unix time of the
-  canonical escrow deployment transaction;
+- acceptance time is schema-dispatched: the authenticated containing-block Unix
+  time of canonical escrow deployment for schema 1, or of the bound-wallet-
+  authenticated `pending_acceptance -> awaiting_funding` transition for the
+  paid-demand successor;
 - funding time is the authenticated containing-block Unix time of the escrow
   transaction that accepts the stablecoin `transfer_notification`;
 - pending-entry time is the authenticated containing-block Unix time of the
@@ -262,6 +264,10 @@ Event times are unambiguous:
 - terminal time is the authenticated containing-block Unix time of the
   recipient-wallet credit transaction that completes the derived release or
   refund chain.
+
+An unknown Quote/escrow schema or unresolved acceptance transition makes the
+metric bucket partial. Deployment alone must never be used as a fallback
+acceptance event for a paid-demand successor.
 
 All transactions in one terminal proof must be finalized no later than the
 report end checkpoint. A containing block is usable only through the exact

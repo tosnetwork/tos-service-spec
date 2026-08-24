@@ -18,6 +18,26 @@ This document defines how Agents may publish, propagate, find, verify, and
 respond to paid work opportunities without a central marketplace or a
 canonical market database.
 
+It deliberately separates three layers:
+
+1. a permissionless discovery data plane for public Capability references and
+   signed Paid Demand artifacts, plus direct negotiation transport for Provider
+   Offers;
+2. a common commerce protocol that binds one exact agreement into the existing
+   Quote, escrow, execution, Receipt, and settlement rail; and
+3. optional market applications that may search, rank, curate, match, support,
+   or charge for their own services without becoming protocol authority.
+
+A centralized market application may be useful and commercially successful.
+It is one optional producer, carrier, index, or consumer of the same portable
+artifacts, not a required intermediary. No accepted TOS-native purchase may
+depend on that application or its database for verification, execution, or
+settlement recovery. The D2 promotion run separately proves that public paid-
+demand discovery survives loss of one qualifying source and its complete
+database. A private or application-exclusive lead may disappear before
+acceptance; that does not make the application protocol authority or satisfy
+D2.
+
 The product may render this system as a job board, opportunity feed, or work
 square. Those are user experiences, not protocol authority. This document's
 protocol boundary is a bounded signed paid-demand envelope distributed through
@@ -187,9 +207,51 @@ TOS finality begins to control one accepted Offer when the deterministic
 versioned escrow finalizes its buyer-wallet-authenticated
 `pending_acceptance -> awaiting_funding` transition. Deployment alone creates
 no acceptance. Execution remains blocked until the later asynchronous
-stablecoin funding notification is also finalized and exact. Bulk task inputs,
-outputs, conversation history, and evidence remain off-chain and are bound by
-immutable digests where required.
+stablecoin funding notification is also finalized and exact. For this
+successor, `accept_by == Quote.expires_at` gates only the accept transition;
+after acceptance, funding is eligible when the handling transaction's contract
+time satisfies `now <= funding_deadline`, without reapplying that acceptance
+cutoff. Later finality observation does not change either transaction-time
+predicate. Schema 1 retains its frozen funding rule. Bulk task inputs, outputs,
+conversation history, and evidence remain off-chain and are bound by immutable
+digests where required.
+
+### 3.4 Two discovery lanes, one commercial rail
+
+The ecosystem supports two complementary acquisition lanes:
+
+```text
+Capability-first / offering-first
+  Provider publishes a versioned Capability
+  -> buyer discovers it and constructs the existing Quote
+  -> existing Accepted Quote and escrow rail
+
+Demand-first
+  buyer publishes a Paid Demand Mutation
+  -> Provider returns one signed Provider Offer
+  -> paid-demand Quote-binding profile
+  -> the same existing Accepted Quote and escrow rail
+```
+
+The first lane is the protocol equivalent of a machine-readable service
+catalog. The second is the distributed bulletin path defined by this document.
+A user interface may call a Capability projection an `offering`, but V1 does
+not introduce a second mutable Offering identity or a platform-owned catalog.
+Both lanes converge before funding and reuse one commercial state machine.
+They retain their schema-appropriate acceptance rule: the frozen schema-1
+Capability-first escrow uses finalized deployment as acceptance, while the
+paid-demand successor uses `pending_acceptance` followed by the bound buyer
+wallet's versioned `accept` operation. Neither schema is reinterpreted as the
+other. The paid-demand D2 source-independence gate applies to commercial action
+originating from the new public Demand-first path and does not redefine the
+existing Capability-first rail's own acceptance status.
+
+Centralized markets may provide managed matching between the lanes, sponsored
+placement, recommendations, customer support, KYC, moderation, or manual
+dispute services. Permissionless carriers may merely relay exact signed bytes.
+Neither class can create acceptance, funding, execution authority, a Receipt,
+or settlement. A market's private matching result is not a globally selected
+Provider.
 
 ## 4. Terms
 
@@ -257,6 +319,18 @@ freshness, ranking, and moderation are non-canonical.
 An application view over locally observed demand, offers, and finalized
 commerce. It is not a protocol object.
 
+### Market Application
+
+An optional commercial application, including a UUMIT-like managed labor
+market, that may publish, ingest, search, rank, curate, match, or support
+portable commerce artifacts. Its accounts, listings, rankings, chat history,
+separate service fees, moderation, and customer-service decisions are
+application state. A fee deducted from, split from, or routed through TOS
+settlement requires an exact pre-acceptance term in a supported Quote/escrow
+profile; objective V1 has no platform-fee recipient or payout split. The
+application is never a required source of Agent identity, acceptance,
+execution, or settlement truth.
+
 ## 5. Authority matrix
 
 | Fact | Authority | Non-authoritative observations |
@@ -273,6 +347,7 @@ commerce. It is not a protocol object.
 | execution admission | shared Native Execution Gate over finalized state | task status, delivery ACK, model output |
 | successful result commitment | canonical signed Receipt under accepted terms | process exit, chat message, artifact URL |
 | provider revenue | finalized exact provider-wallet credit | quoted price, release intent, dashboard balance |
+| search rank, recommendation, curation, KYC, support, or sponsored placement | market-application policy only | any claim that the application decision is protocol acceptance, execution, or settlement authority |
 
 ## 6. Candidate paid-demand object model
 
@@ -323,8 +398,10 @@ Each demand carries bounded structured requirements:
 - input media type and immutable input commitment;
 - required output media types;
 - objective validator and evidence-profile identifiers;
-- execution resource class and maximum completion duration;
-- delivery deadline and any earlier offer deadline;
+- execution resource class and maximum completion duration in positive integer
+  seconds;
+- input-delivery, execution-admission, and execution-completion constraints plus
+  any earlier Offer-acceptance deadline;
 - accepted transport profiles; and
 - objective dispute-policy/refund profile compatible with the selected
   software-work profile; V1 permits only successful release or full timeout
@@ -357,7 +434,9 @@ Each V1 demand carries:
 - exact TOS-network asset identity;
 - fixed provider-service payment in unsigned atomic units;
 - explicit statement of who pays network and protocol fees;
-- offer deadline, execution deadline, and refund deadline constraints;
+- Offer-acceptance, funding, input-delivery, execution-admission,
+  execution-completion, and refund deadline constraints, plus the minimum
+  nonzero release-pipeline margin required by the selected profile;
 - an optional buyer-local desired Provider count that is negotiation metadata,
   not global acceptance authority;
 - Accepted Quote and escrow profile requirements;
@@ -522,11 +601,12 @@ authorization is revoked, transferred, expired, or otherwise no longer valid.
 The paid-demand binding resolver and Native Execution Gate prove from finalized
 history that the signed Demand and Provider Offer authorizations were valid at
 the Quote-acceptance checkpoint and that the buyer-wallet-authenticated escrow
-`accept` transition finalized no later than the Offer deadline. Revocation
-finalized before that transition makes the attempt invalid; revocation finalized
-only after acceptance does not rewrite the finalized Quote. If the resolver
-cannot establish a strict finalized order, including a same-checkpoint or cross-
-shard race, it fails closed. Existing Capability, execution-signer, escrow, and
+`accept` transition's containing transaction had contract time strictly before
+the Offer deadline; finality may be observed later. Revocation finalized before
+that transition makes the attempt invalid; revocation finalized only after
+acceptance does not rewrite the finalized Quote. If the resolver cannot
+establish a strict finalized order, including a same-checkpoint or cross-shard
+race, it fails closed. Existing Capability, execution-signer, escrow, and
 settlement revocation rules continue to apply.
 
 ## 7. Withdrawal, supersession, and expiry
@@ -892,6 +972,9 @@ Acceptance evidence records, for every claimed independent source:
 Sources that share one private database, process, host, operator key, upstream
 carrier, or single failure domain are labelled correlated. They may improve
 read throughput but do not satisfy independent-source acceptance.
+Multiple regions, API hostnames, mirrors, or replicas of one managed market
+still count as one source when they depend on that market's account system,
+private order database, or administrative availability.
 
 At least one acceptance run stops one source and its complete database while a
 separately operated source continues reference resolution and discovery. The
@@ -931,6 +1014,14 @@ the Paid Demand. They are not required to be broadcast to the public channel.
 This limits strategy leakage, front-running, spam amplification, and permanent
 publication of losing offers.
 
+An Offer remains portable and independently verifiable by its intended parties.
+Signing authorizes its exact bytes to be embedded in the deterministic Quote/
+StateInit for this purchase, so a selected or predeployed Offer may become
+publicly observable even before buyer acceptance. It does not authorize the
+Offer to be indexed or republished as general discovery inventory. Losing
+Offers remain direct/private unless separately disclosed. A publication profile
+plus explicit buyer and Provider authorization is required for public inventory.
+
 The response transport may be direct Messenger or a bounded Gateway relay. It
 must preserve the exact signed offer bytes and must not become selection
 authority.
@@ -948,7 +1039,10 @@ A Provider Offer binds at least:
 - manifest, task, input/source, execution, validator, evidence, private-input
   delivery, objective release, and timeout-refund commitments;
 - fixed exact-asset price;
-- delivery interval and offer expiry;
+- exact acceptance, funding, input-delivery, execution-admission,
+  execution-completion, and refund deadlines plus the nonzero
+  release-pipeline margin satisfying the checked ordering in the paid-demand
+  Quote-binding profile;
 - `max_acceptances = 1`;
 - one complete deterministic canonical `PaidDemandQuoteBindingBodyV1` with no buyer-
   substitutable commercial or execution field;
@@ -965,8 +1059,12 @@ expiry, capacity reservation, and mandate version before signing.
 Before reservation and signing, the Provider re-verifies the exact mutation-
 bound `BuyerHandoffProfile` and requires the Offer-acceptance deadline to be no
 later than the signed Demand authorization validity bound and every private-
-input deadline to fit the committed upload-key validity. No buyer-side field
-remains selectable after Provider authorization.
+input deadline to fit the committed upload-key validity. It also proves that
+the complete acceptance-to-funding, funding-to-input, and input-to-admission
+pipeline margins fit their next deadlines, and that the bound maximum
+completion duration, preflight-to-start delay, and release-pipeline margin fit
+before the refund boundary. No buyer-side field remains selectable after
+Provider authorization.
 
 Exact replay of one offer identity is idempotent. Conflicting reuse is rejected
 and retained as evidence. An ambiguous send is resolved through a defined
@@ -988,11 +1086,13 @@ The buyer verifies the Provider proof over the exact binding body. The committed
 buyer settlement wallet then authorizes the versioned escrow `accept` operation.
 The contract transitions once from `pending_acceptance` to `awaiting_funding`,
 creating the Accepted Quote, and the resolver later verifies its exact
-stablecoin funding. Permissionless predeployment cannot consume or block that
-transition. The signed Demand context, Provider Offer proof, and wallet
-acceptance must be reconstructible from finalized accepted state. A Selection
-Notice, Demand signature, or deployment alone proves neither Quote acceptance
-nor funding.
+stablecoin funding. The successor rejects funding before that transition; once
+accepted, the funding handler applies contract-time
+`now <= funding_deadline` without reapplying the acceptance-only Quote expiry.
+Permissionless predeployment cannot consume or block that transition. The
+signed Demand context, Provider Offer proof, and wallet acceptance must be
+reconstructible from finalized accepted state. A Selection Notice, Demand
+signature, or deployment alone proves neither Quote acceptance nor funding.
 
 The buyer Agent, Demand proof context, settlement wallet, and upload proof-of-
 possession key must exactly equal the values already committed by the selected
@@ -1130,7 +1230,8 @@ spending authority. Buying and earning remain separate control planes.
 
 ## 13. Work-square application boundary
 
-FreeCity, OpenFox UI, or another application may render:
+FreeCity, OpenFox UI, a UUMIT-like managed market, or another application may
+render:
 
 - recently observed work;
 - tasks matching the local Agent's approved skills;
@@ -1139,7 +1240,7 @@ FreeCity, OpenFox UI, or another application may render:
 - expiring, withdrawn, or superseded listings;
 - offers awaiting a buyer response;
 - accepted and executing work;
-- submitted receivables; and
+- result-ready and settlement-pending receivables; and
 - independently finalized earnings.
 
 Every item displays its evidence class, such as:
@@ -1169,6 +1270,24 @@ FreeCity-local accounts, social relationships, follows, recommendations,
 moderation, and ranking may improve discovery. They do not authorize a market
 artifact or alter TOS commercial truth. An OpenFox instance can use the
 protocol without FreeCity.
+
+The same rule applies to every market application. It may operate a centralized
+database, choose whom it serves, charge an explicitly disclosed application
+fee, provide fiat or compliance workflows, or offer human support. Those are
+valuable application services. A private lead may exist only inside that
+application before acceptance and may disappear with it. Once an application
+participates in a TOS-native accepted purchase, however, the exact signed
+artifacts and finalized transaction must remain independently verifiable and
+recoverable without its account or order database. A separate membership or
+matching fee remains under the application's disclosed terms. Any deduction,
+split, or routing through TOS settlement requires a supported pre-acceptance
+Quote/escrow profile; objective V1 pays the fixed full amount only to the
+Provider, and a database-side fee schedule cannot mutate that obligation.
+
+No TOS-operated canonical Work Square is required for protocol conformance.
+Reference applications and Gateways exist to demonstrate interoperability and
+may compete with independent markets, but they have no privileged namespace,
+ranking, listing, or matching authority.
 
 ## 14. Privacy and information disclosure
 
@@ -1376,7 +1495,9 @@ Errors distinguish at least:
   Provider Offer authorization, Provider-wide writer fencing and
   aggregate admission, deterministic per-Offer existing Quote/escrow handoff,
   existing Execution Gate integration, per-Offer single-acceptance, and proof-
-  of-possession private-input profiles have frozen vectors and implementations;
+  of-possession private-input profiles—including `InputAcceptanceRecordV1` and
+  complete acceptance-to-funding, funding-to-input, and input-to-admission
+  margins—have frozen vectors and implementations;
 - add direct signed single-acceptance Provider Offers and mutation resolution;
 - add proposal-only OpenFox recommend mode plus a distinct exact one-shot owner-
   authorization path that does not widen the persistent mode;
@@ -1387,7 +1508,8 @@ Errors distinguish at least:
   buyer wallet's `accept` transition from the later exact asynchronous
   stablecoin funding state;
 - push private input only through the Offer-bound proof-of-possession Provider
-  ingress;
+  ingress, whose atomic signed acceptance record proves the separate delivery
+  deadline before later Gate admission;
 - execute through the Native Execution Gate; and
 - reconcile one finalized provider-wallet credit.
 
@@ -1483,13 +1605,35 @@ their transaction semantics.
 - consumption of the separate binding profile's frozen private-input, Gate,
   Receipt, and recovery vectors without redefining them here.
 
+### Optional market applications
+
+- application `accepted`, `funded`, `completed`, balance, order, ranking, and
+  support fields cannot advance a protocol evidence class;
+- application login cannot substitute for a finalized TOS Agent, wallet,
+  delegation, or Provider proof;
+- regions, mirrors, or API endpoints sharing one application account/order
+  database count as one D2 source;
+- application removal cannot create a Demand terminal withdrawal, cancellation,
+  refund, or settlement outcome;
+- an application-local lead remains display-only until converted into and
+  independently verified as the exact artifact required by its origin lane; and
+- after acceptance, deletion of the application database does not prevent
+  Quote, escrow, Receipt, or settlement reconstruction.
+
 ### End-to-end
 
-- buyer publishes through one independently operated carrier;
-- at least two independently operated indexes or replicas observe the same
-  exact envelope with distinct provenance;
-- provider discovers through another source and sends one signed offer;
-- original carrier becomes unavailable before acceptance;
+- buyer publishes into at least two source paths satisfying every Section 9.1
+  operator, implementation, upstream, store, network-path, and failure-domain
+  independence requirement;
+- the two independent sources expose the same exact envelope with distinct
+  provenance and explicitly incomplete coverage;
+- provider discovers through one of those qualified paths and sends one signed
+  offer;
+- one qualified source path and its complete persistent store become unavailable
+  before acceptance while the other still resolves and exposes the exact bytes;
+- a paired lane test keeps Capability-first schema-1 deployment acceptance and
+  Demand-first successor bound-wallet acceptance distinct, without
+  reinterpretation;
 - the Provider authorizes one canonical `PaidDemandQuoteBindingBodyV1`, including
   its exact portable authority-reference digest;
 - a second Provider supplies a competing independently valid Offer, and the
@@ -1544,6 +1688,11 @@ V1 is accepted only when:
 V1 does not create:
 
 - one global job board or globally complete order book;
+- one required market-operated Agent directory, hosted service catalog, market
+  operator, or hosted search/chat/event backend; finalized Native Registry state
+  for Agent and Capability accounts remains canonical protocol authority;
+- a protocol-mandated market commission, platform treasury, sponsored rank, or
+  centrally selected Provider;
 - a mutable location-dependent job identity or authoritative source-hint
   registry;
 - consensus over search results, ranking, moderation, availability, or profit;

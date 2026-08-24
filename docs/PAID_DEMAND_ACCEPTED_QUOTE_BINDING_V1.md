@@ -13,8 +13,11 @@ replace that rail.
 blocked until the discovery profile's D2 two-source, source-plus-database
 shutdown, and independent-verifier gate passes, and until the binding extension,
 Provider Offer authorization, per-Offer determinism, Provider-private admission,
-and proof-of-possession input-delivery requirements in this document are frozen,
-implemented, and independently verified.
+proof-of-possession input delivery, exact duration/preflight/release-pipeline
+profile, zero-bounce initial wallet-request proof, replay-aware semantic action
+identity/recovery, fresh same-claim first-start preflight, and successor escrow
+execution-deadline check in this document are frozen, implemented, and
+independently verified.
 
 ## 1. Purpose
 
@@ -111,8 +114,8 @@ when it was predeployed, the identical operation remains valid. The finalized
 acceptance event. The operation names the expected Quote commitment and Offer
 digest; an exact replay after acceptance is an idempotent observation of the
 same state, while a different sender or commitment cannot mutate it. Ambiguous
-submission resolves the exact escrow state before retry. Funding remains a
-later transition.
+`accept` broadcast resolves the exact escrow state before retry. Funding remains
+a later transition.
 
 ## 3. Authority boundary
 
@@ -132,6 +135,115 @@ acceptance or payment. A Selection Notice is not selection authority. A buyer-
 side preference to choose only one Provider is not a global chain invariant.
 Provider-private capacity state is not public acceptance authority. Finalized
 TOS state remains the only commercial authority after handoff.
+
+### 3.1 Job-scoped truth and the ACP alignment boundary
+
+The useful ACP principle is a small, deterministic Job lifecycle with explicit
+roles and a distinct result-submission boundary. It applies to one exact
+purchase after its parties and terms are bound. Pre-acceptance Demand and Offer
+rows are participant-local Opportunity projections, not Jobs, and this model
+does not imply one source of truth for the global opportunity feed.
+This deliberately differs from ERC-8183, where a Job exists in `Open` before
+funding and may initially have no Provider. TOS terminalizes the immutable-key
+Opportunity row with an `accepted_job_ref` and creates a separate Commerce Job
+row only after a schema-valid Accepted Quote fixes the parties and terms; it
+does not rekey the Opportunity row.
+
+For TOS, the exact Accepted Quote and escrow become the job-scoped commercial
+authority only under their schema-appropriate acceptance rule. Before that
+point, carriers and market applications expose incomplete observations. After
+that point, the Quote, escrow, Gate claim, Receipt, and finalized wallet
+transactions reconstruct one purchase without the discovery source.
+
+SDKs may expose the coarse projection defined in
+[`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md):
+
+```text
+QUOTE_ACCEPTED -> UNFUNDED_EXPIRED
+QUOTE_ACCEPTED -> FUNDED -> EXECUTING -> RESULT_READY
+  -> SETTLEMENT_REQUESTING -> SETTLEMENT_PENDING -> RELEASED
+Any state from FUNDED through RESULT_READY
+  -> REFUND_RESOLVING -> REFUNDED
+SETTLEMENT_REQUESTING
+  -> REFUND_RESOLVING(only after exact release action is resolved as not
+       accepted and finalized escrow is funded at/after refund)
+SETTLEMENT_PENDING
+  -> SETTLEMENT_REQUESTING(bounce recovery before refund; operator/resolver
+       only; SAME_ACTION_ONLY; old_or_new_query_may_win)
+  | REFUND_RESOLVING(bounce recovery at/after refund after release is
+       impossible; operator/resolver only)
+REFUND_RESOLVING
+  -> REFUND_RESOLVING(bounce recovery; operator/resolver only;
+       same action; old_or_new_query_may_win)
+```
+
+That projection is a read model, not an additional ledger. Objective software-
+work V1 does not add an ACP-style on-chain `Submitted` escrow state. Its
+`RESULT_READY` projection means only that the canonical Receipt and query-
+independent semantic release template/digest have been constructed.
+`SETTLEMENT_REQUESTING` records or resolves the one idempotent semantic release
+action and its query-specific signed intent attempt. Only a finalized resolver proving
+the escrow is `release_pending` creates `SETTLEMENT_PENDING`, V1's closest
+analogue to ACP `Submitted`; the Receipt remains evidence, and only finalized
+escrow and wallet state establish release, refund, and revenue.
+
+Once a release action is recorded or broadcast, the refund clock alone cannot
+authorize a different economic action. The exact release must first resolve as
+not accepted, including an authenticated initial bounce where applicable, and
+finalized escrow must again be `funded` at or after the refund boundary.
+Otherwise recovery remains
+`AMBIGUOUS(origin=SETTLEMENT_REQUESTING, SAME_ACTION_ONLY)`. An authenticated
+initial bounce of a refund request leaves only that same semantic refund action.
+Honest tooling may propose a new lower-level query/attempt, but escrow V1 does
+not retain consumed queries: any public old attempt may win a permissionless
+replay race. The resolver groups all old/new queries under the semantic action;
+automatic paid-demand policy does not retry after bounce.
+
+### 3.2 Evaluation and safe extension boundary
+
+V1 has no general Evaluator role. It accepts only the frozen objective
+validator/evidence and successful-release/full-timeout-refund profile. A
+subjective model, buyer acknowledgement, market badge, or third-party opinion
+cannot call release merely by being labelled an evaluator.
+
+A future Evaluator-enabled successor must freeze an `EvaluationPolicyProfile`
+before either party accepts. That profile must bind at least:
+
+- Evaluator Agent, Capability/version/manifest, signer or immutable verifier
+  contract code hash, and whether the buyer is also the Evaluator;
+- objective versus subjective decision class, evidence schema, evidence digest
+  and availability/retention commitment;
+- decision encoding and reason commitment, evaluation deadline, and complete
+  fee tuple: exact asset, source, recipient, deduction time, maximum amount, and
+  funds-conservation rule;
+- one static Evaluator key, a precommitted M-of-N quorum, or an objective
+  precommitted rotation set/schedule; conflict rules; and no post-acceptance
+  administrator replacement;
+- timeout fallback that anyone may trigger when the Evaluator is unavailable,
+  challenge/appeal policy, and the exact terminal transitions each one-shot
+  decision may authorize; and
+- domain-separated bindings to network, Quote, escrow, task, result, profile
+  version, and replay identity.
+
+An Evaluator is an explicitly trusted oracle for any fact not proven by the
+committed verifier. A signature proves who decided, not that a subjective
+deliverable is correct. High-value subjective profiles therefore require a
+separately reviewed quorum, stake or other accountability model, challenge
+path, and liveness analysis. They are outside V1.
+
+ACP-style extensibility is adopted only as frozen typed profiles, not as an
+arbitrary application callback. Any future commercial extension must be
+versioned, reconstructible, and committed in the Accepted Quote. Where it
+invokes executable contract logic, it must bind the exact contract address,
+immutable code hash, configuration, proxy/upgrade status, and every settlement-
+critical external dependency before acceptance. Its permissions, states,
+assets, fee flows and conservation, external calls, gas/resource bounds, and
+failure behavior must be enumerated. It must be one-shot where it decides a
+terminal outcome, must not be upgradeable for an accepted purchase, reach
+escrow funds outside its declared transition, change economic terms, or block
+the permissionless bounded timeout-refund escape path. A platform administrator
+or central Hook allowlist is not transaction authority; participants may apply
+stricter local trust policies without changing protocol validity.
 
 ## 4. Typed handoff objects
 
@@ -176,18 +288,231 @@ It includes at least:
 - task profile/version and operation descriptor;
 - exact input digest, source digest, media type, and byte/file bounds;
 - required output, validator, and evidence profiles;
-- Provider-selected transport, private-input ingress, and execution-signer
-  commitments;
+- Provider-selected transport, private-input ingress, ingress-attestation key,
+  and execution-signer commitments;
 - exact TOS-network asset and Provider price in atomic units;
-- Offer acceptance and any additional input/work delivery deadlines; and
+- exact positive `effective_max_completion_duration_seconds` and
+  `max_preflight_to_start_delay_seconds`, plus exact positive
+  `acceptance_to_funding_margin_seconds` and
+  `funding_to_input_margin_seconds`, and
+  `input_to_admission_margin_seconds`;
+- `accept_by`, `funding_deadline`, `input_delivery_deadline`,
+  `execution_admission_deadline`, `execution_deadline`,
+  `refund_available_at`, and a strictly positive
+  `release_pipeline_margin_seconds`; and
 - equality commitments to every existing typed Quote/escrow preimage:
-  network, Provider Agent, Capability/version/manifest, transport, asset/amount,
-  buyer/Provider wallets, funding/refund deadlines, execution signer, and
-  objective release/timeout-refund profile encoded by the existing dispute-
-  policy cell; V1 has no dispute state.
+  network, Provider Agent, Capability/version/manifest, transport, Quote
+  `expires_at`, asset/amount, buyer/Provider wallets, funding/refund deadlines,
+  execution signer, and objective release/timeout-refund profile encoded by the
+  existing dispute-policy cell; V1 has no dispute state.
 
 Repeated values are equality constraints, never second authorities. Existing
 Quote and escrow fields remain authoritative for their native meanings.
+`accept_by` must equal the successor Quote's `expires_at` and the deterministic
+escrow's acceptance cutoff; the bound-wallet `accept` operation rejects at or
+after that time. For this successor version, `expires_at` is an acceptance-only
+cutoff: it is checked only while the escrow is `pending_acceptance`. After the
+authenticated `accept` transition finalizes `awaiting_funding`, the exact
+stablecoin funding notification may be accepted in a transaction whose escrow
+contract time satisfies `now <= funding_deadline`, even when that contract time
+is later than `expires_at`; the transaction may be observed as finalized after
+the cutoff. Resolver observation or finality wall time MUST NOT substitute for
+the contract time, and the funding handler MUST NOT reapply the acceptance-only
+cutoff. Funding while `pending_acceptance` remains invalid. Schema 1 retains its
+frozen rule that an `awaiting_funding` notification satisfy both its
+`funding_deadline` and Quote `expires_at` cutoffs.
+
+#### Deadline safety and settlement slack
+
+The body must leave enough time to start and finish the bounded execution and
+have its release request accepted before the escrow refund boundary. Let:
+
+```text
+manifest_limit_seconds = ceil(manifest.limits.wall_clock_millis / 1000)
+
+effective_max_completion_duration_seconds
+  = min(exact signed Mutation maximum_completion_duration_seconds,
+        manifest_limit_seconds)
+```
+
+That exact Mutation was active when the Offer and acceptance were authorized;
+after acceptance, a later Mutation, withdrawal, or observed feed head has no
+authority to tighten or relax this purchase. The execution profile freezes the
+derivation and rounding. The body commits the exact result; the Gate recomputes
+it from the transitively committed Mutation and manifest,
+and the runner enforces it even when it is narrower than the manifest ceiling.
+`max_preflight_to_start_delay_seconds` is the exact committed maximum queue/
+handoff delay between one fresh Gate start preflight and first process start. It
+is a receipt-validity bound, not an admission-to-start SLA: repeated refresh
+while durably `prepared` may make total time since the original Gate claim
+larger, while the fresh execution/refund deadline checks remain authoritative.
+Checked arithmetic must prove a feasible schedule at admission:
+
+```text
+acceptance_to_funding_margin_seconds > 0
+funding_to_input_margin_seconds > 0
+input_to_admission_margin_seconds > 0
+accept_by + acceptance_to_funding_margin_seconds
+  <= funding_deadline
+funding_deadline + funding_to_input_margin_seconds
+  <= input_delivery_deadline
+input_delivery_deadline + input_to_admission_margin_seconds
+  <= execution_admission_deadline
+execution_admission_deadline + max_preflight_to_start_delay_seconds
+  + effective_max_completion_duration_seconds
+  <= execution_deadline
+execution_deadline + release_pipeline_margin_seconds
+  < refund_available_at
+```
+
+The released profile freezes both pre-input pipeline bounds and their exact
+step compositions. `acceptance_to_funding_margin_seconds` covers the worst-case
+interval from a latest-valid `accept` handling transaction through finalized
+acceptance observation, conforming buyer funding construction/broadcast, and
+acceptance of the exact stablecoin notification by escrow.
+`funding_to_input_margin_seconds` covers the worst-case interval from a latest-
+valid funding handling transaction through finalized funded observation,
+challenge issuance, bounded buyer upload, verification, and atomic durable
+input acceptance. `input_to_admission_margin_seconds` covers record
+verification, immutable-byte reopening/digest confirmation, current finalized
+authority resolution, and atomic Gate claim publication after a latest-valid
+input acceptance. A buyer that does not begin a conforming next step promptly
+may still miss its deadline; these margins prove that the protocol path is
+feasible, not that an inactive buyer is extended. If any complete bound is
+absent, automatic paid-demand action remains blocked.
+
+`input_delivery_deadline` applies to the ingress operation that durably accepts
+and binds the exact bytes, not to a later Gate admission. Before consuming the
+challenge, ingress obtains an `input_accept_time_upper_bound` under the same
+Quote-bound conservative clock profile used by the Gate. One atomic durable
+operation must consume the challenge, bind the immutable bytes, and commit a
+signed `InputAcceptanceRecordV1` proving:
+
+```text
+input_accept_time_upper_bound <= input_delivery_deadline
+```
+
+The record binds the Quote, escrow, execution and upload action IDs, input and
+source digests, challenge, exact ingress-attestation key/profile, clock-profile
+digest and evidence/checkpoint, monotonic ingress journal sequence/head, and
+accepted byte bounds. The challenge expiry cannot exceed
+`input_delivery_deadline`. Equality is valid. Backdated clock evidence, a
+checkpoint or journal high-water-mark regression, missing durable bytes, or an
+unavailable bound is invalid and blocks admission. Once that record is valid,
+the Gate may admit the same input after `input_delivery_deadline` provided its
+separate `admission_time_upper_bound <= execution_admission_deadline` and slack
+checks pass; it MUST NOT compare the later admission time to the delivery
+deadline.
+
+`release_pipeline_margin_seconds` covers the bounded post-run pipeline:
+objective validation; evidence/report and Receipt construction; query-specific
+intent signing; release broadcast/inclusion; and definitive downstream
+acceptance of the initial escrow-to-wallet request without bounce. It is not
+task-runner work time.
+
+The released paid-demand execution/settlement profile freezes the worst-case
+elapsed seconds and upper-bound composition for each step, network-time and
+finality assumptions, plus its permitted margin range and conformance vectors;
+the body commits the exact total, which may be larger than the profile minimum.
+The Gate must use that committed value, never silently replace it with the
+minimum.
+
+Frozen escrow V1 clears `pending_query_id` when a wallet request bounces and
+retains no consumed-query history or settlement generation. Any public old
+release/refund message can then be permissionlessly replayed from `funded` and
+race an honest new-query attempt. Thus no finite nonzero-bounce attempt budget
+is a V1 contract invariant, and distinct query IDs do not repair the bound.
+Before automatic paid-demand execution, the released profile must prove and
+test a zero-bounce initial release path under the exact wallet code/state,
+attached value, balance, fee, and network assumptions. If it cannot, the margin
+proves only initial request inclusion, not payout priority, and automatic
+paid-demand execution remains blocked. Any unexpected authenticated bounce
+enters resolver/operator recovery; it never authorizes a blind automatic retry.
+The same replay fact applies to timeout-refund attempts, although every valid
+refund still pays only the committed buyer.
+
+A priority-preserving escrow that records the valid pre-cutoff semantic release
+action or a monotonic settlement generation/consumed-query set across bounces is
+a different settlement-critical Quote/escrow successor. It requires its own
+code identity, states, resolver, recovery analysis, vectors, and review; it
+cannot be used to satisfy this V1 profile. Even with a proven zero-bounce path,
+this profile does not promise the time of final provider-wallet credit: once a
+downstream transfer is accepted and escrow remains `release_pending`, refund
+stays blocked while the resolver waits for the terminal transaction chain.
+
+The Native Execution Gate rechecks both the committed admission deadline and
+the remaining worst-case slack when it admits a claim:
+
+```text
+admission_time_upper_bound
+  + max_preflight_to_start_delay_seconds
+  + effective_max_completion_duration_seconds
+  + release_pipeline_margin_seconds
+  < refund_available_at
+```
+
+Overflow, an unresolved profile, a missing/invalid/late
+`InputAcceptanceRecordV1`, an expired admission deadline, or insufficient slack
+rejects admission. A valid on-time input record remains valid for a later Gate
+claim through the admission deadline. Immediately before first process start,
+the runner must obtain a fresh preflight over the same Gate claim and verify:
+
+```text
+start_preflight_time_upper_bound
+  + max_preflight_to_start_delay_seconds
+  + effective_max_completion_duration_seconds
+  <= execution_deadline
+
+start_preflight_time_upper_bound
+  + max_preflight_to_start_delay_seconds
+  + effective_max_completion_duration_seconds
+  + release_pipeline_margin_seconds
+  < refund_available_at
+```
+
+That preflight and every safe refresh repeat the Gate's complete finalized
+authority verification at coherent fresh monotonic checkpoints. Each attempt
+first quorum-resolves a finalized network anchor within the released maximum
+age and head-lag bounds, proves every escrow/Registry/Agent/Capability
+observation at or through that anchor with required cross-shard order, and binds
+the anchor/proof digest into the ticket. A monotonic old checkpoint is not
+freshness. The checks include exact escrow and Registry code identities, funded
+escrow state and Accepted Quote, provider Agent non-tombstone state, and
+Capability ownership, exact unrevoked version, and manifest digest. It is not a
+funding-only check. A post-admission escrow
+transition, Agent tombstone, Capability transfer/revocation, code substitution,
+checkpoint regression, fork conflict, or other authority divergence already
+finalized in the preflight checkpoint set prevents first start. The fresh
+preflight receipt is the linearization point for a bounded start-authority
+ticket. It binds the checked `start_not_after` derived by adding the committed
+preflight-to-start delay to the conservative preflight time upper bound, and
+freezes exactly that verified snapshot only through that instant. A change
+finalized after the checkpoint does not retroactively invalidate a start inside
+the ticket; the original Gate claim freezes no authority.
+
+The runner atomically binds the ticket on `prepared -> starting` and makes its
+first runtime call only while the conservative process-start time upper bound
+is no later than `start_not_after`. Otherwise the same claim is preflighted
+again only while the runner is durably `prepared` and has proven that no runtime
+side effect was possible; the refresh sees newer finalized revocation state.
+After the atomic `prepared -> starting` transition, uncertainty is execution
+ambiguity and is never refreshed or re-admitted as another execution.
+
+A successful Receipt for this successor must record
+`completed_at <= execution_deadline`. The versioned successor escrow must decode
+the bound deadline and reject release when that condition fails; relying on the
+Provider's Receipt builder alone would not enforce a buyer term. The escrow must
+also accept the release request while `now < refund_available_at`; otherwise
+only the committed timeout-refund path remains. Schema-1 escrow semantics remain
+unchanged. This is deterministic liveness budgeting, not an Evaluator or
+discretionary quality decision.
+
+The contract comparison enforces the signed timestamp field, not wall-clock
+truth by itself. The successor profile therefore treats the Quote-bound
+execution signer as an explicit time attestor and binds its custody policy to
+the same Gate claim, runner journal, conservative clock interval, and immutable
+completion record. A signer that can authorize an arbitrary or backdated
+`completed_at` is ineligible for automatic paid-demand execution.
 
 The body fixes semantic fields but does not alone derive the final Quote or
 StateInit. The complete canonical Provider Offer, including its one exact proof,
@@ -221,6 +546,13 @@ PaidDemandQuoteBindingV1
 `PaidDemandQuoteBindingV1` is the same exact-byte object carried by the
 versioned existing Accepted Quote. It is a Quote extension payload, not separate
 accepted state.
+
+By signing, the Provider authorizes those exact bytes to be embedded and
+disclosed in this deterministic Quote/StateInit. Because anyone holding the
+Offer can predeploy `pending_acceptance`, selected or predeployed Offers may
+become publicly observable before the buyer acts. This is not authorization to
+index the Offer as general public discovery inventory; an unused losing Offer
+remains direct/private unless separately disclosed under a publication profile.
 
 The exact Provider proof bytes are part of one exact Provider Offer identity.
 A different valid signature over the same body is a different, conflicting
@@ -261,7 +593,9 @@ The only valid fixed-price handoff sequence is:
    acceptance.
 10. The buyer funds that exact escrow through the existing asynchronous
    stablecoin transfer-notification path. A broadcast acknowledgement is not
-   funding; the Provider waits for exact finalized funded state.
+   funding; the Provider waits for exact finalized funded state. The profile's
+   acceptance-to-funding margin makes this ordered path feasible after a
+   latest-valid acceptance.
 11. Finalized resolution returns the existing Accepted Quote and escrow state
     plus the complete typed binding and Provider proof without a market
     database.
@@ -287,9 +621,10 @@ Retries reuse the same canonical bytes and stable semantic action identity.
 | Provider Offer identity and consent | Provider Offer | body Offer identity plus Provider proof | resolver, Gate, private admission journal |
 | Provider Capability/version/manifest | Demand predicate and Offer | body plus existing Quote/Registry fields | existing finalized Registry checks |
 | task profile and operation | Demand and Offer | body | spec-defined executor mapping |
-| input/source commitments and bounds | Demand and Offer | body | ingress and Gate |
+| input/source commitments and bounds | Demand and Offer | body plus later signed provider-private `InputAcceptanceRecordV1` execution evidence | ingress and Gate; the record is not commercial authority |
+| pre-input/execution/release-pipeline slack | Demand maximum, bound manifest, and Offer | exact pre-input margins, derived duration, preflight delay, and release-pipeline margin in body | resolver, ingress, Gate admission, fresh runner-start preflight, runner, and successor escrow deadline check |
 | output, validator, evidence | Demand and Offer | body transitively committed by the existing Quote | validator; existing Receipt remains bound through Quote commitment and its existing fields |
-| transport, ingress, execution signer | Offer | body | transport, ingress, Gate |
+| transport, ingress/attestation, execution signer | Offer | body | transport, ingress, Gate |
 | asset, amount, deadlines, objective release/timeout refund | Demand and Offer | body plus existing Quote/escrow fields | custody, escrow, Gate, settlement |
 | Provider consent and buyer commercial acceptance | Provider Offer plus signed Demand context | exact Provider proof plus finalized buyer-wallet-authenticated `accept` transition | resolver and Gate |
 | Selection Notice | negotiation only | none | correlation only |
@@ -303,22 +638,28 @@ Existing rail fields are reused as follows:
 | network | Accepted Quote `network_domain` |
 | Provider Agent, Capability/version, manifest | Quote identity/version cells |
 | endpoint, transport security, request bound | typed Native transport binding |
+| Offer acceptance cutoff | Quote version `expires_at`, equal to `accept_by` |
+| funding cutoff after accepted transition | successor `funding_deadline`; the acceptance-only `expires_at` is not reapplied |
 | asset and fixed Offer price | Quote economic asset and maximum amount; the fixed-price escrow requires that exact amount |
 | buyer/Provider wallets and funding/refund deadlines | typed existing escrow terms |
 | execution signer | Quote authority and escrow execution authorization |
 | objective release/refund mode | existing Native objective dispute-policy cell |
 
-The only paid-demand acceptance-state delta is the successor's
-`pending_acceptance -> awaiting_funding` transition. After that transition, the
-existing asynchronous funding, execution admission, objective release, timeout
-refund, and settlement semantics continue unchanged. Schema 1 is not used or
-reinterpreted for this paid-demand path.
+The paid-demand successor reuses the existing custody rail and its funded,
+release-pending, refund-pending, release, refund, and finalized-wallet recovery
+semantics. It adds version-dispatched predicates: the
+`pending_acceptance -> awaiting_funding` buyer-wallet transition; exact paid-
+demand funding rule that rejects funding before acceptance and, after
+acceptance, checks `funding_deadline` without reapplying `expires_at`; exact
+paid-demand body/proof, deadline, duration, start-preflight, and slack checks at
+the Gate; and the successor release-time execution-deadline predicate. Schema 1
+remains byte-for-byte valid under its frozen acceptance, funding, and release
+rules and is not reinterpreted for this paid-demand path.
 
-The extension adds only buyer Agent-to-wallet context, Demand/Mutation/Offer
+The extension binds buyer Agent-to-wallet context, Demand/Mutation/Offer
 provenance, Provider Offer proof, task/input/source and
 output/validator/evidence commitments required before first claim, upload
-proof-of-possession/ingress context, and any non-escrow deadline not already
-bound by the existing rail.
+proof-of-possession/ingress context, and the versioned deadline/slack fields.
 
 No field may have two inconsistent authoritative sources. Every execution input
 must trace to the finalized existing Quote and its reconstructible extension.
@@ -339,10 +680,15 @@ one on-chain operation can select a demand-wide winner and fund the escrow
 atomically.
 
 After Quote acceptance but before funding, the Provider retains the obligation
-and capacity through the funding deadline. If finalized resolution then proves
-that no exact funding notification can still become authoritative, OpenFox may
-project `unfunded_expired` and release capacity. No money was accepted, so this
-is not a refund or a new escrow terminal state, and execution never begins.
+and capacity through the funding deadline. The successor accepts the exact
+notification in any handling transaction whose contract time satisfies
+`now <= funding_deadline`, including after the acceptance-only `expires_at`;
+later finality observation does not make a timely transaction late. It rejects
+funding before the accepted transition and any handling transaction after the
+funding deadline. If finalized resolution then proves that no exact funding
+notification can still become authoritative, OpenFox may project
+`unfunded_expired` and release capacity. No money was accepted, so this is not a
+refund or a new escrow terminal state, and execution never begins.
 
 `max_acceptances = 1` means one exact Provider Offer can derive only one Quote
 commitment and one escrow address. Exact retry resolves that same identity; a
@@ -423,14 +769,16 @@ Demand text, buyer messages, model output, or task content.
 
 The active Demand Mutation binds the buyer upload proof-of-possession key and
 profile in `BuyerHandoffProfile`. The Offer and body copy that exact value;
-the finalized extension also binds the Provider-selected ingress and TLS
-identity. The upload key has no wallet, Agent-control, or market-signing power.
+the finalized extension also binds the Provider-selected ingress, TLS identity,
+ingress-attestation key, and conservative clock profile. The upload key and
+ingress-attestation key have no wallet, Agent-control, or market-signing power.
 
 Only after the existing Quote and escrow are finalized and exactly funded:
 
 1. the Provider issues a short-lived single-task challenge outside model/task
    content, bound to Quote, escrow, execution ID, input/source digests, bounds,
-   expiry, stable upload action ID, and buyer upload key;
+   expiry no later than `input_delivery_deadline`, stable upload action ID, and
+   buyer upload key;
 2. the buyer signs the canonical request/body digest and pushes the committed
    bytes to the bound ingress;
 3. ingress authenticates Quote, escrow, proof of possession, Provider/TLS
@@ -439,12 +787,13 @@ Only after the existing Quote and escrow are finalized and exactly funded:
 4. ingress checks ciphertext/plaintext digest as applicable, media type,
    compressed and decompressed sizes, file count, canonical paths, and archive
    rules;
-5. one atomic durable operation consumes the challenge and binds the accepted
-   immutable bytes to the existing Gate claim fields: Quote commitment, escrow
-   address, execution ID, input digest, and source digest; and
-6. the ingress maps into an existing task-admitting transport and the shared
-   Native Execution Gate before the bounded executor. It creates no pre-Gate
-   execution slot.
+5. under the bound conservative clock profile, one atomic durable operation
+   consumes the challenge, binds the accepted immutable bytes to the existing
+   Gate claim fields, and commits the signed `InputAcceptanceRecordV1` with
+   `input_accept_time_upper_bound <= input_delivery_deadline`; and
+6. the ingress maps the immutable bytes and exact acceptance-record digest into
+   an existing task-admitting transport and the shared Native Execution Gate
+   before the bounded executor. It creates no pre-Gate execution slot.
 
 Exact retry returns the same delivery receipt. Conflicting bytes, proof,
 identity, or concurrent claimant fail without replacement. Ambiguous delivery
@@ -453,16 +802,35 @@ enter public artifacts, Opportunity Magnets, model context, Receipt, logs, or
 evidence. Redirects, arbitrary DNS, proxies, credential forwarding, buyer-
 selected egress, and pull fallback are forbidden.
 
+Ingress storage is owner-private but not an unverified timestamp oracle. The
+Gate verifies the record signature, bound clock evidence/checkpoint, monotonic
+journal high-water mark, exact immutable-byte availability and digest, and the
+deadline comparison. A storage restore or local wall-clock rollback blocks all
+affected admissions until reconciliation proves the retained record and high-
+water marks. Admission after the delivery deadline is legal only for a record
+that already proves timely atomic acceptance; a newly backdated receipt is not
+recovery.
+
 ## 10. Existing Gate, Receipt, and recovery integration
 
-The Native Execution Gate retains its existing authority, claim fields, and
-at-most-once record keyed by `(Quote commitment, escrow address)`. The versioned
-paid-demand profile adds field-by-field checks over the signed Demand Mutation,
-Provider Offer proof, authority bounds, acceptance-time revocation ordering,
-the exact buyer-wallet-authenticated escrow `accept` transition, task/input/source,
-validation/evidence, transport, signer, amount, and deadlines. The Gate may
-record execution identity on first claim; it cannot choose a missing expected
-value or create a second admission slot.
+The Native Execution Gate retains its existing authority, five schema-1 core
+claim fields, and at-most-once record keyed by `(Quote commitment, escrow
+address)`. Quote-version dispatch adds the exact
+`input_acceptance_record_digest` to the paid-demand claim and every admitting
+transport while leaving that shared slot key unchanged. Exact replay is
+idempotent; an omitted or different record digest conflicts. The versioned
+paid-demand profile also adds field-by-field checks over the signed Demand
+Mutation, Provider Offer proof, authority bounds, acceptance-time revocation
+ordering, the exact buyer-wallet-authenticated escrow `accept` transition,
+task/input/source, validation/evidence, transport, signer, amount, and
+deadlines. The Gate may record execution identity on first claim; it cannot
+choose a missing expected value or create a second admission slot. It
+additionally verifies the exact
+`InputAcceptanceRecordV1` and immutable accepted bytes: the record's conservative
+accept-time upper bound, clock evidence, ingress signature, journal high-water
+mark, and every identity/digest must match the binding and prove delivery no
+later than `input_delivery_deadline`. A later Gate claim is compared separately
+to `execution_admission_deadline`.
 
 The existing software-work Receipt remains the objective result and release
 input. Its existing Quote commitment transitively binds the versioned paid-
@@ -502,7 +870,23 @@ The extension requires frozen positive vectors and mutations for:
 - wrong Demand, Mutation, Offer, Agent, buyer wallet, `accept` sender,
   Capability, input/source, task,
   validator/evidence, transport, signer, asset/amount, or deadline;
+- invalid deadline ordering, zero/below-profile/substituted acceptance-to-
+  funding, funding-to-input, input-to-admission, or release-pipeline margin;
+  effective-duration mismatch or round-down, arithmetic overflow,
+  exact-boundary Gate rejection, insufficient remaining slack, queue/restart
+  delay while `prepared`, fresh same-claim preflight, atomic
+  `prepared -> starting`, crash ambiguity after that boundary, clock-skew
+  rejection, escrow/Agent/Capability/code or finalized-checkpoint change
+  between admission and preflight; an adverse change finalized at/before the
+  final preflight checkpoint versus only after that checkpoint; start inside
+  and after the bounded `start_not_after` ticket; monotonic-but-stale finality
+  anchor, excess anchor age/head lag, endpoint disagreement, or missing cross-
+  shard proof; late Receipt/release; and understated validation, wallet-request,
+  zero-bounce/replay-resolution, attached-value, or fee bounds; arbitrary or
+  backdated completion time and a signer detached from the Gate/runner record;
 - missing, detached, wrong-body, wrong-scope, expired, or revoked proofs;
+- later Demand successor or withdrawal, including a lower/higher duration,
+  attempting to deny or relax the exact already accepted Mutation binding;
 - alternate otherwise authorized key, threshold subset, proof path/wrapper,
   portable authority reference, or non-canonical signature;
 - buyer context or upload key differing from the active Mutation;
@@ -512,15 +896,37 @@ The extension requires frozen positive vectors and mutations for:
   variance;
 - third-party predeployment followed by successful bound-wallet acceptance;
   rejection of a wrong-sender `accept`, duplicate/conflicting `accept`, funding
-  before acceptance, and acceptance after its deadline;
+  before acceptance, and acceptance at or after its deadline; successful
+  successor funding at `accept_by + 1` after an earlier accepted transition and
+  at `funding_deadline`, plus rejection at `funding_deadline + 1`; schema-1
+  vectors continue to enforce both its Quote-expiry and funding-deadline
+  cutoffs; delayed acceptance and funding finality at every committed pre-input
+  pipeline boundary, and rejection when either complete pipeline bound is too
+  small or unavailable;
 - deterministic one-Offer/one-Quote reproduction; independent acceptance of two
   different Provider Offers; and rejection of a second Quote identity derived
   from one Offer;
 - Provider writer takeover, stale generation, aggregate exposure overflow,
   storage rollback, incomplete restore, and escaped-signature recovery;
 - private-input bearer theft, wrong proof key, concurrent overwrite, exact
-  retry, conflicting body, ambiguous acknowledgement, and status recovery;
+  retry, conflicting body, ambiguous acknowledgement, and status recovery; and
+  input acceptance exactly at `input_delivery_deadline`, rejection one second
+  after it, on-time durable input admitted later but no later than
+  `execution_admission_deadline`, including the full committed input-to-
+  admission margin; backdated or rolled-back clock/journal evidence, wrong
+  ingress-attestation key, missing accepted bytes, and use of Gate admission/
+  observation time as the input-delivery timestamp;
 - Gate field substitution and cross-transport replay; and
+- evaluator, fee, extension-profile, contract-address, or code-hash
+  substitution; fee-asset/source/recipient/conservation mismatch; administrator
+  signer replacement; mutable proxy/configuration/dependency closure; arbitrary
+  callback injection; post-acceptance upgrade; repeated decision; and any
+  extension attempt to block or redirect the committed timeout refund; and
+- authenticated release/refund bounce followed by permissionless replay of an
+  old signed/query-specific attempt, concurrent old/new query races, repeated
+  replay/fee consumption, resolver grouping under one semantic action, and
+  rejection of an automatic profile without a proven zero-bounce initial
+  release path; and
 - restart before and after reservation, Offer delivery, predeployment, the
   buyer-wallet `accept` transition, Quote finality, reservation conversion,
   input admission, Gate claim, Receipt, and settlement.
@@ -543,15 +949,30 @@ The paid-demand binding is accepted only when:
 4. one Offer cannot yield two Quotes or escrows, while separately accepted and
    funded Provider Offers remain independently valid under the existing rail;
 5. third-party predeployment cannot create acceptance or block the exact bound
-   buyer wallet from completing the one canonical `accept` transition;
+   buyer wallet from completing the one canonical `accept` transition; after
+   that transition, successor funding uses contract time
+   `now <= funding_deadline` without reapplying `expires_at`, while pre-
+   acceptance or late-contract-time funding is rejected, finality observation
+   time is ignored for the deadline, and schema-1 funding semantics remain
+   unchanged;
 6. Provider-private fencing prevents stale or partitioned writers and aggregate
    overcommitment without entering public canonical bytes;
 7. private input reaches only the bound proof-of-possession ingress after exact
-   finalized funding;
+   finalized funding, and one signed monotonic `InputAcceptanceRecordV1` proves
+   atomic durable acceptance under the bound conservative clock profile no
+   later than `input_delivery_deadline` without preventing a separately timely
+   later Gate admission;
 8. the existing Gate rejects every extension-field substitution and executes
-   each exact funded Quote at most once;
-9. the existing Receipt/release/refund and finalized provider-credit paths
-   remain authoritative; and
+   each exact funded Quote at most once, only while its committed admission
+   deadline/start delay, effective duration, and release-pipeline slack fit
+   strictly before the refund boundary; the committed acceptance-to-funding,
+   funding-to-input, and input-to-admission margins prove a complete feasible
+   pre-execution pipeline; and every first-start preflight uses a current-quorum
+   finality anchor within frozen age/head-lag bounds rather than a merely
+   monotonic old checkpoint;
+9. the successor escrow rejects release when the bound Receipt completion time
+   exceeds `execution_deadline`, while the existing Receipt/release/refund and
+   finalized provider-credit paths remain authoritative; and
 10. crash recovery at every handoff boundary creates no duplicate commercial
     action.
 
@@ -572,6 +993,10 @@ This profile does not create:
 - an application database that can declare accepted work or payment;
 - a globally authoritative market head, index, or order book;
 - a globally unique Provider winner or atomic cross-escrow selection contract;
+- a built-in subjective Evaluator, platform-selected arbiter, mandatory market
+  commission, or administrator-controlled fee schedule;
+- an arbitrary or upgradeable Hook that can alter an accepted purchase or
+  block its timeout-refund path;
 - natural-language authority for work, signatures, execution, or payment;
 - public storage of private task input or Provider-private admission state;
 - a replacement for existing Capability, custody, objective refund, or safe-
@@ -590,15 +1015,33 @@ Before implementation, the specification PR must freeze:
 3. the corresponding escrow StateInit/code identity, deterministic address
    derivation for one exact Provider Offer, initial `pending_acceptance` state,
    buyer-wallet-authenticated `accept` message and transition, wrong-sender and
-   duplicate behavior, deadline, predeployment recovery, and funding rejection
-   before acceptance;
-4. resolver, safe-handoff, and Native Execution Gate version dispatch and exact
-   field-by-field comparison rules;
+   duplicate behavior, acceptance deadline, predeployment recovery, funding
+   rejection before acceptance, and version-dispatched post-acceptance funding
+   predicate through `funding_deadline` without reapplying `expires_at`, plus
+   release-time enforcement of the bound `execution_deadline` while schema 1
+   retains its frozen dual-cutoff funding and release rules;
+4. resolver, safe-handoff, and Native Execution Gate immutable version-dispatch
+   tuple from network/Quote schema/binding profile to exact Quote parser, escrow
+   parser/code hash, Gate claim-extension parser/predicate set, and field-by-
+   field comparison rules, with no retry/preflight redispatch;
 5. historical Provider delegation proof, current eligibility, revocation/
    expiry ordering at Quote acceptance, and canonical proof representation;
 6. the buyer-push challenge, proof-of-possession, encryption, retention, status,
-   and existing Gate-claim mapping; and
-7. the Provider-private fencing/admission interface and rollback-safe recovery
+   ingress-attestation key, atomic `InputAcceptanceRecordV1`, conservative
+   clock evidence, rollback-resistant journal high-water mark, and existing
+   Gate-claim mapping;
+7. the complete deadline fields and strict checked ordering, effective-duration
+   derivation/enforcement, maximum preflight-to-start delay and fresh preflight,
+   conservative network-time upper-bound rule including the distinct input-
+   acceptance and Gate-admission comparisons, exact nonzero acceptance-to-
+   funding, funding-to-input, input-to-admission, and release-pipeline margins
+   with complete step bounds, zero-bounce initial-wallet-request proof,
+   permissionless old-query replay/resolver rule, exact wallet/attached-value/
+   fee assumptions, finalized
+   anchor max-age/max-head-lag and current-quorum/cross-shard proof rules,
+   bounded start-ticket linearization, execution-signer time-attestation custody
+   rule, and boundary vectors; and
+8. the Provider-private fencing/admission interface and rollback-safe recovery
    evidence required before custody can release a signature.
 
 None of these decisions may introduce a second settlement lifecycle or claim
