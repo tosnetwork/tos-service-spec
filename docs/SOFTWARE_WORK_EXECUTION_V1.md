@@ -10,8 +10,7 @@ endpoint, and execution signer are the committed objects. A gateway assertion
 alone is insufficient.
 
 This boundary consumes one already-verified manifest and one bound job. The
-initial public transport mapping is frozen in
-`EXTERNAL_AGENT_TASK_TRANSPORT_ADAPTER_V1.md`; it carries
+initial public transport mapping is frozen in `A2A_ADAPTER_V1.md`; it carries
 these same commitments and cannot weaken this execution boundary.
 
 ## Bound job

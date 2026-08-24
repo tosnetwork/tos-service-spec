@@ -1,4 +1,4 @@
-# External Tool Transport Adapter V1
+# MCP Software-Work Tool Adapter V1
 
 The MCP tool `tos_service_software_work` maps the official MCP Go SDK's typed
 `tools/call` boundary into the same Native software-work runner. MCP is

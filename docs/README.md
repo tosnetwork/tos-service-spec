@@ -80,9 +80,9 @@ business-category opcodes.
 
 - [Software Work Manifest V1](SOFTWARE_WORK_MANIFEST_V1.md)
 - [Software Work Execution V1](SOFTWARE_WORK_EXECUTION_V1.md)
-- [External Agent Task Transport Adapter V1](EXTERNAL_AGENT_TASK_TRANSPORT_ADAPTER_V1.md)
-- [External Tool Transport Adapter V1](EXTERNAL_TOOL_TRANSPORT_ADAPTER_V1.md)
-- [Agent-to-Agent Use Cases](AGENT_TO_AGENT_USE_CASES.md)
+- [A2A Adapter V1](A2A_ADAPTER_V1.md)
+- [MCP Adapter V1](MCP_ADAPTER_V1.md)
+- [A2A Use Cases](A2A_USE_CASES.md)
 
 Software work is the first deeply specified commerce profile, not the root
 definition of TOS.

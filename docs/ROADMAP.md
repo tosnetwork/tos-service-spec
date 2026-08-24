@@ -372,8 +372,7 @@ Deliver:
   `deployments/archive/pre-tos-service-v1/local-gate-e-live-chain-adapter-acceptance-2026-08-15.json`;
   external interoperability remains an acceptance activity, not engineering;
 - ⏸ optional x402 payment-negotiation adapter — deliberately deferred until
-  Gate F demonstrates recurring buyer demand.
-  `docs/HTTP_PAYMENT_ADAPTER_DECISION.md`
+  Gate F demonstrates recurring buyer demand. `docs/X402_ADAPTER_DECISION.md`
   forbids a parallel facilitator-owned settlement path and limits any future
   adapter to representation over the existing finalized TOS escrow lifecycle;
 - ✅ gateway-local search with chain-derived fields kept separate; and
@@ -646,7 +645,7 @@ is not implied by Gate C's initial profile.
     Engineering is complete. The remaining Gate E task is one independently
     operated provider/buyer working session using the public onboarding docs.
     The optional x402 adapter has been evaluated and
-    deferred under `docs/HTTP_PAYMENT_ADAPTER_DECISION.md` until Gate F supplies real
+    deferred under `docs/X402_ADAPTER_DECISION.md` until Gate F supplies real
     demand. In parallel, deploy and cross-check discovery
     and run the fresh provider/buyer sessions from
     `docs/GATE_E_PROVIDER_ONBOARDING.md` and
