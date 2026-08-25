@@ -1,9 +1,21 @@
 # OpenFox Autonomous Earning — Operation-Composed Implementation Plan
 
+The portable Phase 0 wire objects are collected in
+[`agent-commerce-v1.json`](../schemas/agent-commerce-v1.json), with semantic
+action and authority objects in the adjacent released schemas. Runtime code
+MUST also run the canonical codec/verifier because structural JSON validation
+cannot establish signatures, sorted-set encoding or cross-object authority.
+
+The reference first-contact path uses `intent.application`: Messenger
+authenticates its sender and preserves its canonical bytes, while OpenFox may
+promote it only against the issuer's current locally retained signed Intent.
+The application itself never creates commercial authority.
+
 ## Status
 
 - Document type: OpenFox application design and delivery plan
-- Status: proposed; implementation and acceptance pending
+- Status: reference implementation complete; local cross-repository and
+  three-node acceptance passed; production release gates remain independent
 - Target repository: `tosnetwork/openfox`
 - Root architecture:
   [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
@@ -684,9 +696,10 @@ graph revision, cycle decision, exposure change, and edge mutation are atomic.
 The durable scheduler projection is:
 
 ```text
-EngagementScheduleEntryV1 {
+EngagementScheduleEntryV2 {
   schedule_entry_id
   agreement_body_digest
+  execution_obligation_id # exact local obligation; required for dependency propagation
   execution_id
   writer_generation
   dispatch_generation
@@ -720,6 +733,11 @@ PortfolioDependencyV1 {
   reserved_loss_exposure
 }
 ```
+
+V1 entries remain readable for migration but do not contain
+`execution_obligation_id`; they are therefore held in their recorded state and
+must be reconciled rather than guessed into cross-Agreement dependency
+propagation. Every newly admitted entry is V2.
 
 For each owner Portfolio, the `blocking` cross-Agreement dependencies form one
 versioned graph that must remain acyclic, exactly as obligations must inside a
@@ -836,6 +854,9 @@ AuthorizedActionV1 {
   approval_digest?
   expected_prior_state
   expires_at
+  authority_id
+  authority_public_key
+  authorization_proof
 }
 
 ActionResolutionV1 {
@@ -855,6 +876,14 @@ effect, delivery, disclosure, upload/deletion, credential issuance, Gift,
 transfer, escrow, billing, settlement, reservation release, and applied
 reconciliation each use an appropriate registered `action_kind`.
 Typed wrappers may add fields but must embed the exact common envelope.
+
+`authorization_proof` is an Ed25519 signature from the owner Action Authority
+over the complete canonical envelope with that proof field empty, domain
+separated by `tos.authorized-action-proof.v1`. The signer and
+`authority_public_key` must be the same currently authorized authority/key that
+issued the referenced Writer Fence. A valid fence alone never permits its
+holder to manufacture another action within the fence scope. Every sink
+verifies both proofs and resolves the exact authority key independently.
 
 `stable_action_id` for every kind is derived under the frozen
 `SemanticActionIdentityV1` registry described in §4.7, so no caller, model, or
@@ -1257,6 +1286,16 @@ The coordinator records unresolved semantic questions. It does not infer exact
 asset, amount, chain, destination, scope, delivery, or release terms when those
 matter to an action.
 
+`INTENT/APPLICATION` V2 may carry a complete generic
+`proposed_agreement_body`. This remains non-authorizing negotiation input, but
+allows one path to represent REQUEST, OFFER, BUY, SELL, EXCHANGE, COLLABORATE,
+multi-party and mixed-settlement work. Before forwarding it as
+`AGREEMENT/PROPOSE`, deterministic issuer code checks the exact Intent subject,
+time/value bounds, participant graph, mandatory predicates, non-circular target
+projections and mutually offered installed Adapters. It sends the resulting
+body to every participant rather than only the original applicant. V1 remains
+the bounded compact demand application.
+
 ### 9.4 Agreement promotion
 
 When both sides appear ready, OpenFox constructs an exact Proposal from the
@@ -1415,6 +1454,18 @@ External adapters must declare:
 - what OpenFox cannot independently prove.
 
 An unsupported external mode remains conversation-only or approval-required.
+
+The first released Adapter is `tos.payment.external-attested.v1`. It submits an
+already-authorized canonical `AgreementPaymentRequestV2` over mutually
+authenticated TLS and accepts only a signed `ExternalPaymentAttestationBodyV1`
+from the owner-pinned `(attestor_id, adapter_uri)` key. The attestation binds
+the exact request digest, stable action ID, transfer/finality references,
+resolution time and expiry. The same verifier runs on synchronous responses
+and `ResolveAction` recovery; an HTTP success, unsigned JSON, different request
+digest, changed destination, or unpinned attestor cannot close an obligation.
+V2 freezes the owner-pinned external-system and Adapter-profile identities and
+derives its stable action from `settlement.external`; it cannot reuse the
+`payment.direct` action domain.
 
 ### 11.5 Milestones, invoices, and periodic settlement
 

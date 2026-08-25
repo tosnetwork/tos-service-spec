@@ -1,7 +1,8 @@
 # Agent Intent Exchange V1
 
-**Status:** incubation design; wire schema, implementation, and external
-acceptance pending
+**Status:** implementation-complete release candidate; frozen reference schema,
+production codec, independent reference verifier, and local conformance are
+available; external production acceptance remains pending
 
 **Root architecture:**
 [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
@@ -922,9 +923,34 @@ validity, Agreement, or settlement authority.
 
 ### 9.1 First contact
 
-OpenFox sends an authenticated message referencing the exact publication object
-ID and operation digest. The message may introduce the Agent, describe relevant
-capabilities, ask questions, make a non-binding proposal, or decline.
+OpenFox sends a typed, authenticated `INTENT/APPLICATION` carrying the exact
+signed Intent digest, issuer and applicant Agent IDs, a bounded message,
+minimized matching capability hints, common settlement offers, an optional
+exact proposed amount and payment destination, and an expiry. It may introduce
+the Agent, describe relevant capabilities, ask questions, make a non-binding
+proposal, or decline. The canonical application is structural negotiation
+input only: it is not an Agreement acceptance, spend approval, execution
+authorization or payment request.
+
+`INTENT/APPLICATION` V2 may additionally carry one complete canonical
+`proposed_agreement_body`. This is still non-authorizing proposal material, but
+it lets the same operation express REQUEST, OFFER, BUY, SELL, EXCHANGE,
+COLLABORATE, multi-party, milestone, and mixed-settlement graphs without a new
+trade-specific interface. The issuer independently verifies that the proposal
+references the exact Intent, preserves the exact published subject, stays
+inside its value/time bounds, includes every participant and mandatory
+predicate, and selects only mutually offered installed Adapters. If it elects
+to proceed, it sends the exact body through typed `AGREEMENT/PROPOSE` to every
+participant; authority begins only when the body-bound predicates receive their
+required evidence. V1 remains the compact single-work/single-payment demand
+application and is migration-compatible.
+
+A signed Intent or application settlement preference may carry at most 4 KiB
+of opaque public Adapter parameters. These bytes let a supply Intent publish an
+exact payment destination or profile commitment needed for deterministic
+Agreement compilation. They are signed proposal data, not credentials or
+payment authority; private keys, bearer tokens and ambient secrets are
+forbidden. Missing parameters are never guessed from prose or model output.
 
 Messenger owns Agent identity, conversation continuity, encryption, replay
 protection, device/session handling, and delivery. OpenFox owns the semantic
@@ -938,6 +964,9 @@ any term without first defining a new protocol profile.
 To prevent accidental economic authority:
 
 - ordinary messages are non-binding by default;
+- `INTENT/APPLICATION` remains non-binding even when its message says “I
+  accept”; only its exact structured fields may be used as input to a later
+  canonical Agreement proposal;
 - a model-generated phrase such as “I accept” is not wallet or execution
   authorization;
 - the application must render when a structured Agreement is being proposed;
@@ -973,6 +1002,12 @@ remain their own distinct authorities.
 
 ## 10. Generic Agreement
 
+The released structural JSON model for the V1 commerce objects is
+[`agent-commerce-v1.json`](../schemas/agent-commerce-v1.json). Canonical CBOR,
+ordering, digest projections, signature verification and cross-object rules
+remain normative verifier checks and are intentionally not delegated to JSON
+Schema alone.
+
 ### 10.1 Purpose
 
 An Agreement prevents two Agents from executing different interpretations of a
@@ -1000,6 +1035,7 @@ AgreementAuthoritySubjectV1 {
   subject_kind            # agent, wallet, custody_principal, key_owner, data_owner
   subject_namespace
   subject_identifier
+  represented_agent_id?   # required for a non-Agent subject acting for a participant; forbidden for an Agent subject
 }
 
 AgreementAuthorizationPredicateV1 {
@@ -1115,6 +1151,15 @@ payment predicate, and finalized chain evidence for another obligation. A
 profile may satisfy several predicates with one evidence object only when all
 of those predicates name that exact profile/version and the profile freezes
 the grouping and target rule.
+
+For a non-Agent subject, `represented_agent_id` is a mandatory canonical link
+to one participant whose authority duty it fulfils. It does not by itself
+assert that the participant owns the wallet, key, data or custody principal:
+the selected profile's resolver must prove that relationship for the exact
+Agreement and validation time. An Agent subject represents only itself and
+therefore MUST omit this field. This lets a bound buyer wallet satisfy the
+buyer's mandatory Paid Demand predicate without weakening the obligor rule or
+guessing the relationship from opaque Adapter parameters.
 
 To avoid a digest cycle while committing the complete Agreement, implementations
 derive each `evidence_target_projection_digest` in three steps:
@@ -1329,6 +1374,9 @@ AuthorizedActionV1 {
   approval_digest?
   expected_prior_state
   expires_at
+  authority_id
+  authority_public_key
+  authorization_proof
 }
 
 ActionResolutionV1 {
@@ -1367,10 +1415,23 @@ directly enforces that domain or is accessible only through a broker that
 does, verifies the fence proof, scope, and expiry rather than the bare
 integer, and advances the high-water only on a lease-authority-confirmed
 acquire or takeover, never from a larger integer carried by an ordinary action
-request. Admission atomically validates the fence, request digest, policy,
+ request. Admission atomically validates the fence, request digest, policy,
 resolved mandate and approval content, expiry and expected prior state while
 creating the action identity once. Exact retry is idempotent; the same action
 ID with different request bytes is `conflict`.
+
+The fence proves who currently owns the writer lease; it does not, by itself,
+authorize every possible action in that lease's scope. `authorization_proof`
+is therefore an Ed25519 signature by the same resolved `authority_id` and key
+as the referenced fence over the complete canonical `AuthorizedActionV1` with
+only `authorization_proof` empty, under the domain
+`tos.authorized-action-proof.v1`. Every sink verifies this proof in addition to
+the fence. A process that observes or retains a valid fence but cannot access
+the Action Authority signing key cannot change the action kind, semantic ID,
+request digest, policy, mandate, approval, expected state, expiry, or any other
+field. `authority_public_key` is explicit to make verification deterministic;
+the authority resolver must still authorize that exact key for `authority_id`
+at admission time, so merely supplying a public key carries no authority.
 
 A timeout queries `(stable_action_id, exact_request_digest)`. `prepared`,
 `submitted`, or `accepted` is not permission to create a replacement action.
@@ -1437,6 +1498,14 @@ A direct transfer proves only the transfer. It does not prove that work was
 correct or delivered unless the Agreement and evidence separately establish
 that fact.
 
+An external Adapter uses `AgreementPaymentRequestV2`. It retains every field
+above and additionally binds `semantic_action_kind = settlement.external`, the
+owner-pinned `adapter_profile_digest`, and `external_system_id`. Its stable ID
+is derived from the released `settlement.external` registry entry, including a
+canonical amount digest. V1 is exclusively `payment.direct`; the two schemas
+cannot be substituted even when payer, payee, asset, amount, and destination
+are identical.
+
 ### 11.3 TOS escrow
 
 Either party may require the high-assurance TOS path. The negotiated Agreement
@@ -1467,6 +1536,18 @@ TOS authority over that system.
 OpenFox labels external evidence as declared, observed, authenticated, or
 independently verified according to the adapter. It never presents an external
 dashboard balance or chat acknowledgement as finalized TOS settlement.
+
+The released authenticated profile is
+`tos.payment.external-attested.v1`. Its canonical
+`ExternalPaymentAttestationBodyV1` binds the selected Adapter and pinned
+attestor, exact `payment_request_digest`, exact `stable_action_id`, transfer
+reference, finality reference, resolution time, and expiry. The attestor signs
+the domain-separated body digest. A verifier authorizes that attestor for the
+exact Adapter and accepts the evidence only for the same canonical payment
+request. Changing the recipient, destination, asset, amount, obligation,
+request, action, Adapter, or finality reference invalidates the evidence. This
+profile proves only the attestor's declared evidence class; it does not promote
+an external system to TOS finality.
 
 ### 11.5 Settlement choice policy
 

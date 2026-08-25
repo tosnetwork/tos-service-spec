@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tos.network/schemas/agent-commerce-v1.json",
+  "title": "TOS Agent Commerce Core V1",
+  "description": "Portable structural schema for Intent discovery, non-authorizing applications, Agreement authorization, safe retrieval, admission, private handoff, billing, scheduling and execution admission. Canonical CBOR, ordering, digest projection and cross-field rules are additionally enforced by the released verifier.",
+  "oneOf": [
+    {"$ref": "#/$defs/signedIntent"},
+    {"$ref": "#/$defs/intentApplication"},
+    {"$ref": "#/$defs/agreementBody"},
+    {"$ref": "#/$defs/agreement"},
+    {"$ref": "#/$defs/admissionProof"},
+    {"$ref": "#/$defs/retrievalPolicy"},
+    {"$ref": "#/$defs/privateHandoffChallenge"},
+    {"$ref": "#/$defs/privateHandoffAuthorization"},
+    {"$ref": "#/$defs/acceptedPrivateContent"},
+    {"$ref": "#/$defs/settlementObligation"},
+    {"$ref": "#/$defs/agreementPaymentRequest"},
+    {"$ref": "#/$defs/signedExternalPaymentAttestation"},
+    {"$ref": "#/$defs/scheduleEntry"},
+    {"$ref": "#/$defs/portfolioDependency"},
+    {"$ref": "#/$defs/executionPlan"}
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000]+$"},
+    "token": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$"},
+    "bytes": {"type": "string", "contentEncoding": "base64"},
+    "u64": {"type": "integer", "minimum": 0},
+    "positiveU64": {"type": "integer", "minimum": 1},
+    "ed25519PublicKey": {"type": "string", "pattern": "^ed25519:[0-9a-f]{64}$"},
+    "ed25519Signature": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9_-]{86}$"},
+    "stringSet": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/identifier"}},
+    "digestSet": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+    "amount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_namespace", "asset_identifier", "unit"],
+      "properties": {
+        "asset_namespace": {"$ref": "#/$defs/identifier"},
+        "asset_identifier": {"$ref": "#/$defs/identifier"},
+        "amount_atomic": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,77})$"},
+        "amount_decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+        "unit": {"$ref": "#/$defs/identifier"}
+      },
+      "oneOf": [
+        {"required": ["amount_atomic"], "not": {"required": ["amount_decimal"]}},
+        {"required": ["amount_decimal"], "not": {"required": ["amount_atomic"]}}
+      ]
+    },
+    "capabilityHint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["relation", "capability_namespace", "capability_identifier"],
+      "properties": {
+        "relation": {"$ref": "#/$defs/identifier"},
+        "capability_namespace": {"$ref": "#/$defs/identifier"},
+        "capability_identifier": {"$ref": "#/$defs/identifier"},
+        "version_constraint": {"type": "string", "maxLength": 256}
+      }
+    },
+    "valueHint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "asset_namespace", "asset_identifier", "amount_kind", "unit"],
+      "properties": {
+        "role": {"$ref": "#/$defs/identifier"},
+        "asset_namespace": {"$ref": "#/$defs/identifier"},
+        "asset_identifier": {"$ref": "#/$defs/identifier"},
+        "asset_display": {"type": "string", "maxLength": 256},
+        "amount_kind": {"$ref": "#/$defs/identifier"},
+        "minimum_decimal": {"type": "string", "maxLength": 128},
+        "maximum_decimal": {"type": "string", "maxLength": 128},
+        "unit": {"$ref": "#/$defs/identifier"},
+        "tax_and_fee_note": {"type": "string", "maxLength": 1024}
+      }
+    },
+    "contentDescriptor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["content_type", "content_digest", "content_size"],
+      "properties": {
+        "content_type": {"type": "string", "minLength": 1, "maxLength": 128},
+        "content_digest": {"$ref": "#/$defs/digest"},
+        "content_size": {"$ref": "#/$defs/positiveU64"},
+        "inline_content": {"$ref": "#/$defs/bytes"},
+        "retrieval_hints": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 2048}}
+      }
+    },
+    "discoveryCard": {
+      "type": "object", "additionalProperties": false,
+      "required": ["summary", "intent_modes", "subject_classes", "keywords", "value_state", "schedule"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1, "maxLength": 512},
+        "intent_modes": {"type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": {"enum": ["REQUEST", "OFFER", "BUY", "SELL", "EXCHANGE", "COLLABORATE", "ANNOUNCE"]}},
+        "subject_classes": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"enum": ["SERVICE", "PHYSICAL_GOOD", "DIGITAL_GOOD", "ASSET", "DATA", "CONTENT_MEDIA", "COMPUTE", "ACCESS_OR_CAPACITY", "FUNDING", "COLLABORATION", "OTHER"]}},
+        "taxonomy_paths": {"$ref": "#/$defs/stringSet"},
+        "keywords": {"type": "array", "maxItems": 32, "items": {"type": "object", "additionalProperties": false, "required": ["text"], "properties": {"text": {"type": "string", "minLength": 1, "maxLength": 96}, "language": {"type": "string", "maxLength": 32}}}},
+        "capability_hints": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/capabilityHint"}},
+        "value_state": {"enum": ["specified", "range", "negotiable", "non_monetary", "unknown"]},
+        "value_hints": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/valueHint"}},
+        "schedule": {"type": "object"},
+        "fulfillment_modes": {"$ref": "#/$defs/stringSet"},
+        "regions": {"$ref": "#/$defs/stringSet"},
+        "languages": {"$ref": "#/$defs/stringSet"}
+      }
+    },
+    "intentBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "network_id", "issuer_agent_id", "audience", "object_id", "revision", "created_at_unix", "expires_at_unix", "payload"],
+      "properties": {
+        "schema_version": {"const": 1}, "network_id": {"$ref": "#/$defs/identifier"}, "issuer_agent_id": {"$ref": "#/$defs/identifier"},
+        "audience": {"$ref": "#/$defs/identifier"}, "object_id": {"$ref": "#/$defs/identifier"}, "revision": {"$ref": "#/$defs/positiveU64"},
+        "predecessor_digest": {"$ref": "#/$defs/digest"}, "created_at_unix": {"$ref": "#/$defs/positiveU64"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "payload": {"type": "object", "additionalProperties": false, "required": ["discovery_card", "detail_descriptor", "reply_routes"], "properties": {
+          "discovery_card": {"$ref": "#/$defs/discoveryCard"}, "detail_descriptor": {"$ref": "#/$defs/contentDescriptor"},
+          "public_attachment_manifest_descriptor": {"$ref": "#/$defs/contentDescriptor"},
+          "reply_routes": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "object", "additionalProperties": false, "required": ["profile_uri", "agent_id"], "properties": {"profile_uri": {"$ref": "#/$defs/identifier"}, "agent_id": {"$ref": "#/$defs/identifier"}, "endpoint": {"type": "string", "maxLength": 1024}}}},
+          "settlement_preferences": {"type": "array", "maxItems": 16, "items": {"type": "object", "additionalProperties": false, "required": ["adapter_uri", "required"], "properties": {"adapter_uri": {"$ref": "#/$defs/identifier"}, "required": {"type": "boolean"}, "parameters": {"$ref": "#/$defs/bytes"}}}},
+          "required_extensions": {"$ref": "#/$defs/stringSet"}, "optional_extensions": {"type": "object", "maxProperties": 64, "additionalProperties": {"$ref": "#/$defs/bytes"}}
+        }}
+      }
+    },
+    "signedIntent": {"type": "object", "additionalProperties": false, "required": ["body", "public_key", "signature"], "properties": {"body": {"$ref": "#/$defs/intentBody"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}},
+    "intentApplication": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "intent_digest", "intent_issuer_agent_id", "applicant_agent_id", "message", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"enum": [1, 2]}, "intent_digest": {"$ref": "#/$defs/digest"}, "intent_issuer_agent_id": {"$ref": "#/$defs/identifier"},
+        "applicant_agent_id": {"$ref": "#/$defs/identifier"}, "message": {"type": "string", "minLength": 1, "maxLength": 16384},
+        "capability_hints": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/capabilityHint"}},
+        "settlement_offers": {"type": "array", "maxItems": 16, "items": {"type": "object", "additionalProperties": false, "required": ["adapter_uri", "required"], "properties": {"adapter_uri": {"$ref": "#/$defs/identifier"}, "required": {"type": "boolean"}, "parameters": {"$ref": "#/$defs/bytes"}}}},
+        "proposed_amount": {"$ref": "#/$defs/amount"}, "payment_destination": {"$ref": "#/$defs/bytes"},
+        "proposed_agreement_body": {"$ref": "#/$defs/agreementBody"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [{"if": {"properties": {"schema_version": {"const": 2}}}, "then": {"required": ["proposed_agreement_body"]}}]
+    },
+    "authoritySubject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["subject_kind", "subject_namespace", "subject_identifier"],
+      "properties": {"subject_kind": {"enum": ["agent", "wallet", "custody_principal", "key_owner", "data_owner", "capability_owner"]},
+        "subject_namespace": {"$ref": "#/$defs/identifier"}, "subject_identifier": {"$ref": "#/$defs/identifier"}, "represented_agent_id": {"$ref": "#/$defs/identifier"}}
+    },
+    "authorizationPredicate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["predicate_id", "authority_subject", "obligation_ids", "evidence_profile_uri", "evidence_profile_version", "evidence_profile_digest", "evidence_target_projection_digest", "expires_at_unix"],
+      "properties": {"predicate_id": {"$ref": "#/$defs/identifier"}, "authority_subject": {"$ref": "#/$defs/authoritySubject"}, "role_scope": {"$ref": "#/$defs/stringSet"},
+        "obligation_ids": {"$ref": "#/$defs/stringSet"}, "evidence_profile_uri": {"$ref": "#/$defs/identifier"}, "evidence_profile_version": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "evidence_profile_digest": {"$ref": "#/$defs/digest"}, "evidence_target_projection_digest": {"$ref": "#/$defs/digest"}, "valid_from_unix": {"$ref": "#/$defs/u64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}, "required_extensions": {"$ref": "#/$defs/stringSet"}, "optional_extensions": {"$ref": "#/$defs/stringSet"}}
+    },
+    "billingTerms": {
+      "type": "object", "additionalProperties": false,
+      "required": ["billing_kind", "first_sequence", "maximum_aggregate_amount", "cancellation_cutoff_policy"],
+      "properties": {"billing_kind": {"enum": ["one_time", "deposit", "milestone", "installment", "accumulated", "periodic"]}, "first_sequence": {"$ref": "#/$defs/positiveU64"},
+        "recurrence_start_unix": {"$ref": "#/$defs/u64"}, "recurrence_end_unix": {"$ref": "#/$defs/u64"}, "recurrence_count": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "recurrence_interval_seconds": {"$ref": "#/$defs/u64"}, "maximum_aggregate_amount": {"$ref": "#/$defs/amount"}, "cancellation_cutoff_policy": {"$ref": "#/$defs/identifier"}}
+    },
+    "obligation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["obligation_id", "kind", "obligor_agent_id", "subject_content_type", "subject", "confidentiality_and_disclosure_policy", "cancellation_policy", "dispute_policy", "authorization_predicate_ids"],
+      "properties": {"obligation_id": {"$ref": "#/$defs/identifier"}, "kind": {"$ref": "#/$defs/token"}, "obligor_agent_id": {"$ref": "#/$defs/identifier"}, "beneficiary_agent_id": {"$ref": "#/$defs/identifier"},
+        "depends_on_obligation_ids": {"$ref": "#/$defs/stringSet"}, "subject_content_type": {"type": "string", "minLength": 1, "maxLength": 128}, "subject": {"$ref": "#/$defs/bytes"},
+        "attachment_digests": {"$ref": "#/$defs/digestSet"}, "amount": {"$ref": "#/$defs/amount"}, "not_before_unix": {"$ref": "#/$defs/u64"}, "due_at_unix": {"$ref": "#/$defs/u64"}, "expires_at_unix": {"$ref": "#/$defs/u64"},
+        "acceptance_evidence_requirements": {"$ref": "#/$defs/stringSet"}, "confidentiality_and_disclosure_policy": {"$ref": "#/$defs/identifier"}, "cancellation_policy": {"$ref": "#/$defs/identifier"},
+        "dispute_policy": {"$ref": "#/$defs/identifier"}, "billing_terms": {"$ref": "#/$defs/billingTerms"}, "settlement_adapter_uri": {"$ref": "#/$defs/identifier"}, "settlement_parameters": {"$ref": "#/$defs/bytes"},
+        "authorization_predicate_ids": {"$ref": "#/$defs/stringSet"}, "required_extensions": {"$ref": "#/$defs/stringSet"}, "optional_extensions": {"$ref": "#/$defs/stringSet"}}
+    },
+    "agreementBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "agreement_id", "version", "network_context", "participants", "terms_content_type", "terms", "obligations", "authorization_predicates", "valid_from_unix", "expires_at_unix"],
+      "properties": {"schema_version": {"const": 1}, "agreement_id": {"$ref": "#/$defs/identifier"}, "version": {"$ref": "#/$defs/positiveU64"}, "predecessor_agreement_digest": {"$ref": "#/$defs/digest"},
+        "network_context": {"$ref": "#/$defs/identifier"}, "participants": {"type": "array", "minItems": 2, "maxItems": 64, "items": {"type": "object", "additionalProperties": false, "required": ["agent_id", "roles"], "properties": {"agent_id": {"$ref": "#/$defs/identifier"}, "roles": {"$ref": "#/$defs/stringSet"}}}},
+        "referenced_intents": {"$ref": "#/$defs/digestSet"}, "terms_content_type": {"type": "string", "minLength": 1, "maxLength": 128}, "terms": {"$ref": "#/$defs/bytes"}, "attachment_digests": {"$ref": "#/$defs/digestSet"},
+        "obligations": {"type": "array", "minItems": 1, "maxItems": 256, "items": {"$ref": "#/$defs/obligation"}}, "authorization_predicates": {"type": "array", "minItems": 1, "maxItems": 512, "items": {"$ref": "#/$defs/authorizationPredicate"}},
+        "required_extensions": {"$ref": "#/$defs/stringSet"}, "optional_extensions": {"type": "object", "maxProperties": 64, "additionalProperties": {"$ref": "#/$defs/bytes"}},
+        "valid_from_unix": {"$ref": "#/$defs/positiveU64"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}}
+    },
+    "authorizationEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agreement_id", "agreement_version", "agreement_body_digest", "authority_subject", "predicate_ids", "evidence_profile_uri", "evidence_profile_version", "evidence_profile_digest", "evidence_target_projection_digests", "evidence_content_type", "evidence"],
+      "properties": {"agreement_id": {"$ref": "#/$defs/identifier"}, "agreement_version": {"$ref": "#/$defs/positiveU64"}, "agreement_body_digest": {"$ref": "#/$defs/digest"}, "authority_subject": {"$ref": "#/$defs/authoritySubject"},
+        "predicate_ids": {"$ref": "#/$defs/stringSet"}, "evidence_profile_uri": {"$ref": "#/$defs/identifier"}, "evidence_profile_version": {"type": "integer", "minimum": 1}, "evidence_profile_digest": {"$ref": "#/$defs/digest"},
+        "evidence_target_projection_digests": {"$ref": "#/$defs/digestSet"}, "evidence_content_type": {"type": "string", "minLength": 1, "maxLength": 128}, "evidence": {"$ref": "#/$defs/bytes"}}
+    },
+    "agreement": {"type": "object", "additionalProperties": false, "required": ["body", "authorization_evidence"], "properties": {"body": {"$ref": "#/$defs/agreementBody"}, "authorization_evidence": {"type": "array", "maxItems": 512, "items": {"$ref": "#/$defs/authorizationEvidence"}}}},
+    "admissionChallenge": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "profile_uri", "carrier_id", "actor_id", "operation_kind", "audience", "declared_bytes", "resource_vector_digest", "challenge_nonce", "difficulty_bits", "issued_at_unix", "expires_at_unix"],
+      "properties": {"schema_version": {"const": 1}, "profile_uri": {"const": "tos.operation-admission.hashcash.v1"}, "carrier_id": {"$ref": "#/$defs/identifier"}, "actor_id": {"$ref": "#/$defs/identifier"},
+        "operation_kind": {"$ref": "#/$defs/token"}, "audience": {"$ref": "#/$defs/identifier"}, "declared_bytes": {"$ref": "#/$defs/positiveU64"}, "resource_vector_digest": {"$ref": "#/$defs/digest"},
+        "challenge_nonce": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"}, "difficulty_bits": {"type": "integer", "minimum": 0, "maximum": 24}, "issued_at_unix": {"$ref": "#/$defs/positiveU64"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}}
+    },
+    "signedAdmissionChallenge": {"type": "object", "additionalProperties": false, "required": ["body", "public_key", "signature"], "properties": {"body": {"$ref": "#/$defs/admissionChallenge"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}},
+    "admissionProof": {"type": "object", "additionalProperties": false, "required": ["schema_version", "challenge", "challenge_digest", "counter"], "properties": {"schema_version": {"const": 1}, "challenge": {"$ref": "#/$defs/signedAdmissionChallenge"}, "challenge_digest": {"$ref": "#/$defs/digest"}, "counter": {"$ref": "#/$defs/u64"}}},
+    "retrievalPolicy": {"type": "object", "additionalProperties": false, "required": ["schema_version", "allowed_origins", "max_redirects", "max_connections", "max_response_header_bytes", "max_compressed_bytes", "max_decoded_bytes", "timeout_millis"], "properties": {
+      "schema_version": {"const": 1}, "allowed_origins": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "pattern": "^https://[^/?#]+$"}},
+      "max_redirects": {"type": "integer", "minimum": 0, "maximum": 3}, "max_connections": {"type": "integer", "minimum": 1, "maximum": 16}, "max_response_header_bytes": {"type": "integer", "minimum": 1, "maximum": 262144},
+      "max_compressed_bytes": {"$ref": "#/$defs/positiveU64"}, "max_decoded_bytes": {"$ref": "#/$defs/positiveU64"}, "timeout_millis": {"type": "integer", "minimum": 100, "maximum": 60000}}
+    },
+    "privateHandoffChallenge": {"type": "object", "required": ["schema_version", "handoff_id", "agreement_body_digest", "obligation_id", "sender_agent_id", "receiver_agent_id", "direction", "purpose_digest", "ingress_profile_uri", "ingress_instance_id", "receiver_encryption_public_key", "maximum_plaintext_bytes", "maximum_ciphertext_bytes", "maximum_files", "accepted_media_types", "retention_policy_digest", "issued_at_unix", "expires_at_unix", "delete_not_after_unix"], "properties": {"schema_version": {"const": 1}, "handoff_id": {"$ref": "#/$defs/identifier"}, "agreement_body_digest": {"$ref": "#/$defs/digest"}, "obligation_id": {"$ref": "#/$defs/identifier"}, "sender_agent_id": {"$ref": "#/$defs/identifier"}, "receiver_agent_id": {"$ref": "#/$defs/identifier"}, "direction": {"$ref": "#/$defs/token"}, "purpose_digest": {"$ref": "#/$defs/digest"}, "ingress_profile_uri": {"$ref": "#/$defs/identifier"}, "ingress_instance_id": {"$ref": "#/$defs/identifier"}, "receiver_encryption_public_key": {"type": "string"}, "maximum_plaintext_bytes": {"$ref": "#/$defs/positiveU64"}, "maximum_ciphertext_bytes": {"$ref": "#/$defs/positiveU64"}, "maximum_files": {"type": "integer", "minimum": 1, "maximum": 4096}, "accepted_media_types": {"$ref": "#/$defs/stringSet"}, "retention_policy_digest": {"$ref": "#/$defs/digest"}, "issued_at_unix": {"$ref": "#/$defs/positiveU64"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}, "delete_not_after_unix": {"$ref": "#/$defs/positiveU64"}}, "additionalProperties": false},
+    "privateHandoffAuthorization": {"type": "object", "required": ["schema_version", "challenge_digest", "sender_disclosure_action_id", "manifest", "sender_ephemeral_public_key", "nonce", "ciphertext_digest", "ciphertext_bytes", "associated_data_digest", "possession_proof", "expires_at_unix"], "properties": {"schema_version": {"const": 1}, "challenge_digest": {"$ref": "#/$defs/digest"}, "sender_disclosure_action_id": {"$ref": "#/$defs/digest"}, "manifest": {"type": "object"}, "sender_ephemeral_public_key": {"type": "string"}, "nonce": {"type": "string"}, "ciphertext_digest": {"$ref": "#/$defs/digest"}, "ciphertext_bytes": {"$ref": "#/$defs/positiveU64"}, "associated_data_digest": {"$ref": "#/$defs/digest"}, "possession_proof": {"type": "string"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}}, "additionalProperties": false},
+    "acceptedPrivateContent": {"type": "object", "required": ["schema_version", "handoff_id", "challenge_digest", "authorization_digest", "upload_action_id", "sender_disclosure_action_id", "content_digest", "content_manifest_digest", "plaintext_bytes", "immutable_object_digest", "retention_policy_digest", "accepted_at_unix", "delete_not_after_unix"], "properties": {"schema_version": {"const": 1}, "handoff_id": {"$ref": "#/$defs/identifier"}, "challenge_digest": {"$ref": "#/$defs/digest"}, "authorization_digest": {"$ref": "#/$defs/digest"}, "upload_action_id": {"$ref": "#/$defs/digest"}, "sender_disclosure_action_id": {"$ref": "#/$defs/digest"}, "content_digest": {"$ref": "#/$defs/digest"}, "content_manifest_digest": {"$ref": "#/$defs/digest"}, "plaintext_bytes": {"$ref": "#/$defs/positiveU64"}, "immutable_object_digest": {"$ref": "#/$defs/digest"}, "retention_policy_digest": {"$ref": "#/$defs/digest"}, "accepted_at_unix": {"$ref": "#/$defs/positiveU64"}, "delete_not_after_unix": {"$ref": "#/$defs/positiveU64"}}, "additionalProperties": false},
+    "settlementObligation": {"type": "object", "required": ["agreement_body_digest", "agreement_obligation_id", "obligation_instance_id", "sequence", "payer_agent_id", "payee_agent_id", "amount", "maximum_aggregate_amount", "settlement_adapter_uri", "settlement_parameters_digest", "stable_action_id"], "properties": {"agreement_body_digest": {"$ref": "#/$defs/digest"}, "agreement_obligation_id": {"$ref": "#/$defs/identifier"}, "obligation_instance_id": {"$ref": "#/$defs/digest"}, "sequence": {"$ref": "#/$defs/positiveU64"}, "predecessor_instance_id": {"$ref": "#/$defs/digest"}, "payer_agent_id": {"$ref": "#/$defs/identifier"}, "payee_agent_id": {"$ref": "#/$defs/identifier"}, "amount": {"$ref": "#/$defs/amount"}, "not_before_unix": {"$ref": "#/$defs/u64"}, "due_at_unix": {"$ref": "#/$defs/u64"}, "expires_at_unix": {"$ref": "#/$defs/u64"}, "maximum_aggregate_amount": {"$ref": "#/$defs/amount"}, "settlement_adapter_uri": {"$ref": "#/$defs/identifier"}, "settlement_parameters_digest": {"$ref": "#/$defs/digest"}, "mandate_digest": {"$ref": "#/$defs/digest"}, "stable_action_id": {"$ref": "#/$defs/digest"}}, "additionalProperties": false},
+    "agreementPaymentRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "owner_id", "agent_id", "agreement_body_digest", "agreement_obligation_id", "obligation_instance_id", "payer_agent_id", "payee_agent_id", "network_id", "amount", "destination", "settlement_adapter_uri", "stable_action_id", "expires_at_unix"],
+      "properties": {"schema_version": {"enum": [1, 2]}, "owner_id": {"$ref": "#/$defs/identifier"}, "agent_id": {"$ref": "#/$defs/identifier"}, "agreement_body_digest": {"$ref": "#/$defs/digest"}, "agreement_obligation_id": {"$ref": "#/$defs/identifier"}, "obligation_instance_id": {"$ref": "#/$defs/digest"}, "payer_agent_id": {"$ref": "#/$defs/identifier"}, "payee_agent_id": {"$ref": "#/$defs/identifier"}, "network_id": {"$ref": "#/$defs/identifier"}, "amount": {"$ref": "#/$defs/amount"}, "destination": {"$ref": "#/$defs/bytes"}, "settlement_adapter_uri": {"$ref": "#/$defs/identifier"}, "semantic_action_kind": {"enum": ["settlement.external"]}, "adapter_profile_digest": {"$ref": "#/$defs/digest"}, "external_system_id": {"$ref": "#/$defs/identifier"}, "stable_action_id": {"$ref": "#/$defs/digest"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}},
+      "allOf": [
+        {"if": {"properties": {"schema_version": {"const": 1}}}, "then": {"not": {"anyOf": [{"required": ["semantic_action_kind"]}, {"required": ["adapter_profile_digest"]}, {"required": ["external_system_id"]}]}}},
+        {"if": {"properties": {"schema_version": {"const": 2}}}, "then": {"required": ["semantic_action_kind", "adapter_profile_digest", "external_system_id"]}}
+      ]
+    },
+    "scheduleEntry": {"type": "object", "required": ["schema_version", "schedule_entry_id", "agreement_body_digest", "execution_id", "state", "state_revision", "dispatch_generation", "deadline_unix", "compute_units", "memory_bytes", "concurrency_units", "cancel_class", "preempt_class", "irreversible_boundary", "writer_generation"], "properties": {"schema_version": {"enum": [1, 2]}, "schedule_entry_id": {"$ref": "#/$defs/identifier"}, "agreement_body_digest": {"$ref": "#/$defs/digest"}, "execution_obligation_id": {"$ref": "#/$defs/identifier"}, "execution_id": {"$ref": "#/$defs/digest"}, "state": {"enum": ["queued", "ready", "dispatched", "running", "draining", "succeeded", "failed", "cancelled", "ambiguous"]}, "state_revision": {"$ref": "#/$defs/positiveU64"}, "dispatch_generation": {"$ref": "#/$defs/positiveU64"}, "not_before_unix": {"$ref": "#/$defs/u64"}, "deadline_unix": {"$ref": "#/$defs/positiveU64"}, "compute_units": {"$ref": "#/$defs/u64"}, "memory_bytes": {"$ref": "#/$defs/u64"}, "concurrency_units": {"type": "integer", "minimum": 1}, "cancel_class": {"$ref": "#/$defs/token"}, "preempt_class": {"$ref": "#/$defs/token"}, "irreversible_boundary": {"$ref": "#/$defs/identifier"}, "writer_generation": {"$ref": "#/$defs/positiveU64"}}, "allOf": [{"if": {"properties": {"schema_version": {"const": 2}}}, "then": {"required": ["execution_obligation_id"]}}], "additionalProperties": false},
+    "portfolioDependency": {"type": "object", "required": ["schema_version", "upstream_agreement_digest", "upstream_obligation_id", "downstream_agreement_digest", "downstream_obligation_id", "dependency_type", "dependency_class", "failure_propagation", "evidence_driven_release_required"], "properties": {"schema_version": {"const": 1}, "upstream_agreement_digest": {"$ref": "#/$defs/digest"}, "upstream_obligation_id": {"$ref": "#/$defs/identifier"}, "downstream_agreement_digest": {"$ref": "#/$defs/digest"}, "downstream_obligation_id": {"$ref": "#/$defs/identifier"}, "dependency_type": {"$ref": "#/$defs/token"}, "dependency_class": {"enum": ["blocking", "informational"]}, "failure_propagation": {"$ref": "#/$defs/token"}, "evidence_driven_release_required": {"type": "boolean"}}, "additionalProperties": false},
+    "externalPaymentAttestation": {"type": "object", "required": ["schema_version", "adapter_uri", "attestor_id", "payment_request_digest", "stable_action_id", "exact_transfer_reference", "finality_reference", "resolved_at_unix", "expires_at_unix"], "properties": {"schema_version": {"const": 1}, "adapter_uri": {"$ref": "#/$defs/identifier"}, "attestor_id": {"$ref": "#/$defs/identifier"}, "payment_request_digest": {"$ref": "#/$defs/digest"}, "stable_action_id": {"$ref": "#/$defs/digest"}, "exact_transfer_reference": {"type": "string", "minLength": 1, "maxLength": 1024}, "finality_reference": {"type": "string", "minLength": 1, "maxLength": 1024}, "resolved_at_unix": {"$ref": "#/$defs/positiveU64"}, "expires_at_unix": {"$ref": "#/$defs/positiveU64"}}, "additionalProperties": false},
+    "signedExternalPaymentAttestation": {"type": "object", "required": ["body", "public_key", "signature"], "properties": {"body": {"$ref": "#/$defs/externalPaymentAttestation"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}, "additionalProperties": false},
+    "executionPlan": {"type": "object", "required": ["owner_id", "agent_id", "agreement_body_digest", "execution_obligation_id", "accepted_input_manifest_digest", "attempt_index", "predecessor_terminal_resolution_digest", "reservation_id", "policy_revision", "writer_generation", "lease_loss_policy"], "properties": {"owner_id": {"$ref": "#/$defs/identifier"}, "agent_id": {"$ref": "#/$defs/identifier"}, "agreement_body_digest": {"$ref": "#/$defs/digest"}, "execution_obligation_id": {"$ref": "#/$defs/identifier"}, "accepted_input_manifest_digest": {"$ref": "#/$defs/digest"}, "attempt_index": {"$ref": "#/$defs/u64"}, "predecessor_terminal_resolution_digest": {"$ref": "#/$defs/digest"}, "reservation_id": {"$ref": "#/$defs/digest"}, "policy_revision": {"$ref": "#/$defs/positiveU64"}, "writer_generation": {"$ref": "#/$defs/positiveU64"}, "lease_loss_policy": {"enum": ["kill", "drain"]}}, "additionalProperties": true}
+  }
+}

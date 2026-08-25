@@ -1,0 +1,492 @@
+{
+  "schema": "tos.agent-commerce-core-conformance.v1",
+  "objects": [
+    {
+      "name": "intent_body",
+      "digest_domain": "tos.agent-intent-body.v1",
+      "json_model": {
+        "schema_version": 1,
+        "network_id": "tos:testnet",
+        "issuer_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "audience": "public:indexable",
+        "object_id": "intent:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "revision": 1,
+        "created_at_unix": 2000000000,
+        "expires_at_unix": 2000003600,
+        "payload": {
+          "discovery_card": {
+            "summary": "Review source",
+            "intent_modes": [
+              "REQUEST"
+            ],
+            "subject_classes": [
+              "SERVICE"
+            ],
+            "taxonomy_paths": [
+              "tos.taxonomy.v1/service/security/review"
+            ],
+            "keywords": [
+              {
+                "text": "review",
+                "language": "en"
+              }
+            ],
+            "value_state": "specified",
+            "value_hints": [
+              {
+                "role": "budget",
+                "asset_namespace": "tos.native",
+                "asset_identifier": "TOS",
+                "amount_kind": "exact",
+                "minimum_decimal": "50",
+                "maximum_decimal": "50",
+                "unit": "total"
+              }
+            ],
+            "schedule": {
+              "flexibility": "flexible"
+            },
+            "fulfillment_modes": [
+              "remote"
+            ]
+          },
+          "detail_descriptor": {
+            "content_type": "text/plain",
+            "content_digest": "sha256:30890ff47c084b541652f9968de3c3a197545c4129fb6e9c2d3ad9639cf1498a",
+            "content_size": 30,
+            "inline_content": "cmV2aWV3IG9uZSBib3VuZGVkIHNvdXJjZSB0cmVl"
+          },
+          "reply_routes": [
+            {
+              "profile_uri": "tos.messenger.direct.v1",
+              "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        }
+      },
+      "canonical_cbor_base64": "qWdwYXlsb2Fko2xyZXBseV9yb3V0ZXOBomhhZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWtwcm9maWxlX3VyaXd0b3MubWVzc2VuZ2VyLmRpcmVjdC52MW5kaXNjb3ZlcnlfY2FyZKlnc3VtbWFyeW1SZXZpZXcgc291cmNlaGtleXdvcmRzgaJkdGV4dGZyZXZpZXdobGFuZ3VhZ2ViZW5oc2NoZWR1bGWha2ZsZXhpYmlsaXR5aGZsZXhpYmxla3ZhbHVlX2hpbnRzgadkcm9sZWZidWRnZXRkdW5pdGV0b3RhbGthbW91bnRfa2luZGVleGFjdG9hc3NldF9uYW1lc3BhY2VqdG9zLm5hdGl2ZW9tYXhpbXVtX2RlY2ltYWxiNTBvbWluaW11bV9kZWNpbWFsYjUwcGFzc2V0X2lkZW50aWZpZXJjVE9Ta3ZhbHVlX3N0YXRlaXNwZWNpZmllZGxpbnRlbnRfbW9kZXOBZ1JFUVVFU1RudGF4b25vbXlfcGF0aHOBeCd0b3MudGF4b25vbXkudjEvc2VydmljZS9zZWN1cml0eS9yZXZpZXdvc3ViamVjdF9jbGFzc2VzgWdTRVJWSUNFcWZ1bGZpbGxtZW50X21vZGVzgWZyZW1vdGVxZGV0YWlsX2Rlc2NyaXB0b3KkbGNvbnRlbnRfc2l6ZRgebGNvbnRlbnRfdHlwZWp0ZXh0L3BsYWlubmNvbnRlbnRfZGlnZXN0eEdzaGEyNTY6MzA4OTBmZjQ3YzA4NGI1NDE2NTJmOTk2OGRlM2MzYTE5NzU0NWM0MTI5ZmI2ZTljMmQzYWQ5NjM5Y2YxNDk4YW5pbmxpbmVfY29udGVudHgoY21WMmFXVjNJRzl1WlNCaWIzVnVaR1ZrSUhOdmRYSmpaU0IwY21WbGhhdWRpZW5jZXBwdWJsaWM6aW5kZXhhYmxlaHJldmlzaW9uAWlvYmplY3RfaWR4R2ludGVudDpiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiam5ldHdvcmtfaWRrdG9zOnRlc3RuZXRuc2NoZW1hX3ZlcnNpb24Bb2NyZWF0ZWRfYXRfdW5peBp3NZQAb2V4cGlyZXNfYXRfdW5peBp3NaIQb2lzc3Vlcl9hZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ==",
+      "digest": "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78"
+    },
+    {
+      "name": "signed_intent",
+      "digest_domain": "tos.fixture.signed-agent-intent.v1",
+      "json_model": {
+        "body": {
+          "schema_version": 1,
+          "network_id": "tos:testnet",
+          "issuer_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "audience": "public:indexable",
+          "object_id": "intent:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "revision": 1,
+          "created_at_unix": 2000000000,
+          "expires_at_unix": 2000003600,
+          "payload": {
+            "discovery_card": {
+              "summary": "Review source",
+              "intent_modes": [
+                "REQUEST"
+              ],
+              "subject_classes": [
+                "SERVICE"
+              ],
+              "taxonomy_paths": [
+                "tos.taxonomy.v1/service/security/review"
+              ],
+              "keywords": [
+                {
+                  "text": "review",
+                  "language": "en"
+                }
+              ],
+              "value_state": "specified",
+              "value_hints": [
+                {
+                  "role": "budget",
+                  "asset_namespace": "tos.native",
+                  "asset_identifier": "TOS",
+                  "amount_kind": "exact",
+                  "minimum_decimal": "50",
+                  "maximum_decimal": "50",
+                  "unit": "total"
+                }
+              ],
+              "schedule": {
+                "flexibility": "flexible"
+              },
+              "fulfillment_modes": [
+                "remote"
+              ]
+            },
+            "detail_descriptor": {
+              "content_type": "text/plain",
+              "content_digest": "sha256:30890ff47c084b541652f9968de3c3a197545c4129fb6e9c2d3ad9639cf1498a",
+              "content_size": 30,
+              "inline_content": "cmV2aWV3IG9uZSBib3VuZGVkIHNvdXJjZSB0cmVl"
+            },
+            "reply_routes": [
+              {
+                "profile_uri": "tos.messenger.direct.v1",
+                "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            ]
+          }
+        },
+        "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "signature": "ed25519:8Ty5lVVtJK8KrIRPMxgmtrbtSA9ZHZ2_7pxxaz4bAh4JjJtbbC9dGtNVsZLYDweazDHtVELxYqU_o8a1axCGDg"
+      },
+      "canonical_cbor_base64": "o2Rib2R5qWdwYXlsb2Fko2xyZXBseV9yb3V0ZXOBomhhZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWtwcm9maWxlX3VyaXd0b3MubWVzc2VuZ2VyLmRpcmVjdC52MW5kaXNjb3ZlcnlfY2FyZKlnc3VtbWFyeW1SZXZpZXcgc291cmNlaGtleXdvcmRzgaJkdGV4dGZyZXZpZXdobGFuZ3VhZ2ViZW5oc2NoZWR1bGWha2ZsZXhpYmlsaXR5aGZsZXhpYmxla3ZhbHVlX2hpbnRzgadkcm9sZWZidWRnZXRkdW5pdGV0b3RhbGthbW91bnRfa2luZGVleGFjdG9hc3NldF9uYW1lc3BhY2VqdG9zLm5hdGl2ZW9tYXhpbXVtX2RlY2ltYWxiNTBvbWluaW11bV9kZWNpbWFsYjUwcGFzc2V0X2lkZW50aWZpZXJjVE9Ta3ZhbHVlX3N0YXRlaXNwZWNpZmllZGxpbnRlbnRfbW9kZXOBZ1JFUVVFU1RudGF4b25vbXlfcGF0aHOBeCd0b3MudGF4b25vbXkudjEvc2VydmljZS9zZWN1cml0eS9yZXZpZXdvc3ViamVjdF9jbGFzc2VzgWdTRVJWSUNFcWZ1bGZpbGxtZW50X21vZGVzgWZyZW1vdGVxZGV0YWlsX2Rlc2NyaXB0b3KkbGNvbnRlbnRfc2l6ZRgebGNvbnRlbnRfdHlwZWp0ZXh0L3BsYWlubmNvbnRlbnRfZGlnZXN0eEdzaGEyNTY6MzA4OTBmZjQ3YzA4NGI1NDE2NTJmOTk2OGRlM2MzYTE5NzU0NWM0MTI5ZmI2ZTljMmQzYWQ5NjM5Y2YxNDk4YW5pbmxpbmVfY29udGVudHgoY21WMmFXVjNJRzl1WlNCaWIzVnVaR1ZrSUhOdmRYSmpaU0IwY21WbGhhdWRpZW5jZXBwdWJsaWM6aW5kZXhhYmxlaHJldmlzaW9uAWlvYmplY3RfaWR4R2ludGVudDpiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiam5ldHdvcmtfaWRrdG9zOnRlc3RuZXRuc2NoZW1hX3ZlcnNpb24Bb2NyZWF0ZWRfYXRfdW5peBp3NZQAb2V4cGlyZXNfYXRfdW5peBp3NaIQb2lzc3Vlcl9hZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWlzaWduYXR1cmV4XmVkMjU1MTk6OFR5NWxWVnRKSzhLcklSUE14Z210cmJ0U0E5WkhaMl83cHh4YXo0YkFoNEpqSnRiYkM5ZEd0TlZzWkxZRHdlYXpESHRWRUx4WXFVX284YTFheENHRGdqcHVibGljX2tleXhIZWQyNTUxOTo3OWI1NTYyZThmZTY1NGY5NDA3OGIxMTJlOGE5OGJhNzkwMWY4NTNhZTY5NWJlZDdlMGUzOTEwYmFkMDQ5NjY0",
+      "digest": "sha256:905accd40e7538f3fe79c5ea150ffa1e8b294b246a522176576542a201199e93"
+    },
+    {
+      "name": "intent_withdrawal_body",
+      "digest_domain": "tos.agent-intent-withdrawal-body.v1",
+      "json_model": {
+        "schema_version": 1,
+        "network_id": "tos:testnet",
+        "issuer_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "audience": "public:indexable",
+        "object_id": "intent:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "intent_revision": 1,
+        "intent_digest": "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78",
+        "reason_code": "capacity-unavailable",
+        "created_at_unix": 2000000000,
+        "expires_at_unix": 2000001800
+      },
+      "canonical_cbor_base64": "qmhhdWRpZW5jZXBwdWJsaWM6aW5kZXhhYmxlaW9iamVjdF9pZHhHaW50ZW50OmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJqbmV0d29ya19pZGt0b3M6dGVzdG5ldGtyZWFzb25fY29kZXRjYXBhY2l0eS11bmF2YWlsYWJsZW1pbnRlbnRfZGlnZXN0eEdzaGEyNTY6NjYzYjBkZTU2MzJiZDljMWFlMzJiNzJlNDMxZmMwODQyMzUyZjFlMDIwODRlM2RiZWY0ZDFlZjg3NjU0NWM3OG5zY2hlbWFfdmVyc2lvbgFvY3JlYXRlZF9hdF91bml4Gnc1lABvZXhwaXJlc19hdF91bml4Gnc1mwhvaW50ZW50X3JldmlzaW9uAW9pc3N1ZXJfYWdlbnRfaWR4RmFnZW50OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=",
+      "digest": "sha256:4921a63db35abc009b7e7631d7c942f8c2098912ec8d6f9cb793f4c02ed30202"
+    },
+    {
+      "name": "signed_intent_withdrawal",
+      "digest_domain": "tos.fixture.signed-intent-withdrawal.v1",
+      "json_model": {
+        "body": {
+          "schema_version": 1,
+          "network_id": "tos:testnet",
+          "issuer_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "audience": "public:indexable",
+          "object_id": "intent:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "intent_revision": 1,
+          "intent_digest": "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78",
+          "reason_code": "capacity-unavailable",
+          "created_at_unix": 2000000000,
+          "expires_at_unix": 2000001800
+        },
+        "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "signature": "ed25519:xZJ-4habnRkRzsI8MT886Zsg5tJHkkWVKhfHkSWJcyTldPUABDfo1_GZ-lRPvSKm6jNwC5XiVSMK23qSrTXGBg"
+      },
+      "canonical_cbor_base64": "o2Rib2R5qmhhdWRpZW5jZXBwdWJsaWM6aW5kZXhhYmxlaW9iamVjdF9pZHhHaW50ZW50OmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJqbmV0d29ya19pZGt0b3M6dGVzdG5ldGtyZWFzb25fY29kZXRjYXBhY2l0eS11bmF2YWlsYWJsZW1pbnRlbnRfZGlnZXN0eEdzaGEyNTY6NjYzYjBkZTU2MzJiZDljMWFlMzJiNzJlNDMxZmMwODQyMzUyZjFlMDIwODRlM2RiZWY0ZDFlZjg3NjU0NWM3OG5zY2hlbWFfdmVyc2lvbgFvY3JlYXRlZF9hdF91bml4Gnc1lABvZXhwaXJlc19hdF91bml4Gnc1mwhvaW50ZW50X3JldmlzaW9uAW9pc3N1ZXJfYWdlbnRfaWR4RmFnZW50OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFpc2lnbmF0dXJleF5lZDI1NTE5OnhaSi00aGFiblJrUnpzSThNVDg4NlpzZzV0Skhra1dWS2hmSGtTV0pjeVRsZFBVQUJEZm8xX0daLWxSUHZTS202ak53QzVYaVZTTUsyM3FTclRYR0JnanB1YmxpY19rZXl4SGVkMjU1MTk6NzliNTU2MmU4ZmU2NTRmOTQwNzhiMTEyZThhOThiYTc5MDFmODUzYWU2OTViZWQ3ZTBlMzkxMGJhZDA0OTY2NA==",
+      "digest": "sha256:e8c459ecc86847163cc4c5f6bb89f47f3a958a6235aac157be8771411f1fe932"
+    },
+    {
+      "name": "agreement_body",
+      "digest_domain": "tos.agent-agreement-body.v1",
+      "json_model": {
+        "schema_version": 1,
+        "agreement_id": "agreement:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "version": 1,
+        "network_context": "tos:testnet",
+        "participants": [
+          {
+            "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "roles": [
+              "provider"
+            ]
+          },
+          {
+            "agent_id": "agent:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "roles": [
+              "buyer"
+            ]
+          }
+        ],
+        "referenced_intents": [
+          "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78"
+        ],
+        "terms_content_type": "text/plain",
+        "terms": "b25lIGJvdW5kZWQgcmV2aWV3IGZvciA1MCBhdG9taWMgdW5pdHM=",
+        "obligations": [
+          {
+            "obligation_id": "work",
+            "kind": "service",
+            "obligor_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "beneficiary_agent_id": "agent:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_content_type": "text/plain",
+            "subject": "cGVyZm9ybSByZXZpZXc=",
+            "confidentiality_and_disclosure_policy": "private",
+            "cancellation_policy": "before-start",
+            "dispute_policy": "evidence",
+            "authorization_predicate_ids": [
+              "provider-work"
+            ]
+          }
+        ],
+        "authorization_predicates": [
+          {
+            "predicate_id": "provider-work",
+            "authority_subject": {
+              "subject_kind": "agent",
+              "subject_namespace": "tos.agent",
+              "subject_identifier": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "role_scope": [
+              "provider"
+            ],
+            "obligation_ids": [
+              "work"
+            ],
+            "evidence_profile_uri": "tos.agreement.evidence.agent-signature.v1",
+            "evidence_profile_version": 1,
+            "evidence_profile_digest": "sha256:4a8eaf43746a0aeb781a75469f0b508f90efb73f4dc25e6707b61cd0d5c8268d",
+            "evidence_target_projection_digest": "sha256:a788ddabab7ad786a8e5ad4ad52f1c255fda03bfd514a575b4d50a922e52b212",
+            "expires_at_unix": 2000003600
+          }
+        ],
+        "valid_from_unix": 2000000000,
+        "expires_at_unix": 2000003600
+      },
+      "canonical_cbor_base64": "rGV0ZXJtc3g0YjI1bElHSnZkVzVrWldRZ2NtVjJhV1YzSUdadmNpQTFNQ0JoZEc5dGFXTWdkVzVwZEhNPWd2ZXJzaW9uAWtvYmxpZ2F0aW9uc4GqZGtpbmRnc2VydmljZWdzdWJqZWN0dGNHVnlabTl5YlNCeVpYWnBaWGM9bW9ibGlnYXRpb25faWRkd29ya25kaXNwdXRlX3BvbGljeWhldmlkZW5jZXBvYmxpZ29yX2FnZW50X2lkeEZhZ2VudDphYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhc2NhbmNlbGxhdGlvbl9wb2xpY3lsYmVmb3JlLXN0YXJ0dGJlbmVmaWNpYXJ5X2FnZW50X2lkeEZhZ2VudDpjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjdHN1YmplY3RfY29udGVudF90eXBlanRleHQvcGxhaW54G2F1dGhvcml6YXRpb25fcHJlZGljYXRlX2lkc4FtcHJvdmlkZXItd29ya3glY29uZmlkZW50aWFsaXR5X2FuZF9kaXNjbG9zdXJlX3BvbGljeWdwcml2YXRlbGFncmVlbWVudF9pZHhKYWdyZWVtZW50OmRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRscGFydGljaXBhbnRzgqJlcm9sZXOBaHByb3ZpZGVyaGFnZW50X2lkeEZhZ2VudDphYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhomVyb2xlc4FlYnV5ZXJoYWdlbnRfaWR4RmFnZW50OmNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Nuc2NoZW1hX3ZlcnNpb24Bb2V4cGlyZXNfYXRfdW5peBp3NaIQb25ldHdvcmtfY29udGV4dGt0b3M6dGVzdG5ldG92YWxpZF9mcm9tX3VuaXgadzWUAHJyZWZlcmVuY2VkX2ludGVudHOBeEdzaGEyNTY6NjYzYjBkZTU2MzJiZDljMWFlMzJiNzJlNDMxZmMwODQyMzUyZjFlMDIwODRlM2RiZWY0ZDFlZjg3NjU0NWM3OHJ0ZXJtc19jb250ZW50X3R5cGVqdGV4dC9wbGFpbngYYXV0aG9yaXphdGlvbl9wcmVkaWNhdGVzgalqcm9sZV9zY29wZYFocHJvdmlkZXJscHJlZGljYXRlX2lkbXByb3ZpZGVyLXdvcmtub2JsaWdhdGlvbl9pZHOBZHdvcmtvZXhwaXJlc19hdF91bml4Gnc1ohBxYXV0aG9yaXR5X3N1YmplY3SjbHN1YmplY3Rfa2luZGVhZ2VudHFzdWJqZWN0X25hbWVzcGFjZWl0b3MuYWdlbnRyc3ViamVjdF9pZGVudGlmaWVyeEZhZ2VudDphYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhdGV2aWRlbmNlX3Byb2ZpbGVfdXJpeCl0b3MuYWdyZWVtZW50LmV2aWRlbmNlLmFnZW50LXNpZ25hdHVyZS52MXdldmlkZW5jZV9wcm9maWxlX2RpZ2VzdHhHc2hhMjU2OjRhOGVhZjQzNzQ2YTBhZWI3ODFhNzU0NjlmMGI1MDhmOTBlZmI3M2Y0ZGMyNWU2NzA3YjYxY2QwZDVjODI2OGR4GGV2aWRlbmNlX3Byb2ZpbGVfdmVyc2lvbgF4IWV2aWRlbmNlX3RhcmdldF9wcm9qZWN0aW9uX2RpZ2VzdHhHc2hhMjU2OmE3ODhkZGFiYWI3YWQ3ODZhOGU1YWQ0YWQ1MmYxYzI1NWZkYTAzYmZkNTE0YTU3NWI0ZDUwYTkyMmU1MmIyMTI=",
+      "digest": "sha256:f70288ac67b84f06adfca45cea3332e44741c597271f162ea0a983262699385e"
+    },
+    {
+      "name": "intent_application_v2",
+      "digest_domain": "tos.intent-application.v1",
+      "json_model": {
+        "schema_version": 2,
+        "intent_digest": "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78",
+        "intent_issuer_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "applicant_agent_id": "agent:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "message": "A non-authorizing generic Agreement proposal.",
+        "settlement_offers": [
+          {
+            "adapter_uri": "tos.payment.direct.v1",
+            "required": true
+          }
+        ],
+        "proposed_agreement_body": {
+          "schema_version": 1,
+          "agreement_id": "agreement:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "version": 1,
+          "network_context": "tos:testnet",
+          "participants": [
+            {
+              "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "roles": [
+                "provider"
+              ]
+            },
+            {
+              "agent_id": "agent:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "roles": [
+                "buyer"
+              ]
+            }
+          ],
+          "referenced_intents": [
+            "sha256:663b0de5632bd9c1ae32b72e431fc0842352f1e02084e3dbef4d1ef876545c78"
+          ],
+          "terms_content_type": "text/plain",
+          "terms": "b25lIGJvdW5kZWQgcmV2aWV3IGZvciA1MCBhdG9taWMgdW5pdHM=",
+          "obligations": [
+            {
+              "obligation_id": "work",
+              "kind": "service",
+              "obligor_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "beneficiary_agent_id": "agent:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "subject_content_type": "text/plain",
+              "subject": "cGVyZm9ybSByZXZpZXc=",
+              "confidentiality_and_disclosure_policy": "private",
+              "cancellation_policy": "before-start",
+              "dispute_policy": "evidence",
+              "authorization_predicate_ids": [
+                "provider-work"
+              ]
+            }
+          ],
+          "authorization_predicates": [
+            {
+              "predicate_id": "provider-work",
+              "authority_subject": {
+                "subject_kind": "agent",
+                "subject_namespace": "tos.agent",
+                "subject_identifier": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "role_scope": [
+                "provider"
+              ],
+              "obligation_ids": [
+                "work"
+              ],
+              "evidence_profile_uri": "tos.agreement.evidence.agent-signature.v1",
+              "evidence_profile_version": 1,
+              "evidence_profile_digest": "sha256:4a8eaf43746a0aeb781a75469f0b508f90efb73f4dc25e6707b61cd0d5c8268d",
+              "evidence_target_projection_digest": "sha256:a788ddabab7ad786a8e5ad4ad52f1c255fda03bfd514a575b4d50a922e52b212",
+              "expires_at_unix": 2000003600
+            }
+          ],
+          "valid_from_unix": 2000000000,
+          "expires_at_unix": 2000003600
+        },
+        "expires_at_unix": 2000003600
+      },
+      "canonical_cbor_base64": "qGdtZXNzYWdleC1BIG5vbi1hdXRob3JpemluZyBnZW5lcmljIEFncmVlbWVudCBwcm9wb3NhbC5taW50ZW50X2RpZ2VzdHhHc2hhMjU2OjY2M2IwZGU1NjMyYmQ5YzFhZTMyYjcyZTQzMWZjMDg0MjM1MmYxZTAyMDg0ZTNkYmVmNGQxZWY4NzY1NDVjNzhuc2NoZW1hX3ZlcnNpb24Cb2V4cGlyZXNfYXRfdW5peBp3NaIQcXNldHRsZW1lbnRfb2ZmZXJzgaJocmVxdWlyZWT1a2FkYXB0ZXJfdXJpdXRvcy5wYXltZW50LmRpcmVjdC52MXJhcHBsaWNhbnRfYWdlbnRfaWR4RmFnZW50OmNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2N2aW50ZW50X2lzc3Vlcl9hZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYXdwcm9wb3NlZF9hZ3JlZW1lbnRfYm9keaxldGVybXN4NGIyNWxJR0p2ZFc1a1pXUWdjbVYyYVdWM0lHWnZjaUExTUNCaGRHOXRhV01nZFc1cGRITT1ndmVyc2lvbgFrb2JsaWdhdGlvbnOBqmRraW5kZ3NlcnZpY2Vnc3ViamVjdHRjR1Z5Wm05eWJTQnlaWFpwWlhjPW1vYmxpZ2F0aW9uX2lkZHdvcmtuZGlzcHV0ZV9wb2xpY3loZXZpZGVuY2Vwb2JsaWdvcl9hZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYXNjYW5jZWxsYXRpb25fcG9saWN5bGJlZm9yZS1zdGFydHRiZW5lZmljaWFyeV9hZ2VudF9pZHhGYWdlbnQ6Y2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY3RzdWJqZWN0X2NvbnRlbnRfdHlwZWp0ZXh0L3BsYWlueBthdXRob3JpemF0aW9uX3ByZWRpY2F0ZV9pZHOBbXByb3ZpZGVyLXdvcmt4JWNvbmZpZGVudGlhbGl0eV9hbmRfZGlzY2xvc3VyZV9wb2xpY3lncHJpdmF0ZWxhZ3JlZW1lbnRfaWR4SmFncmVlbWVudDpkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkbHBhcnRpY2lwYW50c4KiZXJvbGVzgWhwcm92aWRlcmhhZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYaJlcm9sZXOBZWJ1eWVyaGFnZW50X2lkeEZhZ2VudDpjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjbnNjaGVtYV92ZXJzaW9uAW9leHBpcmVzX2F0X3VuaXgadzWiEG9uZXR3b3JrX2NvbnRleHRrdG9zOnRlc3RuZXRvdmFsaWRfZnJvbV91bml4Gnc1lABycmVmZXJlbmNlZF9pbnRlbnRzgXhHc2hhMjU2OjY2M2IwZGU1NjMyYmQ5YzFhZTMyYjcyZTQzMWZjMDg0MjM1MmYxZTAyMDg0ZTNkYmVmNGQxZWY4NzY1NDVjNzhydGVybXNfY29udGVudF90eXBlanRleHQvcGxhaW54GGF1dGhvcml6YXRpb25fcHJlZGljYXRlc4GpanJvbGVfc2NvcGWBaHByb3ZpZGVybHByZWRpY2F0ZV9pZG1wcm92aWRlci13b3Jrbm9ibGlnYXRpb25faWRzgWR3b3Jrb2V4cGlyZXNfYXRfdW5peBp3NaIQcWF1dGhvcml0eV9zdWJqZWN0o2xzdWJqZWN0X2tpbmRlYWdlbnRxc3ViamVjdF9uYW1lc3BhY2VpdG9zLmFnZW50cnN1YmplY3RfaWRlbnRpZmllcnhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYXRldmlkZW5jZV9wcm9maWxlX3VyaXgpdG9zLmFncmVlbWVudC5ldmlkZW5jZS5hZ2VudC1zaWduYXR1cmUudjF3ZXZpZGVuY2VfcHJvZmlsZV9kaWdlc3R4R3NoYTI1Njo0YThlYWY0Mzc0NmEwYWViNzgxYTc1NDY5ZjBiNTA4ZjkwZWZiNzNmNGRjMjVlNjcwN2I2MWNkMGQ1YzgyNjhkeBhldmlkZW5jZV9wcm9maWxlX3ZlcnNpb24BeCFldmlkZW5jZV90YXJnZXRfcHJvamVjdGlvbl9kaWdlc3R4R3NoYTI1NjphNzg4ZGRhYmFiN2FkNzg2YThlNWFkNGFkNTJmMWMyNTVmZGEwM2JmZDUxNGE1NzViNGQ1MGE5MjJlNTJiMjEy",
+      "digest": "sha256:8f814fe00226a2b40b588d61c209de95acccff457437545d1a012b0686f392a5"
+    },
+    {
+      "name": "writer_fence_body",
+      "digest_domain": "tos.fixture.writer-fence-body.v1",
+      "json_model": {
+        "schema_version": 1,
+        "owner_id": "owner:test",
+        "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "instance_id": "instance:test",
+        "lease_id": "lease:test",
+        "writer_generation": 7,
+        "issued_at_unix": 2000000000,
+        "expires_at_unix": 2000003600,
+        "authority_id": "authority:test",
+        "scope": [
+          "messenger.contact"
+        ]
+      },
+      "canonical_cbor_base64": "qmVzY29wZYFxbWVzc2VuZ2VyLmNvbnRhY3RoYWdlbnRfaWR4RmFnZW50OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFobGVhc2VfaWRqbGVhc2U6dGVzdGhvd25lcl9pZGpvd25lcjp0ZXN0a2luc3RhbmNlX2lkbWluc3RhbmNlOnRlc3RsYXV0aG9yaXR5X2lkbmF1dGhvcml0eTp0ZXN0bmlzc3VlZF9hdF91bml4Gnc1lABuc2NoZW1hX3ZlcnNpb24Bb2V4cGlyZXNfYXRfdW5peBp3NaIQcXdyaXRlcl9nZW5lcmF0aW9uBw==",
+      "digest": "sha256:ef3a916d2c69cf481548d5e7097999df6f0a1e5e4f0b82ecf978022b5067bb10"
+    },
+    {
+      "name": "writer_fence",
+      "digest_domain": "tos.writer-fence-envelope.v1",
+      "json_model": {
+        "body": {
+          "schema_version": 1,
+          "owner_id": "owner:test",
+          "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "instance_id": "instance:test",
+          "lease_id": "lease:test",
+          "writer_generation": 7,
+          "issued_at_unix": 2000000000,
+          "expires_at_unix": 2000003600,
+          "authority_id": "authority:test",
+          "scope": [
+            "messenger.contact"
+          ]
+        },
+        "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "fence_proof": "ed25519:p0hONTXT4nOvLGHsUV5pb2h_q6fgGJeV-sBjlpncugvU0Ct4daCqcRLqOnXWHsqf05aMbOabgPqNLM27fcoMBw"
+      },
+      "canonical_cbor_base64": "o2Rib2R5qmVzY29wZYFxbWVzc2VuZ2VyLmNvbnRhY3RoYWdlbnRfaWR4RmFnZW50OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFobGVhc2VfaWRqbGVhc2U6dGVzdGhvd25lcl9pZGpvd25lcjp0ZXN0a2luc3RhbmNlX2lkbWluc3RhbmNlOnRlc3RsYXV0aG9yaXR5X2lkbmF1dGhvcml0eTp0ZXN0bmlzc3VlZF9hdF91bml4Gnc1lABuc2NoZW1hX3ZlcnNpb24Bb2V4cGlyZXNfYXRfdW5peBp3NaIQcXdyaXRlcl9nZW5lcmF0aW9uB2pwdWJsaWNfa2V5eEhlZDI1NTE5Ojc5YjU1NjJlOGZlNjU0Zjk0MDc4YjExMmU4YTk4YmE3OTAxZjg1M2FlNjk1YmVkN2UwZTM5MTBiYWQwNDk2NjRrZmVuY2VfcHJvb2Z4XmVkMjU1MTk6cDBoT05UWFQ0bk92TEdIc1VWNXBiMmhfcTZmZ0dKZVYtc0JqbHBuY3VndlUwQ3Q0ZGFDcWNSTHFPblhXSHNxZjA1YU1iT2FiZ1BxTkxNMjdmY29NQnc=",
+      "digest": "sha256:40efb6ac198d995515938e6268e71a357fe5254d38ebc1042a5cdcc1712aac60"
+    },
+    {
+      "name": "authorized_action",
+      "digest_domain": "tos.fixture.authorized-action.v1",
+      "json_model": {
+        "schema_version": 1,
+        "owner_id": "owner:test",
+        "agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "action_kind": "messenger.contact",
+        "stable_action_id": "sha256:b6df6d48faa9836a4e66d74b1b4b184b14e62f81a98073350c10116fe507ba18",
+        "exact_request_digest": "sha256:f4082d6dc121513a3102c007834422d3acbfec0d3e54352ecf514a573ff9bc7a",
+        "writer_generation": 7,
+        "writer_fence_digest": "sha256:40efb6ac198d995515938e6268e71a357fe5254d38ebc1042a5cdcc1712aac60",
+        "policy_revision": 3,
+        "mandate_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "expected_prior_state": "no-contact",
+        "expires_at_unix": 2000001800,
+        "authority_id": "authority:test",
+        "authority_public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "authorization_proof": "ed25519:nCSU11hy8R3G_SNrrW1_cFFSzTdTeC4DI-DPvHPxK6fbJ3bZtsdIi09wxa8CYHUeynsD_C5iRJ2pvGUuVzzOAA"
+      },
+      "canonical_cbor_base64": "r2hhZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWhvd25lcl9pZGpvd25lcjp0ZXN0a2FjdGlvbl9raW5kcW1lc3Nlbmdlci5jb250YWN0bGF1dGhvcml0eV9pZG5hdXRob3JpdHk6dGVzdG5tYW5kYXRlX2RpZ2VzdHhHc2hhMjU2OmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZuc2NoZW1hX3ZlcnNpb24Bb2V4cGlyZXNfYXRfdW5peBp3NZsIb3BvbGljeV9yZXZpc2lvbgNwc3RhYmxlX2FjdGlvbl9pZHhHc2hhMjU2OmI2ZGY2ZDQ4ZmFhOTgzNmE0ZTY2ZDc0YjFiNGIxODRiMTRlNjJmODFhOTgwNzMzNTBjMTAxMTZmZTUwN2JhMThxd3JpdGVyX2dlbmVyYXRpb24Hc2F1dGhvcml6YXRpb25fcHJvb2Z4XmVkMjU1MTk6bkNTVTExaHk4UjNHX1NOcnJXMV9jRkZTelRkVGVDNERJLURQdkhQeEs2ZmJKM2JadHNkSWkwOXd4YThDWUhVZXluc0RfQzVpUkoycHZHVXVWenpPQUFzd3JpdGVyX2ZlbmNlX2RpZ2VzdHhHc2hhMjU2OjQwZWZiNmFjMTk4ZDk5NTUxNTkzOGU2MjY4ZTcxYTM1N2ZlNTI1NGQzOGViYzEwNDJhNWNkY2MxNzEyYWFjNjB0YXV0aG9yaXR5X3B1YmxpY19rZXl4SGVkMjU1MTk6NzliNTU2MmU4ZmU2NTRmOTQwNzhiMTEyZThhOThiYTc5MDFmODUzYWU2OTViZWQ3ZTBlMzkxMGJhZDA0OTY2NHRleGFjdF9yZXF1ZXN0X2RpZ2VzdHhHc2hhMjU2OmY0MDgyZDZkYzEyMTUxM2EzMTAyYzAwNzgzNDQyMmQzYWNiZmVjMGQzZTU0MzUyZWNmNTE0YTU3M2ZmOWJjN2F0ZXhwZWN0ZWRfcHJpb3Jfc3RhdGVqbm8tY29udGFjdA==",
+      "digest": "sha256:e2fd3f6e4926ec4358d8805ca984ed89c6b90b226dfc11299a82c6fdbc809046"
+    },
+    {
+      "name": "external_payment_attestation_body",
+      "digest_domain": "tos.external-payment-attestation-body.v1",
+      "json_model": {
+        "schema_version": 1,
+        "adapter_uri": "tos.payment.external-attested.v1",
+        "attestor_id": "attestor:test",
+        "payment_request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "stable_action_id": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "exact_transfer_reference": "external:test:transfer:1",
+        "finality_reference": "external:test:finality:1",
+        "resolved_at_unix": 2000000000,
+        "expires_at_unix": 2000003600
+      },
+      "canonical_cbor_base64": "qWthZGFwdGVyX3VyaXggdG9zLnBheW1lbnQuZXh0ZXJuYWwtYXR0ZXN0ZWQudjFrYXR0ZXN0b3JfaWRtYXR0ZXN0b3I6dGVzdG5zY2hlbWFfdmVyc2lvbgFvZXhwaXJlc19hdF91bml4Gnc1ohBwcmVzb2x2ZWRfYXRfdW5peBp3NZQAcHN0YWJsZV9hY3Rpb25faWR4R3NoYTI1NjoyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIycmZpbmFsaXR5X3JlZmVyZW5jZXgYZXh0ZXJuYWw6dGVzdDpmaW5hbGl0eToxdnBheW1lbnRfcmVxdWVzdF9kaWdlc3R4R3NoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExeBhleGFjdF90cmFuc2Zlcl9yZWZlcmVuY2V4GGV4dGVybmFsOnRlc3Q6dHJhbnNmZXI6MQ==",
+      "digest": "sha256:f400bc3ae74b29a7ec4965472392ac61f159490c3cc9108ee8f5f02f50fc61a5"
+    },
+    {
+      "name": "signed_external_payment_attestation",
+      "digest_domain": "tos.fixture.signed-external-payment-attestation.v1",
+      "json_model": {
+        "body": {
+          "schema_version": 1,
+          "adapter_uri": "tos.payment.external-attested.v1",
+          "attestor_id": "attestor:test",
+          "payment_request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "stable_action_id": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "exact_transfer_reference": "external:test:transfer:1",
+          "finality_reference": "external:test:finality:1",
+          "resolved_at_unix": 2000000000,
+          "expires_at_unix": 2000003600
+        },
+        "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "signature": "ed25519:6EPL8SgWCUSSMiKeocmTxb8hv2azDjhLqIUSuVut3xDkdi_UAFxYVSC57o9Xdl1f8oxgpjSLbHtZzTWSs7WeAg"
+      },
+      "canonical_cbor_base64": "o2Rib2R5qWthZGFwdGVyX3VyaXggdG9zLnBheW1lbnQuZXh0ZXJuYWwtYXR0ZXN0ZWQudjFrYXR0ZXN0b3JfaWRtYXR0ZXN0b3I6dGVzdG5zY2hlbWFfdmVyc2lvbgFvZXhwaXJlc19hdF91bml4Gnc1ohBwcmVzb2x2ZWRfYXRfdW5peBp3NZQAcHN0YWJsZV9hY3Rpb25faWR4R3NoYTI1NjoyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIycmZpbmFsaXR5X3JlZmVyZW5jZXgYZXh0ZXJuYWw6dGVzdDpmaW5hbGl0eToxdnBheW1lbnRfcmVxdWVzdF9kaWdlc3R4R3NoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExeBhleGFjdF90cmFuc2Zlcl9yZWZlcmVuY2V4GGV4dGVybmFsOnRlc3Q6dHJhbnNmZXI6MWlzaWduYXR1cmV4XmVkMjU1MTk6NkVQTDhTZ1dDVVNTTWlLZW9jbVR4YjhodjJhekRqaExxSVVTdVZ1dDN4RGtkaV9VQUZ4WVZTQzU3bzlYZGwxZjhveGdwalNMYkh0WnpUV1NzN1dlQWdqcHVibGljX2tleXhIZWQyNTUxOTo3OWI1NTYyZThmZTY1NGY5NDA3OGIxMTJlOGE5OGJhNzkwMWY4NTNhZTY5NWJlZDdlMGUzOTEwYmFkMDQ5NjY0",
+      "digest": "sha256:7b5b291cdc6a649fc48a95ac2bb2d9814f26d0a3f24f76bfed152cc419dda04b"
+    }
+  ],
+  "signatures": [
+    {
+      "name": "intent",
+      "object_name": "intent_body",
+      "message_formula": "length-framed-sha256",
+      "message_domain": "tos.agent-intent-signature.v1",
+      "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "signature": "ed25519:8Ty5lVVtJK8KrIRPMxgmtrbtSA9ZHZ2_7pxxaz4bAh4JjJtbbC9dGtNVsZLYDweazDHtVELxYqU_o8a1axCGDg",
+      "expected_message_hex": "78e40d1f2a4dd0a46038062e138980d7a94614c9fd2944f62c76c4017b5d8890"
+    },
+    {
+      "name": "intent_withdrawal",
+      "object_name": "intent_withdrawal_body",
+      "message_formula": "length-framed-sha256",
+      "message_domain": "tos.agent-intent-withdrawal-signature.v1",
+      "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "signature": "ed25519:xZJ-4habnRkRzsI8MT886Zsg5tJHkkWVKhfHkSWJcyTldPUABDfo1_GZ-lRPvSKm6jNwC5XiVSMK23qSrTXGBg",
+      "expected_message_hex": "aed197070c801023180eca9dbdf46045d4228223380f74e7205906063a3c06a6"
+    },
+    {
+      "name": "writer_fence",
+      "object_name": "writer_fence_body",
+      "message_formula": "framed-sha256",
+      "message_domain": "tos.writer-fence.v1",
+      "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "signature": "ed25519:p0hONTXT4nOvLGHsUV5pb2h_q6fgGJeV-sBjlpncugvU0Ct4daCqcRLqOnXWHsqf05aMbOabgPqNLM27fcoMBw",
+      "expected_message_hex": "37d1edf03ef6ca9c53723ff3fb55ce5a886495df5147c26c4505257554959a21"
+    },
+    {
+      "name": "authorized_action",
+      "object_name": "authorized_action",
+      "message_formula": "framed-sha256",
+      "message_domain": "tos.authorized-action-proof.v1",
+      "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "signature": "ed25519:nCSU11hy8R3G_SNrrW1_cFFSzTdTeC4DI-DPvHPxK6fbJ3bZtsdIi09wxa8CYHUeynsD_C5iRJ2pvGUuVzzOAA",
+      "expected_message_hex": "20b2a164ab79d125cef8b0cb83bc54bdc6b0a973ac5456d68c511a4dc7e78d50"
+    },
+    {
+      "name": "external_payment_attestation",
+      "object_name": "external_payment_attestation_body",
+      "message_formula": "domain-text-digest-sha256",
+      "message_domain": "TOS-EXTERNAL-PAYMENT-ATTESTATION-V1",
+      "public_key": "ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "signature": "ed25519:6EPL8SgWCUSSMiKeocmTxb8hv2azDjhLqIUSuVut3xDkdi_UAFxYVSC57o9Xdl1f8oxgpjSLbHtZzTWSs7WeAg",
+      "expected_message_hex": "a6f5606451bb2139330878fa167c6b2f4145b1dcae477d1f648700b3620dad1c"
+    }
+  ],
+  "negative_mutations": [
+    "mutated-intent-summary",
+    "mutated-signature",
+    "noncanonical-cbor"
+  ]
+}

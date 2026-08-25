@@ -1,0 +1,1031 @@
+{
+  "schema": "tos.semantic-action-registry.v1",
+  "entries": [
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "accounting.record",
+      "domain_tag": "tos.semantic-action.accounting.record.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "entry_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "classification",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "evidence_set_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "agreement.authorize",
+      "domain_tag": "tos.semantic-action.agreement.authorize.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_subject_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "predicate_set_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "evidence_profile_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "agreement.propose",
+      "domain_tag": "tos.semantic-action.agreement.propose.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "recipient_set_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "agreement.withdraw",
+      "domain_tag": "tos.semantic-action.agreement.withdraw.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "proposal_action_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "authority.instance",
+      "domain_tag": "tos.semantic-action.authority.instance.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "purpose_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "mandate_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "allocation_request_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_allocation_sequence",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "billing.materialize",
+      "domain_tag": "tos.semantic-action.billing.materialize.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "agreement_obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "sequence",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "billing.resolve",
+      "domain_tag": "tos.semantic-action.billing.resolve.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "obligation_instance_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "target_state",
+          "field_type": "state"
+        },
+        {
+          "field_name": "evidence_set_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "content.delete",
+      "domain_tag": "tos.semantic-action.content.delete.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "handoff_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "content_manifest_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "retention_policy_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "content.upload",
+      "domain_tag": "tos.semantic-action.content.upload.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "handoff_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "sender_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "receiver_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "content_manifest_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "credential.issue",
+      "domain_tag": "tos.semantic-action.credential.issue.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "execution_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "recipient_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "capability_descriptor_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "delivery.release",
+      "domain_tag": "tos.semantic-action.delivery.release.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "recipient_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "deliverable_manifest_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "disclosure.release",
+      "domain_tag": "tos.semantic-action.disclosure.release.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "recipient_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "content_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "purpose_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "escrow.transition",
+      "domain_tag": "tos.semantic-action.escrow.transition.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "quote_commitment",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "escrow_account_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "transition_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "expected_state_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "execution.prepare",
+      "domain_tag": "tos.semantic-action.execution.prepare.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "execution_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "execution.slot",
+      "domain_tag": "tos.semantic-action.execution.slot.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "execution_obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "canonical_plan_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "accepted_input_manifest_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "attempt_index",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "predecessor_terminal_resolution_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "execution.start",
+      "domain_tag": "tos.semantic-action.execution.start.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "execution_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "executor.effect",
+      "domain_tag": "tos.semantic-action.executor.effect.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "execution_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "plan_effect_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "effect_profile_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "target_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "operation_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "effect_semantic_key_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "gift.send",
+      "domain_tag": "tos.semantic-action.gift.send.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "recipient_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "asset_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "destination_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "messenger.contact",
+      "domain_tag": "tos.semantic-action.messenger.contact.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "recipient_agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "intent_reference_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "messenger.send",
+      "domain_tag": "tos.semantic-action.messenger.send.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "recipient_set_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "conversation_scope_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "payment.direct",
+      "domain_tag": "tos.semantic-action.payment.direct.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_instance_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "payer_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "payee_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "asset_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "destination_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "portfolio.release",
+      "domain_tag": "tos.semantic-action.portfolio.release.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "reservation_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "target_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "terminal_evidence_set_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "portfolio.reserve",
+      "domain_tag": "tos.semantic-action.portfolio.reserve.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "reservation_scope_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "target_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "publication.publish",
+      "domain_tag": "tos.semantic-action.publication.publish.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "carrier_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "intent_object_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "operation_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "publication.reply",
+      "domain_tag": "tos.semantic-action.publication.reply.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "carrier_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "parent_operation_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "publication.withdraw",
+      "domain_tag": "tos.semantic-action.publication.withdraw.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "carrier_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "intent_object_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "withdrawn_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "withdrawal_operation_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "reconcile.apply",
+      "domain_tag": "tos.semantic-action.reconcile.apply.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "scope_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "base_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "evidence_cut_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "schedule.dependency.transition",
+      "domain_tag": "tos.semantic-action.schedule.dependency.transition.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "upstream_agreement_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "upstream_obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "downstream_agreement_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "downstream_obligation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "dependency_type",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "dependency_class",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "transition_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "graph_base_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "schedule.entry.transition",
+      "domain_tag": "tos.semantic-action.schedule.entry.transition.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "schedule_entry_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "execution_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_state_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "target_state",
+          "field_type": "state"
+        },
+        {
+          "field_name": "target_dispatch_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "settlement.external",
+      "domain_tag": "tos.semantic-action.settlement.external.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "obligation_instance_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "adapter_profile_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "payer_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "payee_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "system_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "asset_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "destination_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 # OpenFox Autonomous Earning Roadmap
 
-**Status:** proposed implementation roadmap; wire schemas, implementations,
-conformance evidence, and production acceptance remain pending
+**Status:** reference implementation completed through the local three-node
+acceptance profile; public-testnet, cross-host, independent-operator, and
+production acceptance evidence remain separate release gates
 
 **Root architecture:**
 [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
@@ -17,6 +18,36 @@ conformance evidence, and production acceptance remain pending
 
 **OpenFox implementation plan:**
 [`OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md`](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
+
+**Executable local acceptance campaign:**
+[`../scripts/run-openfox-autonomous-earning-three-node.sh`](../scripts/run-openfox-autonomous-earning-three-node.sh)
+
+### Implementation snapshot
+
+The reference implementation now exists across all seven repositories. It
+includes the independent specification verifier and frozen vectors; production
+protocol codecs and authority checks; two separately implemented Carrier
+stores; OpenFox discovery, evaluation, negotiation, Agreement, Portfolio,
+scheduling, private handoff, Gate, execution, billing, settlement,
+reconciliation, publication and learning components; Messenger typed economic
+actions with sink-side fencing; executor ingress and Gate enforcement; custody
+action admission; and the released TOS Paid Demand V2 escrow profile.
+
+The local acceptance profile uses three independently queried TOS nodes and two
+OpenFox economic authorities. It exercises a signed provider Intent, exact
+Agreement compilation, mixed generic/native authorization, a real Native
+Agent and task Capability, buyer acceptance and stablecoin funding, finalized
+escrow observation, private execution admission, bounded work and delivery,
+Receipt-authorized release, and exact provider-wallet credit. It also removes
+one Carrier's complete database and proves recovery through the other Carrier
+before and after restart.
+
+This snapshot means the design is implemented and locally testable. It does
+not collapse the stricter production gates below: a same-host three-node run
+cannot prove independent operators, cross-host partition safety, public-testnet
+behavior, or an external security acceptance. Those claims require their own
+content-addressed evidence and do not justify weakening or bypassing a runtime
+Gate.
 
 ## 1. Purpose
 
@@ -320,6 +351,12 @@ Implement:
 - bounded Intent-referenced first contact;
 - disclosure, frequency, recipient, abuse, and owner-policy controls;
 - natural-language negotiation through authenticated Messenger;
+- V2 non-authorizing Intent applications carrying an optional complete generic
+  Agreement proposal graph for all Intent modes, with issuer-side exact-subject,
+  value, time, participant, predicate and Adapter validation;
+- owner-configured public settlement parameters in supply Intents so an
+  applicant can compile an exact destination/profile without inferring it from
+  prose; secrets and credentials are forbidden from this field;
 - compilation of one canonical multi-obligation Agreement body;
 - deterministic derivation of each obligation's mandatory typed predicates:
   always its obligor, plus the payer/custody principal for value, the refunding
@@ -441,6 +478,7 @@ correct work or authorize payment.
 
 Implement durable schedule and dependency records containing:
 
+- the exact Agreement body and execution-obligation identity for every entry;
 - writer and dispatch generations;
 - deadlines, priority, resource and exposure reservations;
 - dependency identity and type;
@@ -450,6 +488,11 @@ Implement durable schedule and dependency records containing:
 - downstream Agreement and obligation identity;
 - failure-propagation and disclosure policy; and
 - evidence-driven release and accounting updates.
+
+New entries use `EngagementScheduleEntryV2`. A migrated V1 entry without an
+exact execution-obligation identity remains readable but is conservatively
+held for reconciliation; migration never guesses that identity from an opaque
+execution digest.
 
 Takeover must reconcile dispatched, starting, running, and ambiguous entries
 before replacement work is admitted. Cancelling an upstream Agreement cannot
@@ -1100,6 +1143,26 @@ operators, stores, time windows, and exclusions, and demonstrates:
 
 Mocks and same-process happy paths are useful unit tests but are insufficient
 for cross-host, custody, Carrier-independence, or production claims.
+
+The reference source-loss campaign is
+[`../scripts/run-independent-carrier-source-loss.sh`](../scripts/run-independent-carrier-source-loss.sh).
+It compiles and starts the standalone Gateway and Messenger Carrier processes,
+publishes one exact signed Intent through both independent admission/action
+stores, verifies both copies, stops the Gateway Carrier and removes its entire
+active database, then verifies the exact digest through the Messenger Carrier
+both before and after a Messenger restart. It retains all logs and removed
+store bytes in the named acceptance artifact directory for independent review.
+
+The complete local campaign is
+[`../scripts/run-openfox-autonomous-earning-three-node.sh`](../scripts/run-openfox-autonomous-earning-three-node.sh).
+It first checks that all three configured TOS JSON-RPC endpoints are live, runs
+the independent codec verifier and the security-critical repository suites,
+proves the frozen escrow build and sandbox behavior, executes the independent
+Carrier source-loss campaign, and finally runs the real two-Agent Paid Demand
+V2 lifecycle against the three nodes. Its private artifact directory contains
+per-stage logs and a manifest of exact repository commits, worktree state,
+endpoints, completion time and result. The manifest deliberately excludes
+vault material and private keys.
 
 ## 15. Explicit non-goals
 

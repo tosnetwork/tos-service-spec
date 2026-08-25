@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tos.network/schemas/economic-action-authority-v1.json",
+  "title": "TOS Economic Action Authority V1",
+  "type": "object",
+  "required": ["writer_fence", "authorized_action", "action_resolution"],
+  "additionalProperties": false,
+  "properties": {
+    "writer_fence": {"$ref": "#/$defs/writerFence"},
+    "authorized_action": {"$ref": "#/$defs/authorizedAction"},
+    "action_resolution": {"$ref": "#/$defs/actionResolution"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000]+$"},
+    "ed25519PublicKey": {"type": "string", "pattern": "^ed25519:[0-9a-f]{64}$"},
+    "ed25519Signature": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9_-]{86}$"},
+    "writerFenceBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "owner_id", "agent_id", "instance_id", "lease_id", "writer_generation", "issued_at_unix", "expires_at_unix", "authority_id", "scope"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "owner_id": {"$ref": "#/$defs/identifier"},
+        "agent_id": {"$ref": "#/$defs/identifier"},
+        "instance_id": {"$ref": "#/$defs/identifier"},
+        "lease_id": {"$ref": "#/$defs/identifier"},
+        "writer_generation": {"type": "integer", "minimum": 1},
+        "issued_at_unix": {"type": "integer", "minimum": 1},
+        "expires_at_unix": {"type": "integer", "minimum": 1},
+        "authority_id": {"$ref": "#/$defs/identifier"},
+        "scope": {"type": "array", "minItems": 1, "maxItems": 128, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$"}}
+      }
+    },
+    "writerFence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "public_key", "fence_proof"],
+      "properties": {
+        "body": {"$ref": "#/$defs/writerFenceBody"},
+        "public_key": {"$ref": "#/$defs/ed25519PublicKey"},
+        "fence_proof": {"$ref": "#/$defs/ed25519Signature"}
+      }
+    },
+    "authorizedAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "owner_id", "agent_id", "action_kind", "stable_action_id", "exact_request_digest", "writer_generation", "writer_fence_digest", "policy_revision", "mandate_digest", "expected_prior_state", "expires_at_unix", "authority_id", "authority_public_key", "authorization_proof"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "owner_id": {"$ref": "#/$defs/identifier"},
+        "agent_id": {"$ref": "#/$defs/identifier"},
+        "action_kind": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "writer_generation": {"type": "integer", "minimum": 1},
+        "writer_fence_digest": {"$ref": "#/$defs/digest"},
+        "policy_revision": {"type": "integer", "minimum": 1},
+        "mandate_digest": {"$ref": "#/$defs/digest"},
+        "approval_digest": {"$ref": "#/$defs/digest"},
+        "expected_prior_state": {"$ref": "#/$defs/identifier"},
+        "expires_at_unix": {"type": "integer", "minimum": 1},
+        "authority_id": {"$ref": "#/$defs/identifier"},
+        "authority_public_key": {"$ref": "#/$defs/ed25519PublicKey"},
+        "authorization_proof": {"$ref": "#/$defs/ed25519Signature"}
+      }
+    },
+    "actionResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stable_action_id", "exact_request_digest", "state", "state_revision"],
+      "properties": {
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "state": {"enum": ["unknown", "prepared", "submitted", "accepted", "rejected", "conflict", "terminal"]},
+        "sink_reference": {"type": "string", "maxLength": 1024},
+        "evidence_refs": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "state_revision": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

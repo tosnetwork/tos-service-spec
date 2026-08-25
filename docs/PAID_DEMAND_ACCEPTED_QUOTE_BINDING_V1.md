@@ -1,7 +1,9 @@
 # Paid-Demand Binding to the Existing Accepted Quote Rail V1
 
-**Status:** incubation design; schema freeze, implementation, and independent
-acceptance pending
+**Status:** implementation-complete release candidate; schema, production
+codec, V2 contract, Gate integration, custody path, and local three-node
+acceptance are available; public-testnet and independent production acceptance
+remain pending
 
 **Existing-rail status:** the Native commercial rail already supports the
 bounded Capability-first lifecycle from Quote Proposal through finalized
@@ -15,14 +17,14 @@ adapter selected after negotiation under
 prerequisite for generic Intent discovery, Messenger conversation, trusted
 work, Agent Gifts, direct transfers, or external settlement.
 
-**Blocking status:** paid-demand Provider Offer acceptance and execution remain
-blocked until the binding extension,
-Provider Offer authorization, per-Offer determinism, Provider-private admission,
-proof-of-possession input delivery, exact duration/preflight/release-pipeline
-profile, zero-bounce initial wallet-request proof, replay-aware semantic action
-identity/recovery, fresh same-claim first-start preflight, and successor escrow
-execution-deadline check in this document are frozen, implemented, and
-independently verified.
+**Release status:** the binding extension, Provider Offer authorization,
+per-Offer determinism, Provider-private admission, proof-of-possession input
+delivery, duration/preflight/release pipeline, zero-bounce initial wallet
+request, semantic action recovery, fresh first-start preflight, and successor
+escrow execution-deadline check are implemented and pass the local three-node
+campaign. Production enablement remains blocked until public-testnet,
+cross-host, independent-operator, adversarial, and external security acceptance
+evidence is attached to the released profile.
 
 ## 1. Purpose
 
@@ -308,6 +310,9 @@ It includes at least:
 
 - complete network domain and paid-demand Quote-binding profile version;
 - exact generic `agreement_body_digest`;
+- exact buyer Agent identifier repeated as the bound buyer wallet predicate's
+  `represented_agent_id`; the chain resolver proves the wallet-to-Agent
+  relationship and a different or absent representation fails closed;
 - canonical nonempty `agreement_obligation_ids[]`,
   `agreement_authorization_predicate_ids[]`, and corresponding
   `agreement_authorization_target_digests[]` covered by this Quote, plus the

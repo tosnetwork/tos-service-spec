@@ -1,7 +1,8 @@
 # Semantic Action Identity V1
 
-**Status:** normative design; production codec implementation and independent
-conformance evidence pending
+**Status:** normative release candidate; production codec, standalone reference
+verifier, exact vectors, and local cross-platform conformance are available;
+external production acceptance remains pending
 
 **Used by:**
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md),
@@ -125,6 +126,7 @@ otherwise. Fields appear in the exact order shown.
 | `portfolio.release` | `owner_id:id`, `agent_id:id`, `reservation_id:digest32`, `target_revision:u64`, `terminal_evidence_set_digest:digest32` | terminal_successor |
 | `schedule.entry.transition` | `owner_id:id`, `agent_id:id`, `schedule_entry_id:id`, `agreement_body_digest:digest32`, `execution_id:digest32`, `expected_state_revision:u64`, `target_state:state`, `target_dispatch_generation:u64` | terminal_successor |
 | `schedule.dependency.transition` | `owner_id:id`, `agent_id:id`, `upstream_agreement_digest:digest32`, `upstream_obligation_id:id`, `downstream_agreement_digest:digest32`, `downstream_obligation_id:id`, `dependency_type:kind`, `dependency_class:kind`, `transition_kind:kind`, `graph_base_revision:u64` | terminal_successor |
+| `execution.slot` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `execution_obligation_id:id`, `canonical_plan_digest:digest32`, `accepted_input_manifest_digest:digest32`, `attempt_index:u64`, `predecessor_terminal_resolution_digest:digest32` | terminal_successor |
 | `execution.prepare` | `owner_id:id`, `agent_id:id`, `execution_id:digest32` | none |
 | `execution.start` | `owner_id:id`, `agent_id:id`, `execution_id:digest32` | none |
 | `executor.effect` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `obligation_id:id`, `execution_id:digest32`, `plan_effect_id:id`, `effect_profile_digest:digest32`, `target_digest:digest32`, `operation_kind:kind`, `effect_semantic_key_digest:digest32` | none |
@@ -404,9 +406,24 @@ decision.
 ## 9. Security boundary
 
 Semantic identity provides deduplication and conflict detection. It does not
-authorize an action. Every side effect still requires `AuthorizedActionV1`, a
-valid `WriterFenceV1`, resolved policy/mandate/approval content, expected prior
+authorize an action. Every side effect still requires `AuthorizedActionV1`, its
+authority signature, a valid `WriterFenceV1`, resolved policy/mandate/approval content, expected prior
 state, Portfolio admission where relevant, and sink-side durable resolution.
+
+The V1 action authorization signature is Ed25519 over:
+
+```text
+SHA-256("tos.authorized-action-proof.v1\0" ||
+        uint32_big_endian(len(canonical_authorized_action_without_proof)) ||
+        canonical_authorized_action_without_proof)
+```
+
+The canonical object includes `authority_id` and `authority_public_key` and has
+an empty `authorization_proof`. The public key must equal the key in the
+referenced Writer Fence and must independently resolve as authorized for the
+named authority. This proof is deliberately separate from semantic identity:
+identity deduplicates an intended effect, while the proof grants permission for
+the exact request and policy context.
 
 The registry is not a global transaction database. Each owner and participating
 sink retains only the actions it must authorize or resolve. No Carrier, market,
