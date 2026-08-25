@@ -1164,6 +1164,12 @@ per-stage logs and a manifest of exact repository commits, worktree state,
 endpoints, completion time and result. The manifest deliberately excludes
 vault material and private keys.
 
+The controlled three-seller execution and local-network settlement campaign is
+recorded in
+[`OPENFOX_THREE_AGENT_EARNING_PILOT_REPORT.md`](OPENFOX_THREE_AGENT_EARNING_PILOT_REPORT.md).
+That report preserves the narrower acceptance boundary between a successful
+seller pilot and a production claim of unattended customer acquisition.
+
 ## 15. Explicit non-goals
 
 This roadmap does not require:
