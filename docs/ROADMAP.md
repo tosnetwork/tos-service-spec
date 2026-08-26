@@ -524,11 +524,15 @@ gate item.
   execution, disclosure, and payment. Discovery does not require a new schema
   per business category or mandatory escrow. Trusted Gifts, direct transfers,
   TOS escrow, and external settlement remain explicit adapter choices with
-  different evidence. **Status: 🟡 Incubation design only.** The wire schema,
-  portable codecs, generic OpenFox coordinator, production carrier, Agreement
-  implementation, and conformance evidence are not complete. This design does
-  not open or reorder Gate D--G, and its optional Paid Demand escrow profile
-  remains subject to every existing commercial-rail gate.
+  different evidence. **Status: 🟡 Implementation-complete release candidate;
+  external production acceptance pending.** The frozen reference schema,
+  production codec, independent reference verifier, generic OpenFox
+  coordinator, and local conformance evidence are available. Independent
+  public Carrier operation, public-network acceptance, and any selected
+  settlement profile's external gates remain incomplete. This
+  release-candidate profile does not open or reorder Gate D--G, and its optional
+  Paid Demand escrow profile remains subject to every existing commercial-rail
+  gate.
 - [Decentralized Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
   defines an optional supply-Intent and generic-Agreement profile for ordinary
   native-TOS top-up and byte-exact submission of an already authorized client
