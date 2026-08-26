@@ -1418,6 +1418,12 @@ digest, obligation ID, payer, payee, asset, amount, destination, adapter, expiry
 and stable action identity. It may support payment before, during, or after work
 when the accepted obligation permits that timing.
 
+If those payment bytes are carried by the Agent transaction-relay profile, the
+adapter instead emits the compatible domain-bound `AgreementPaymentRequestV3`:
+it retains every V1 field and adds the digest of the complete owner-pinned chain
+domain. A legacy V1 request is not eligible to disclose bearer-executable bytes
+to a relay Provider.
+
 It does not claim escrow protection or prove work quality. It closes only the
 exact obligation whose payment-request digest is bound by independently
 resolved transfer evidence; the same evidence cannot close another obligation.

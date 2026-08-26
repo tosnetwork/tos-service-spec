@@ -60,6 +60,7 @@ application profiles above it.
 - [Stablecoin Escrow TVM V1](STABLECOIN_ESCROW_TVM_V1.md)
 - [Software Work Receipt TVM V1](SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - [Paid-Demand Accepted-Quote Binding V1](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
+- [Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
 - [Native Execution Gate V1](NATIVE_EXECUTION_GATE_V1.md)
 - [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md)
 

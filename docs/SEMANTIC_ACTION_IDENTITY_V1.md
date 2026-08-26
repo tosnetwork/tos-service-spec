@@ -122,6 +122,7 @@ otherwise. Fields appear in the exact order shown.
 | `agreement.propose` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `recipient_set_digest:digest32` | none |
 | `agreement.authorize` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `authority_subject_digest:digest32`, `predicate_set_digest:digest32`, `evidence_profile_digest:digest32` | none |
 | `agreement.withdraw` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `proposal_action_id:digest32` | none |
+| `provider.offer` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `demand_mutation_digest:digest32`, `buyer_agent_id:id`, `provider_offer_id:id`, `binding_digest:digest32` | none |
 | `portfolio.reserve` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `reservation_scope_digest:digest32`, `target_revision:u64` | terminal_successor |
 | `portfolio.release` | `owner_id:id`, `agent_id:id`, `reservation_id:digest32`, `target_revision:u64`, `terminal_evidence_set_digest:digest32` | terminal_successor |
 | `schedule.entry.transition` | `owner_id:id`, `agent_id:id`, `schedule_entry_id:id`, `agreement_body_digest:digest32`, `execution_id:digest32`, `expected_state_revision:u64`, `target_state:state`, `target_dispatch_generation:u64` | terminal_successor |

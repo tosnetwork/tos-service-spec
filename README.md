@@ -150,6 +150,22 @@ contradict them.
 - [Agent Paid Demand Discovery V1](docs/AGENT_PAID_DEMAND_DISCOVERY_V1.md)
   defines the optional fixed-price machine-checkable paid-work profile for
   parties that choose the TOS escrow rail.
+- [Decentralized Agent Gas Sponsorship and Transaction Relay V1](docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
+  defines an optional open Provider service for bounded native-TOS top-up and
+  byte-exact submission of an already authorized client transaction, with no
+  privileged relayer or new chain opcode. Its three service modes are
+  orthogonal to `trusted-local`, `authorized-single-provider`, and
+  `autonomous-decentralized` assurance levels. Relay terminal evidence selects
+  `validator_finality` or lower `provider_corroborated` independently from
+  sponsorship's `validator_finality` or lower `client_corroborated`. The
+  currently released direct path may enable immediately when the exact
+  network, transaction-profile URI/digest, `payment.direct` action kind, mode,
+  assurance, component class/profile, sponsorship release profile, and owner
+  policy all pass current capability checks. Production deployment, campaign,
+  or certification history is never an enablement input; missing or stale
+  current dependencies fail that exact tuple closed. The current TOS RPC
+  source supports only a scoped lower-assurance claim and never an
+  `autonomous-decentralized` claim.
 - [Paid-Demand Binding to the Existing Accepted Quote Rail V1](docs/PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
   defines that optional profile's minimal versioned handoff from one selected
   Provider Offer into the existing Quote, escrow, execution, Receipt, and
@@ -184,6 +200,7 @@ contradict them.
 - Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V1.md`](docs/STABLECOIN_ESCROW_TVM_V1.md)
 - Software-work Receipt TVM cell: [`docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md`](docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - Software-work execution and artifacts: [`docs/SOFTWARE_WORK_EXECUTION_V1.md`](docs/SOFTWARE_WORK_EXECUTION_V1.md)
+- Agent gas sponsorship and exact transaction relay: [`docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`](docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 

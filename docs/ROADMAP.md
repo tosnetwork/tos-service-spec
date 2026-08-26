@@ -8,6 +8,15 @@ Agent and Capability transitions are defined by
 
 No later gate may weaken an earlier authority or security invariant.
 
+The Agent relay/sponsorship profile enables each service-mode/assurance-level
+pair from current owner configuration and required capabilities. Prior
+production deployment or a completed conformance campaign is not an enablement
+gate. Portable finality proofs, rollback-resistant checkpoint high-water,
+atomic terminal evidence/signing-epoch commitment and two independent Provider
+failure domains remain necessary only for the corresponding portable-finality
+or `autonomous-decentralized` claim, as defined by
+`AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`.
+
 The historical Gates A--G below primarily measure the Native Registry and the
 first software-work commerce profile. Their evidence remains valid for those
 scopes, but none of those gates alone establishes completion of the root
@@ -520,6 +529,33 @@ gate item.
   implementation, and conformance evidence are not complete. This design does
   not open or reorder Gate D--G, and its optional Paid Demand escrow profile
   remains subject to every existing commercial-rail gate.
+- [Decentralized Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
+  defines an optional supply-Intent and generic-Agreement profile for ordinary
+  native-TOS top-up and byte-exact submission of an already authorized client
+  transaction. It introduces no relayer registry, shared market database,
+  global action head, privileged Gateway, or chain opcode. **Status: 🟡
+  Incubation release candidate.** Normative objects, schema, frozen vectors,
+  and an independent reference verifier exist. Service modes are orthogonal to
+  `trusted-local`, `authorized-single-provider`, and
+  `autonomous-decentralized` assurance levels. Relay selects
+  `validator_finality` or lower `provider_corroborated` independently from
+  sponsorship's `validator_finality` or lower `client_corroborated`. The
+  released direct path may enable immediately when the complete current tuple
+  passes: network, transaction-profile URI/digest, `payment.direct` action
+  kind, mode, assurance, selected relay and sponsorship class/profile,
+  sponsorship release profile, and owner policy. Missing, stale, substituted,
+  or unknown dependencies fail only that exact tuple closed. The current TOS
+  RPC source is lower-assurance only and cannot support an
+  `autonomous-decentralized` claim. Autonomous service requires validator
+  finality for every selected component plus its currently configured
+  independent Providers, portable verification, rollback-resistant state, and
+  mode-specific recovery. Production deployment, transaction count, campaign,
+  certification, and calendar age are quality evidence only and are never
+  enablement inputs. Sponsorship remains single-route after admission in V1,
+  while autonomous `relay_exact` has the released route successor. Missing
+  strongest-level capabilities do not block a separately supported lower-
+  assurance tuple. This profile does not open or reorder Gate D--G and cannot
+  by itself supply root-gate acceptance evidence.
 - [TOS Edge CDN Architecture V1](EDGE_CDN_ARCHITECTURE_V1.md) defines a standard
   HTTP CDN backed by an open market of verified Provider and Worker Agents.
   Customer→Provider and Provider→Worker purchases remain separate; the

@@ -1,0 +1,895 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tos.network/schemas/agent-relay-service-v1.json",
+  "title": "TOS Decentralized Agent Gas Sponsorship and Transaction Relay V1",
+  "description": "Structural schema for the optional Agent transaction-relay service profile implemented by pkg/agentrelay. Canonical CBOR, sorted collections, signatures, Agreement bindings, time windows, exact-byte inspection, endpoint policy, state transitions, and finality rules are additionally enforced by the reference verifier.",
+  "x-content-types": {
+    "service_profile": "application/vnd.tos.agent-relay-service-profile.v1+cbor",
+    "quote_request": "application/vnd.tos.agent-relay-quote-request.v1+cbor",
+    "provider_quote": "application/vnd.tos.agent-relay-provider-quote.v1+cbor",
+    "execution_request": "application/vnd.tos.agent-relay-execution-request.v1+cbor",
+    "side_effect_admission_request": "application/vnd.tos.agent-relay-side-effect-admission-request.v1+cbor",
+    "side_effect_admission_receipt": "application/vnd.tos.agent-relay-side-effect-admission-receipt.v1+cbor",
+    "resolve_admission_call": "application/vnd.tos.agent-relay-resolve-admission-call.v1+cbor",
+    "resolve_admission_result": "application/vnd.tos.agent-relay-resolve-admission-result.v1+cbor",
+    "resolution": "application/vnd.tos.agent-relay-resolution.v1+cbor",
+    "sponsorship_credit_observation": "application/vnd.tos.agent-relay-sponsorship-credit-observation.v1+cbor",
+    "absence_proof_bundle": "application/vnd.tos.agent-relay-absence-proof-bundle.v1+cbor",
+    "finality_evidence": "application/vnd.tos.agent-relay-finality-evidence.v1+cbor",
+    "agreement_binding": "application/vnd.tos.agent-relay-agreement-binding.v1+cbor",
+    "quote_call": "application/vnd.tos.agent-relay-quote-call.v1+cbor",
+    "quote_result": "application/vnd.tos.agent-relay-quote-result.v1+cbor",
+    "submit_call": "application/vnd.tos.agent-relay-submit-call.v1+cbor",
+    "submit_result": "application/vnd.tos.agent-relay-submit-result.v1+cbor",
+    "resolve_call": "application/vnd.tos.agent-relay-resolve-call.v1+cbor",
+    "resolve_result": "application/vnd.tos.agent-relay-resolve-result.v1+cbor",
+    "evidence_call": "application/vnd.tos.agent-relay-evidence-call.v1+cbor",
+    "evidence_result": "application/vnd.tos.agent-relay-evidence-result.v1+cbor"
+  },
+  "x-media-type-definitions": {
+    "application/vnd.tos.agent-relay-service-profile.v1+cbor": "#/$defs/relayServiceProfile",
+    "application/vnd.tos.agent-relay-quote-request.v1+cbor": "#/$defs/signedRelayQuoteRequest",
+    "application/vnd.tos.agent-relay-provider-quote.v1+cbor": "#/$defs/signedProviderRelayQuote",
+    "application/vnd.tos.agent-relay-execution-request.v1+cbor": "#/$defs/relayExecutionRequest",
+    "application/vnd.tos.agent-relay-side-effect-admission-request.v1+cbor": "#/$defs/relaySideEffectAdmissionRequest",
+    "application/vnd.tos.agent-relay-side-effect-admission-receipt.v1+cbor": "#/$defs/signedRelaySideEffectAdmissionReceipt",
+    "application/vnd.tos.agent-relay-resolve-admission-call.v1+cbor": "#/$defs/resolveAdmissionCall",
+    "application/vnd.tos.agent-relay-resolve-admission-result.v1+cbor": "#/$defs/resolveAdmissionResult",
+    "application/vnd.tos.agent-relay-resolution.v1+cbor": "#/$defs/signedRelayResolution",
+    "application/vnd.tos.agent-relay-sponsorship-credit-observation.v1+cbor": "#/$defs/relaySponsorshipCreditObservation",
+    "application/vnd.tos.agent-relay-absence-proof-bundle.v1+cbor": "#/$defs/relayAbsenceProofBundle",
+    "application/vnd.tos.agent-relay-finality-evidence.v1+cbor": "#/$defs/signedRelayFinalityEvidence",
+    "application/vnd.tos.agent-relay-agreement-binding.v1+cbor": "#/$defs/relayAgreementBinding",
+    "application/vnd.tos.agent-relay-quote-call.v1+cbor": "#/$defs/quoteCall",
+    "application/vnd.tos.agent-relay-quote-result.v1+cbor": "#/$defs/quoteResult",
+    "application/vnd.tos.agent-relay-submit-call.v1+cbor": "#/$defs/submitCall",
+    "application/vnd.tos.agent-relay-submit-result.v1+cbor": "#/$defs/submitResult",
+    "application/vnd.tos.agent-relay-resolve-call.v1+cbor": "#/$defs/resolveCall",
+    "application/vnd.tos.agent-relay-resolve-result.v1+cbor": "#/$defs/resolveResult",
+    "application/vnd.tos.agent-relay-evidence-call.v1+cbor": "#/$defs/evidenceCall",
+    "application/vnd.tos.agent-relay-evidence-result.v1+cbor": "#/$defs/evidenceResult"
+  },
+  "$comment": "The HTTP Content-Type selects exactly one x-media-type-definitions entry. anyOf is intentional because resolve/evidence calls and submit/resolve results can have identical CBOR shapes while retaining different protocol semantics.",
+  "anyOf": [
+    {"$ref": "#/$defs/relayServiceProfile"},
+    {"$ref": "#/$defs/signedRelayQuoteRequest"},
+    {"$ref": "#/$defs/signedProviderRelayQuote"},
+    {"$ref": "#/$defs/relayAgreementBinding"},
+    {"$ref": "#/$defs/relayExecutionRequest"},
+    {"$ref": "#/$defs/relaySideEffectAdmissionRequest"},
+    {"$ref": "#/$defs/signedRelaySideEffectAdmissionReceipt"},
+    {"$ref": "#/$defs/resolveAdmissionCall"},
+    {"$ref": "#/$defs/resolveAdmissionResult"},
+    {"$ref": "#/$defs/quoteCall"},
+    {"$ref": "#/$defs/quoteResult"},
+    {"$ref": "#/$defs/submitCall"},
+    {"$ref": "#/$defs/submitResult"},
+    {"$ref": "#/$defs/resolveCall"},
+    {"$ref": "#/$defs/resolveResult"},
+    {"$ref": "#/$defs/evidenceCall"},
+    {"$ref": "#/$defs/evidenceResult"},
+    {"$ref": "#/$defs/signedRelayResolution"},
+    {"$ref": "#/$defs/relaySponsorshipCreditObservation"},
+    {"$ref": "#/$defs/relayAbsenceObservationReference"},
+    {"$ref": "#/$defs/relayAbsenceProofBundle"},
+    {"$ref": "#/$defs/signedRelayFinalityEvidence"}
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "cellDigest": {"type": "string", "pattern": "^tvm-cell-sha256:[0-9a-f]{64}$"},
+    "identifier128": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\u0000\\r\\n]+$"},
+    "identifier256": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000\\r\\n]+$"},
+    "identifier1024": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^[^\\u0000\\r\\n]+$"},
+    "token": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$"},
+    "assuranceLevel": {"enum": ["trusted-local", "authorized-single-provider", "autonomous-decentralized"]},
+    "sponsorshipReleaseEvidenceClass": {"enum": ["validator_finality", "observed_unproven"]},
+    "sponsorshipTerminalEvidenceClass": {"enum": ["validator_finality", "client_corroborated"]},
+    "relayTerminalEvidenceClass": {"enum": ["validator_finality", "provider_corroborated"]},
+    "terminalEvidenceClass": {"enum": ["validator_finality", "provider_corroborated", "client_corroborated"]},
+    "u32": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "positiveU32": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+    "u64": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "positiveU64": {"type": "integer", "minimum": 1, "maximum": 18446744073709551615},
+    "i32": {"type": "integer", "minimum": -2147483648, "maximum": 2147483647},
+    "atomic": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,77})$"},
+    "positiveAtomic": {"type": "string", "pattern": "^[1-9][0-9]{0,77}$"},
+    "ed25519PublicKey": {"type": "string", "pattern": "^ed25519:[0-9a-f]{64}$"},
+    "ed25519Signature": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9_-]{86}$"},
+    "base64": {"type": "string", "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$", "contentEncoding": "base64"},
+    "signedTransactionBytes": {"allOf": [{"$ref": "#/$defs/base64"}, {"minLength": 4, "maxLength": 87384}]},
+    "actionRequestBytes": {"allOf": [{"$ref": "#/$defs/base64"}, {"minLength": 4, "maxLength": 262144}]},
+    "endpoint": {"type": "string", "minLength": 12, "maxLength": 2048, "pattern": "^https://[^/?#]+/[^?#]*$"},
+    "networkDomain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["network_id", "global_id", "zero_state_root_hash", "zero_state_file_hash", "workchain_id"],
+      "properties": {
+        "network_id": {"$ref": "#/$defs/identifier128"},
+        "global_id": {"$ref": "#/$defs/i32"},
+        "zero_state_root_hash": {"$ref": "#/$defs/digest"},
+        "zero_state_file_hash": {"$ref": "#/$defs/digest"},
+        "workchain_id": {"$ref": "#/$defs/i32"}
+      }
+    },
+    "relayTransactionIdentity": {
+      "type": "object", "additionalProperties": false,
+      "description": "Provider-independent exact signed-transaction identity; digest domain tos.agent-relay-transaction-identity.v1.",
+      "required": ["schema_version", "network", "source_account", "source_account_authority_digest", "transaction_profile_uri", "transaction_profile_digest", "underlying_action_kind", "stable_action_id", "exact_request_digest", "signed_transaction_digest", "signed_transaction_cell_hash", "signed_transaction_size", "transaction_intent_digest", "source_sequence", "transaction_valid_until_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "network": {"$ref": "#/$defs/networkDomain"},
+        "source_account": {"$ref": "#/$defs/identifier256"},
+        "source_account_authority_digest": {"$ref": "#/$defs/digest"},
+        "transaction_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "transaction_profile_digest": {"$ref": "#/$defs/digest"},
+        "underlying_action_kind": {"$ref": "#/$defs/token"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "signed_transaction_size": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "transaction_intent_digest": {"$ref": "#/$defs/digest"},
+        "source_sequence": {"$ref": "#/$defs/u64"},
+        "transaction_valid_until_unix": {"$ref": "#/$defs/positiveU64"}
+      }
+    },
+    "assetIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset_namespace", "asset_identifier", "unit"],
+      "properties": {
+        "asset_namespace": {"$ref": "#/$defs/identifier128"},
+        "asset_identifier": {"$ref": "#/$defs/identifier256"},
+        "unit": {"$ref": "#/$defs/identifier128"}
+      }
+    },
+    "assetAmount": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset", "amount_atomic"],
+      "properties": {"asset": {"$ref": "#/$defs/assetIdentity"}, "amount_atomic": {"$ref": "#/$defs/atomic"}}
+    },
+    "transactionProfile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_uri", "profile_digest", "maximum_signed_bytes", "inspectable_source_sequence", "inspectable_transaction_expiry"],
+      "properties": {
+        "profile_uri": {"$ref": "#/$defs/identifier256"},
+        "profile_digest": {"$ref": "#/$defs/digest"},
+        "maximum_signed_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "inspectable_source_sequence": {"const": true},
+        "inspectable_transaction_expiry": {"const": true}
+      }
+    },
+    "finalityProfile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_uri", "profile_digest", "terminal_evidence_class", "minimum_confirmation_depth", "minimum_observers", "minimum_operator_domains", "reorg_window_seconds", "maximum_resolution_seconds"],
+      "properties": {
+        "profile_uri": {"$ref": "#/$defs/identifier256"},
+        "profile_digest": {"$ref": "#/$defs/digest"},
+        "terminal_evidence_class": {"$ref": "#/$defs/terminalEvidenceClass"},
+        "minimum_confirmation_depth": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "minimum_observers": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "minimum_operator_domains": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "reorg_window_seconds": {"type": "integer", "minimum": 0, "maximum": 86400},
+        "maximum_resolution_seconds": {"type": "integer", "minimum": 1, "maximum": 86400}
+      },
+      "allOf": [
+        {"if": {"properties": {"terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["terminal_evidence_class"]}, "then": {"properties": {"profile_uri": {"const": "tos.relay.provider-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}, "then": {"properties": {"profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}}}
+      ]
+    },
+    "exposureLimit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset", "maximum_per_request_atomic", "maximum_outstanding_atomic"],
+      "properties": {
+        "asset": {"$ref": "#/$defs/assetIdentity"},
+        "maximum_per_request_atomic": {"$ref": "#/$defs/positiveAtomic"},
+        "maximum_outstanding_atomic": {"$ref": "#/$defs/positiveAtomic"}
+      }
+    },
+    "serviceEndpoints": {
+      "type": "object", "additionalProperties": false,
+      "required": ["quote_url", "submit_url", "resolve_url", "evidence_url"],
+      "properties": {
+        "quote_url": {"$ref": "#/$defs/endpoint"},
+        "submit_url": {"$ref": "#/$defs/endpoint"},
+        "resolve_url": {"$ref": "#/$defs/endpoint"},
+        "evidence_url": {"$ref": "#/$defs/endpoint"}
+      }
+    },
+    "admissionLimits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum_quote_reservations", "maximum_active_executions", "maximum_active_per_requester", "maximum_quote_requests_per_window", "maximum_quote_requests_per_requester_window", "quote_request_window_seconds"],
+      "properties": {
+        "maximum_quote_reservations": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_active_executions": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_active_per_requester": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_quote_requests_per_window": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_quote_requests_per_requester_window": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "quote_request_window_seconds": {"type": "integer", "minimum": 1, "maximum": 86400}
+      }
+    },
+    "relayServiceProfile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "profile_id", "revision", "provider_agent_id", "network_domains", "supported_modes", "supported_assurance_levels", "transaction_profiles", "finality_profiles", "fee_assets", "exposure_limits", "maximum_request_bytes", "admission_limits", "endpoints", "policy_revision", "created_at_unix", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "profile_id": {"$ref": "#/$defs/identifier256"},
+        "revision": {"$ref": "#/$defs/positiveU64"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "network_domains": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/networkDomain"}},
+        "supported_modes": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]}},
+        "supported_assurance_levels": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/assuranceLevel"}},
+        "transaction_profiles": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/transactionProfile"}},
+        "finality_profiles": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/finalityProfile"}},
+        "fee_assets": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/assetIdentity"}},
+        "exposure_limits": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/exposureLimit"}},
+        "maximum_request_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "admission_limits": {"$ref": "#/$defs/admissionLimits"},
+        "endpoints": {"$ref": "#/$defs/serviceEndpoints"},
+        "policy_revision": {"$ref": "#/$defs/positiveU64"},
+        "created_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      }
+    },
+    "relayQuoteRequestBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "request_id", "requester_agent_id", "provider_agent_id", "network", "mode", "assurance_level", "source_account", "source_account_authority_digest", "transaction_profile_uri", "transaction_profile_digest", "underlying_action_kind", "stable_action_id", "exact_request_digest", "signed_transaction_digest", "signed_transaction_cell_hash", "signed_transaction_size", "transaction_intent_digest", "source_sequence", "transaction_valid_until_unix", "maximum_service_fee", "maximum_network_fee_atomic", "maximum_transaction_value_atomic", "created_at_unix", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "request_id": {"$ref": "#/$defs/identifier256"},
+        "requester_agent_id": {"$ref": "#/$defs/identifier256"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "network": {"$ref": "#/$defs/networkDomain"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "source_account": {"$ref": "#/$defs/identifier256"},
+        "source_account_authority_digest": {"$ref": "#/$defs/digest"},
+        "transaction_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "transaction_profile_digest": {"$ref": "#/$defs/digest"},
+        "underlying_action_kind": {"$ref": "#/$defs/token"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "signed_transaction_size": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "transaction_intent_digest": {"$ref": "#/$defs/digest"},
+        "source_sequence": {"$ref": "#/$defs/u64"},
+        "transaction_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "requested_sponsorship": {"$ref": "#/$defs/assetAmount"},
+        "sponsorship_release_evidence_class": {"$ref": "#/$defs/sponsorshipReleaseEvidenceClass"},
+        "sponsorship_release_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "sponsorship_release_profile_digest": {"$ref": "#/$defs/digest"},
+        "relay_terminal_evidence_class": {"$ref": "#/$defs/relayTerminalEvidenceClass"},
+        "sponsorship_terminal_evidence_class": {"$ref": "#/$defs/sponsorshipTerminalEvidenceClass"},
+        "relay_finality_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "relay_finality_profile_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_terminal_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "sponsorship_terminal_profile_digest": {"$ref": "#/$defs/digest"},
+        "maximum_service_fee": {"$ref": "#/$defs/assetAmount"},
+        "maximum_network_fee_atomic": {"$ref": "#/$defs/atomic"},
+        "maximum_transaction_value_atomic": {"$ref": "#/$defs/atomic"},
+        "created_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"allOf": [
+          {"not": {"required": ["requested_sponsorship"]}},
+          {"not": {"required": ["sponsorship_release_evidence_class"]}},
+          {"not": {"required": ["sponsorship_release_profile_uri"]}},
+          {"not": {"required": ["sponsorship_release_profile_digest"]}},
+          {"not": {"required": ["sponsorship_terminal_evidence_class"]}},
+          {"not": {"required": ["sponsorship_terminal_profile_uri"]}},
+          {"not": {"required": ["sponsorship_terminal_profile_digest"]}}
+        ]}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"not": {"anyOf": [{"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_finality_profile_uri"]}, {"required": ["relay_finality_profile_digest"]}]}}},
+        {"if": {"properties": {"mode": {"enum": ["relay_exact", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["relay_terminal_evidence_class", "relay_finality_profile_uri", "relay_finality_profile_digest"]}},
+        {"if": {"properties": {"mode": {"enum": ["sponsor_only", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["requested_sponsorship", "sponsorship_release_evidence_class", "sponsorship_release_profile_uri", "sponsorship_release_profile_digest", "sponsorship_terminal_evidence_class", "sponsorship_terminal_profile_uri", "sponsorship_terminal_profile_digest"]}},
+        {"if": {"properties": {"sponsorship_release_evidence_class": {"const": "observed_unproven"}}, "required": ["sponsorship_release_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_release_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"}, "sponsorship_terminal_evidence_class": {"const": "client_corroborated"}, "sponsorship_terminal_profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "relay_finality_profile_uri": {"const": "tos.relay.provider-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"sponsorship_terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["sponsorship_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_terminal_profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"assurance_level": {"const": "autonomous-decentralized"}}, "required": ["assurance_level"]}, "then": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}, "sponsorship_terminal_evidence_class": {"const": "validator_finality"}}}}
+      ]
+    },
+    "signedRelayQuoteRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["body", "public_key", "signature"],
+      "properties": {
+        "body": {"$ref": "#/$defs/relayQuoteRequestBody"},
+        "public_key": {"$ref": "#/$defs/ed25519PublicKey"},
+        "signature": {"$ref": "#/$defs/ed25519Signature"}
+      }
+    },
+    "feeLine": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "amount"],
+      "properties": {"kind": {"enum": ["transaction_relay_fee", "gas_sponsorship_fee"]}, "amount": {"$ref": "#/$defs/assetAmount"}}
+    },
+    "providerRelayQuoteBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "quote_id", "quote_request_digest", "service_profile_digest", "provider_agent_id", "mode", "assurance_level", "fee_lines", "maximum_network_fee_atomic", "maximum_transaction_value_atomic", "maximum_request_bytes", "status_endpoint", "provider_policy_revision", "valid_from_unix", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "quote_id": {"$ref": "#/$defs/identifier256"},
+        "quote_request_digest": {"$ref": "#/$defs/digest"},
+        "service_profile_digest": {"$ref": "#/$defs/digest"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "fee_lines": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"$ref": "#/$defs/feeLine"}},
+        "reserved_sponsorship": {"$ref": "#/$defs/assetAmount"},
+        "sponsorship_release_evidence_class": {"$ref": "#/$defs/sponsorshipReleaseEvidenceClass"},
+        "sponsorship_release_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "sponsorship_release_profile_digest": {"$ref": "#/$defs/digest"},
+        "relay_terminal_evidence_class": {"$ref": "#/$defs/relayTerminalEvidenceClass"},
+        "sponsorship_terminal_evidence_class": {"$ref": "#/$defs/sponsorshipTerminalEvidenceClass"},
+        "maximum_network_fee_atomic": {"$ref": "#/$defs/atomic"},
+        "maximum_transaction_value_atomic": {"$ref": "#/$defs/atomic"},
+        "maximum_request_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "relay_finality_profile": {"$ref": "#/$defs/finalityProfile"},
+        "sponsorship_terminal_profile": {"$ref": "#/$defs/finalityProfile"},
+        "status_endpoint": {"$ref": "#/$defs/endpoint"},
+        "provider_policy_revision": {"$ref": "#/$defs/positiveU64"},
+        "offer_intent_digest": {"$ref": "#/$defs/digest"},
+        "valid_from_unix": {"$ref": "#/$defs/positiveU64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"allOf": [
+          {"not": {"required": ["reserved_sponsorship"]}},
+          {"not": {"required": ["sponsorship_release_evidence_class"]}},
+          {"not": {"required": ["sponsorship_release_profile_uri"]}},
+          {"not": {"required": ["sponsorship_release_profile_digest"]}},
+          {"not": {"required": ["sponsorship_terminal_evidence_class"]}},
+          {"not": {"required": ["sponsorship_terminal_profile"]}}
+        ]}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"not": {"anyOf": [{"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_finality_profile"]}]}}},
+        {"if": {"properties": {"mode": {"enum": ["relay_exact", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["relay_terminal_evidence_class", "relay_finality_profile"]}},
+        {"if": {"properties": {"mode": {"enum": ["sponsor_only", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["reserved_sponsorship", "sponsorship_release_evidence_class", "sponsorship_release_profile_uri", "sponsorship_release_profile_digest", "sponsorship_terminal_evidence_class", "sponsorship_terminal_profile"]}},
+        {"if": {"properties": {"sponsorship_release_evidence_class": {"const": "observed_unproven"}}, "required": ["sponsorship_release_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_release_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"}, "sponsorship_terminal_evidence_class": {"const": "client_corroborated"}, "sponsorship_terminal_profile": {"properties": {"profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}, "required": ["profile_uri"]}}}},
+        {"if": {"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "relay_finality_profile": {"properties": {"profile_uri": {"const": "tos.relay.provider-corroborated-terminal.v1"}, "terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["profile_uri", "terminal_evidence_class"]}}}},
+        {"if": {"properties": {"sponsorship_terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["sponsorship_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_terminal_profile": {"properties": {"profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}, "terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["profile_uri", "terminal_evidence_class"]}}}},
+        {"if": {"properties": {"assurance_level": {"const": "autonomous-decentralized"}}, "required": ["assurance_level"]}, "then": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}, "sponsorship_terminal_evidence_class": {"const": "validator_finality"}}}}
+      ]
+    },
+    "signedProviderRelayQuote": {
+      "type": "object", "additionalProperties": false,
+      "required": ["body", "public_key", "signature"],
+      "properties": {"body": {"$ref": "#/$defs/providerRelayQuoteBody"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}
+    },
+    "quoteCall": {
+      "type": "object", "additionalProperties": false,
+      "required": ["request"],
+      "properties": {"request": {"$ref": "#/$defs/signedRelayQuoteRequest"}}
+    },
+    "quoteResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["quote"],
+      "properties": {"quote": {"$ref": "#/$defs/signedProviderRelayQuote"}}
+    },
+    "relayAgreementBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "quote_request_digest", "provider_quote_digest", "service_profile_digest", "mode", "assurance_level", "requester_agent_id", "provider_agent_id", "stable_action_id", "exact_request_digest", "signed_transaction_digest"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "quote_request_digest": {"$ref": "#/$defs/digest"},
+        "provider_quote_digest": {"$ref": "#/$defs/digest"},
+        "service_profile_digest": {"$ref": "#/$defs/digest"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "sponsorship_release_evidence_class": {"$ref": "#/$defs/sponsorshipReleaseEvidenceClass"},
+        "sponsorship_release_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "sponsorship_release_profile_digest": {"$ref": "#/$defs/digest"},
+        "relay_terminal_evidence_class": {"$ref": "#/$defs/relayTerminalEvidenceClass"},
+        "sponsorship_terminal_evidence_class": {"$ref": "#/$defs/sponsorshipTerminalEvidenceClass"},
+        "relay_finality_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "relay_finality_profile_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_terminal_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "sponsorship_terminal_profile_digest": {"$ref": "#/$defs/digest"},
+        "requester_agent_id": {"$ref": "#/$defs/identifier256"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_digest": {"$ref": "#/$defs/digest"}
+      },
+      "allOf": [
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"allOf": [
+          {"not": {"required": ["sponsorship_release_evidence_class"]}},
+          {"not": {"required": ["sponsorship_release_profile_uri"]}},
+          {"not": {"required": ["sponsorship_release_profile_digest"]}},
+          {"not": {"required": ["sponsorship_terminal_evidence_class"]}},
+          {"not": {"required": ["sponsorship_terminal_profile_uri"]}},
+          {"not": {"required": ["sponsorship_terminal_profile_digest"]}}
+        ]}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"not": {"anyOf": [{"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_finality_profile_uri"]}, {"required": ["relay_finality_profile_digest"]}]}}},
+        {"if": {"properties": {"mode": {"enum": ["relay_exact", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["relay_terminal_evidence_class", "relay_finality_profile_uri", "relay_finality_profile_digest"]}},
+        {"if": {"properties": {"mode": {"enum": ["sponsor_only", "sponsor_and_relay"]}}, "required": ["mode"]}, "then": {"required": ["sponsorship_release_evidence_class", "sponsorship_release_profile_uri", "sponsorship_release_profile_digest", "sponsorship_terminal_evidence_class", "sponsorship_terminal_profile_uri", "sponsorship_terminal_profile_digest"]}},
+        {"if": {"properties": {"sponsorship_release_evidence_class": {"const": "observed_unproven"}}, "required": ["sponsorship_release_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_release_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"}, "sponsorship_terminal_evidence_class": {"const": "client_corroborated"}, "sponsorship_terminal_profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "relay_finality_profile_uri": {"const": "tos.relay.provider-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"sponsorship_terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["sponsorship_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_terminal_profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}}}},
+        {"if": {"properties": {"assurance_level": {"const": "autonomous-decentralized"}}, "required": ["assurance_level"]}, "then": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}, "sponsorship_terminal_evidence_class": {"const": "validator_finality"}}}}
+      ]
+    },
+    "semanticField": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {"$ref": "#/$defs/token"},
+        "type": {"enum": ["id", "digest32", "u64", "kind", "state"]},
+        "text": {"type": "string", "minLength": 1, "maxLength": 1048576},
+        "number": {"$ref": "#/$defs/u64"}
+      },
+      "oneOf": [
+        {"required": ["text"], "not": {"required": ["number"]}},
+        {"required": ["number"], "not": {"required": ["text"]}}
+      ]
+    },
+    "relaySideEffectStageMask": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {"enum": ["broadcast", "sponsorship"]}
+    },
+    "relaySideEffectAdmissionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Authenticated request to the owner Action Authority for one linearizable relay side-effect admission. The authenticated channel principal MUST equal authenticated_principal_id; this field is not a bearer assertion. A route_attempt greater than one is autonomous-decentralized relay_exact-only and MUST preserve assurance level, predecessor Authority ID/high-water domain, policy revision, mandate digest, optional approval digest, exact action and transaction identity; JSON Schema cannot express those cross-object equalities.",
+      "required": ["schema_version", "owner_id", "agent_id", "authenticated_principal_id", "provider_agent_id", "service_profile_digest", "provider_quote_digest", "network_digest", "transaction_identity_digest", "mode", "assurance_level", "stage_mask", "route_attempt", "stable_action_id", "exact_request_digest", "relay_execution_request_digest", "authorized_action", "writer_fence", "underlying_action_request", "semantic_fields", "requested_start_not_after_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "owner_id": {"$ref": "#/$defs/identifier256"},
+        "agent_id": {"$ref": "#/$defs/identifier256"},
+        "authenticated_principal_id": {"$ref": "#/$defs/identifier256"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "service_profile_digest": {"$ref": "#/$defs/digest"},
+        "provider_quote_digest": {"$ref": "#/$defs/digest"},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "transaction_identity_digest": {"$ref": "#/$defs/digest"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "stage_mask": {"$ref": "#/$defs/relaySideEffectStageMask"},
+        "route_attempt": {"type": "integer", "minimum": 1, "maximum": 32},
+        "predecessor_receipt_digest": {"$ref": "#/$defs/digest"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"},
+        "authorized_action": {"$ref": "economic-action-authority-v1.json#/$defs/authorizedAction"},
+        "writer_fence": {"$ref": "economic-action-authority-v1.json#/$defs/writerFence"},
+        "underlying_action_request": {"$ref": "#/$defs/actionRequestBytes"},
+        "semantic_fields": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/semanticField"}},
+        "requested_start_not_after_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"route_attempt": {"const": 1}}, "required": ["route_attempt"]}, "then": {"not": {"required": ["predecessor_receipt_digest"]}}, "else": {"required": ["predecessor_receipt_digest"]}},
+        {"if": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["assurance_level"]}, "then": {"properties": {"route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}], "items": false, "minItems": 1, "maxItems": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "sponsorship"}], "items": false, "minItems": 1, "maxItems": 1}, "route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_and_relay"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}, {"const": "sponsorship"}], "items": false, "minItems": 2, "maxItems": 2}, "route_attempt": {"const": 1}}}}
+      ]
+    },
+    "relaySideEffectAdmissionReceiptBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "One signed route-head entry. Persistent loaders MUST authenticate the complete predecessor chain and reject a successor that changes assurance_level, authority_id, policy_revision, mandate_digest, or approval_digest; writer lease and generation may change after takeover.",
+      "required": ["schema_version", "owner_id", "agent_id", "authenticated_principal_id", "authority_id", "provider_agent_id", "service_profile_digest", "provider_quote_digest", "network_digest", "transaction_identity_digest", "mode", "assurance_level", "stage_mask", "route_attempt", "stable_action_id", "exact_request_digest", "relay_execution_request_digest", "authorized_action_digest", "writer_fence_digest", "writer_lease_id", "writer_generation", "policy_revision", "mandate_digest", "admission_sequence", "issued_at_unix", "start_not_after_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "owner_id": {"$ref": "#/$defs/identifier256"},
+        "agent_id": {"$ref": "#/$defs/identifier256"},
+        "authenticated_principal_id": {"$ref": "#/$defs/identifier256"},
+        "authority_id": {"$ref": "#/$defs/identifier256"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "service_profile_digest": {"$ref": "#/$defs/digest"},
+        "provider_quote_digest": {"$ref": "#/$defs/digest"},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "transaction_identity_digest": {"$ref": "#/$defs/digest"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "stage_mask": {"$ref": "#/$defs/relaySideEffectStageMask"},
+        "route_attempt": {"type": "integer", "minimum": 1, "maximum": 32},
+        "predecessor_receipt_digest": {"$ref": "#/$defs/digest"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"},
+        "authorized_action_digest": {"$ref": "#/$defs/digest"},
+        "writer_fence_digest": {"$ref": "#/$defs/digest"},
+        "writer_lease_id": {"$ref": "#/$defs/identifier256"},
+        "writer_generation": {"$ref": "#/$defs/positiveU64"},
+        "policy_revision": {"$ref": "#/$defs/positiveU64"},
+        "mandate_digest": {"$ref": "#/$defs/digest"},
+        "approval_digest": {"$ref": "#/$defs/digest"},
+        "admission_sequence": {"$ref": "#/$defs/positiveU64"},
+        "issued_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "start_not_after_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"route_attempt": {"const": 1}}, "required": ["route_attempt"]}, "then": {"not": {"required": ["predecessor_receipt_digest"]}}, "else": {"required": ["predecessor_receipt_digest"]}},
+        {"if": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["assurance_level"]}, "then": {"properties": {"route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}], "items": false, "minItems": 1, "maxItems": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "sponsorship"}], "items": false, "minItems": 1, "maxItems": 1}, "route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_and_relay"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}, {"const": "sponsorship"}], "items": false, "minItems": 2, "maxItems": 2}, "route_attempt": {"const": 1}}}}
+      ]
+    },
+    "signedRelaySideEffectAdmissionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "public_key", "signature"],
+      "properties": {
+        "body": {"$ref": "#/$defs/relaySideEffectAdmissionReceiptBody"},
+        "public_key": {"$ref": "#/$defs/ed25519PublicKey"},
+        "signature": {"$ref": "#/$defs/ed25519Signature"}
+      }
+    },
+    "resolveAdmissionCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Authenticated exact lookup for an already linearized admission. The channel principal MUST equal authenticated_principal_id.",
+      "required": ["schema_version", "owner_id", "agent_id", "authenticated_principal_id", "authority_id", "provider_agent_id", "service_profile_digest", "provider_quote_digest", "network_digest", "transaction_identity_digest", "mode", "assurance_level", "stage_mask", "route_attempt", "stable_action_id", "exact_request_digest", "relay_execution_request_digest"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "owner_id": {"$ref": "#/$defs/identifier256"},
+        "agent_id": {"$ref": "#/$defs/identifier256"},
+        "authenticated_principal_id": {"$ref": "#/$defs/identifier256"},
+        "authority_id": {"$ref": "#/$defs/identifier256"},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "service_profile_digest": {"$ref": "#/$defs/digest"},
+        "provider_quote_digest": {"$ref": "#/$defs/digest"},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "transaction_identity_digest": {"$ref": "#/$defs/digest"},
+        "mode": {"enum": ["relay_exact", "sponsor_only", "sponsor_and_relay"]},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "stage_mask": {"$ref": "#/$defs/relaySideEffectStageMask"},
+        "route_attempt": {"type": "integer", "minimum": 1, "maximum": 32},
+        "predecessor_receipt_digest": {"$ref": "#/$defs/digest"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"}
+      },
+      "allOf": [
+        {"if": {"properties": {"route_attempt": {"const": 1}}, "required": ["route_attempt"]}, "then": {"not": {"required": ["predecessor_receipt_digest"]}}, "else": {"required": ["predecessor_receipt_digest"]}},
+        {"if": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["assurance_level"]}, "then": {"properties": {"route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "relay_exact"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}], "items": false, "minItems": 1, "maxItems": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_only"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "sponsorship"}], "items": false, "minItems": 1, "maxItems": 1}, "route_attempt": {"const": 1}}}},
+        {"if": {"properties": {"mode": {"const": "sponsor_and_relay"}}, "required": ["mode"]}, "then": {"properties": {"stage_mask": {"prefixItems": [{"const": "broadcast"}, {"const": "sponsorship"}], "items": false, "minItems": 2, "maxItems": 2}, "route_attempt": {"const": 1}}}}
+      ]
+    },
+    "resolveAdmissionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt"],
+      "properties": {"receipt": {"$ref": "#/$defs/signedRelaySideEffectAdmissionReceipt"}}
+    },
+    "relayExecutionRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "quote_request", "provider_quote", "agreement_body_digest", "agreement_expires_at_unix", "fee_obligation_ids", "signed_transaction_bytes", "underlying_action_request", "semantic_fields", "authorized_action", "writer_fence", "admission_receipt", "created_at_unix", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "quote_request": {"$ref": "#/$defs/signedRelayQuoteRequest"},
+        "provider_quote": {"$ref": "#/$defs/signedProviderRelayQuote"},
+        "agreement_body_digest": {"$ref": "#/$defs/digest"},
+        "agreement_expires_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "relay_obligation_id": {"$ref": "#/$defs/identifier128"},
+        "sponsorship_obligation_id": {"$ref": "#/$defs/identifier128"},
+        "fee_obligation_ids": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/identifier128"}},
+        "signed_transaction_bytes": {"$ref": "#/$defs/signedTransactionBytes"},
+        "underlying_action_request": {"$ref": "#/$defs/actionRequestBytes"},
+        "semantic_fields": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/semanticField"}},
+        "authorized_action": {"$ref": "economic-action-authority-v1.json#/$defs/authorizedAction"},
+        "writer_fence": {"$ref": "economic-action-authority-v1.json#/$defs/writerFence"},
+        "admission_receipt": {"$ref": "#/$defs/signedRelaySideEffectAdmissionReceipt"},
+        "created_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      }
+    },
+    "submitCall": {
+      "type": "object", "additionalProperties": false,
+      "description": "Submit transport body. The generic Agreement is carried in full and its top-level terms and every service-obligation subject must equal the canonical relayAgreementBinding bytes.",
+      "required": ["request", "agreement"],
+      "properties": {
+        "request": {"$ref": "#/$defs/relayExecutionRequest"},
+        "agreement": {"$ref": "agent-commerce-v1.json#/$defs/agreement"}
+      }
+    },
+    "submitResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolution"],
+      "properties": {"resolution": {"$ref": "#/$defs/signedRelayResolution"}}
+    },
+    "terminalOutcome": {"enum": ["finalized_success", "corroborated_success", "finalized_expired", "finalized_absent", "finalized_invalidated", "corroborated_expired", "corroborated_absent", "corroborated_invalidated", "finalized_sponsorship_only", "corroborated_sponsorship_only", "finalized_relay_only", "corroborated_relay_only"]},
+    "statusQueryBody": {
+      "type": "object", "additionalProperties": false,
+      "description": "Exact body shared structurally by ResolveCall and EvidenceCall; the frozen request media type selects the operation.",
+      "required": ["stable_action_id", "exact_request_digest"],
+      "properties": {
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "resolveCall": {
+      "description": "ResolveCall body under application/vnd.tos.agent-relay-resolve-call.v1+cbor.",
+      "$ref": "#/$defs/statusQueryBody"
+    },
+    "resolveResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolution"],
+      "properties": {"resolution": {"$ref": "#/$defs/signedRelayResolution"}}
+    },
+    "evidenceCall": {
+      "description": "EvidenceCall body under application/vnd.tos.agent-relay-evidence-call.v1+cbor.",
+      "$ref": "#/$defs/statusQueryBody"
+    },
+    "evidenceResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence"],
+      "properties": {"evidence": {"$ref": "#/$defs/signedRelayFinalityEvidence"}}
+    },
+    "relayResolutionBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "provider_agent_id", "network", "assurance_level", "stable_action_id", "exact_request_digest", "relay_execution_request_digest", "state", "state_revision", "observed_at_unix", "expires_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "network": {"$ref": "#/$defs/networkDomain"},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"},
+        "state": {"enum": ["prepared", "submitted", "accepted", "rejected", "conflict", "terminal"]},
+        "state_revision": {"$ref": "#/$defs/positiveU64"},
+        "terminal_outcome": {"$ref": "#/$defs/terminalOutcome"},
+        "transaction_reference": {"type": "string", "maxLength": 1024},
+        "sponsorship_stable_action_id": {"$ref": "#/$defs/digest"},
+        "sponsorship_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "sponsorship_transfer_reference": {"type": "string", "maxLength": 1024},
+        "sponsorship_status": {"const": "observed_unproven"},
+        "sponsorship_observation_digest": {"$ref": "#/$defs/digest"},
+        "evidence_set_digest": {"$ref": "#/$defs/digest"},
+        "observed_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "expires_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"state": {"const": "terminal"}}, "required": ["state"]}, "then": {"required": ["terminal_outcome", "evidence_set_digest"]}},
+        {"if": {"properties": {"state": {"not": {"const": "terminal"}}}, "required": ["state"]}, "then": {"not": {"anyOf": [{"required": ["terminal_outcome"]}, {"required": ["evidence_set_digest"]}]}}},
+        {"if": {"required": ["sponsorship_transfer_reference"]}, "then": {"required": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix"]}},
+        {"if": {"required": ["sponsorship_status"]}, "then": {"properties": {"state": {"enum": ["prepared", "submitted", "accepted"]}, "assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "not": {"anyOf": [{"required": ["sponsorship_transfer_reference"]}, {"required": ["terminal_outcome"]}, {"required": ["evidence_set_digest"]}]}}}
+      ],
+      "dependentRequired": {
+        "sponsorship_stable_action_id": ["sponsorship_exact_request_digest", "sponsorship_valid_until_unix"],
+        "sponsorship_exact_request_digest": ["sponsorship_stable_action_id", "sponsorship_valid_until_unix"],
+        "sponsorship_valid_until_unix": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest"],
+        "sponsorship_status": ["sponsorship_observation_digest", "sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix"],
+        "sponsorship_observation_digest": ["sponsorship_status"]
+      }
+    },
+    "signedRelayResolution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["body", "public_key", "signature"],
+      "properties": {"body": {"$ref": "#/$defs/relayResolutionBody"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}
+    },
+    "relayAbsenceObservationReference": {
+      "type": "object", "additionalProperties": false,
+      "description": "Content-addressed interpretation of one independently verified, profile-qualified observer proof. It cannot be relabelled between the provider sponsorship action and the client transaction.",
+      "required": ["schema_version", "observation_kind", "conclusion", "provider_agent_id", "network_digest", "relay_stable_action_id", "relay_exact_request_digest", "relay_execution_request_digest", "sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix", "signed_transaction_digest", "signed_transaction_cell_hash", "terminal_profile_uri", "terminal_profile_digest", "terminal_evidence_class", "finalized_checkpoint_id", "finalized_checkpoint_sequence", "finalized_checkpoint_unix", "observer_id", "operator_domain_id", "observation_evidence_profile_uri", "observation_evidence_profile_digest", "observation_digest", "observed_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "observation_kind": {"enum": ["sponsorship_action", "client_transaction"]},
+        "conclusion": {"enum": ["absent", "expired_without_inclusion", "invalidated_without_inclusion"]},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "relay_stable_action_id": {"$ref": "#/$defs/digest"},
+        "relay_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_stable_action_id": {"$ref": "#/$defs/digest"},
+        "sponsorship_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "signed_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "terminal_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "terminal_profile_digest": {"$ref": "#/$defs/digest"},
+        "terminal_evidence_class": {"$ref": "#/$defs/terminalEvidenceClass"},
+        "finalized_checkpoint_id": {"$ref": "#/$defs/identifier1024"},
+        "finalized_checkpoint_sequence": {"$ref": "#/$defs/positiveU64"},
+        "finalized_checkpoint_unix": {"$ref": "#/$defs/positiveU64"},
+        "observer_id": {"$ref": "#/$defs/identifier256"},
+        "operator_domain_id": {"$ref": "#/$defs/identifier256"},
+        "observation_evidence_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "observation_evidence_profile_digest": {"$ref": "#/$defs/digest"},
+        "observation_digest": {"$ref": "#/$defs/digest"},
+        "observed_at_unix": {"$ref": "#/$defs/positiveU64"}
+      }
+    },
+    "relayAbsenceProofBundle": {
+      "type": "object", "additionalProperties": false,
+      "description": "Core Deterministic CBOR bundle whose exact bytes and digest bind the complete mode-qualified absence-reference arrays used by one terminal evidence body. Heavy portable proofs remain content-addressed by each reference.",
+      "required": ["schema_version", "proof_scope", "proof_profile_uri", "proof_profile_digest", "proof_payload_digest", "proof_payload"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "proof_scope": {"enum": ["sponsorship_only", "transaction_only", "dual"]},
+        "proof_profile_uri": {"$ref": "#/$defs/identifier256"},
+        "proof_profile_digest": {"$ref": "#/$defs/digest"},
+        "proof_payload_digest": {"$ref": "#/$defs/digest"},
+        "proof_payload": {"type": "string", "minLength": 4, "maxLength": 174764, "pattern": "^[A-Za-z0-9+/]+={0,2}$", "contentEncoding": "base64"},
+        "sponsorship_absence_observations": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/relayAbsenceObservationReference"}},
+        "transaction_absence_observations": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/relayAbsenceObservationReference"}}
+      },
+      "allOf": [
+        {"if": {"properties": {"proof_scope": {"const": "sponsorship_only"}}, "required": ["proof_scope"]}, "then": {"required": ["sponsorship_absence_observations"], "not": {"required": ["transaction_absence_observations"]}}},
+        {"if": {"properties": {"proof_scope": {"const": "transaction_only"}}, "required": ["proof_scope"]}, "then": {"required": ["transaction_absence_observations"], "not": {"required": ["sponsorship_absence_observations"]}}},
+        {"if": {"properties": {"proof_scope": {"const": "dual"}}, "required": ["proof_scope"]}, "then": {"required": ["sponsorship_absence_observations", "transaction_absence_observations"]}},
+        {"if": {"properties": {"proof_profile_uri": {"const": "tos.relay-absence.tosctl-rpc-snapshot.v1"}}, "required": ["proof_profile_uri"]}, "then": {"properties": {"sponsorship_absence_observations": {"items": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}, "observation_evidence_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"}}, "required": ["terminal_evidence_class", "observation_evidence_profile_uri"]}}, "transaction_absence_observations": {"items": {"properties": {"terminal_evidence_class": {"const": "provider_corroborated"}, "observation_evidence_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"}}, "required": ["terminal_evidence_class", "observation_evidence_profile_uri"]}}}}}
+      ]
+    },
+    "relaySponsorshipCreditObservation": {
+      "type": "object", "additionalProperties": false,
+      "description": "Explicit nonterminal bounded RPC corroboration. This object is never validator-authenticated finality and is forbidden inside RelayFinalityEvidenceV1.",
+      "required": ["schema_version", "network_digest", "agreement_payment_request", "agreement_payment_request_digest", "sponsorship_stable_action_id", "sponsorship_exact_request_digest", "provider_sponsor_source_account", "provider_sponsor_source_sequence", "provider_sponsor_valid_until_unix", "signed_top_up_transaction_digest", "signed_top_up_transaction_cell_hash", "sponsorship_payment_commitment_cell_hash", "destination_source_account", "amount", "submitted_transaction_hash", "source_execution_reference", "destination_credit_references", "evidence_profile_uri", "evidence_profile_digest", "observed_checkpoint_id", "observed_checkpoint_sequence", "observed_checkpoint_unix", "observation_digests", "observed_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "agreement_payment_request": {
+          "allOf": [
+            {"$ref": "agent-commerce-v1.json#/$defs/agreementPaymentRequest"},
+            {"properties": {"schema_version": {"const": 3}}, "required": ["schema_version", "network_domain_digest"]}
+          ]
+        },
+        "agreement_payment_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_stable_action_id": {"$ref": "#/$defs/digest"},
+        "sponsorship_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "provider_sponsor_source_account": {"$ref": "#/$defs/identifier256"},
+        "provider_sponsor_source_sequence": {"$ref": "#/$defs/u64"},
+        "provider_sponsor_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "signed_top_up_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_top_up_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "sponsorship_payment_commitment_cell_hash": {
+          "$ref": "#/$defs/cellDigest",
+          "description": "Exact ordinary zero-reference SPN1 cell hash over uint32 0x53504e31, raw agreement_payment_request_digest, and raw sponsorship_stable_action_id."
+        },
+        "destination_source_account": {"$ref": "#/$defs/identifier256"},
+        "amount": {"$ref": "#/$defs/assetAmount"},
+        "submitted_transaction_hash": {"$ref": "#/$defs/identifier1024"},
+        "source_execution_reference": {"$ref": "#/$defs/identifier1024"},
+        "destination_credit_references": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "evidence_profile_uri": {"const": "agreement-payment-rpc-corroboration.v1"},
+        "evidence_profile_digest": {"$ref": "#/$defs/digest"},
+        "observed_checkpoint_id": {"$ref": "#/$defs/identifier1024"},
+        "observed_checkpoint_sequence": {"$ref": "#/$defs/positiveU64"},
+        "observed_checkpoint_unix": {"$ref": "#/$defs/positiveU64"},
+        "observation_digests": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "observed_at_unix": {"$ref": "#/$defs/positiveU64"}
+      }
+    },
+    "relaySponsorshipTransactionEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "terminal_evidence_class", "validator_authenticated_portable_proof", "network_digest", "agreement_payment_request", "agreement_payment_request_digest", "sponsorship_stable_action_id", "sponsorship_exact_request_digest", "provider_sponsor_source_account", "provider_sponsor_source_sequence", "provider_sponsor_valid_until_unix", "signed_top_up_transaction_digest", "signed_top_up_transaction_cell_hash", "sponsorship_payment_commitment_cell_hash", "destination_source_account", "amount", "submitted_transaction_hash", "source_execution_reference", "destination_credit_references", "finalized_checkpoint_id", "finalized_checkpoint_sequence", "finalized_checkpoint_unix", "confirmation_depth", "sponsorship_terminal_profile_digest", "observation_digests", "proof_bundle_digest", "observed_at_unix"],
+	  "anyOf": [
+		{"required": ["proof_bundle"]},
+		{"required": ["portable_proof_locator"]}
+	  ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "terminal_evidence_class": {"$ref": "#/$defs/sponsorshipTerminalEvidenceClass"},
+        "validator_authenticated_portable_proof": {"type": "boolean"},
+        "network_digest": {"$ref": "#/$defs/digest"},
+        "agreement_payment_request": {
+          "allOf": [
+            {"$ref": "agent-commerce-v1.json#/$defs/agreementPaymentRequest"},
+            {"properties": {"schema_version": {"const": 3}}, "required": ["schema_version", "network_domain_digest"]}
+          ]
+        },
+        "agreement_payment_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_stable_action_id": {"$ref": "#/$defs/digest"},
+        "sponsorship_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "provider_sponsor_source_account": {"$ref": "#/$defs/identifier256"},
+        "provider_sponsor_source_sequence": {"$ref": "#/$defs/u64"},
+        "provider_sponsor_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "signed_top_up_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_top_up_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "sponsorship_payment_commitment_cell_hash": {
+          "$ref": "#/$defs/cellDigest",
+          "description": "Exact ordinary zero-reference SPN1 cell hash over uint32 0x53504e31, raw agreement_payment_request_digest, and raw sponsorship_stable_action_id."
+        },
+        "destination_source_account": {"$ref": "#/$defs/identifier256"},
+        "amount": {"$ref": "#/$defs/assetAmount"},
+        "submitted_transaction_hash": {"$ref": "#/$defs/identifier1024"},
+        "source_execution_reference": {"$ref": "#/$defs/identifier1024"},
+        "destination_credit_references": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "finalized_checkpoint_id": {"$ref": "#/$defs/identifier1024"},
+        "finalized_checkpoint_sequence": {"$ref": "#/$defs/positiveU64"},
+        "finalized_checkpoint_unix": {"$ref": "#/$defs/positiveU64"},
+        "confirmation_depth": {"$ref": "#/$defs/positiveU32"},
+        "sponsorship_terminal_profile_digest": {"$ref": "#/$defs/digest"},
+        "observation_digests": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "proof_bundle_digest": {"$ref": "#/$defs/digest"},
+		"proof_bundle": {"type": "string", "minLength": 4, "maxLength": 174764, "pattern": "^[A-Za-z0-9+/]+={0,2}$", "contentEncoding": "base64"},
+        "portable_proof_locator": {"$ref": "#/$defs/identifier1024"},
+        "observed_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}, "then": {"properties": {"validator_authenticated_portable_proof": {"const": true}}, "required": ["portable_proof_locator"]}},
+        {"if": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}, "then": {"properties": {"validator_authenticated_portable_proof": {"const": false}}}}
+      ]
+    },
+    "relayFinalityEvidenceBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "provider_agent_id", "network", "assurance_level", "stable_action_id", "exact_request_digest", "relay_execution_request_digest", "signed_transaction_digest", "signed_transaction_cell_hash", "transaction_valid_until_unix", "source_account", "source_sequence", "outcome", "observed_at_unix", "signing_authority_at_unix"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "provider_agent_id": {"$ref": "#/$defs/identifier256"},
+        "network": {"$ref": "#/$defs/networkDomain"},
+        "assurance_level": {"$ref": "#/$defs/assuranceLevel"},
+        "stable_action_id": {"$ref": "#/$defs/digest"},
+        "exact_request_digest": {"$ref": "#/$defs/digest"},
+        "relay_execution_request_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_digest": {"$ref": "#/$defs/digest"},
+        "signed_transaction_cell_hash": {"$ref": "#/$defs/cellDigest"},
+        "transaction_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "source_account": {"$ref": "#/$defs/identifier256"},
+        "source_sequence": {"$ref": "#/$defs/u64"},
+        "sponsorship_stable_action_id": {"$ref": "#/$defs/digest"},
+        "sponsorship_exact_request_digest": {"$ref": "#/$defs/digest"},
+        "sponsorship_valid_until_unix": {"$ref": "#/$defs/positiveU64"},
+        "sponsorship_transfer_reference": {"type": "string", "maxLength": 1024},
+        "sponsorship_transaction_evidence": {"$ref": "#/$defs/relaySponsorshipTransactionEvidence"},
+        "sponsorship_absence_observations": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/relayAbsenceObservationReference"}},
+        "transaction_absence_observations": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/relayAbsenceObservationReference"}},
+        "absence_proof_bundle_digest": {"$ref": "#/$defs/digest"},
+        "absence_proof_bundle": {"type": "string", "minLength": 4, "maxLength": 174764, "pattern": "^[A-Za-z0-9+/]+={0,2}$", "contentEncoding": "base64"},
+        "submitted_transaction_hash": {"type": "string", "maxLength": 1024},
+        "source_execution_reference": {"type": "string", "maxLength": 1024},
+        "destination_credit_references": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "relay_finality_profile": {"$ref": "#/$defs/finalityProfile"},
+        "sponsorship_terminal_profile": {"$ref": "#/$defs/finalityProfile"},
+        "relay_terminal_evidence_class": {"$ref": "#/$defs/relayTerminalEvidenceClass"},
+        "relay_validator_authenticated_portable_proof": {"type": "boolean"},
+        "relay_finalized_checkpoint_id": {"$ref": "#/$defs/identifier1024"},
+        "relay_finalized_checkpoint_sequence": {"$ref": "#/$defs/positiveU64"},
+        "relay_finalized_checkpoint_unix": {"$ref": "#/$defs/positiveU64"},
+        "relay_confirmation_depth": {"$ref": "#/$defs/positiveU32"},
+        "relay_observation_digests": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "outcome": {"$ref": "#/$defs/terminalOutcome"},
+        "observed_at_unix": {"$ref": "#/$defs/positiveU64"},
+        "signing_authority_at_unix": {"$ref": "#/$defs/positiveU64"}
+      },
+      "allOf": [
+        {"if": {"required": ["sponsorship_transfer_reference"]}, "then": {"required": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix", "sponsorship_terminal_profile", "sponsorship_transaction_evidence"]}},
+        {"if": {"required": ["sponsorship_absence_observations"]}, "then": {"required": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix", "sponsorship_terminal_profile"], "not": {"anyOf": [{"required": ["sponsorship_transfer_reference"]}, {"required": ["sponsorship_transaction_evidence"]}]}}},
+        {"if": {"required": ["transaction_absence_observations"]}, "then": {"required": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest", "sponsorship_valid_until_unix", "sponsorship_terminal_profile", "relay_finality_profile"], "not": {"anyOf": [{"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}, {"required": ["destination_credit_references"]}, {"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_validator_authenticated_portable_proof"]}, {"required": ["relay_finalized_checkpoint_id"]}, {"required": ["relay_finalized_checkpoint_sequence"]}, {"required": ["relay_finalized_checkpoint_unix"]}, {"required": ["relay_confirmation_depth"]}, {"required": ["relay_observation_digests"]}]}}},
+        {"if": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["transaction_absence_observations"]}]}, "then": {"required": ["absence_proof_bundle_digest", "absence_proof_bundle"]}},
+        {"if": {"anyOf": [{"required": ["absence_proof_bundle_digest"]}, {"required": ["absence_proof_bundle"]}]}, "then": {"required": ["absence_proof_bundle_digest", "absence_proof_bundle"], "anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["transaction_absence_observations"]}]}},
+        {"if": {"required": ["sponsorship_stable_action_id"]}, "then": {"required": ["sponsorship_terminal_profile"], "anyOf": [{"required": ["sponsorship_transfer_reference", "sponsorship_transaction_evidence"]}, {"required": ["sponsorship_absence_observations"]}]}},
+        {"if": {"required": ["relay_terminal_evidence_class"]}, "then": {"required": ["relay_validator_authenticated_portable_proof", "relay_finality_profile", "relay_finalized_checkpoint_id", "relay_finalized_checkpoint_sequence", "relay_finalized_checkpoint_unix", "relay_confirmation_depth", "relay_observation_digests"]}},
+        {"if": {"anyOf": [{"required": ["relay_validator_authenticated_portable_proof"]}, {"required": ["relay_finalized_checkpoint_id"]}, {"required": ["relay_finalized_checkpoint_sequence"]}, {"required": ["relay_finalized_checkpoint_unix"]}, {"required": ["relay_confirmation_depth"]}, {"required": ["relay_observation_digests"]}]}, "then": {"required": ["relay_terminal_evidence_class"]}},
+        {"if": {"anyOf": [{"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}]}, "then": {"required": ["submitted_transaction_hash", "source_execution_reference", "relay_terminal_evidence_class"]}},
+        {"if": {"required": ["destination_credit_references"]}, "then": {"required": ["submitted_transaction_hash", "source_execution_reference"]}},
+        {"if": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}}, "required": ["relay_terminal_evidence_class"]}, "then": {"properties": {"relay_validator_authenticated_portable_proof": {"const": true}, "relay_finality_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}}},
+        {"if": {"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "relay_validator_authenticated_portable_proof": {"const": false}, "relay_finality_profile": {"properties": {"profile_uri": {"const": "tos.relay.provider-corroborated-terminal.v1"}, "terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["profile_uri", "terminal_evidence_class"]}}}},
+        {"if": {"properties": {"sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_transaction_evidence"]}, "then": {"properties": {"sponsorship_terminal_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}}},
+        {"if": {"properties": {"sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_transaction_evidence"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}, "sponsorship_terminal_profile": {"properties": {"profile_uri": {"const": "tos.sponsorship.client-corroborated-terminal.v1"}, "terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["profile_uri", "terminal_evidence_class"]}}}},
+        {"if": {"properties": {"outcome": {"const": "finalized_success"}}, "required": ["outcome"]}, "then": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}, "relay_validator_authenticated_portable_proof": {"const": true}, "sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}, "validator_authenticated_portable_proof": {"const": true}}, "required": ["terminal_evidence_class", "validator_authenticated_portable_proof"]}}, "required": ["relay_terminal_evidence_class", "relay_validator_authenticated_portable_proof", "relay_finality_profile", "submitted_transaction_hash", "source_execution_reference"], "not": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["transaction_absence_observations"]}]}}},
+        {"if": {"properties": {"outcome": {"const": "corroborated_success"}}, "required": ["outcome"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["relay_terminal_evidence_class", "relay_validator_authenticated_portable_proof", "relay_finality_profile", "submitted_transaction_hash", "source_execution_reference"], "not": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["transaction_absence_observations"]}]}, "anyOf": [{"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, {"properties": {"sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_transaction_evidence"]}]}},
+        {"if": {"properties": {"outcome": {"const": "finalized_sponsorship_only"}}, "required": ["outcome"]}, "then": {"properties": {"sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}, "validator_authenticated_portable_proof": {"const": true}}, "required": ["terminal_evidence_class", "validator_authenticated_portable_proof"]}}, "required": ["sponsorship_transfer_reference", "sponsorship_terminal_profile", "sponsorship_transaction_evidence"], "not": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_validator_authenticated_portable_proof"]}, {"required": ["relay_finalized_checkpoint_id"]}, {"required": ["relay_finalized_checkpoint_sequence"]}, {"required": ["relay_finalized_checkpoint_unix"]}, {"required": ["relay_confirmation_depth"]}, {"required": ["relay_observation_digests"]}, {"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}, {"required": ["destination_credit_references"]}]}, "allOf": [{"if": {"required": ["transaction_absence_observations"]}, "then": {"properties": {"relay_finality_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}}}]}},
+        {"if": {"properties": {"outcome": {"const": "corroborated_sponsorship_only"}}, "required": ["outcome"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["sponsorship_transfer_reference", "sponsorship_terminal_profile", "sponsorship_transaction_evidence"], "not": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["relay_terminal_evidence_class"]}, {"required": ["relay_validator_authenticated_portable_proof"]}, {"required": ["relay_finalized_checkpoint_id"]}, {"required": ["relay_finalized_checkpoint_sequence"]}, {"required": ["relay_finalized_checkpoint_unix"]}, {"required": ["relay_confirmation_depth"]}, {"required": ["relay_observation_digests"]}, {"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}, {"required": ["destination_credit_references"]}]}, "anyOf": [{"properties": {"sponsorship_transaction_evidence": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}, "validator_authenticated_portable_proof": {"const": false}}, "required": ["terminal_evidence_class", "validator_authenticated_portable_proof"]}}, "required": ["sponsorship_transaction_evidence"]}, {"properties": {"relay_finality_profile": {"properties": {"terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["transaction_absence_observations", "relay_finality_profile"]}]}},
+        {"if": {"properties": {"outcome": {"const": "finalized_relay_only"}}, "required": ["outcome"]}, "then": {"properties": {"relay_terminal_evidence_class": {"const": "validator_finality"}, "relay_validator_authenticated_portable_proof": {"const": true}, "sponsorship_terminal_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_absence_observations", "relay_terminal_evidence_class", "relay_finality_profile", "submitted_transaction_hash", "source_execution_reference"], "not": {"anyOf": [{"required": ["transaction_absence_observations"]}, {"required": ["sponsorship_transfer_reference"]}, {"required": ["sponsorship_transaction_evidence"]}]}}},
+        {"if": {"properties": {"outcome": {"const": "corroborated_relay_only"}}, "required": ["outcome"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "required": ["sponsorship_absence_observations", "relay_terminal_evidence_class", "relay_finality_profile", "submitted_transaction_hash", "source_execution_reference"], "not": {"anyOf": [{"required": ["transaction_absence_observations"]}, {"required": ["sponsorship_transfer_reference"]}, {"required": ["sponsorship_transaction_evidence"]}]}, "anyOf": [{"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, {"properties": {"sponsorship_terminal_profile": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_terminal_profile"]}]}},
+        {"if": {"properties": {"outcome": {"enum": ["finalized_expired", "finalized_absent", "finalized_invalidated"]}}, "required": ["outcome"]}, "then": {"properties": {"relay_finality_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}, "sponsorship_terminal_profile": {"properties": {"terminal_evidence_class": {"const": "validator_finality"}}, "required": ["terminal_evidence_class"]}}, "not": {"anyOf": [{"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}, {"required": ["destination_credit_references"]}, {"required": ["sponsorship_transfer_reference"]}, {"required": ["sponsorship_transaction_evidence"]}]}}},
+        {"if": {"properties": {"outcome": {"enum": ["corroborated_expired", "corroborated_absent", "corroborated_invalidated"]}}, "required": ["outcome"]}, "then": {"properties": {"assurance_level": {"enum": ["trusted-local", "authorized-single-provider"]}}, "not": {"anyOf": [{"required": ["submitted_transaction_hash"]}, {"required": ["source_execution_reference"]}, {"required": ["destination_credit_references"]}, {"required": ["sponsorship_transfer_reference"]}, {"required": ["sponsorship_transaction_evidence"]}]}, "anyOf": [{"properties": {"relay_terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["relay_terminal_evidence_class"]}, {"properties": {"relay_finality_profile": {"properties": {"terminal_evidence_class": {"const": "provider_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["relay_finality_profile", "transaction_absence_observations"]}, {"properties": {"sponsorship_terminal_profile": {"properties": {"terminal_evidence_class": {"const": "client_corroborated"}}, "required": ["terminal_evidence_class"]}}, "required": ["sponsorship_terminal_profile", "sponsorship_absence_observations"]}]}},
+        {"if": {"properties": {"outcome": {"enum": ["finalized_expired", "finalized_absent", "finalized_invalidated", "corroborated_expired", "corroborated_absent", "corroborated_invalidated"]}}, "required": ["outcome", "relay_finality_profile", "sponsorship_terminal_profile"]}, "then": {"required": ["sponsorship_absence_observations", "transaction_absence_observations"], "not": {"required": ["relay_terminal_evidence_class"]}}},
+        {"if": {"properties": {"outcome": {"enum": ["finalized_expired", "finalized_absent", "finalized_invalidated", "corroborated_expired", "corroborated_absent", "corroborated_invalidated"]}}, "required": ["outcome", "sponsorship_terminal_profile"], "not": {"required": ["relay_finality_profile"]}}, "then": {"required": ["sponsorship_absence_observations"], "not": {"anyOf": [{"required": ["transaction_absence_observations"]}, {"required": ["relay_terminal_evidence_class"]}]}}},
+        {"if": {"properties": {"outcome": {"enum": ["finalized_expired", "finalized_absent", "finalized_invalidated", "corroborated_expired", "corroborated_absent", "corroborated_invalidated"]}}, "required": ["outcome", "relay_finality_profile"], "not": {"required": ["sponsorship_terminal_profile"]}}, "then": {"required": ["relay_terminal_evidence_class"], "not": {"anyOf": [{"required": ["sponsorship_absence_observations"]}, {"required": ["transaction_absence_observations"]}]}}}
+      ],
+      "anyOf": [
+        {"required": ["relay_terminal_evidence_class"]},
+        {"required": ["sponsorship_stable_action_id"]}
+      ],
+      "dependentRequired": {
+        "sponsorship_stable_action_id": ["sponsorship_exact_request_digest", "sponsorship_valid_until_unix"],
+        "sponsorship_exact_request_digest": ["sponsorship_stable_action_id", "sponsorship_valid_until_unix"],
+        "sponsorship_valid_until_unix": ["sponsorship_stable_action_id", "sponsorship_exact_request_digest"]
+      }
+    },
+    "signedRelayFinalityEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["body", "public_key", "signature"],
+      "properties": {"body": {"$ref": "#/$defs/relayFinalityEvidenceBody"}, "public_key": {"$ref": "#/$defs/ed25519PublicKey"}, "signature": {"$ref": "#/$defs/ed25519Signature"}}
+    }
+  }
+}

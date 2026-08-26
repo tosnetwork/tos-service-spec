@@ -763,6 +763,43 @@
     {
       "registry_version": 1,
       "entry_version": 1,
+      "action_kind": "provider.offer",
+      "domain_tag": "tos.semantic-action.provider.offer.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agreement_body_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "demand_mutation_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "buyer_agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "provider_offer_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "binding_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
       "action_kind": "publication.publish",
       "domain_tag": "tos.semantic-action.publication.publish.v1",
       "ordered_semantic_fields": [

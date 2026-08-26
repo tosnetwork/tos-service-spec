@@ -1467,26 +1467,52 @@ authorization appropriate to that transfer system.
 
 ```text
 AgreementPaymentRequestV1 {
+  schema_version = 1
+  owner_id
+  agent_id
   agreement_body_digest
   agreement_obligation_id
   obligation_instance_id
   payer_agent_id
   payee_agent_id
+  network_id
   amount
   destination
   settlement_adapter_uri
   stable_action_id
-  expires_at
+  expires_at_unix
 }
 
 AgreementPaymentEvidenceV1 {
   payment_request_digest
+  stable_action_id
   exact_transfer_reference
   adapter_evidence_profile
   resolved_state
-  resolved_at
+  resolved_at_unix
+  finality_reference
+  evidence
 }
 ```
+
+Both V1 structures above are frozen with their exact field lists. The payment
+request binds only its Adapter-level
+`network_id`; it MUST NOT gain new fields. `AgreementPaymentRequestV3` is the
+domain-bound direct-transfer form for bearer-executable transaction profiles.
+V3 retains every V1 field, sets `schema_version = 3`, and adds exactly one
+field:
+
+```text
+schema_version = 3
+network_domain_digest  # digest of the complete owner-pinned chain domain
+```
+
+Its `payment.direct` destination digest commits `network_id`,
+`network_domain_digest`, Adapter URI, and exact destination. Profiles such as
+the Agent relay service that disclose executable signed bytes MUST require V3;
+same display network ID on a different genesis domain is a different payment
+identity. V1 remains valid only for profiles whose separate Adapter authority
+rules do not require this full-domain binding.
 
 The request must reproduce the accepted payment obligation exactly. Custody
 authorizes the transfer through the normal economic action boundary. The
