@@ -330,26 +330,53 @@ label defined in §14; mixed or late-selected classes otherwise fail closed.
 
 For the released bounded-RPC Adapter, the digest is derived from the concrete
 descriptor, not copied from a configuration string. The descriptor commits the
-full network domain, the sorted canonical endpoint/operator-provenance member
-set, strict-majority threshold, `maximum_history_transactions` in the inclusive
-range `1..10000`, exact submitted-message and destination-credit requirements,
-and `validator_finality_proven = false`. A query-only preflight computes this
-same descriptor from the owner configuration before readiness, Quote, and
-admission. A runtime that cannot reproduce the configured digest is
-`not_ready` for that exact pair.
+full network domain, the sorted canonical public-origin/locator-identity/
+operator-provenance member set, strict-majority threshold,
+`maximum_history_transactions` in the inclusive range `1..10000`, exact
+submitted-message and destination-credit requirements, and
+`validator_finality_proven = false`. A member's `endpoint` is its canonical
+public origin only: scheme, DNS name or IP literal, and the canonical effective
+port representation (default ports are omitted). It contains no user
+information, path, query, or fragment. The `locator_identity_digest` commits
+the credential-independent canonical full RPC locator, including its path,
+without publishing that locator. API keys, credentials, unrelated local
+configuration and byte formatting are excluded. They remain bound only by the
+owner-private snapshot identity. Provider and client configurations that use
+the same canonical locator and operator therefore reproduce the same release
+profile even when their credentials and configuration bytes differ. A
+query-only preflight computes this same descriptor from the owner configuration
+before readiness, Quote, and admission. A runtime that cannot reproduce the
+configured digest is `not_ready` for that exact pair.
+
+The locator identity is exactly
+`sha256(locator_domain || uint64be(locator_length) || canonical_locator)`, where
+`locator_domain` is the ASCII bytes
+`tosctl.agreement-payment-rpc-locator-identity.v1\0` and
+`canonical_locator` is UTF-8. The canonical locator has a lowercase canonical
+host, canonical effective-port representation, no user information, query,
+fragment, percent encoding, backslash, dot segment, empty interior segment, or
+redundant trailing slash. The configured locator MUST already equal this
+canonical representation; parser-normalized aliases are rejected. Changing its
+origin or path changes the identity; changing only a credential or local file
+representation does not. V1 treats the path as non-secret routing
+metadata: bearer tokens, API keys and other credentials MUST NOT be encoded in
+it and instead use the private credential field/header. A deployment whose path
+is itself a bearer capability is `not_ready` for this profile until a future
+blinded, operator-authenticated service-identity profile is selected.
 
 The V1 descriptor digest is exactly
 `sha256(domain || uint64be(json_length) || compact_json)`, where `domain` is
 the ASCII bytes `tosctl.agreement-payment-rpc-corroboration-profile.v1\0`.
 The compact UTF-8 JSON recursively sorts every object key by Unicode code
-point. Arrays retain order; members are already sorted by endpoint then
-operator provenance. The descriptor has exactly this field set:
+point. Arrays retain order; members are already sorted by public-origin
+`endpoint`, then `locator_identity_digest`, then operator provenance. The
+descriptor has exactly this field set:
 
 ```text
 profile_uri
 network_domain { network_id, global_id, zero_state_root_hash,
                  zero_state_file_hash, workchain_id }
-members[] { endpoint, operator_provenance }
+members[] { endpoint, locator_identity_digest, operator_provenance }
 threshold
 maximum_history_transactions
 strict_majority
@@ -369,6 +396,29 @@ content-addressed bytes and all descriptor inputs with the route and
 sponsorship journals. Every later Resolve for that action uses that frozen
 snapshot. Configuration rotation applies only to new quote requests; it cannot
 change the evidence profile of an admitted or ambiguously funded action.
+The private snapshot identity commits the release-profile digest, the exact
+member-configuration content digests, and a fresh cryptographically random
+256-bit snapshot nonce. The nonce stays in the owner-private manifest and is
+never emitted with the public identity, so that identity is not an offline
+oracle for API keys or other configuration secrets.
+Its V1 digest uses the same framed compact-JSON construction with domain
+`tosctl.agreement-payment-rpc-corroboration-snapshot.v1\0` and the exact object
+fields `config_content_digests`, `evidence_profile_digest`, and
+`snapshot_nonce`; member content digests retain the profile member order and
+the nonce is exactly 64 lowercase hexadecimal digits.
+The exact locator, configuration bytes, credentials and absolute paths remain
+owner-private. A snapshot manifest uses only single-component relative member
+names, and the preflight capability returns a bounded relative
+`corroboration_snapshot_handle` that the owner resolves beneath the exact
+configured snapshot root. Absolute paths and traversal components are invalid.
+The V1 handle is exactly
+`corroboration-<snapshot-identity hex>/manifest.json`; the embedded lowercase
+hex equals the 64 hexadecimal digits after `sha256:` in the accompanying
+snapshot identity. It is not accepted as an ambient filesystem path.
+Capability documents, signed profiles, observation objects, errors, and logs
+expose only the canonical public origin and locator identity digest. RPC
+failures expose one bounded protocol category and, when useful, that public
+origin; they never include the raw transport error or request URL.
 
 The bounded-RPC release descriptor's verifier enforces its member set,
 operator-provenance uniqueness and strict-majority threshold for the initial
@@ -1531,9 +1581,11 @@ Provider source account, source sequence, transaction expiry, destination
 source account, exact signed top-up BOC bytes, byte digest and TVM cell hash,
 the SPN1 commitment cell hash, network and both selected profiles, frozen
 snapshot identity, quorum observations and the selected predicate's terminal
-checkpoint. The client recomputes and parses the
-canonical BOC, then re-queries its own frozen endpoint/operator set for that
-same inbound message, exact destination credit and mature checkpoint. A set of
+checkpoint. The client recomputes and parses the canonical BOC, then re-queries
+its own frozen private configuration set whose public origins,
+locator-identity digests, and operator provenance equal the signed
+descriptor, for that same inbound message, exact destination credit and mature
+checkpoint. A set of
 unsigned observation objects supplied by the Provider, even when internally
 consistent and covered by the Provider's outer signature, is not independent
 chain verification and MUST leave the client pair `not_ready`.
@@ -1611,12 +1663,12 @@ profile/snapshot substitution, BOC conflict, or journal conflict is a hard
 integrity error and MUST NOT be converted to `unknown`.
 
 The Provider and client snapshot identities are distinct audit facts. Each
-identity may commit local configuration bytes, paths or credentials and they
+identity commits its local configuration bytes and credentials; the identities
 MUST NOT be required to match or be exchanged. Both snapshots instead
 reproduce the same signed release-profile descriptor and digest, including the
-network and endpoint/operator set. The Provider identity remains bound by its
-custody authorization and proof bundle; the client identity remains local to
-the independent verification result.
+network and public-origin/locator-identity/operator-provenance set. The
+Provider identity remains bound by its custody authorization and proof bundle;
+the client identity remains local to the independent verification result.
 
 Nested destination-credit references prove the top-up credit to the requester
 source account. They are distinct from the enclosing

@@ -94,6 +94,13 @@ AGENT_SIGNATURE_PROFILE_URI = "tos.agreement.evidence.agent-signature.v1"
 AGENT_SIGNATURE_PROFILE_DIGEST = "sha256:4a8eaf43746a0aeb781a75469f0b508f90efb73f4dc25e6707b61cd0d5c8268d"
 AGREEMENT_ACCEPTANCE_CONTENT_TYPE = "application/vnd.tos.agreement-acceptance.v1+cbor"
 RPC_CORROBORATION_PROFILE_URI = "agreement-payment-rpc-corroboration.v1"
+RPC_LOCATOR_IDENTITY_DOMAIN = \
+    b"tosctl.agreement-payment-rpc-locator-identity.v1\x00"
+RPC_LOCATOR_FIXTURES = (
+    "https://rpc-a.example/jsonRPC",
+    "https://rpc-b.example/jsonRPC",
+    "https://rpc-c.example/jsonRPC",
+)
 TOS_RPC_ABSENCE_PROFILE_URI = "tos.relay-absence.tosctl-rpc-snapshot.v1"
 CLIENT_CORROBORATED_TERMINAL_PROFILE_URI = \
     "tos.sponsorship.client-corroborated-terminal.v1"
@@ -511,6 +518,312 @@ def validate_endpoint(value: Any) -> None:
         return
     if not address.is_global:
         raise ConformanceError("endpoint targets a non-public address")
+
+
+def canonical_rpc_public_origin(value: Any) -> str:
+    """Return the released bounded-RPC public origin or reject it.
+
+    Full RPC paths are owner-private capabilities.  This projection follows
+    URL-origin serialization: default ports are omitted, non-default ports are
+    retained, and path/query/fragment/user information never crosses into the
+    signed descriptor or public evidence.
+    """
+    if not isinstance(value, str) or not value or len(value.encode("utf-8")) > 256:
+        raise ConformanceError("RPC descriptor endpoint origin is invalid")
+    try:
+        encoded_value = value.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ConformanceError("RPC descriptor endpoint origin is not ASCII") from error
+    if any(byte <= 0x20 or byte == 0x7f for byte in encoded_value):
+        raise ConformanceError("RPC descriptor endpoint origin contains whitespace or control bytes")
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+    except ValueError as error:
+        raise ConformanceError("RPC descriptor endpoint origin is invalid") from error
+    if (parsed.scheme not in {"http", "https"} or not parsed.hostname or
+            parsed.username is not None or parsed.password is not None or
+            parsed.path or parsed.query or parsed.fragment or "%" in parsed.hostname):
+        raise ConformanceError("RPC descriptor exposes a non-origin locator")
+    try:
+        parsed.hostname.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ConformanceError("RPC descriptor origin host is not canonical ASCII") from error
+    host = parsed.hostname.lower().rstrip(".")
+    if not host or host != parsed.hostname:
+        raise ConformanceError("RPC descriptor origin host is not canonical")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        address = None
+    loopback = host == "localhost" or address is not None and address.is_loopback
+    if parsed.scheme == "http" and not loopback:
+        raise ConformanceError("remote RPC descriptor origin is not HTTPS")
+    default_port = 80 if parsed.scheme == "http" else 443
+    rendered_host = f"[{host}]" if address is not None and address.version == 6 else host
+    canonical = f"{parsed.scheme}://{rendered_host}"
+    if port is not None and port != default_port:
+        canonical += f":{port}"
+    if value != canonical:
+        raise ConformanceError("RPC descriptor endpoint origin is noncanonical")
+    return canonical
+
+
+def canonical_rpc_full_locator(value: Any) -> str:
+    """Return a credential-independent canonical private RPC locator."""
+    if not isinstance(value, str) or not value or len(value.encode("utf-8")) > 2048:
+        raise ConformanceError("private RPC locator is invalid")
+    try:
+        encoded_value = value.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ConformanceError("private RPC locator is not ASCII") from error
+    if any(byte <= 0x20 or byte == 0x7f for byte in encoded_value):
+        raise ConformanceError("private RPC locator contains whitespace or control bytes")
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+    except ValueError as error:
+        raise ConformanceError("private RPC locator is invalid") from error
+    if (parsed.scheme not in {"http", "https"} or not parsed.hostname or
+            parsed.username is not None or parsed.password is not None or
+            parsed.query or parsed.fragment or "%" in parsed.hostname or
+            "%" in parsed.path or "\\" in parsed.path):
+        raise ConformanceError("private RPC locator is not credential-independent")
+    try:
+        parsed.hostname.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ConformanceError("private RPC locator host is not canonical ASCII") from error
+    host = parsed.hostname.lower().rstrip(".")
+    if not host or host != parsed.hostname:
+        raise ConformanceError("private RPC locator host is not canonical")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        address = None
+    loopback = host == "localhost" or address is not None and address.is_loopback
+    if parsed.scheme == "http" and not loopback:
+        raise ConformanceError("remote private RPC locator is not HTTPS")
+    segments = parsed.path.split("/")
+    if any(segment in {".", ".."} for segment in segments) or "//" in parsed.path:
+        raise ConformanceError("private RPC locator path is noncanonical")
+    default_port = 80 if parsed.scheme == "http" else 443
+    rendered_host = f"[{host}]" if address is not None and address.version == 6 else host
+    canonical = f"{parsed.scheme}://{rendered_host}"
+    if port is not None and port != default_port:
+        canonical += f":{port}"
+    path = parsed.path.rstrip("/")
+    if path:
+        canonical += path
+    if value != canonical:
+        raise ConformanceError("private RPC locator is noncanonical")
+    return canonical
+
+
+def rpc_locator_identity_digest(value: Any) -> str:
+    locator = canonical_rpc_full_locator(value).encode("utf-8")
+    return "sha256:" + hashlib.sha256(
+        RPC_LOCATOR_IDENTITY_DOMAIN + struct.pack(">Q", len(locator)) + locator
+    ).hexdigest()
+
+
+def rpc_public_origin_from_locator(value: Any) -> str:
+    locator = canonical_rpc_full_locator(value)
+    parsed = urlsplit(locator)
+    host = parsed.hostname
+    if host is None:  # Kept explicit even though the canonicalizer rejects it.
+        raise ConformanceError("private RPC locator has no host")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        address = None
+    rendered_host = f"[{host}]" if address is not None and address.version == 6 else host
+    origin = f"{parsed.scheme}://{rendered_host}"
+    if parsed.port is not None:
+        origin += f":{parsed.port}"
+    return canonical_rpc_public_origin(origin)
+
+
+def validate_rpc_corroboration_profile_descriptor(value: Any) -> None:
+    require_keys(value, {
+        "profile_uri", "network_domain", "members", "threshold",
+        "maximum_history_transactions", "strict_majority",
+        "exact_submitted_message", "exact_destination_credit",
+        "validator_finality_proven",
+    })
+    if value["profile_uri"] != RPC_CORROBORATION_PROFILE_URI:
+        raise ConformanceError("RPC corroboration profile URI is invalid")
+    validate_network(value["network_domain"])
+    members = value["members"]
+    if not isinstance(members, list) or len(members) < 3:
+        raise ConformanceError("RPC corroboration member set is incomplete")
+    member_keys: list[tuple[str, str, str]] = []
+    origins: set[str] = set()
+    operators: set[str] = set()
+    for member in members:
+        require_keys(member, {
+            "endpoint", "locator_identity_digest", "operator_provenance",
+        })
+        origin = canonical_rpc_public_origin(member["endpoint"])
+        locator_digest = member["locator_identity_digest"]
+        operator = member["operator_provenance"]
+        if not digest(locator_digest) or not digest(operator):
+            raise ConformanceError("RPC corroboration member digest is invalid")
+        if origin in origins or operator in operators:
+            raise ConformanceError("RPC corroboration member authority is repeated")
+        origins.add(origin)
+        operators.add(operator)
+        member_keys.append((origin, locator_digest, operator))
+    if member_keys != sorted(member_keys):
+        raise ConformanceError("RPC corroboration members are not canonically sorted")
+    threshold = value["threshold"]
+    if not integer(threshold, 1, len(members)) or threshold != len(members) // 2 + 1:
+        raise ConformanceError("RPC corroboration threshold is not strict-majority")
+    if not integer(value["maximum_history_transactions"], 1, 10_000):
+        raise ConformanceError("RPC corroboration history bound is invalid")
+    if (type(value["strict_majority"]) is not bool or
+            type(value["exact_submitted_message"]) is not bool or
+            type(value["exact_destination_credit"]) is not bool or
+            type(value["validator_finality_proven"]) is not bool or
+            not value["strict_majority"] or
+            not value["exact_submitted_message"] or
+            not value["exact_destination_credit"] or
+            value["validator_finality_proven"]):
+        raise ConformanceError("RPC corroboration security predicates are invalid")
+
+
+def verify_rpc_descriptor_privacy_mutations(value: dict[str, Any]) -> None:
+    mutations = (
+        ("private-path", "endpoint", "https://rpc-a.example/private/jsonRPC"),
+        ("credential", "endpoint", "https://token@rpc-a.example"),
+        ("query", "endpoint", "https://rpc-a.example?token=secret"),
+        ("noncanonical-default-port", "endpoint", "https://rpc-a.example:443"),
+        ("legacy-config-binding", "config_content_digest", _repeated("1")),
+        ("missing-locator-binding", "locator_identity_digest", None),
+    )
+    for name, field, replacement in mutations:
+        candidate = copy.deepcopy(value)
+        if replacement is None:
+            del candidate["members"][0][field]
+        else:
+            candidate["members"][0][field] = replacement
+        try:
+            validate_rpc_corroboration_profile_descriptor(candidate)
+        except ConformanceError:
+            continue
+        raise ConformanceError(f"RPC descriptor privacy mutation {name} passed")
+
+
+def verify_rpc_locator_identity_mutations(
+        value: dict[str, Any], private_locators: list[str]) -> None:
+    if len(value["members"]) != len(private_locators):
+        raise ConformanceError("RPC locator fixture count is inconsistent")
+    for member, locator in zip(value["members"], private_locators, strict=True):
+        if (member["endpoint"] != rpc_public_origin_from_locator(locator) or
+                member["locator_identity_digest"] != rpc_locator_identity_digest(locator)):
+            raise ConformanceError("RPC locator identity binding is inconsistent")
+
+    invalid_locators = {
+        "non-ascii-path": "https://rpc-a.example/\u8def\u7531",
+        "leading-space": " https://rpc-a.example/jsonRPC",
+        "trailing-newline": "https://rpc-a.example/jsonRPC\n",
+        "embedded-tab": "https://rpc-a.example/json\tRPC",
+        "uppercase-scheme": "HTTPS://rpc-a.example/jsonRPC",
+        "percent-alias": "https://rpc-a.example/%6asonRPC",
+    }
+    for name, locator in invalid_locators.items():
+        try:
+            rpc_locator_identity_digest(locator)
+        except ConformanceError:
+            continue
+        raise ConformanceError(f"private RPC locator mutation {name} passed")
+
+    substituted = copy.deepcopy(value)
+    substituted_locator = "https://rpc-a.example/private/jsonRPC"
+    substituted["members"][0]["locator_identity_digest"] = \
+        rpc_locator_identity_digest(substituted_locator)
+    _, original_profile_digest = tosctl_framed_json_digest(
+        b"tosctl.agreement-payment-rpc-corroboration-profile.v1\x00", value)
+    _, substituted_profile_digest = tosctl_framed_json_digest(
+        b"tosctl.agreement-payment-rpc-corroboration-profile.v1\x00", substituted)
+    if (substituted["members"][0]["locator_identity_digest"] ==
+            value["members"][0]["locator_identity_digest"] or
+            substituted_profile_digest == original_profile_digest):
+        raise ConformanceError("private RPC path substitution preserved public identity")
+
+    # Credential and serialization rotation changes the private snapshot but
+    # cannot change a locator identity or the public release profile.
+    first_config = json.dumps({
+        "chain_rpc": {"urls": [private_locators[0]], "api_key": "credential-a"},
+    }, separators=(",", ":")).encode()
+    second_config = json.dumps({
+        "chain_rpc": {"api_key": "credential-b", "urls": [private_locators[0]]},
+    }, indent=2).encode()
+    if (hashlib.sha256(first_config).digest() == hashlib.sha256(second_config).digest() or
+            rpc_locator_identity_digest(private_locators[0]) !=
+            value["members"][0]["locator_identity_digest"]):
+        raise ConformanceError("RPC locator identity is credential-coupled")
+
+
+def validate_rpc_corroboration_public_capability(
+        value: Any, descriptor: dict[str, Any], profile_digest: str) -> None:
+    require_keys(value, {
+        "schema", "evidence_class", "evidence_profile_uri",
+        "evidence_profile_digest", "evidence_profile",
+        "corroboration_snapshot_handle", "corroboration_snapshot_identity",
+        "network_domain", "maximum_history_transactions", "member_count",
+        "side_effect",
+    })
+    identity = value["corroboration_snapshot_identity"]
+    handle = value["corroboration_snapshot_handle"]
+    if (value["schema"] !=
+            "tosctl.agent-account.agreement-payment-rpc-corroboration-capability.v1" or
+            value["evidence_class"] != "observed_unproven" or
+            value["evidence_profile_uri"] != RPC_CORROBORATION_PROFILE_URI or
+            value["evidence_profile_digest"] != profile_digest or
+            value["evidence_profile"] != descriptor or
+            value["network_domain"] != descriptor["network_domain"] or
+            value["maximum_history_transactions"] !=
+            descriptor["maximum_history_transactions"] or
+            value["member_count"] != len(descriptor["members"]) or
+            type(value["side_effect"]) is not bool or value["side_effect"] or
+            not digest(identity) or not isinstance(handle, str) or
+            re.fullmatch(r"corroboration-[0-9a-f]{64}/manifest\.json", handle) is None or
+            handle != f"corroboration-{identity[7:]}/manifest.json" or
+            Path(handle).is_absolute() or ".." in Path(handle).parts or "\\" in handle):
+        raise ConformanceError("public RPC corroboration capability is invalid")
+    rendered = json.dumps(value, separators=(",", ":"), sort_keys=True)
+    if "/jsonRPC" in rendered or "config_path" in rendered or "snapshot_directory" in rendered:
+        raise ConformanceError("public RPC capability exposes a private locator or path")
+
+
+def verify_rpc_capability_privacy_mutations(
+        value: dict[str, Any], descriptor: dict[str, Any], profile_digest: str) -> None:
+    handle_mutations = {
+        "absolute": "/private/relay/corroboration-snapshot/manifest.json",
+        "traversal": "../corroboration-snapshot/manifest.json",
+        "nested-traversal": "corroboration-snapshot/../manifest.json",
+        "backslash": "corroboration-snapshot\\manifest.json",
+    }
+    for name, replacement in handle_mutations.items():
+        candidate = copy.deepcopy(value)
+        candidate["corroboration_snapshot_handle"] = replacement
+        try:
+            validate_rpc_corroboration_public_capability(
+                candidate, descriptor, profile_digest)
+        except ConformanceError:
+            continue
+        raise ConformanceError(f"RPC capability path mutation {name} passed")
+
+    candidate = copy.deepcopy(value)
+    del candidate["corroboration_snapshot_handle"]
+    candidate["corroboration_snapshot_path"] = \
+        "/private/relay/corroboration-snapshot/manifest.json"
+    try:
+        validate_rpc_corroboration_public_capability(
+            candidate, descriptor, profile_digest)
+    except ConformanceError:
+        return
+    raise ConformanceError("RPC capability absolute snapshot field passed")
 
 
 def validate_network(value: Any) -> None:
@@ -2894,15 +3207,22 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "zero_state_file_hash": _repeated("2"),
         "workchain_id": 0,
     }
+    private_rpc_locators = list(RPC_LOCATOR_FIXTURES)
     rpc_corroboration_profile_descriptor = {
         "profile_uri": RPC_CORROBORATION_PROFILE_URI,
         "network_domain": copy.deepcopy(network),
         "members": [
-            {"endpoint": "https://rpc-a.example/jsonRPC",
+            {"endpoint": "https://rpc-a.example",
+             "locator_identity_digest": rpc_locator_identity_digest(
+                 private_rpc_locators[0]),
              "operator_provenance": _repeated("a")},
-            {"endpoint": "https://rpc-b.example/jsonRPC",
+            {"endpoint": "https://rpc-b.example",
+             "locator_identity_digest": rpc_locator_identity_digest(
+                 private_rpc_locators[1]),
              "operator_provenance": _repeated("b")},
-            {"endpoint": "https://rpc-c.example/jsonRPC",
+            {"endpoint": "https://rpc-c.example",
+             "locator_identity_digest": rpc_locator_identity_digest(
+                 private_rpc_locators[2]),
              "operator_provenance": _repeated("c")},
         ],
         "threshold": 2,
@@ -2912,9 +3232,47 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "exact_destination_credit": True,
         "validator_finality_proven": False,
     }
+    validate_rpc_corroboration_profile_descriptor(
+        rpc_corroboration_profile_descriptor)
+    verify_rpc_descriptor_privacy_mutations(
+        rpc_corroboration_profile_descriptor)
+    verify_rpc_locator_identity_mutations(
+        rpc_corroboration_profile_descriptor, private_rpc_locators)
     rpc_profile_json, rpc_profile_digest = tosctl_framed_json_digest(
         b"tosctl.agreement-payment-rpc-corroboration-profile.v1\x00",
         rpc_corroboration_profile_descriptor)
+    _, rpc_snapshot_identity = tosctl_framed_json_digest(
+        b"tosctl.agreement-payment-rpc-corroboration-snapshot.v1\x00",
+        {
+            "evidence_profile_digest": rpc_profile_digest,
+            "config_content_digests": [
+                _repeated("1"), _repeated("2"), _repeated("3"),
+            ],
+            "snapshot_nonce": "44" * 32,
+        })
+    rpc_corroboration_capability = {
+        "schema":
+            "tosctl.agent-account.agreement-payment-rpc-corroboration-capability.v1",
+        "evidence_class": "observed_unproven",
+        "evidence_profile_uri": RPC_CORROBORATION_PROFILE_URI,
+        "evidence_profile_digest": rpc_profile_digest,
+        "evidence_profile": copy.deepcopy(rpc_corroboration_profile_descriptor),
+        "corroboration_snapshot_handle":
+            f"corroboration-{rpc_snapshot_identity[7:]}/manifest.json",
+        "corroboration_snapshot_identity": rpc_snapshot_identity,
+        "network_domain": copy.deepcopy(network),
+        "maximum_history_transactions": 1000,
+        "member_count": 3,
+        "side_effect": False,
+    }
+    validate_rpc_corroboration_public_capability(
+        rpc_corroboration_capability,
+        rpc_corroboration_profile_descriptor,
+        rpc_profile_digest)
+    verify_rpc_capability_privacy_mutations(
+        rpc_corroboration_capability,
+        rpc_corroboration_profile_descriptor,
+        rpc_profile_digest)
     absence_profile_descriptor = {
         "schema_version": 1,
         "profile_uri": TOS_RPC_ABSENCE_PROFILE_URI,
@@ -4983,6 +5341,7 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
             "compact_json_hex": rpc_profile_json.hex(),
             "digest": rpc_profile_digest,
         },
+        "rpc_corroboration_capability_vector": rpc_corroboration_capability,
         "absence_proof_profile_vector": {
             "digest_domain": "tos.agent-relay-absence-proof-profile.v1",
             "descriptor": absence_profile_descriptor,
@@ -5267,8 +5626,39 @@ def verify_document(path: Path, registry_path: Path) -> None:
     if document.get("content_types") != expected_content_types:
         raise ConformanceError("relay content-type registry mismatch")
     expected_rpc_profile = expected_document["rpc_corroboration_profile_vector"]
+    actual_rpc_profile = document.get("rpc_corroboration_profile_vector")
+    if not isinstance(actual_rpc_profile, dict) or not isinstance(
+            actual_rpc_profile.get("descriptor"), dict):
+        raise ConformanceError("RPC corroboration profile vector is incomplete")
+    validate_rpc_corroboration_profile_descriptor(actual_rpc_profile["descriptor"])
+    verify_rpc_descriptor_privacy_mutations(actual_rpc_profile["descriptor"])
+    verify_rpc_locator_identity_mutations(
+        actual_rpc_profile["descriptor"], list(RPC_LOCATOR_FIXTURES))
+    actual_rpc_json, actual_rpc_digest = tosctl_framed_json_digest(
+        b"tosctl.agreement-payment-rpc-corroboration-profile.v1\x00",
+        actual_rpc_profile["descriptor"])
+    if (actual_rpc_profile.get("compact_json_hex") != actual_rpc_json.hex() or
+            actual_rpc_profile.get("digest") != actual_rpc_digest):
+        raise ConformanceError("RPC corroboration profile encoding or digest mismatch")
     if document.get("rpc_corroboration_profile_vector") != expected_rpc_profile:
         raise ConformanceError("RPC corroboration profile cross-language vector mismatch")
+    expected_rpc_capability = expected_document[
+        "rpc_corroboration_capability_vector"]
+    actual_rpc_capability = document.get(
+        "rpc_corroboration_capability_vector")
+    if not isinstance(actual_rpc_capability, dict):
+        raise ConformanceError("RPC corroboration public capability vector is incomplete")
+    validate_rpc_corroboration_public_capability(
+        actual_rpc_capability,
+        actual_rpc_profile["descriptor"],
+        actual_rpc_digest)
+    verify_rpc_capability_privacy_mutations(
+        actual_rpc_capability,
+        actual_rpc_profile["descriptor"],
+        actual_rpc_digest)
+    if actual_rpc_capability != expected_rpc_capability:
+        raise ConformanceError(
+            "RPC corroboration public capability cross-language vector mismatch")
     expected_absence_profile = expected_document["absence_proof_profile_vector"]
     if document.get("absence_proof_profile_vector") != expected_absence_profile:
         raise ConformanceError("RPC absence verifier profile cross-language vector mismatch")
