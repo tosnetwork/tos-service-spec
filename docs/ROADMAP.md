@@ -560,6 +560,19 @@ gate item.
   strongest-level capabilities do not block a separately supported lower-
   assurance tuple. This profile does not open or reorder Gate D--G and cannot
   by itself supply root-gate acceptance evidence.
+- [Decentralized Agent Guarantor Service V1](AGENT_GUARANTOR_SERVICE_V1.md)
+  defines an optional profile for a third-party Agent to assume a bounded
+  contingent payment obligation over exact obligations in another Agreement.
+  It reuses ordinary signed Intents, generic Agreement authorization,
+  Messenger carriage, replaceable Carriers, stable action identities, and
+  selected settlement/collateral Adapters. It introduces no global Guarantor
+  registry, canonical market head, industry-specific root opcode, consensus
+  change, or TOS-operated claims authority. **Status: ⬜ Pre-freeze incubation
+  design; expansion gate locked.** Generic Intent observation may continue, but
+  no Guarantor-profile conformance or side-effecting assurance tuple may enable
+  before the expansion gate opens and the profile's schema, verifier, authority,
+  and Adapter prerequisites are released. Campaign and local-network evidence
+  motivate the design but do not establish acceptance or reorder Gates D--G.
 - [TOS Edge CDN Architecture V1](EDGE_CDN_ARCHITECTURE_V1.md) defines a standard
   HTTP CDN backed by an open market of verified Provider and Worker Agents.
   Customer→Provider and Provider→Worker purchases remain separate; the

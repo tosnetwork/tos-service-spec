@@ -1956,6 +1956,13 @@ external settlement.
 [`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md) defines one trusted
 payment mechanism. A Gift is not proof that the referenced work was correct.
 
+[`AGENT_GUARANTOR_SERVICE_V1.md`](AGENT_GUARANTOR_SERVICE_V1.md) defines an
+optional, pre-freeze profile in which an Agent assumes a bounded contingent
+payment obligation for exact obligations in another Agreement. It reuses this
+document's ordinary signed Intent, Discovery Card, negotiation, Agreement, and
+Carrier-neutral propagation rules; it does not add a Guarantor-specific root
+opcode or market database. Its Roadmap expansion gate remains locked.
+
 [`NATIVE_EXECUTION_GATE_V1.md`](NATIVE_EXECUTION_GATE_V1.md),
 [`SOFTWARE_WORK_RECEIPT_TVM_V1.md`](SOFTWARE_WORK_RECEIPT_TVM_V1.md), and
 [`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md) apply only when the
