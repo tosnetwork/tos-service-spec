@@ -508,7 +508,10 @@ therefore only `collateral-attested`.
 
 ## 9. Canonical encoding, digests, signatures, and bounds
 
-The released schema will be `schemas/agent-guarantor-service-v1.json`. Wire
+The released structural schema is
+[`schemas/agent-guarantor-service-v1.json`](../schemas/agent-guarantor-service-v1.json).
+It is deterministically generated from the closed object and mutation type
+registries in `tos-service-protocol`; wire
 objects use RFC 8949 Core Deterministic CBOR with text map keys. Integers use
 the shortest representation. Indefinite values, floats, tags, duplicate keys,
 invalid UTF-8, noncanonical Base64, unknown fields, and alternate spellings
@@ -527,7 +530,7 @@ The common digest formula is:
 
 ```text
 Digest(domain, value) = "sha256:" || lower_hex(SHA-256(
-  "TOS-SERVICE-PROTOCOL-CBOR\0" ||
+  "TOS-PROTOCOL-CBOR\0" ||
   uint16_big_endian(len(domain)) || domain || canonical_cbor(value)))
 ```
 
@@ -1399,15 +1402,14 @@ computed_worst_case_claim_filing_close_receipt_envelope_bytes =
 per_claim_history_elements_max =
     fixed ClaimTerminalResolutionBundleV1 overhead excluding resolution_ref
   + maximum_claim_revisions_per_claim
-      * max AuthorizedClaimAdmissionReceiptV1 size at
-        maximum_claim_ingress_receipt_envelope_bytes, where the ingress receipt
-        contains exactly one claim at maximum_admitted_claim_envelope_bytes
+      * max ClaimAdmissionReceiptProofV1 size, including the exact ingress
+        receipt and immutable complete-receipt descriptor
   + maximum_decision_admissions_per_claim
-      * max AuthorizedClaimDecisionAdmissionReceiptV1 size
+      * max ClaimDecisionAdmissionReceiptProofV1 size
   + maximum_claim_state_transitions_per_claim
       * max AuthorizedClaimStateTransitionReceiptV1 size
   + max AuthorizedClaimDecisionV1 size
-  + max AuthorizedClaimDecisionApplicationReceiptV1 size
+  + max DecisionApplicationReceiptProofV1 size
   + max MaterializedPayoutObligationSetV1 size at
       maximum_payout_lines_per_claim
   + max terminal payout-evidence-set size at
@@ -1521,10 +1523,12 @@ authorization quorum. The maximum filing-close receipt physically contains one
 counted once at every actual nested path through the terminal set and downstream
 wrappers. Every maximum stage result contains its exact maximum-size
 `PortableStageActionAdmissionEvidenceV1`, including canonical request,
-`AuthorizedActionV1`, and `WriterFenceV1`. Every decision-admission receipt also
-contains its exact maximum-size revision-ingress cut, and every occurrence in
-the bounded decision chain is physically counted. A calculator that replaces any object with its
-digest, counts only the claim, or counts a second direct claim copy is invalid.
+`AuthorizedActionV1`, and `WriterFenceV1`. Each compact receipt proof counts its
+full projected body, authorization quorum, stage-authority seal, and immutable
+descriptor at its actual path; the descriptor's declared complete-receipt size
+is also checked against the corresponding negotiated ceiling. A calculator
+that omits a proof field, counts only the claim, or treats an unsigned digest as
+a receipt is invalid.
 
 Every recomputed integer must equal its corresponding
 `computed_worst_case_*_bytes` field and be no larger than its corresponding
@@ -2110,6 +2114,19 @@ same immutable domain explicitly. An omitted binding, caller-selected owner,
 Guarantor-issued fence, unfenced direct endpoint, or control-deletion failure
 invalidates `independently-enforceable`.
 
+This is a typed verifier contract, not a Boolean assertion. The selected
+authority-control Adapter receives the exact profile, stage, stage-authority
+binding, operation-Adapter profile, Guarantor control-root set, finalized state
+root and revision, observation time, and finality evidence. It returns one
+`AuthorityControlResolutionResultV1` containing the stage, exact binding
+digest, exact operation-Adapter profile, finalized root and revision, sorted
+transitive-controller closure, and these seven affirmative deletion tests:
+Guarantor roots deleted; action authority, Writer Fence, generation high-water,
+action resolver, admission domain, and operation route each survived deletion.
+Every returned field is compared to the Agreement-bound input. A missing typed
+verifier, opaque signed statement, mismatched closure, remaining direct or
+transitive Guarantor controller, or any false survival result fails closed.
+
 Presence of fourteen stage entries is not sufficient. Every
 `GuarantorStageActionAuthorityV1` embeds one exact
 `GuarantorStageOperationBindingV1`; its digest is
@@ -2188,7 +2205,7 @@ stage, omission, or duplicate is invalid.
 | `filing_close` | `conditional.claim-filing.close` / `claim-filing-close` | `ClaimFilingCloseActionBodyV1` | `AuthorizedClaimFilingCloseReceiptV1` under the claim-filing-close envelope domain | `claim_operation_adapter_profile.CloseClaimFiling` | `coverage_state_domain` |
 | `terminal_decision` | `conditional.claim-decision.admit` / `claim-decision-admission` | `ClaimDecisionAdmissionActionBodyV1` | on accepted admission, `AuthorizedClaimDecisionAdmissionReceiptV1` under the claim-decision-admission envelope domain | `claim_operation_adapter_profile.AdmitDecision` | `coverage_state_domain` |
 | `decision_application` | `conditional.claim.decide` / `claim-decision-application` | `ClaimDecisionApplicationActionBodyV1` | `MaterializedPayoutObligationSetV1` and `AuthorizedClaimDecisionApplicationReceiptV1` under their released domains | `claim_operation_adapter_profile.ApplyDecision` | `coverage_state_domain` |
-| `payout_execution` | the Agreement-selected `payment.direct` / `guarantor-payout`, `settlement.external` / `guarantor-payout`, or `settlement.external` / `collateral-backed-payout` purpose | exact `GuarantorAgreementPaymentActionBodyV1` carrying the selected V1/V2/V3 request form, or exact `CollateralBackedAgreementPaymentActionBodyV1` | exact `AuthorizedGuarantorPayoutExecutionEvidenceV1`; its payment evidence uses the selected settlement-evidence profile and the collateral-backed form also carries exact `AuthorizedCollateralEvidenceV1` | `selected_payout_adapter_profile.SubmitPayment` or its exact `SubmitCollateralBackedPayment` composite route | `settlement_adapter_state_domain`, which is one atomic settlement-plus-position domain for the composite route |
+| `payout_execution` | the Agreement-selected `payment.direct` / `guarantor-payout` purpose for V1, `payment.domain-bound` / `guarantor-payout` purpose for V3, `settlement.external` / `guarantor-payout` purpose for V2, or `settlement.external` / `collateral-backed-payout` purpose | exact `GuarantorAgreementPaymentActionBodyV1` carrying the selected V1/V2/V3 request form, or exact `CollateralBackedAgreementPaymentActionBodyV1` | exact `AuthorizedGuarantorPayoutExecutionEvidenceV1`; its payment evidence uses the selected settlement-evidence profile and the collateral-backed form also carries exact `AuthorizedCollateralEvidenceV1` | `selected_payout_adapter_profile.SubmitPayment` or its exact `SubmitCollateralBackedPayment` composite route | `settlement_adapter_state_domain`, which is one atomic settlement-plus-position domain for the composite route |
 | `coverage_cancellation` | `conditional.obligation.transition` / `coverage-cancellation` | `CoverageCancellationActionBodyV1` | `AuthorizedCoverageCancellationReceiptV1` under the cancellation-receipt envelope domain | `coverage_operation_adapter_profile.CancelCoverage` | `coverage_state_domain` |
 | `coverage_closure` | `conditional.obligation.transition` / `coverage-closure` | `CoverageClosureActionBodyV1` | `AuthorizedTerminalClaimSetEvidenceV1` under the terminal-claim-set envelope domain | `claim_operation_adapter_profile.BeginClosure` | `coverage_state_domain` |
 | `post_acceptance_exposure_release` | `portfolio.release` / `post-acceptance` | `ExposureReleaseActionBodyV1` | `AuthorizedExposureReleaseReceiptV1` under the exposure-release-receipt envelope domain | `exposure_operation_adapter_profile.ReleaseExposure` | `portfolio_exposure_state_domain` |
@@ -3210,7 +3227,7 @@ Semantic Action Identity V1. The allocation's canonical effect descriptor
 commits the requester, final Agreement and terms digests, recipient set,
 reservation scope, maximum exposure, offer validity schedule, and all proposed
 offer fields, with fixed zero placeholders only for the authority-generated
-offer ID and exposure receipt. A caller UUID,
+offer ID, reservation ID, and exposure receipt. A caller UUID,
 wall time, transport ID, random nonce, or a second allocation after an ambiguous
 result is invalid. An intentionally new counteroffer requires a separately
 authorized quote request and a new V1 offer allocation; it cannot revise or
@@ -3256,7 +3273,7 @@ FirmOfferAuthorityInstanceEffectV1 {
   reservation_scope                   # exact ProviderExposureReservationScopeV1
   reservation_scope_digest
   reserved_exposure
-  preallocation_offer_template       # exact body with two zero placeholders
+  preallocation_offer_template       # exact body with three zero placeholders
 }
 
 FirmOfferIssuanceActionBodyV1 {
@@ -3358,10 +3375,12 @@ project the same values. The descriptor's embedded reservation scope is byte-
 identical to the effect's. Missing source objects, alternate wrappers, digest-
 only inputs, or a changed field conflict before authority-instance allocation.
 
-The preallocation template is canonical `FirmCoverageOfferBodyV1` with both
-`offer_id` and `exposure_receipt_digest` set to their respective all-zero
-placeholders. The issuance template is derived by replacing only `offer_id`
-with the allocated authority instance and leaving the exposure digest zero.
+The preallocation template is canonical `FirmCoverageOfferBodyV1` with
+`offer_id`, `reservation_id`, and `exposure_receipt_digest` set to their
+respective all-zero placeholders. The issuance template is derived by replacing
+`offer_id` with the allocated authority instance, deriving `reservation_id`
+from that instance and the exact descriptor as specified below, and leaving the
+exposure digest zero.
 The authority verifies byte equality after those prescribed substitutions; its
 quote, Agreement, terms, recipients, scope, and exposure must also equal the
 corresponding embedded objects. This order avoids deriving the allocation ID
@@ -3948,9 +3967,18 @@ ActivationAdmissionCutProofV1 {
   activation_cutoff_unix
   admission_high_water
   admission_log_root
-  entries[]                           # exact admitted/rejected ActionResolutionV1
+  entries[]                           # exact GuarantorAdmissionLogEntryV1 prefix
   accepted_count
   pending_or_ambiguous_count
+}
+
+GuarantorAdmissionLogEntryV1 {
+  sequence                            # contiguous, starts at 1
+  stable_action_id
+  exact_request_digest
+  received_at_unix                   # authority receipt time; monotonic
+  log_root_after
+  resolution                         # exact ActionResolutionV1
 }
 
 TerminalPrerequisiteFailureEvidenceV1 {
@@ -4153,8 +4181,10 @@ or an unknown attempt is insufficient and leaves coverage ambiguous with
 exposure reserved.
 
 `ActivationAdmissionCutProofV1` is canonical and complete through its stated
-high-water. Its `entries[]` are contiguous and ordered, each entry is the exact
-durable `ActionResolutionV1`, and the verifier recomputes the log root and both
+high-water. Its `entries[]` are contiguous and ordered; each entry carries the
+exact durable `ActionResolutionV1` plus the sequence, authority receipt time,
+stable identity, exact request digest, and resulting prefix root needed by an
+offline verifier. The verifier recomputes the log root and both
 counts. Non-activation requires `accepted_count = 0` and
 `pending_or_ambiguous_count = 0`; the proof's fields must exactly equal the
 redundant log fields in `CoverageNonActivationEvidenceBodyV1`, and its canonical
@@ -4164,6 +4194,13 @@ assurance. An `independently-enforceable` selection additionally requires the
 Adapter-verifiable cut and control-deletion guarantees promised by its profile.
 A signed root and zero count without the exact entries and selected verifier are
 not portable evidence of absence.
+
+The empty root and each successor root use the released domain
+`tos.service.agent-guarantor-admission-log-root.v1`. The empty value commits
+`(activation_admission_log_id, sequence = 0)`; each successor commits the prior
+root and the entry's domain ID, sequence, stable action ID, exact request
+digest, and receipt time. An implementation-private root domain is not valid
+portable evidence.
 
 The non-activation reason matrix is exhaustive and normative:
 
@@ -4659,8 +4696,9 @@ CoverageTerminalPayoutEvidenceSetV1 {
 
 For unsecured and non-payout-collateral paths, the selected settlement Adapter
 admits `GuarantorAgreementPaymentActionBodyV1` through the Agreement-bound
-`payout_execution` stage. `payment.direct` accepts only the released V1 or V3
-direct request form; ordinary `settlement.external` accepts only V2. The
+`payout_execution` stage. `payment.direct` accepts only the released V1 direct
+request form, `payment.domain-bound` accepts only V3, and ordinary
+`settlement.external` accepts only V2. The
 payment request, obligation, containing materialized set, Agreement, decision,
 sequence, payer, beneficiary, asset, amount, destination, Adapter, stable ID,
 and time bounds must agree exactly. The accepted mutation atomically emits one
@@ -4855,6 +4893,8 @@ AuthorizedClaimSubmissionIngressReceiptV1 {
 
 ClaimIngressResolutionEntryV1 {
   claim_ingress_sequence
+  received_at_unix                   # exact log-leaf time required to
+                                     # recompute the portable ingress root
   ingress_action_resolution          # exact terminal ActionResolutionV1
   claim_ingress_receipt_digest?
   resolution_kind                    # ingress_rejected, claim_admitted,
@@ -5339,12 +5379,12 @@ ClaimFilingCloseActionBodyV1 {
   filing_close_reason                 # normal or never_activated
   filing_cutoff_unix
   expected_coverage_state
-  expected_coverage_end_commitment   # exact CoverageEndCommitmentV1
+  expected_coverage_end_commitment_digest
   coverage_end_reason                 # normal_expiry, accepted_cancellation,
                                       # or never_activated
-  authorized_activation_evidence?
-  authorized_coverage_cancellation_receipt?
-  authorized_non_activation_evidence?
+  activation_evidence_digest?
+  coverage_cancellation_receipt_digest?
+  non_activation_evidence_digest?
   expected_coverage_revision
   target_coverage_revision
   expected_claim_filing_state_revision
@@ -5414,19 +5454,29 @@ close receipt copies the ingress high-water/root and commits the exact cut-proof
 digest. A missing, later, forked, truncated, digest-only, or locally reconstructed
 proof fails before the shared coverage CAS.
 
+The action request commits predecessor envelopes by their exact complete-
+envelope digests. The resulting receipt carries each selected complete
+predecessor once. Re-embedding those already large envelopes in both the
+canonical request and the enclosing portable stage receipt would recursively
+duplicate the same bytes and can make a valid bounded lifecycle impossible to
+encode. This digest-first request form preserves exact authorization while the
+complete receipt remains self-contained and independently verifiable.
+
 `normal` close uses the exact Agreement `claim_filing_ends_at_unix` as its
 cutoff and cannot be admitted before that cutoff. If the current coverage state
 is still `active`, the action derives `coverage_end_reason = normal_expiry`,
-sets incident eligibility to the immutable scheduled end, embeds the exact
-authorized activation evidence, and forbids a cancellation receipt or end-
-evidence digest. The close authority's same-domain snapshot proves that no
-cancellation won before the cut; the embedded end commitment is exactly
+sets incident eligibility to the immutable scheduled end, binds the exact
+authorized activation envelope digest, and forbids cancellation or end-
+evidence digests. The receipt embeds that complete activation evidence. The
+close authority's same-domain snapshot proves that no cancellation won before
+the cut; the bound end commitment is exactly
 `scheduled`, names the Agreement-bound `coverage_state_domain_digest`, and has
 no end evidence. No separate scheduled-expiry action exists.
 If state is `coverage_ended`, the branch is exactly `accepted_cancellation` and
-the action embeds both the authorized activation evidence and authorized
-cancellation receipt whose digests and cutoffs equal the durable coverage
-record. The end commitment is reconstructed from that complete receipt and must
+the action binds both complete-envelope digests; the receipt embeds the exact
+authorized activation evidence and authorized cancellation receipt whose
+digests and cutoffs equal the durable coverage record. The end commitment is
+reconstructed from that complete receipt and must
 equal the current durable value byte-for-byte.
 
 `never_activated` close uses the coverage-start activation cutoff, requires the
@@ -5810,11 +5860,11 @@ ClaimRevisionEpochExpectationV1 {
 }
 
 AuthorizedDecisionAdmissionVariantV1 {
-  authorized_claim_decision
-  authorized_claim_admission_receipt
+  authorized_claim_decision_digest
+  authorized_claim_admission_receipt_digest
   claim_revision_epoch_expectation   # exact epoch branch defined below
-  predecessor_decision_admission_receipt?
-  predecessor_claim_state_transition_receipt?
+  predecessor_decision_admission_receipt_digest?
+  predecessor_claim_state_transition_receipt_digest?
   expected_claim_state_revision
   expected_challenge_rounds_used
   expected_nonterminal_rounds_used
@@ -6290,8 +6340,6 @@ ClaimDecisionApplicationReceiptBodyV1 {
 AuthorizedClaimDecisionApplicationReceiptV1 {
   body
   stage_action_admission_evidence     # exact PortableStageActionAdmissionEvidenceV1
-  authorized_claim_decision
-  authorized_claim_decision_admission_receipt
   coverage_end_commitment            # exact preserved CoverageEndCommitmentV1
   authorized_terminal_claim_state_transition_receipt
   decision_application_token
@@ -6299,6 +6347,14 @@ AuthorizedClaimDecisionApplicationReceiptV1 {
   authorizations[]
 }
 ```
+
+The terminal transition receipt is the single complete predecessor path: it
+embeds the decision-admission receipt, which embeds the authorized decision and
+claim-admission receipt. The application request commits their complete-envelope
+digests. A verifier derives those objects only through that complete path and
+rejects a missing or unequal digest. Repeating the same complete predecessors
+directly in the request or application receipt is non-canonical because it
+creates quadratic envelope growth without adding authority.
 
 The rollback-resistant authority accepts this operation only for a final
 `approved`, `partially_approved`, or `denied` decision. It verifies the exact
@@ -7188,11 +7244,11 @@ ClaimTerminalResolutionRefSetV1 {
 
 ClaimTerminalResolutionBundleV1 {
   resolution_ref                    # exact ClaimTerminalResolutionRefV1
-  initial_claim_admission_receipt    # resolves revision-1 claim through ingress receipt
-  revision_admission_receipts[]      # each resolves its claim through ingress receipt
+  initial_claim_admission_receipt_proof
+  revision_admission_receipt_proofs[]
   terminal_authorized_decision
-  decision_admission_receipts[]
-  decision_application_receipt
+  decision_admission_receipt_proofs[]
+  decision_application_receipt_proof
   claim_state_transition_receipts[]
   materialized_payout_obligation_set
   terminal_payout_evidence_set
@@ -7285,15 +7341,35 @@ AuthorizedTerminalClaimSetEvidenceV1 {
 }
 ```
 
+The closure mutation receives the complete filing-close receipt as a typed
+Adapter input but commits it once by its complete-envelope digest in the
+canonical Action request. The resulting terminal evidence carries that exact
+complete receipt and the verifier recomputes the digest before verifying the
+portable Action. Re-embedding the receipt in the Action request would duplicate
+the activation and Agreement lineage inside the result's own stage evidence and
+can make a valid one-claim closure unencodable; a mutable lookup or digest-only
+terminal result remains forbidden.
+
 `claim_resolution_set_digest` is exactly
 `Digest("tos.service.agent-guarantor-claim-resolution-set.v1",
 claim_resolution_ref_set)`. The set's Agreement, obligation, high-water, and
 ordered `refs[]` exactly equal the closure context, filing-close receipt, and
 `TerminalClaimSetBodyV1.claim_resolutions[]`. The sink derives every reference
-from its corresponding complete `claim_resolution_bundles[]`; one bundle and
-one reference are required for every sequence from 1 through the frozen
-high-water. No claim, receipt chain, decision, materialized obligation, or
-terminal payout object may be loaded only from mutable local state.
+from its corresponding `claim_resolution_bundles[]`; one bundle and one
+reference are required for every sequence from 1 through the frozen high-water.
+Admission and application proof objects are signed, bounded projections of
+their exact complete receipts. Each proof carries the original receipt body,
+original authorization quorum, the claim or application values needed for
+lineage verification, an immutable descriptor for the complete receipt, and a
+seal signed by the Agreement-bound stage Action Authority. The seal commits the
+complete receipt envelope digest, body digest, Authorized Action digest,
+Coverage Terms digest, and every projected predecessor or result digest. A bare
+digest, unsigned projection, locally reconstructed summary, or mutable database
+key is invalid. A verifier validates both the original receipt authorization
+and the seal and MAY retrieve the descriptor to re-run full stage verification;
+high-assurance profiles MUST do so. This compact proof rule prevents recursive
+receipt embedding from making every non-empty claim history exceed the 1 MiB
+complete-object ceiling without weakening content identity or authority.
 Before admitting closure, the sink also recomputes the accepted
 `ClaimClosureCapacityV1`, checks every per-claim count and encoded-size bound,
 and measures the complete prospective authorized terminal envelope including
@@ -8143,13 +8219,13 @@ CoverageCancellationActionBodyV1 {
 
 ClaimDecisionApplicationActionBodyV1 {
   schema_version
-  authorized_claim_decision
-  authorized_claim_admission_receipt
-  authorized_claim_decision_admission_receipt
-  authorized_terminal_claim_state_transition_receipt
+  authorized_claim_decision_digest
+  authorized_claim_admission_receipt_digest
+  authorized_claim_decision_admission_receipt_digest
+  authorized_terminal_claim_state_transition_receipt_digest
   decision_application_token
-  expected_coverage_end_commitment   # exact current CoverageEndCommitmentV1
-  payout_template
+  expected_coverage_end_commitment_digest
+  payout_template_digest
   expected_current_coverage_revision
   target_coverage_revision
   expected_aggregate_pending_decision_reserve
@@ -8174,7 +8250,7 @@ ClaimStateTransitionActionBodyV1 {
   expected_nonterminal_rounds_used
   target_nonterminal_rounds_used
   successor_decision_due_at_unix?
-  authorized_claim_decision_admission_receipt
+  authorized_claim_decision_admission_receipt_digest
   transition_evidence_projection
   transition_evidence_set
 }
@@ -8207,7 +8283,7 @@ CoverageClosureActionBodyV1 {
   schema_version
   coverage_agreement_body_digest
   coverage_obligation_id
-  authorized_claim_filing_close_receipt
+  claim_filing_close_receipt_digest
   expected_coverage_end_commitment_digest # derived from the filing-close receipt
   claim_resolution_bundles[]          # exact, admission-sequence order
   claim_resolution_ref_set            # exact derived ClaimTerminalResolutionRefSetV1
@@ -8226,12 +8302,16 @@ CoverageClosureActionBodyV1 {
 
 CoverageResolutionActionBodyV1 {
   schema_version
-  authorized_exposure_release_receipt
-  expected_coverage_end_commitment_digest # derived through the terminal set
-  transition_evidence_projection
+  authorized_exposure_release_receipt_digest
   expected_coverage_revision
   target_coverage_revision
 }
+
+The resulting `AuthorizedCoverageResolutionV1` carries the complete exposure
+release receipt exactly once. Its stage request binds that envelope by digest;
+the verifier recomputes the digest from the carried predecessor before checking
+the action. This is the only released V1 encoding and keeps the final portable
+resolution within the global complete-object ceiling.
 
 ExposureReleaseActionBodyV1 {
   schema_version
@@ -8626,14 +8706,17 @@ The exact media type and complete-envelope domain are the entries in sections
 1 and 9. `object_size_bytes` is the length of the complete canonical object and
 must be no more than the profile's 1 MiB complete-object ceiling. Inline
 carriage is valid only when `canonical_object_bytes` is a CBOR byte string,
-`object_descriptor` is absent, and the complete encoded
-`CommerceProfileEventV1` including all metadata and outer Agent Packet remains
-within the existing 1 MiB packet limit. There is no assumption that a 1 MiB
-object can fit inline: the encoder computes the actual wrapper size before
-sending.
+`object_descriptor` is absent, the canonical object is no larger than 96 KiB,
+the complete event content is no larger than Messenger's 128 KiB event-content
+ceiling, and the complete encoded `CommerceProfileEventV1` including all
+metadata and outer Agent Packet remains within the existing 1 MiB encrypted
+packet ceiling. The 96 KiB rule reserves deterministic space for the event and
+signed-envelope wrappers; it is a protocol limit, not an implementation hint.
+There is no assumption that a 1 MiB object can fit inline: the encoder computes
+the actual wrapper size before sending.
 
-Content-addressed carriage is required when the inline event would exceed that
-limit and may be selected for any object. In that mode `canonical_object_bytes`
+Content-addressed carriage is required when the object or either wrapper would
+exceed an inline limit and may be selected for any object. In that mode `canonical_object_bytes`
 is absent and `object_descriptor` is present; its content type, digest, and size
 must equal the event fields exactly. The event and outer packet remain within
 1 MiB. Retrieval hints are non-authoritative and the receiver obtains the exact
@@ -8776,6 +8859,8 @@ Guarantor V1 object.
 | `stage-operation-binding` | `GuarantorStageOperationBindingV1` | `tos.service.agent-guarantor-stage-operation-binding.v1` | `tos.service.agent-guarantor.verify.stage-operation-binding.v1` |
 | `collateral-control-disclosure` | `CollateralControlDisclosureV1` | `tos.service.agent-guarantor-collateral-control-disclosure.v1` | `tos.service.agent-guarantor.verify.collateral-control-disclosure.v1` |
 | `collateral-control-evidence` | `AuthorizedCollateralControlEvidenceV1` | `tos.service.agent-guarantor-collateral-control-evidence-envelope.v1` | `tos.service.agent-guarantor.verify.collateral-control-evidence.v1` |
+| `operational-independence-terms` | `GuarantorOperationalIndependenceTermsV1` | `tos.service.agent-guarantor-operational-independence-terms.v1` | `tos.service.agent-guarantor.verify.operational-independence-terms.v1` |
+| `operational-independence-evidence` | `AuthorizedGuarantorOperationalIndependenceEvidenceV1` | `tos.service.agent-guarantor-operational-independence-evidence-envelope.v1` | `tos.service.agent-guarantor.verify.operational-independence-evidence.v1` |
 | `requested-coverage-terms` | `RequestedCoverageTermsV1` | `tos.service.agent-guarantor-requested-coverage-terms.v1` | `tos.service.agent-guarantor.verify.requested-coverage-terms.v1` |
 | `quote-request` | `AuthorizedCoverageQuoteRequestV1` | `tos.service.agent-guarantor-quote-request-envelope.v1` | `tos.service.agent-guarantor.verify.quote-request.v1` |
 | `coverage-terms` | `GuarantorCoverageTermsV1` | `tos.service.agent-guarantor-coverage-terms.v1` | `tos.service.agent-guarantor.verify.coverage-terms.v1` |
@@ -8799,6 +8884,7 @@ Guarantor V1 object.
 | `activation-admission-cut` | `ActivationAdmissionCutProofV1` | `tos.service.agent-guarantor-activation-cut-proof.v1` | `tos.service.agent-guarantor.verify.activation-admission-cut.v1` |
 | `activation-evidence` | `AuthorizedCoverageActivationEvidenceV1` | `tos.service.agent-guarantor-activation-evidence-envelope.v1` | `tos.service.agent-guarantor.verify.activation-evidence.v1` |
 | `non-activation-evidence` | `AuthorizedCoverageNonActivationEvidenceV1` | `tos.service.agent-guarantor-non-activation-evidence-envelope.v1` | `tos.service.agent-guarantor.verify.non-activation-evidence.v1` |
+| `non-activation-exposure-release` | `AuthorizedNonActivationExposureReleaseReceiptV1` | `tos.service.agent-guarantor-non-activation-exposure-release-envelope.v1` | `tos.service.agent-guarantor.verify.non-activation-exposure-release.v1` |
 | `cancellation-request` | `AuthorizedCoverageCancellationRequestV1` | `tos.service.agent-guarantor-cancellation-request-envelope.v1` | `tos.service.agent-guarantor.verify.cancellation-request.v1` |
 | `cancellation-receipt` | `AuthorizedCoverageCancellationReceiptV1` | `tos.service.agent-guarantor-cancellation-receipt-envelope.v1` | `tos.service.agent-guarantor.verify.cancellation-receipt.v1` |
 | `collateral-terms` | `CollateralTermsV1` | embedded in the accepted coverage Agreement | `tos.service.agent-guarantor.verify.collateral-terms.v1` |
@@ -8815,12 +8901,18 @@ Guarantor V1 object.
 | `claim-ingress-cut` | `ClaimIngressAdmissionCutProofV1` | `tos.service.agent-guarantor-claim-ingress-cut-proof.v1` | `tos.service.agent-guarantor.verify.claim-ingress-cut.v1` |
 | `claim-submission-authority-instance-effect` | `ClaimSubmissionAuthorityInstanceEffectV1` | `tos.service.agent-guarantor-claim-submission-authority-instance-effect.v1` | `tos.service.agent-guarantor.verify.claim-submission-authority-effect.v1` |
 | `claim-admission-receipt` | `AuthorizedClaimAdmissionReceiptV1` | `tos.service.agent-guarantor-claim-admission-envelope.v1` | `tos.service.agent-guarantor.verify.claim-admission-receipt.v1` |
+| `claim-admission-receipt-seal` | `ClaimAdmissionReceiptSealBodyV1` plus authorization | `tos.service.agent-guarantor-claim-admission-receipt-seal.v1` | `tos.service.agent-guarantor.verify.claim-admission-receipt-seal.v1` |
+| `claim-admission-receipt-proof` | `ClaimAdmissionReceiptProofV1` | `tos.service.agent-guarantor-claim-admission-receipt-proof.v1` | `tos.service.agent-guarantor.verify.claim-admission-receipt-proof.v1` |
 | `claim-filing-close-receipt` | `AuthorizedClaimFilingCloseReceiptV1` | `tos.service.agent-guarantor-claim-filing-close-envelope.v1` | `tos.service.agent-guarantor.verify.claim-filing-close-receipt.v1` |
 | `claim-decision` | `AuthorizedClaimDecisionV1` | `tos.service.agent-guarantor-claim-decision-envelope.v1` | `tos.service.agent-guarantor.verify.claim-decision.v1` |
 | `claim-revision-epoch-expectation` | `ClaimRevisionEpochExpectationV1` | `tos.service.agent-guarantor-claim-revision-epoch-expectation.v1` | `tos.service.agent-guarantor.verify.claim-revision-epoch-expectation.v1` |
 | `claim-decision-admission-receipt` | `AuthorizedClaimDecisionAdmissionReceiptV1` | `tos.service.agent-guarantor-claim-decision-admission-envelope.v1` | `tos.service.agent-guarantor.verify.claim-decision-admission-receipt.v1` |
+| `claim-decision-admission-receipt-seal` | `ClaimDecisionAdmissionReceiptSealBodyV1` plus authorization | `tos.service.agent-guarantor-claim-decision-admission-receipt-seal.v1` | `tos.service.agent-guarantor.verify.claim-decision-admission-receipt-seal.v1` |
+| `claim-decision-admission-receipt-proof` | `ClaimDecisionAdmissionReceiptProofV1` | `tos.service.agent-guarantor-claim-decision-admission-receipt-proof.v1` | `tos.service.agent-guarantor.verify.claim-decision-admission-receipt-proof.v1` |
 | `decision-application-token` | `DecisionApplicationTokenV1` | `tos.service.agent-guarantor-decision-application-token.v1` | `tos.service.agent-guarantor.verify.decision-application-token.v1` |
 | `claim-decision-application-receipt` | `AuthorizedClaimDecisionApplicationReceiptV1` | `tos.service.agent-guarantor-decision-application-envelope.v1` | `tos.service.agent-guarantor.verify.claim-decision-application-receipt.v1` |
+| `decision-application-receipt-seal` | `DecisionApplicationReceiptSealBodyV1` plus authorization | `tos.service.agent-guarantor-decision-application-receipt-seal.v1` | `tos.service.agent-guarantor.verify.decision-application-receipt-seal.v1` |
+| `decision-application-receipt-proof` | `DecisionApplicationReceiptProofV1` | `tos.service.agent-guarantor-decision-application-receipt-proof.v1` | `tos.service.agent-guarantor.verify.decision-application-receipt-proof.v1` |
 | `claim-state-transition-receipt` | `AuthorizedClaimStateTransitionReceiptV1` | `tos.service.agent-guarantor-claim-state-transition-envelope.v1` | `tos.service.agent-guarantor.verify.claim-state-transition-receipt.v1` |
 | `conditional-settlement-template` | `ConditionalSettlementTemplateV1` | embedded in the accepted coverage Agreement | `tos.service.agent-guarantor.verify.conditional-settlement-template.v1` |
 | `settlement-parameters` | `ProfileQualifiedSettlementParametersV1` | `tos.service.agent-guarantor-settlement-parameters.v1` | `tos.service.agent-guarantor.verify.settlement-parameters.v1` |
@@ -8904,7 +8996,8 @@ new registry version and new exact vectors.
 | `conditional.claim.decide` / `claim-decision-application` | `ClaimDecisionApplicationActionBodyV1` | `materialized_payout_set: MaterializedPayoutObligationSetV1 @ tos.service.agent-guarantor-payout-obligation-set.v1` exactly one; `application_receipt: AuthorizedClaimDecisionApplicationReceiptV1 @ tos.service.agent-guarantor-decision-application-envelope.v1` exactly one | `tos.service.agent-guarantor.mutate.claim-decision-application.v1` |
 | `conditional.claim.transition` / `claim-state-transition` | `ClaimStateTransitionActionBodyV1` | `state_transition_receipt: AuthorizedClaimStateTransitionReceiptV1 @ tos.service.agent-guarantor-claim-state-transition-envelope.v1` exactly one | `tos.service.agent-guarantor.mutate.claim-state-transition.v1` |
 | `collateral.transition` / `collateral-transition` | `CollateralTransitionActionBodyV1`; standalone form forbids `payout` | `collateral_evidence: AuthorizedCollateralEvidenceV1 @ tos.service.agent-guarantor-collateral-evidence-envelope.v1` exactly one | `tos.service.agent-guarantor.mutate.collateral-transition.v1` |
-| `payment.direct` / `guarantor-payout` | `GuarantorAgreementPaymentActionBodyV1`; request variant is V1 or V3 | `payout_execution_evidence: AuthorizedGuarantorPayoutExecutionEvidenceV1 @ tos.service.agent-guarantor-payout-execution-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.direct-payout.v1` |
+| `payment.direct` / `guarantor-payout` | `GuarantorAgreementPaymentActionBodyV1`; request variant is V1 | `payout_execution_evidence: AuthorizedGuarantorPayoutExecutionEvidenceV1 @ tos.service.agent-guarantor-payout-execution-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.direct-payout.v1` |
+| `payment.domain-bound` / `guarantor-payout` | `GuarantorAgreementPaymentActionBodyV1`; request variant is V3 | `payout_execution_evidence: AuthorizedGuarantorPayoutExecutionEvidenceV1 @ tos.service.agent-guarantor-payout-execution-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.domain-bound-payout.v1` |
 | `settlement.external` / `guarantor-payout` | `GuarantorAgreementPaymentActionBodyV1`; request variant is V2 | `payout_execution_evidence: AuthorizedGuarantorPayoutExecutionEvidenceV1 @ tos.service.agent-guarantor-payout-execution-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.external-payout.v1` |
 | `settlement.external` / `collateral-backed-payout` | `CollateralBackedAgreementPaymentActionBodyV1`; nested transition is exactly `payout` | `payout_execution_evidence: AuthorizedGuarantorPayoutExecutionEvidenceV1 @ tos.service.agent-guarantor-payout-execution-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.collateral-backed-payout.v1` |
 | `conditional.obligation.transition` / `coverage-closure` | `CoverageClosureActionBodyV1` | `terminal_claim_set: AuthorizedTerminalClaimSetEvidenceV1 @ tos.service.agent-guarantor-terminal-claim-set-evidence.v1` exactly one | `tos.service.agent-guarantor.mutate.coverage-closure.v1` |
@@ -10242,7 +10335,7 @@ Required tests include:
   caller-selected stage, one action standing in for two required stages without
   the released composite, and a Guarantor-only exposure release or finalizer
   after independent `BeginClosure`;
-- execute one `payment.direct` V1, one domain-bound V3, one ordinary
+- execute one `payment.direct` V1, one `payment.domain-bound` V3, one ordinary
   `settlement.external` V2, and one collateral-backed payout; each registry row
   must emit exactly one sequence-bound portable payout wrapper, while a bare
   generic payment result, wrong request variant, wrong purpose, collateral
