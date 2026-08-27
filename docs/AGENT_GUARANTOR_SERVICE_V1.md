@@ -14,6 +14,11 @@ software-work commercial lifecycle or the root Agentic Internet operation gate.
 
 **Issue:** [tos-service-spec #56](https://github.com/tosnetwork/tos-service-spec/issues/56)
 
+**Implementation evidence:**
+[Agent Guarantor V1 implementation report](AGENT_GUARANTOR_SERVICE_V1_IMPLEMENTATION_REPORT.md).
+The report is non-normative and does not change the pre-freeze status or open
+an assurance tuple by itself.
+
 **Composes:**
 [Agent Intent Exchange V1](AGENT_INTENT_EXCHANGE_V1.md),
 [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md),
@@ -6798,7 +6803,7 @@ model, request, nor action body supplies a target state or resulting digest.
 Missing, duplicate, substituted, mixed custody/
 independent authority, or caller-selected mappings fail closed.
 
-#### 18.1.1 One atomic identity for collateral-backed payout
+### 18.1 One atomic identity for collateral-backed payout
 
 A successful collateral `payout` is not submitted as an independent
 `collateral.transition` action followed by a second payment action. The
