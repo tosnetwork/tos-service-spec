@@ -64,6 +64,8 @@ application profiles above it.
 - [Decentralized Agent Guarantor Service V1](AGENT_GUARANTOR_SERVICE_V1.md)
 - [Native Execution Gate V1](NATIVE_EXECUTION_GATE_V1.md)
 - [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md)
+- [Agent Operation and Outcome Event V1](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
+- [Agent Operation and Outcome Event V1 Review Report](AGENT_OPERATION_OUTCOME_EVENT_V1_REVIEW_REPORT.md)
 
 The on-chain path is optional for discovery and conversation. It becomes
 authoritative only after parties explicitly select that profile.
