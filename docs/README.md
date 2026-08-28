@@ -71,7 +71,17 @@ application profiles above it.
 The on-chain path is optional for discovery and conversation. It becomes
 authoritative only after parties explicitly select that profile.
 
-## 6. OpenFox application compositions
+## 6. Runtime trust and owner control profiles
+
+- [Agent Trusted Capability and Owner Control V1](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md)
+- [Agent Trusted Capability and Owner Control V1 Review Report](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1_REVIEW_REPORT.md)
+
+This portable candidate defines artifact identity, admission, promotion,
+projection, session, and command evidence shared by runtimes and clients. It is
+not chain consensus. Consequential-use classification, ranking, report prose,
+UI layout, and notification preferences remain application/client-local.
+
+## 7. OpenFox application compositions
 
 - [OpenFox Economic Bridge V1](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [OpenFox Autonomous Messenger Economy Plan](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
@@ -79,11 +89,11 @@ authoritative only after parties explicitly select that profile.
 - [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
 - [OpenFox Autonomous Earning Roadmap](OPENFOX_AUTONOMOUS_EARNING_ROADMAP.md)
 
-These documents explain how OpenFox composes generic operations, AI reasoning,
-skills, runtime policy, and optional settlement. They do not define new
+The OpenFox documents explain the product composition, AI reasoning, local
+policy, optional OpenFox report/command profiles, and settlement. None defines
 business-category opcodes.
 
-## 7. Software-work application profile
+## 8. Software-work application profile
 
 - [Software Work Manifest V1](SOFTWARE_WORK_MANIFEST_V1.md)
 - [Software Work Execution V1](SOFTWARE_WORK_EXECUTION_V1.md)
@@ -94,7 +104,7 @@ business-category opcodes.
 Software work is the first deeply specified commerce profile, not the root
 definition of TOS.
 
-## 8. Operations and acceptance evidence
+## 9. Operations and acceptance evidence
 
 - [Production Readiness Runbook V1](PRODUCTION_READINESS_RUNBOOK_V1.md)
 - [Safe Handoff V1](SAFE_HANDOFF_V1.md)

@@ -13,6 +13,9 @@ production acceptance evidence remain separate release gates
 **Semantic side-effect identity:**
 [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
 
+**Trusted capability and owner control extension:**
+[`AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md`](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md)
+
 **Cross-repository architecture:**
 [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
 
@@ -48,6 +51,14 @@ cannot prove independent operators, cross-host partition safety, public-testnet
 behavior, or an external security acceptance. Those claims require their own
 content-addressed evidence and do not justify weakening or bypassing a runtime
 Gate.
+
+The completed economic loop does not imply trusted autonomous capability
+acquisition or a portable owner control plane. Those follow-on contracts are
+defined by Agent Trusted Capability and Owner Control V1. Until its separate
+phases pass, consequential self-evolution remains limited to `observe` or
+quarantined `draft`, inherited executable capabilities receive no invented
+trust, and Web/mobile control cannot claim shared replay-safe mutation
+authority.
 
 ## 1. Purpose
 
@@ -1232,6 +1243,30 @@ The recommended first PR sequence is:
     multi-engagement scheduling, subcontract recovery, failure injection,
     reproducible acceptance manifests and bounded learning before claiming
     continuous autonomous business.
+
+The follow-on trusted-capability and owner-control sequence is:
+
+14. `tos-service-spec`: freeze executable-artifact identity, permission,
+    requirement, sourcing decision, evaluation, admission, revocation,
+    promotion, capability-use, report, projection, device-session and owner-
+    command objects, plus their registries, errors, vectors, a code-independent
+    standalone reference verifier, and Gate S/M profiles;
+15. `tos-service-protocol`: implement the production codec/verifier and a
+    cross-verifier CI job that reproduces every identity and failure class
+    against the independent `tos-service-spec` verifier;
+16. `openfox`: enforce the consequential-use safety ceiling, build the
+    append-only Inventory, reuse-first coordinator, quarantine, admission,
+    promotion and revocation path, then pass Gate S;
+17. `openfox`: add deterministic accounting/report queries, the four maintained
+    report Skills, and the durable owner projection;
+18. `openfox` server and `openfox/web`, followed by future
+    `tosnetwork/openfox-ios` and `tosnetwork/openfox-android` repositories:
+    release read-only projection convergence, then the shared replay-safe owner
+    command path and Gate M; these two mobile repositories are additional to
+    the seven-repository earning-loop count; and
+19. treat the existing local campaign runs as diagnostic input, then rerun
+    formal Campaigns 1--4, cross-host Campaign 5, and arm's-length Campaign 6
+    after Gates S/M, without promoting a campaign result into authority.
 
 This order preserves a useful result at every phase while keeping all economic
 side effects disabled until their exact authority, fencing, recovery, and

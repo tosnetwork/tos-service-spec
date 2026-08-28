@@ -533,6 +533,17 @@ gate item.
   release-candidate profile does not open or reorder Gate D--G, and its optional
   Paid Demand escrow profile remains subject to every existing commercial-rail
   gate.
+- [Agent Trusted Capability and Owner Control V1](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md)
+  defines portable executable-artifact, admission, promotion, revocation,
+  report, owner-projection, device-session, and command evidence for Agent
+  runtimes. **Status: ⬜ Design candidate; Phase 0 `FAIL`/not started.** The
+  machine schemas, registries, exact vectors, independent reference verifier,
+  production codec, runtime enforcement, mobile clients, Gate S, and Gate M do
+  not yet exist. It receives no Gate D--G credit and cannot enable new
+  consequential behavior. Implementation follows the existing earning-loop
+  foundation; earlier campaign runs are diagnostic input, while formal campaign
+  reruns follow the profile's Phase 0--3 and Gates S/M. No catalog, model,
+  report, projection, UI, or campaign result becomes authority.
 - [Decentralized Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
   defines an optional supply-Intent and generic-Agreement profile for ordinary
   native-TOS top-up and byte-exact submission of an already authorized client
