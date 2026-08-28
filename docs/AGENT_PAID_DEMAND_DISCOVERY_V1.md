@@ -6,6 +6,12 @@ acceptance pending
 **Root architecture:**
 [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
 
+**Immutable attempt and outcome evidence:**
+[`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md).
+These observations preserve discovery, Offer, Gate, execution and settlement
+facts without replacing Paid Demand, Quote, escrow, Receipt or finality
+authority.
+
 **Applicability:** this is a specialized profile under
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md) for
 buyer-published, fixed-price, machine-checkable work whose parties choose the

@@ -23,7 +23,10 @@ an assurance tuple by itself.
 [Agent Intent Exchange V1](AGENT_INTENT_EXCHANGE_V1.md),
 [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md),
 [OpenFox Autonomous Earning Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md),
-and the settlement Adapter selected by each value-bearing obligation.
+[Agent Operation and Outcome Event V1](AGENT_OPERATION_OUTCOME_EVENT_V1.md),
+and the settlement Adapter selected by each value-bearing obligation. Outcome
+events can preserve offer, activation, claim, decision, payout and failure
+evidence; they cannot create coverage or enlarge the guarantor's liability.
 
 **Proposed media types:**
 

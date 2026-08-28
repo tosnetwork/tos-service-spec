@@ -23,6 +23,8 @@ The application itself never creates commercial authority.
   [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md)
 - Semantic side-effect identity:
   [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
+- Immutable operation and outcome evidence:
+  [`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
 - Cross-repository design:
   [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
 - Optional TOS escrow profile:

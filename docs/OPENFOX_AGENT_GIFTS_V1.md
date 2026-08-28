@@ -17,6 +17,11 @@ deployment acceptance pending
 - [`DNS_ALIAS_V1.md`](DNS_ALIAS_V1.md)
 - [`AUTH.md`](AUTH.md)
 - [`OPENFOX_AGENT_GIFTS_V1_FIRST_PRINCIPLES.md`](OPENFOX_AGENT_GIFTS_V1_FIRST_PRINCIPLES.md)
+- [`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
+
+A Gift submission or finalized credit may be recorded through the generic
+Outcome layer, but the event remains evidence about a Gift. It cannot turn a
+Gift into Agreement-bound payment or satisfy an unrelated obligation.
 
 ## 1. Product decision
 

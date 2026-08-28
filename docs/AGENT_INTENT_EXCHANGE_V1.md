@@ -10,6 +10,13 @@ available; external production acceptance remains pending
 **Semantic side-effect identity:**
 [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md)
 
+**Operation and outcome evidence:**
+[`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md).
+Intent publication, contact, Agreement, execution and settlement attempts may
+emit immutable observations through that generic layer; those observations do
+not replace the authority or state machine defined here or by the selected
+Adapter.
+
 **Protocol relationship:** `PUBLICATION/POST` discovery profile followed by
 generic messaging, an optional typed Agreement, Agreement-bound direct,
 external, or TOS settlement profiles, and a separate Gift gratuity profile

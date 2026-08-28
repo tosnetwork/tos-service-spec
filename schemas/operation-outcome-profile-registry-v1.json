@@ -1,0 +1,206 @@
+{
+  "schema": "tos.operation-outcome-assertion-profile-registry.v1",
+  "version": 1,
+  "profiles": [
+    {
+      "profile_uri": "tos.outcome.action-resolution-reference.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 0
+    },
+    {
+      "profile_uri": "tos.outcome.asset-conversion.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "price_evidence"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.calibration-report.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "cohort_checkpoint"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.carrier-receipt.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "carrier_receipt"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 8
+    },
+    {
+      "profile_uri": "tos.outcome.censoring.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "admission_checkpoint"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 8
+    },
+    {
+      "profile_uri": "tos.outcome.cohort-checkpoint.v1",
+      "event_kind": "cohort_checkpoint",
+      "required_evidence_roles": [
+        "admission_checkpoint"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.cost.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "cost_source"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.economic-ledger.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "accounting_authority"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.economic-perimeter.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "perimeter_authority"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.evidence-availability.v1",
+      "event_kind": "availability_observation",
+      "required_evidence_roles": [
+        "custodian_resolution"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 8
+    },
+    {
+      "profile_uri": "tos.outcome.financial-report.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "accounting_authority"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.forecast.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "forecast_authority"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 8
+    },
+    {
+      "profile_uri": "tos.outcome.gate-execution.v1",
+      "event_kind": "transition_observation",
+      "required_evidence_roles": [
+        "authoritative_resolution"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.learning-dataset.v1",
+      "event_kind": "cohort_checkpoint",
+      "required_evidence_roles": [
+        "admission_checkpoint"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.obligation-state.v1",
+      "event_kind": "transition_observation",
+      "required_evidence_roles": [
+        "billing_resolution"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.revenue-recognition.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "accounting_authority"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.skill-promotion.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "owner_approval",
+        "evaluation_report"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 8
+    },
+    {
+      "profile_uri": "tos.outcome.state-transition.v1",
+      "event_kind": "transition_observation",
+      "required_evidence_roles": [
+        "source_resolution"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.terminal-disposition.v1",
+      "event_kind": "terminal_observation",
+      "required_evidence_roles": [
+        "authoritative_resolution"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.transfer.agreement-payment.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "finalized_transfer"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.transfer.gift.v1",
+      "event_kind": "observation",
+      "required_evidence_roles": [
+        "finalized_transfer"
+      ],
+      "optional_evidence_roles": [],
+      "maximum_evidence_items": 16
+    },
+    {
+      "profile_uri": "tos.outcome.transfer.tos-escrow.v1",
+      "event_kind": "transition_observation",
+      "required_evidence_roles": [
+        "escrow_state",
+        "authority_finality"
+      ],
+      "optional_evidence_roles": [
+        "transaction_bytes"
+      ],
+      "maximum_evidence_items": 8
+    }
+  ]
+}

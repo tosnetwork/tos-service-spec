@@ -1,0 +1,622 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tos.network/agent-operation-outcome-event-v1.json",
+  "title": "Agent Operation and Outcome Event V1",
+  "oneOf": [
+    { "$ref": "#/$defs/AgentOperationBodyV1" },
+    { "$ref": "#/$defs/AgentOperationEnvelopeV1" },
+    { "$ref": "#/$defs/OperationOutcomeEventBodyV1" },
+    { "$ref": "#/$defs/OutcomeEvidenceManifestV1" },
+    { "$ref": "#/$defs/OutcomeExtensionSetV1" },
+    { "$ref": "#/$defs/AuthorityTimeProofV1" },
+    { "$ref": "#/$defs/IssuerQualificationProofV1" },
+    { "$ref": "#/$defs/OutcomeAuthorityProofMaterialV1" },
+    { "$ref": "#/$defs/OperationOutcomeArtifactBundleV1" },
+    { "$ref": "#/$defs/PinnedAgentOperationAuthorityProofV1" },
+    { "$ref": "#/$defs/StateTransitionPayloadV1" },
+    { "$ref": "#/$defs/TerminalDispositionV1" },
+    { "$ref": "#/$defs/CostObservationPayloadV1" },
+    { "$ref": "#/$defs/CohortCheckpointPayloadV1" },
+    { "$ref": "#/$defs/OutcomeCohortMembershipProofV1" },
+    { "$ref": "#/$defs/AgreementObligationStateObservationV1" },
+    { "$ref": "#/$defs/ActionResolutionReferencePayloadV1" },
+    { "$ref": "#/$defs/EconomicLedgerEntryV1" },
+    { "$ref": "#/$defs/AudiencePolicyV1" },
+    { "$ref": "#/$defs/OutcomeEncryptedEvidenceV1" },
+    { "$ref": "#/$defs/OutcomeDisclosureProjectionV1" },
+    { "$ref": "#/$defs/EconomicPerimeterV1" },
+    { "$ref": "#/$defs/RevenueRecognitionV1" },
+    { "$ref": "#/$defs/AssetConversionEvidenceV1" },
+    { "$ref": "#/$defs/OutcomeForecastV1" },
+    { "$ref": "#/$defs/CalibrationReportV1" },
+    { "$ref": "#/$defs/FinancialReportV1" },
+    { "$ref": "#/$defs/LearningDatasetManifestV1" },
+    { "$ref": "#/$defs/SkillPromotionDecisionV1" },
+    { "$ref": "#/$defs/OutcomeCensoringV1" },
+    { "$ref": "#/$defs/EvidenceAvailabilityObservationV1" },
+    { "$ref": "#/$defs/GateExecutionObservationV1" },
+    { "$ref": "#/$defs/CarrierReceiptObservationV1" },
+    { "$ref": "#/$defs/TransferObservationV1" },
+    { "$ref": "#/$defs/TOSEscrowObservationV1" },
+    { "$ref": "#/$defs/OperationCarrierRequestV1" },
+    { "$ref": "#/$defs/OperationPrivateRequestV1" },
+    { "$ref": "#/$defs/OperationJournalAppendAdmissionRequestV1" },
+    { "$ref": "#/$defs/OperationSubmissionReceiptV1" }
+  ],
+  "$defs": {
+    "Digest32": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "ID": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "ProfileURI": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "Token": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$" },
+    "U64": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "U128Text": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,38})$" },
+    "ProfileRefV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_uri", "profile_version", "profile_digest"],
+      "properties": {
+        "profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "profile_version": { "type": "integer", "minimum": 1 },
+        "profile_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "AgentOperationExtensionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile", "value"],
+      "properties": {
+        "profile": { "$ref": "#/$defs/ProfileRefV1" },
+        "value": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 87384 }
+      }
+    },
+    "AgentOperationBodyV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "network_id", "opcode_namespace", "opcode_name", "opcode_version", "operation_id", "actor_agent_id", "authorization_ref", "audience_descriptor", "ordering_domain", "created_at_unix", "payload_profile", "payload_digest", "payload_size"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "network_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "opcode_namespace": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "opcode_name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "opcode_version": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+        "operation_id": { "$ref": "#/$defs/Digest32" },
+        "actor_agent_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "authorization_ref": { "$ref": "#/$defs/ProfileRefV1" },
+        "audience_descriptor": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "object_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "ordering_domain": { "$ref": "#/$defs/Digest32" },
+        "sequence": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+        "epoch": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+        "predecessor_digests": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/Digest32" } },
+        "created_at_unix": { "type": "integer", "minimum": 1, "maximum": 9223372036854775807 },
+        "not_before_unix": { "type": "integer", "minimum": 1, "maximum": 9223372036854775807 },
+        "expires_at_unix": { "type": "integer", "minimum": 1, "maximum": 9223372036854775807 },
+        "payload_profile": { "$ref": "#/$defs/ProfileRefV1" },
+        "payload_digest": { "$ref": "#/$defs/Digest32" },
+        "payload_size": { "type": "integer", "minimum": 1, "maximum": 67108864 },
+        "public_metadata_digest": { "$ref": "#/$defs/Digest32" },
+        "admission_descriptor": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 87384 },
+        "extensions": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/AgentOperationExtensionV1" } }
+      }
+    },
+    "AgentOperationAuthorizationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_subject", "authorization_profile", "public_key", "signature", "historical_authority_proof"],
+      "properties": {
+        "authority_subject": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "authorization_profile": { "$ref": "#/$defs/ProfileRefV1" },
+        "public_key": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+        "signature": { "type": "string", "pattern": "^ed25519:[A-Za-z0-9_-]{86}$" },
+        "historical_authority_proof": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 87384 }
+      }
+    },
+    "AgentOperationEnvelopeV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["body", "authorization"],
+      "properties": {
+        "body": { "$ref": "#/$defs/AgentOperationBodyV1" },
+        "authorization": { "$ref": "#/$defs/AgentOperationAuthorizationV1" }
+      }
+    },
+    "OutcomeSubjectRefV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["subject_profile_uri", "subject_id"],
+      "properties": {
+        "subject_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "subject_id": { "$ref": "#/$defs/ID" }
+      }
+    },
+    "OutcomeAssertionRefV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["network_id", "actor_agent_id", "operation_id", "operation_envelope_digest"],
+      "properties": {
+        "network_id": { "$ref": "#/$defs/ID" },
+        "actor_agent_id": { "$ref": "#/$defs/ID" },
+        "operation_id": { "$ref": "#/$defs/Digest32" },
+        "operation_envelope_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OperationOutcomeEventBodyV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "event_kind", "primary_subject_ref", "causal_predecessor_assertion_refs", "assertion_profile_uri", "assertion_payload_digest", "assertion_payload_size", "evidence_manifest_digest", "extension_set_digest"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "event_kind": { "enum": ["observation", "transition_observation", "terminal_observation", "availability_observation", "cohort_checkpoint"] },
+        "primary_subject_ref": { "$ref": "#/$defs/OutcomeSubjectRefV1" },
+        "causal_predecessor_assertion_refs": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/OutcomeAssertionRefV1" } },
+        "assertion_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "assertion_payload_digest": { "$ref": "#/$defs/Digest32" },
+        "assertion_payload_size": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "evidence_manifest_digest": { "$ref": "#/$defs/Digest32" },
+        "extension_set_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OutcomeAuthorityProofRefV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["proof_profile_uri", "object_digest", "canonical_size"],
+      "properties": {
+        "proof_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "object_digest": { "$ref": "#/$defs/Digest32" },
+        "canonical_size": { "type": "integer", "minimum": 1, "maximum": 8192 }
+      }
+    },
+    "OutcomeEvidenceItemV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_role", "evidence_profile_uri", "source_object_profile_uri", "source_object_digest", "object_digest", "canonical_size", "media_type", "issuer_descriptor", "subject_descriptor", "claimed_observation_time_unix", "authority_time_proof_digest", "issuer_qualification_proof_digest", "visibility", "audience_digest", "retention_policy_digest", "retrieval_policy_digest"],
+      "properties": {
+        "evidence_role": { "$ref": "#/$defs/Token" },
+        "evidence_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "source_object_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "source_object_digest": { "$ref": "#/$defs/Digest32" },
+        "object_digest": { "$ref": "#/$defs/Digest32" },
+        "canonical_size": { "type": "integer", "minimum": 1, "maximum": 67108864 },
+        "media_type": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "issuer_descriptor": { "$ref": "#/$defs/ID" },
+        "subject_descriptor": { "$ref": "#/$defs/ID" },
+        "claimed_observation_time_unix": { "$ref": "#/$defs/U64" },
+        "authority_time_proof_digest": { "$ref": "#/$defs/Digest32" },
+        "issuer_qualification_proof_digest": { "$ref": "#/$defs/Digest32" },
+        "visibility": { "enum": ["local_private", "named_participants", "named_recipients", "audience_encrypted", "public"] },
+        "audience_digest": { "$ref": "#/$defs/Digest32" },
+        "retention_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "retrieval_policy_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OutcomeEvidenceManifestV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "manifest_purpose", "authority_proof_refs", "evidence_items"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "manifest_purpose": { "$ref": "#/$defs/Token" },
+        "authority_proof_refs": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/OutcomeAuthorityProofRefV1" } },
+        "evidence_items": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/OutcomeEvidenceItemV1" } }
+      }
+    },
+    "AuthorityTimeProofV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_uri", "authority_or_checkpoint_id", "interval_start_unix", "interval_end_unix", "finalized_high_water", "finalized_root_digest", "proof_digest"],
+      "properties": {
+        "profile_uri": { "$ref": "#/$defs/ProfileURI" }, "authority_or_checkpoint_id": { "$ref": "#/$defs/ID" },
+        "interval_start_unix": { "type": "integer", "minimum": 1 }, "interval_end_unix": { "type": "integer", "minimum": 1 },
+        "finalized_high_water": { "$ref": "#/$defs/U64" }, "finalized_root_digest": { "$ref": "#/$defs/Digest32" },
+        "proof_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "IssuerQualificationProofV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["root_authority_id", "issuer_agent_id", "issuer_key_digest", "ordered_delegation_chain_digest", "scope_profile_uri", "subject_scope_digest", "valid_from_unix", "valid_until_unix", "revocation_handle_set_digest", "authority_time_proof_digest", "revocation_high_water", "revocation_root_digest"],
+      "properties": {
+        "root_authority_id": { "$ref": "#/$defs/ID" }, "issuer_agent_id": { "$ref": "#/$defs/ID" },
+        "issuer_key_digest": { "$ref": "#/$defs/Digest32" }, "ordered_delegation_chain_digest": { "$ref": "#/$defs/Digest32" },
+        "scope_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "subject_scope_digest": { "$ref": "#/$defs/Digest32" },
+        "valid_from_unix": { "type": "integer", "minimum": 1 }, "valid_until_unix": { "type": "integer", "minimum": 1 },
+        "revocation_handle_set_digest": { "$ref": "#/$defs/Digest32" }, "authority_time_proof_digest": { "$ref": "#/$defs/Digest32" },
+        "revocation_high_water": { "$ref": "#/$defs/U64" }, "revocation_root_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OutcomeAuthorityProofMaterialV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["proof_profile_uri", "canonical_object"],
+      "properties": {
+        "proof_profile_uri": { "enum": ["tos.outcome.authority-time-proof.v1", "tos.outcome.issuer-qualification-proof.v1"] },
+        "canonical_object": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 10924 }
+      }
+    },
+    "OperationOutcomeArtifactBundleV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["assertion_payload", "evidence_manifest", "extension_set", "authority_proofs"],
+      "properties": {
+        "assertion_payload": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 1398104 },
+        "evidence_manifest": { "$ref": "#/$defs/OutcomeEvidenceManifestV1" },
+        "extension_set": { "$ref": "#/$defs/OutcomeExtensionSetV1" },
+        "authority_proofs": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/OutcomeAuthorityProofMaterialV1" } }
+      }
+    },
+    "PinnedAgentOperationAuthorityProofV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "actor_agent_id", "public_key", "valid_from_unix", "valid_until_unix", "trust_configuration_hash"],
+      "properties": {
+        "schema_version": { "const": 1 }, "actor_agent_id": { "$ref": "#/$defs/ID" },
+        "public_key": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+        "valid_from_unix": { "type": "integer", "minimum": 1 }, "valid_until_unix": { "type": "integer", "minimum": 1 },
+        "trust_configuration_hash": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OutcomeExtensionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_uri", "canonical_value"],
+      "properties": {
+        "profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "canonical_value": { "type": "string", "contentEncoding": "base64", "minLength": 1, "maxLength": 87384 }
+      }
+    },
+    "OutcomeExtensionSetV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "extensions"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "extensions": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/OutcomeExtensionV1" } }
+      }
+    },
+    "StateTransitionPayloadV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["subject_kind", "subject_id", "prior_state", "target_state", "prior_state_revision", "target_state_revision", "transition_reason_code"],
+      "properties": {
+        "subject_kind": { "$ref": "#/$defs/Token" }, "subject_id": { "$ref": "#/$defs/ID" },
+        "prior_state": { "$ref": "#/$defs/Token" }, "target_state": { "$ref": "#/$defs/Token" },
+        "prior_state_revision": { "$ref": "#/$defs/U64" }, "target_state_revision": { "$ref": "#/$defs/U64" },
+        "transition_reason_code": { "$ref": "#/$defs/Token" }
+      }
+    },
+    "TerminalDispositionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["terminal_scope", "terminal_subject_id", "owning_state_profile_uri", "authoritative_resolution_digest", "terminal_state_revision", "successor_policy_digest", "disposition", "failure_stage", "failure_code", "retry_disposition", "resolved_at_unix"],
+      "properties": {
+        "terminal_scope": { "enum": ["agreement_attempt", "authorized_action", "execution", "delivery", "obligation", "transfer_attempt", "engagement"] },
+        "terminal_subject_id": { "$ref": "#/$defs/ID" }, "owning_state_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "authoritative_resolution_digest": { "$ref": "#/$defs/Digest32" }, "terminal_state_revision": { "$ref": "#/$defs/U64" },
+        "successor_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "disposition": { "enum": ["succeeded", "refused", "withdrawn", "expired", "superseded", "cancelled", "failed", "timed_out", "conflict", "disputed", "refunded", "written_off", "indeterminate"] },
+        "failure_stage": { "enum": ["discovery", "retrieval", "policy", "contact", "agreement", "reservation", "funding", "input", "gate", "execution", "delivery", "acceptance", "billing", "settlement", "finality", "reconciliation", "not_applicable", "unknown"] },
+        "failure_code": { "$ref": "#/$defs/Token" },
+        "retry_disposition": { "enum": ["forbidden", "exact_retry", "successor_after_terminal", "owner_review", "counterparty_action", "none"] },
+        "resolved_at_unix": { "$ref": "#/$defs/U64" }
+      }
+    },
+    "CostObservationPayloadV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["subject_kind", "subject_id", "cost_item_id", "cost_class", "category", "asset_identity_digest", "amount_atomic", "economic_direction", "quantity_digest", "meter_interval_digest", "meter_unit", "invoice_identity_digest", "payment_request_digest", "meter_or_invoice_evidence_digest", "accounting_policy_digest", "incurred_at_unix", "original_cost_assertion_ref"],
+      "properties": {
+        "subject_kind": { "$ref": "#/$defs/Token" }, "subject_id": { "$ref": "#/$defs/ID" }, "cost_item_id": { "$ref": "#/$defs/ID" },
+        "cost_class": { "enum": ["declared_ceiling", "estimate", "usage_measured", "payable_invoiced", "cash_finalized", "allocated", "contra", "penalty", "write_off"] },
+        "category": { "enum": ["compute", "model", "api", "tool", "storage", "network", "labor", "capital", "chain_fee", "collateral", "dispute", "other"] },
+        "asset_identity_digest": { "$ref": "#/$defs/Digest32" }, "amount_atomic": { "$ref": "#/$defs/U128Text" },
+        "economic_direction": { "enum": ["debit", "credit"] }, "quantity_digest": { "$ref": "#/$defs/Digest32" },
+        "meter_interval_digest": { "$ref": "#/$defs/Digest32" }, "meter_unit": { "$ref": "#/$defs/Token" },
+        "invoice_identity_digest": { "$ref": "#/$defs/Digest32" }, "payment_request_digest": { "$ref": "#/$defs/Digest32" },
+        "meter_or_invoice_evidence_digest": { "$ref": "#/$defs/Digest32" }, "accounting_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "incurred_at_unix": { "$ref": "#/$defs/U64" }, "original_cost_assertion_ref": { "$ref": "#/$defs/OutcomeAssertionRefV1" }
+      }
+    },
+    "CohortCheckpointPayloadV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "admission_authority_id", "ordering_domain", "authority_epoch", "previous_checkpoint_digest", "first_sequence", "last_sequence", "admitted_attempt_set_root", "admitted_attempt_count", "eligible_attempt_set_root", "eligible_count", "excluded_attempt_set_root", "excluded_count", "exclusion_reason_histogram_digest", "included_attempt_set_root", "outcome_cutoff_unix", "followup_policy_digest", "censoring_set_root", "censored_count", "explicit_gap_set_digest", "fork_inventory_digest", "inclusion_policy_digest", "admission_closure_state", "outcome_closure_state", "cutoff_unix"],
+      "properties": {
+        "schema_version": { "const": 1 }, "admission_authority_id": { "$ref": "#/$defs/ID" }, "ordering_domain": { "$ref": "#/$defs/ID" }, "authority_epoch": { "$ref": "#/$defs/U64" },
+        "previous_checkpoint_digest": { "$ref": "#/$defs/Digest32" }, "first_sequence": { "$ref": "#/$defs/U64" }, "last_sequence": { "$ref": "#/$defs/U64" },
+        "admitted_attempt_set_root": { "$ref": "#/$defs/Digest32" }, "admitted_attempt_count": { "$ref": "#/$defs/U64" },
+        "eligible_attempt_set_root": { "$ref": "#/$defs/Digest32" }, "eligible_count": { "$ref": "#/$defs/U64" },
+        "excluded_attempt_set_root": { "$ref": "#/$defs/Digest32" }, "excluded_count": { "$ref": "#/$defs/U64" },
+        "exclusion_reason_histogram_digest": { "$ref": "#/$defs/Digest32" }, "included_attempt_set_root": { "$ref": "#/$defs/Digest32" },
+        "outcome_cutoff_unix": { "$ref": "#/$defs/U64" }, "followup_policy_digest": { "$ref": "#/$defs/Digest32" }, "censoring_set_root": { "$ref": "#/$defs/Digest32" },
+        "censored_count": { "$ref": "#/$defs/U64" }, "explicit_gap_set_digest": { "$ref": "#/$defs/Digest32" }, "fork_inventory_digest": { "$ref": "#/$defs/Digest32" },
+        "inclusion_policy_digest": { "$ref": "#/$defs/Digest32" }, "admission_closure_state": { "enum": ["open", "closed", "incomplete"] },
+        "outcome_closure_state": { "enum": ["open", "closed", "incomplete"] }, "cutoff_unix": { "$ref": "#/$defs/U64" }
+      }
+    },
+    "OutcomeCohortMembershipProofV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["member", "leaf_index", "leaf_count", "sibling_digests"],
+      "properties": {
+        "member": { "$ref": "#/$defs/OutcomeAssertionRefV1" }, "leaf_index": { "type": "integer", "minimum": 0, "maximum": 4294967294 },
+        "leaf_count": { "type": "integer", "minimum": 1, "maximum": 4294967295 },
+        "sibling_digests": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/Digest32" } }
+      }
+    },
+    "AgreementObligationStateObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agreement_body_digest", "agreement_obligation_id", "obligation_instance_id", "obligation_digest", "payment_request_digest", "prior_revision", "target_revision", "prior_paid_amount_atomic", "applied_amount_atomic", "target_paid_amount_atomic", "target_outstanding_amount_atomic", "applied_payment_evidence_set_digest", "owning_billing_profile_uri"],
+      "properties": {
+        "agreement_body_digest": { "$ref": "#/$defs/Digest32" }, "agreement_obligation_id": { "$ref": "#/$defs/ID" }, "obligation_instance_id": { "$ref": "#/$defs/Digest32" },
+        "obligation_digest": { "$ref": "#/$defs/Digest32" }, "payment_request_digest": { "$ref": "#/$defs/Digest32" }, "prior_revision": { "$ref": "#/$defs/U64" }, "target_revision": { "$ref": "#/$defs/U64" },
+        "prior_paid_amount_atomic": { "$ref": "#/$defs/U128Text" }, "applied_amount_atomic": { "$ref": "#/$defs/U128Text" }, "target_paid_amount_atomic": { "$ref": "#/$defs/U128Text" },
+        "target_outstanding_amount_atomic": { "$ref": "#/$defs/U128Text" }, "applied_payment_evidence_set_digest": { "$ref": "#/$defs/Digest32" }, "owning_billing_profile_uri": { "$ref": "#/$defs/ProfileURI" }
+      }
+    },
+    "ActionResolutionReferencePayloadV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stable_action_id", "exact_request_digest", "authorized_action_digest", "action_resolution_digest", "resolution_state", "resolution_state_revision"],
+      "properties": {
+        "stable_action_id": { "$ref": "#/$defs/Digest32" }, "exact_request_digest": { "$ref": "#/$defs/Digest32" },
+        "authorized_action_digest": { "$ref": "#/$defs/Digest32" }, "action_resolution_digest": { "$ref": "#/$defs/Digest32" },
+        "resolution_state": { "enum": ["unknown", "prepared", "submitted", "accepted", "rejected", "conflict", "terminal"] },
+        "resolution_state_revision": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "EconomicLedgerLineV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["account_code", "debit_or_credit", "asset_profile_uri", "asset_instance_id", "amount_atomic"],
+      "properties": {
+        "account_code": { "$ref": "#/$defs/Token" }, "debit_or_credit": { "enum": ["debit", "credit"] },
+        "asset_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "asset_instance_id": { "$ref": "#/$defs/ID" },
+        "amount_atomic": { "$ref": "#/$defs/U128Text" }
+      }
+    },
+    "EconomicLedgerEntryV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entry_id", "book_id", "accounting_entity_id", "accounting_policy_digest", "recognition_basis", "effective_at_unix", "posting_at_unix", "source_assertion_ref", "transaction_group_id", "lines", "reverses_entry_id"],
+      "properties": {
+        "entry_id": { "$ref": "#/$defs/Digest32" }, "book_id": { "$ref": "#/$defs/ID" }, "accounting_entity_id": { "$ref": "#/$defs/ID" },
+        "accounting_policy_digest": { "$ref": "#/$defs/Digest32" }, "recognition_basis": { "$ref": "#/$defs/Token" },
+        "effective_at_unix": { "type": "integer", "minimum": 1 }, "posting_at_unix": { "type": "integer", "minimum": 1 },
+        "source_assertion_ref": { "$ref": "#/$defs/OutcomeAssertionRefV1" }, "transaction_group_id": { "$ref": "#/$defs/Digest32" },
+        "lines": { "type": "array", "minItems": 2, "maxItems": 64, "items": { "$ref": "#/$defs/EconomicLedgerLineV1" } },
+        "reverses_entry_id": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "AudiencePolicyV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "network_id", "audience_kind", "recipient_principal_key_set_digest", "group_id", "membership_epoch", "membership_root_digest", "permitted_purpose_set_digest", "onward_disclosure_rule", "expires_at_unix", "policy_revision"],
+      "properties": {
+        "schema_version": { "const": 1 }, "network_id": { "$ref": "#/$defs/ID" }, "audience_kind": { "enum": ["local_private", "named_participants", "named_recipients", "public"] },
+        "recipient_principal_key_set_digest": { "oneOf": [{ "$ref": "#/$defs/Digest32" }, { "const": "" }] }, "group_id": { "type": "string", "maxLength": 256 }, "membership_epoch": { "$ref": "#/$defs/U64" },
+        "membership_root_digest": { "oneOf": [{ "$ref": "#/$defs/Digest32" }, { "const": "" }] }, "permitted_purpose_set_digest": { "$ref": "#/$defs/Digest32" }, "onward_disclosure_rule": { "$ref": "#/$defs/Token" },
+        "expires_at_unix": { "$ref": "#/$defs/U64" }, "policy_revision": { "$ref": "#/$defs/U64" }
+      }
+    },
+    "OutcomeEncryptedEvidenceMetadataV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["object_digest", "audience_policy_digest", "retention_policy_digest", "evidence_role", "canonical_size"],
+      "properties": {
+        "object_digest": { "$ref": "#/$defs/Digest32" }, "audience_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "retention_policy_digest": { "$ref": "#/$defs/Digest32" }, "evidence_role": { "$ref": "#/$defs/Token" },
+        "canonical_size": { "type": "integer", "minimum": 1, "maximum": 67108864 }
+      }
+    },
+    "OutcomeEncryptedEvidenceV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "cipher_suite", "key_reference_digest", "nonce", "associated_data", "associated_data_digest", "ciphertext"],
+      "properties": {
+        "schema_version": { "const": 1 }, "cipher_suite": { "const": "aes-256-gcm" }, "key_reference_digest": { "$ref": "#/$defs/Digest32" },
+        "nonce": { "type": "string", "contentEncoding": "base64", "minLength": 16, "maxLength": 16 },
+        "associated_data": { "$ref": "#/$defs/OutcomeEncryptedEvidenceMetadataV1" }, "associated_data_digest": { "$ref": "#/$defs/Digest32" },
+        "ciphertext": { "type": "string", "contentEncoding": "base64", "minLength": 24 }
+      }
+    },
+    "OutcomeDisclosureFieldV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field_path", "treatment", "value_digest"],
+      "properties": { "field_path": { "$ref": "#/$defs/ID" }, "treatment": { "enum": ["disclosed", "omitted", "bucketed"] }, "value_digest": { "$ref": "#/$defs/Digest32" } }
+    },
+    "OutcomeDisclosureProjectionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "source_assertion_refs", "source_disclosure_policy_root", "source_audience_epoch_root", "projection_profile_uri", "fields", "derivation_profile_uri", "composition_budget_id", "audience_policy_digest", "purpose_digest", "expires_at_unix", "retention_policy_digest", "projection_issuer_id"],
+      "properties": {
+        "schema_version": { "const": 1 }, "source_assertion_refs": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "$ref": "#/$defs/OutcomeAssertionRefV1" } },
+        "source_disclosure_policy_root": { "$ref": "#/$defs/Digest32" }, "source_audience_epoch_root": { "$ref": "#/$defs/Digest32" },
+        "projection_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "fields": { "type": "array", "minItems": 1, "maxItems": 128, "items": { "$ref": "#/$defs/OutcomeDisclosureFieldV1" } },
+        "derivation_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "composition_budget_id": { "$ref": "#/$defs/ID" },
+        "audience_policy_digest": { "$ref": "#/$defs/Digest32" }, "purpose_digest": { "$ref": "#/$defs/Digest32" }, "expires_at_unix": { "type": "integer", "minimum": 1 },
+        "retention_policy_digest": { "$ref": "#/$defs/Digest32" }, "projection_issuer_id": { "$ref": "#/$defs/ID" }
+      }
+    },
+    "EconomicPerimeterV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["perimeter_id", "controller_set_digest", "beneficial_owner_set_digest", "related_party_set_digest", "funding_origin_set_digest", "classification_policy_digest", "valid_from_unix", "valid_until_unix"],
+      "properties": {
+        "perimeter_id": { "$ref": "#/$defs/Digest32" }, "controller_set_digest": { "$ref": "#/$defs/Digest32" },
+        "beneficial_owner_set_digest": { "$ref": "#/$defs/Digest32" }, "related_party_set_digest": { "$ref": "#/$defs/Digest32" },
+        "funding_origin_set_digest": { "$ref": "#/$defs/Digest32" }, "classification_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "valid_from_unix": { "type": "integer", "minimum": 1 }, "valid_until_unix": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "RevenueRecognitionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agreement_body_digest", "obligation_instance_id", "payment_assertion_digest", "seller_perimeter_digest", "buyer_perimeter_digest", "relationship_class", "consideration_asset_digest", "gross_amount_atomic", "recognized_amount_atomic", "recognition_policy_digest", "authority_evidence_set_root"],
+      "properties": {
+        "agreement_body_digest": { "$ref": "#/$defs/Digest32" }, "obligation_instance_id": { "$ref": "#/$defs/Digest32" },
+        "payment_assertion_digest": { "$ref": "#/$defs/Digest32" }, "seller_perimeter_digest": { "$ref": "#/$defs/Digest32" },
+        "buyer_perimeter_digest": { "$ref": "#/$defs/Digest32" }, "relationship_class": { "enum": ["external", "related_party", "intra_perimeter", "campaign_funded", "circular", "unknown"] },
+        "consideration_asset_digest": { "$ref": "#/$defs/Digest32" }, "gross_amount_atomic": { "$ref": "#/$defs/U128Text" },
+        "recognized_amount_atomic": { "$ref": "#/$defs/U128Text" }, "recognition_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "authority_evidence_set_root": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "AssetConversionEvidenceV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_asset_digest", "target_asset_digest", "source_amount_atomic", "rate_numerator", "rate_denominator", "rate_type", "price_source_profile_uri", "price_evidence_digest", "quoted_at_unix", "valid_until_unix", "fee_amount_atomic", "rounding_rule", "target_amount_atomic", "conversion_policy_digest"],
+      "properties": {
+        "source_asset_digest": { "$ref": "#/$defs/Digest32" }, "target_asset_digest": { "$ref": "#/$defs/Digest32" },
+        "source_amount_atomic": { "$ref": "#/$defs/U128Text" }, "rate_numerator": { "$ref": "#/$defs/U128Text" }, "rate_denominator": { "$ref": "#/$defs/U128Text" },
+        "rate_type": { "enum": ["spot", "executed", "period_average"] }, "price_source_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "price_evidence_digest": { "$ref": "#/$defs/Digest32" }, "quoted_at_unix": { "type": "integer", "minimum": 1 }, "valid_until_unix": { "type": "integer", "minimum": 1 },
+        "fee_amount_atomic": { "$ref": "#/$defs/U128Text" }, "rounding_rule": { "enum": ["floor", "ceiling", "half_even"] },
+        "target_amount_atomic": { "$ref": "#/$defs/U128Text" }, "conversion_policy_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OutcomeForecastV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["forecast_id", "issued_at_authority_unix", "model_artifact_digest", "feature_cut_digest", "cohort_policy_digest", "target_profile_uri", "target_subject_digest", "horizon_end_unix", "probability_ppm", "forecast_authority_digest"],
+      "properties": {
+        "forecast_id": { "$ref": "#/$defs/Digest32" }, "issued_at_authority_unix": { "type": "integer", "minimum": 1 },
+        "model_artifact_digest": { "$ref": "#/$defs/Digest32" }, "feature_cut_digest": { "$ref": "#/$defs/Digest32" }, "cohort_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "target_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "target_subject_digest": { "$ref": "#/$defs/Digest32" },
+        "horizon_end_unix": { "type": "integer", "minimum": 1 }, "probability_ppm": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "forecast_authority_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "CalibrationReportV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["report_id", "forecast_set_root", "outcome_set_root", "censoring_policy_digest", "cluster_policy_digest", "scoring_rule", "score_numerator", "score_denominator", "bin_specification_digest", "unique_cluster_count", "variance_method_digest", "correlation_identifier_root", "output_digest"],
+      "properties": {
+        "report_id": { "$ref": "#/$defs/Digest32" }, "forecast_set_root": { "$ref": "#/$defs/Digest32" }, "outcome_set_root": { "$ref": "#/$defs/Digest32" },
+        "censoring_policy_digest": { "$ref": "#/$defs/Digest32" }, "cluster_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "scoring_rule": { "enum": ["brier", "log"] }, "score_numerator": { "$ref": "#/$defs/U128Text" }, "score_denominator": { "$ref": "#/$defs/U128Text" },
+        "bin_specification_digest": { "$ref": "#/$defs/Digest32" }, "unique_cluster_count": { "type": "integer", "minimum": 1 },
+        "variance_method_digest": { "$ref": "#/$defs/Digest32" }, "correlation_identifier_root": { "$ref": "#/$defs/Digest32" }, "output_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "FinancialReportV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["report_id", "event_set_root", "cohort_checkpoint_digest", "authority_cut_digest", "finality_cut_digest", "accounting_book_id", "accounting_policy_digest", "economic_perimeter_digest", "reporting_asset_digest", "conversion_evidence_root", "window_start_unix", "window_end_unix", "timezone", "software_build_digest", "registry_digest", "arithmetic_profile_uri", "ledger_root", "unknown_set_root", "conflict_set_root", "exclusion_set_root", "prior_report_digest", "restatement_reason", "output_digest"],
+      "properties": {
+        "report_id": { "$ref": "#/$defs/Digest32" }, "event_set_root": { "$ref": "#/$defs/Digest32" }, "cohort_checkpoint_digest": { "$ref": "#/$defs/Digest32" },
+        "authority_cut_digest": { "$ref": "#/$defs/Digest32" }, "finality_cut_digest": { "$ref": "#/$defs/Digest32" }, "accounting_book_id": { "$ref": "#/$defs/ID" },
+        "accounting_policy_digest": { "$ref": "#/$defs/Digest32" }, "economic_perimeter_digest": { "$ref": "#/$defs/Digest32" }, "reporting_asset_digest": { "$ref": "#/$defs/Digest32" },
+        "conversion_evidence_root": { "$ref": "#/$defs/Digest32" }, "window_start_unix": { "type": "integer", "minimum": 1 }, "window_end_unix": { "type": "integer", "minimum": 1 },
+        "timezone": { "$ref": "#/$defs/Token" }, "software_build_digest": { "$ref": "#/$defs/Digest32" }, "registry_digest": { "$ref": "#/$defs/Digest32" },
+        "arithmetic_profile_uri": { "$ref": "#/$defs/ProfileURI" }, "ledger_root": { "$ref": "#/$defs/Digest32" }, "unknown_set_root": { "$ref": "#/$defs/Digest32" },
+        "conflict_set_root": { "$ref": "#/$defs/Digest32" }, "exclusion_set_root": { "$ref": "#/$defs/Digest32" }, "prior_report_digest": { "$ref": "#/$defs/Digest32" },
+        "restatement_reason": { "$ref": "#/$defs/Token" }, "output_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "LearningDatasetManifestV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifest_id", "included_assertion_set_root", "included_count", "excluded_assertion_set_root", "excluded_count", "conflict_assertion_set_root", "conflict_count", "censored_assertion_set_root", "censored_count", "cohort_checkpoint_root", "cluster_policy_digest", "sampling_policy_digest", "weight_policy_digest", "producer_concentration_digest", "software_build_digest", "evaluation_holdout_set_root", "authority_cut_digest"],
+      "properties": {
+        "manifest_id": { "$ref": "#/$defs/Digest32" }, "included_assertion_set_root": { "$ref": "#/$defs/Digest32" }, "included_count": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "excluded_assertion_set_root": { "$ref": "#/$defs/Digest32" }, "excluded_count": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "conflict_assertion_set_root": { "$ref": "#/$defs/Digest32" }, "conflict_count": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "censored_assertion_set_root": { "$ref": "#/$defs/Digest32" }, "censored_count": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "cohort_checkpoint_root": { "$ref": "#/$defs/Digest32" }, "cluster_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "sampling_policy_digest": { "$ref": "#/$defs/Digest32" }, "weight_policy_digest": { "$ref": "#/$defs/Digest32" },
+        "producer_concentration_digest": { "$ref": "#/$defs/Digest32" }, "software_build_digest": { "$ref": "#/$defs/Digest32" },
+        "evaluation_holdout_set_root": { "$ref": "#/$defs/Digest32" }, "authority_cut_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "SkillPromotionDecisionV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["decision_id", "prior_skill_digest", "candidate_skill_digest", "dataset_manifest_digest", "evaluation_report_digest", "regression_threshold_digest", "safety_threshold_digest", "approver_authority_digest", "rollback_target_digest", "stable_action_id", "exact_request_digest", "decision", "decided_at_unix"],
+      "properties": {
+        "decision_id": { "$ref": "#/$defs/Digest32" }, "prior_skill_digest": { "$ref": "#/$defs/Digest32" }, "candidate_skill_digest": { "$ref": "#/$defs/Digest32" },
+        "dataset_manifest_digest": { "$ref": "#/$defs/Digest32" }, "evaluation_report_digest": { "$ref": "#/$defs/Digest32" },
+        "regression_threshold_digest": { "$ref": "#/$defs/Digest32" }, "safety_threshold_digest": { "$ref": "#/$defs/Digest32" },
+        "approver_authority_digest": { "$ref": "#/$defs/Digest32" }, "rollback_target_digest": { "$ref": "#/$defs/Digest32" },
+        "stable_action_id": { "$ref": "#/$defs/Digest32" }, "exact_request_digest": { "$ref": "#/$defs/Digest32" },
+        "decision": { "enum": ["approved", "rejected", "rollback"] }, "decided_at_unix": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "OutcomeCensoringV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attempt_assertion_ref", "admission_time_unix", "observation_end_unix", "censor_kind", "censor_reason", "last_state_profile_uri", "last_state", "last_state_revision"],
+      "properties": {
+        "attempt_assertion_ref": { "$ref": "#/$defs/OutcomeAssertionRefV1" }, "admission_time_unix": { "type": "integer", "minimum": 1 },
+        "observation_end_unix": { "type": "integer", "minimum": 1 }, "censor_kind": { "enum": ["right_censored", "lost_to_followup"] },
+        "censor_reason": { "$ref": "#/$defs/Token" }, "last_state_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "last_state": { "$ref": "#/$defs/Token" }, "last_state_revision": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "EvidenceAvailabilityObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_object_digest", "evidence_profile_uri", "prior_state", "target_state", "state_revision", "custodian_id", "retention_until_unix", "availability_proof_digest", "observed_at_unix"],
+      "properties": {
+        "evidence_object_digest": { "$ref": "#/$defs/Digest32" }, "evidence_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "prior_state": { "enum": ["unknown", "available", "unavailable", "redacted", "key_destroyed"] },
+        "target_state": { "enum": ["available", "unavailable", "redacted", "key_destroyed"] }, "state_revision": { "type": "integer", "minimum": 1 },
+        "custodian_id": { "$ref": "#/$defs/ID" }, "retention_until_unix": { "$ref": "#/$defs/U64" },
+        "availability_proof_digest": { "$ref": "#/$defs/Digest32" }, "observed_at_unix": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "GateExecutionObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["execution_id", "agreement_body_digest", "obligation_id", "plan_digest", "gate_policy_digest", "input_set_digest", "resource_set_digest", "credential_set_digest", "effect_set_digest", "state", "state_revision", "start_action_id", "start_request_digest", "authoritative_record_digest", "observed_at_unix"],
+      "properties": {
+        "execution_id": { "$ref": "#/$defs/Digest32" }, "agreement_body_digest": { "$ref": "#/$defs/Digest32" }, "obligation_id": { "$ref": "#/$defs/ID" },
+        "plan_digest": { "$ref": "#/$defs/Digest32" }, "gate_policy_digest": { "$ref": "#/$defs/Digest32" }, "input_set_digest": { "$ref": "#/$defs/Digest32" },
+        "resource_set_digest": { "$ref": "#/$defs/Digest32" }, "credential_set_digest": { "$ref": "#/$defs/Digest32" }, "effect_set_digest": { "$ref": "#/$defs/Digest32" },
+        "state": { "$ref": "#/$defs/Token" }, "state_revision": { "type": "integer", "minimum": 1 },
+        "start_action_id": { "oneOf": [{ "$ref": "#/$defs/Digest32" }, { "const": "" }] }, "start_request_digest": { "oneOf": [{ "$ref": "#/$defs/Digest32" }, { "const": "" }] },
+        "authoritative_record_digest": { "$ref": "#/$defs/Digest32" }, "observed_at_unix": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "CarrierReceiptObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["carrier_id", "operation_envelope_digest", "carrier_receipt_digest", "carrier_sequence", "accepted_at_unix", "retention_commitment_digest"],
+      "properties": {
+        "carrier_id": { "$ref": "#/$defs/ID" }, "operation_envelope_digest": { "$ref": "#/$defs/Digest32" },
+        "carrier_receipt_digest": { "$ref": "#/$defs/Digest32" }, "carrier_sequence": { "type": "integer", "minimum": 1 },
+        "accepted_at_unix": { "type": "integer", "minimum": 1 }, "retention_commitment_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "TransferObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transfer_class", "network_id", "transaction_digest", "finality_evidence_digest", "payer_id", "payee_id", "asset_identity_digest", "amount_atomic", "destination_digest", "adapter_profile_uri", "resolution_state", "observed_at_unix"],
+      "properties": {
+        "transfer_class": { "enum": ["agreement_bound", "gift", "refund", "fee", "collateral", "unrelated", "unknown"] },
+        "network_id": { "$ref": "#/$defs/ID" }, "transaction_digest": { "$ref": "#/$defs/Digest32" }, "finality_evidence_digest": { "$ref": "#/$defs/Digest32" },
+        "payer_id": { "$ref": "#/$defs/ID" }, "payee_id": { "$ref": "#/$defs/ID" }, "asset_identity_digest": { "$ref": "#/$defs/Digest32" },
+        "amount_atomic": { "$ref": "#/$defs/U128Text" }, "destination_digest": { "$ref": "#/$defs/Digest32" },
+        "agreement_body_digest": { "$ref": "#/$defs/Digest32" }, "obligation_instance_id": { "$ref": "#/$defs/Digest32" },
+        "payment_request_digest": { "$ref": "#/$defs/Digest32" }, "gift_object_digest": { "$ref": "#/$defs/Digest32" },
+        "stable_action_id": { "$ref": "#/$defs/Digest32" }, "exact_request_digest": { "$ref": "#/$defs/Digest32" },
+        "adapter_profile_uri": { "$ref": "#/$defs/ProfileURI" },
+        "resolution_state": { "enum": ["observed_unproven", "corroborated_terminal", "validator_finalized", "reversed", "finality_indeterminate"] },
+        "observed_at_unix": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "TOSEscrowObservationV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stage", "transfer_class", "network_id", "accepted_quote_digest", "agreement_body_digest", "obligation_instance_id", "escrow_account_digest", "contract_code_digest", "contract_configuration_digest", "stable_action_id", "exact_request_digest", "transaction_bytes_digest", "transaction_digest", "finalized_checkpoint_digest", "asset_identity_digest", "amount_atomic", "authority_evidence_set_root", "observed_at_unix"],
+      "properties": {
+        "stage": { "enum": ["funding_observed", "principal_locked", "release_submitted", "release_finalized", "refund_submitted", "refund_finalized", "bounce_recovery", "fee_finalized", "finality_indeterminate"] },
+        "transfer_class": { "enum": ["collateral", "agreement_bound", "refund", "fee"] },
+        "network_id": { "$ref": "#/$defs/ID" }, "accepted_quote_digest": { "$ref": "#/$defs/Digest32" },
+        "agreement_body_digest": { "$ref": "#/$defs/Digest32" }, "obligation_instance_id": { "$ref": "#/$defs/Digest32" },
+        "escrow_account_digest": { "$ref": "#/$defs/Digest32" }, "contract_code_digest": { "$ref": "#/$defs/Digest32" },
+        "contract_configuration_digest": { "$ref": "#/$defs/Digest32" }, "stable_action_id": { "$ref": "#/$defs/Digest32" },
+        "exact_request_digest": { "$ref": "#/$defs/Digest32" }, "transaction_bytes_digest": { "$ref": "#/$defs/Digest32" },
+        "transaction_digest": { "$ref": "#/$defs/Digest32" }, "finalized_checkpoint_digest": { "$ref": "#/$defs/Digest32" },
+        "asset_identity_digest": { "$ref": "#/$defs/Digest32" }, "amount_atomic": { "$ref": "#/$defs/U128Text" },
+        "authority_evidence_set_root": { "$ref": "#/$defs/Digest32" }, "observed_at_unix": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "OperationCarrierRequestV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "carrier_id", "carrier_profile", "audience_policy_digest", "operation_id", "operation_envelope_digest", "operation_envelope", "event_payload", "artifacts"],
+      "properties": {
+        "schema_version": { "const": 1 }, "carrier_id": { "$ref": "#/$defs/ID" }, "carrier_profile": { "$ref": "#/$defs/ProfileRefV1" },
+        "audience_policy_digest": { "$ref": "#/$defs/Digest32" }, "operation_id": { "$ref": "#/$defs/Digest32" }, "operation_envelope_digest": { "$ref": "#/$defs/Digest32" },
+        "operation_envelope": { "type": "string", "contentEncoding": "base64", "minLength": 1 }, "event_payload": { "type": "string", "contentEncoding": "base64", "minLength": 1 },
+        "artifacts": { "$ref": "#/$defs/OperationOutcomeArtifactBundleV1" }
+      }
+    },
+    "OperationPrivateRequestV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "recipient_set_digest", "recipient_agent_ids", "membership_epoch", "audience_policy_digest", "operation_id", "operation_envelope_digest", "conversation_scope_digest", "transport_profile", "operation_envelope", "event_payload", "artifacts"],
+      "properties": {
+        "schema_version": { "const": 1 }, "recipient_set_digest": { "$ref": "#/$defs/Digest32" }, "recipient_agent_ids": { "type": "array", "minItems": 1, "maxItems": 1, "items": { "$ref": "#/$defs/ID" } },
+        "membership_epoch": { "type": "integer", "minimum": 1 }, "audience_policy_digest": { "$ref": "#/$defs/Digest32" }, "operation_id": { "$ref": "#/$defs/Digest32" },
+        "operation_envelope_digest": { "$ref": "#/$defs/Digest32" }, "conversation_scope_digest": { "$ref": "#/$defs/Digest32" }, "transport_profile": { "$ref": "#/$defs/ProfileRefV1" },
+        "operation_envelope": { "type": "string", "contentEncoding": "base64", "minLength": 1 }, "event_payload": { "type": "string", "contentEncoding": "base64", "minLength": 1 },
+        "artifacts": { "$ref": "#/$defs/OperationOutcomeArtifactBundleV1" }
+      }
+    },
+    "OperationJournalAppendAdmissionRequestV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ordering_domain", "epoch", "sequence", "event_content_id", "operation_envelope_digest", "gap_set_digest"],
+      "properties": {
+        "ordering_domain": { "$ref": "#/$defs/Digest32" }, "epoch": { "type": "integer", "minimum": 1 },
+        "sequence": { "type": "integer", "minimum": 1 }, "event_content_id": { "$ref": "#/$defs/Digest32" },
+        "operation_envelope_digest": { "$ref": "#/$defs/Digest32" }, "gap_set_digest": { "$ref": "#/$defs/Digest32" }
+      }
+    },
+    "OperationSubmissionReceiptV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "stable_action_id", "exact_request_digest", "state", "sink_id", "sink_reference", "authority_time_unix", "state_revision", "evidence_digest", "sink_proof"],
+      "properties": {
+        "schema_version": { "const": 1 }, "stable_action_id": { "$ref": "#/$defs/Digest32" }, "exact_request_digest": { "$ref": "#/$defs/Digest32" },
+        "state": { "enum": ["unknown", "prepared", "submitted", "accepted", "rejected", "conflict", "terminal"] },
+        "sink_id": { "$ref": "#/$defs/ID" }, "sink_reference": { "$ref": "#/$defs/ID" }, "authority_time_unix": { "type": "integer", "minimum": 1 },
+        "state_revision": { "type": "integer", "minimum": 1 }, "evidence_digest": { "$ref": "#/$defs/Digest32" },
+        "sink_proof": { "type": "string", "contentEncoding": "base64", "minLength": 1 }
+      }
+    }
+  }
+}

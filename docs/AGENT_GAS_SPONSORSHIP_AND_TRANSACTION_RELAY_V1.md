@@ -41,7 +41,11 @@ endpoint.
 **Composes:**
 [`AGENT_INTENT_EXCHANGE_V1.md`](AGENT_INTENT_EXCHANGE_V1.md),
 [`SEMANTIC_ACTION_IDENTITY_V1.md`](SEMANTIC_ACTION_IDENTITY_V1.md), and
-[`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md)
+[`OPENFOX_AGENT_GIFTS_V1.md`](OPENFOX_AGENT_GIFTS_V1.md).
+Relay admission, submission, ambiguous resolution, finalized fee/credit and
+failure evidence may be projected through
+[`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md);
+the Outcome layer does not replace relay authority or permit a retry.
 
 ## 1. Purpose
 

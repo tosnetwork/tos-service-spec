@@ -1,5 +1,11 @@
 # Native Quote, Execution, and Settlement Model
 
+Prepared, submitted, ambiguous, rejected and finalized settlement facts may be
+published as immutable, profile-qualified observations under
+[`Agent Operation and Outcome Event V1`](AGENT_OPERATION_OUTCOME_EVENT_V1.md).
+That evidence layer cannot authorize a transfer, replace finality, or change
+the Quote, escrow, Receipt, refund, and dispute rules in this document.
+
 ## Delivery scope
 
 This document defines the target economic model. The first implementation is

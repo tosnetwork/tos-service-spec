@@ -1,0 +1,51 @@
+{
+  "schema": "tos.operation-outcome-error-registry.v1",
+  "version": 1,
+  "entries": [
+    {
+      "code": "outcome.authority",
+      "retry_class": "after_external_state_change",
+      "meaning": "Required signature, historical authority, qualification, or finality proof is absent or invalid."
+    },
+    {
+      "code": "outcome.conflict",
+      "retry_class": "never_same_bytes",
+      "meaning": "The same immutable identity is already bound to different canonical bytes or state."
+    },
+    {
+      "code": "outcome.digest_binding",
+      "retry_class": "never_same_bytes",
+      "meaning": "Canonical bytes, digest, size, request, envelope, artifact, or receipt binding does not match."
+    },
+    {
+      "code": "outcome.malformed",
+      "retry_class": "never_same_bytes",
+      "meaning": "The request is structurally invalid and no narrower released error applies."
+    },
+    {
+      "code": "outcome.privacy",
+      "retry_class": "after_external_state_change",
+      "meaning": "Audience, purpose, disclosure, encryption, or retrieval policy denies the operation."
+    },
+    {
+      "code": "outcome.resource_bound",
+      "retry_class": "after_external_state_change",
+      "meaning": "A released byte, item, proof-work, queue, storage, or query bound was exceeded."
+    },
+    {
+      "code": "outcome.stale_writer",
+      "retry_class": "after_external_state_change",
+      "meaning": "The Writer Fence is expired, superseded, out of scope, or below the authority high-water."
+    },
+    {
+      "code": "outcome.unavailable",
+      "retry_class": "exact_query_or_retry",
+      "meaning": "Required retained bytes, authority history, sink resolution, or evidence is currently unavailable."
+    },
+    {
+      "code": "outcome.unsupported_profile",
+      "retry_class": "after_external_state_change",
+      "meaning": "A required profile or version has no released verifier in this implementation."
+    }
+  ]
+}

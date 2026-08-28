@@ -1,6 +1,10 @@
 # Agent Operation and Outcome Event V1
 
-**Status:** design draft; no production or interoperability claim
+**Status:** V1 implementation candidate. The schema, registries, canonical
+fixtures, independent verifier, protocol implementation, local journal,
+private transport, and bounded Carrier interfaces described by this document
+exist on the coordinated implementation branches. Public publication remains
+default-off, and no two-independent-operator availability claim is made.
 
 **Scope:** generic, immutable, append-only evidence for Agent operations and
 Agreement attempts across runtimes, Carriers, execution systems, custody, and
@@ -13,11 +17,16 @@ settlement Adapters
 - [Semantic Action Identity V1](SEMANTIC_ACTION_IDENTITY_V1.md)
 - [Native Execution Gate V1](NATIVE_EXECUTION_GATE_V1.md)
 
-Names ending in `V1` that are introduced by this document are candidate
-Phase-0 objects, not released wire contracts. No implementation may advertise
-support until each selected object has a complete schema, registry entry,
-canonical encoding, authority/cardinality rules, stable errors, and vectors.
-Objects already released by a dependency retain the status of that dependency.
+Names ending in `V1` that are introduced by this document are candidate wire
+contracts until the coordinated branches are released. Their implemented
+schema, registry, canonical encoding, authority/cardinality rules, stable
+errors, vectors, and independent verification are listed in
+[the V1 implementation report](AGENT_OPERATION_OUTCOME_EVENT_V1_IMPLEMENTATION.md).
+An implementation may advertise only the separately enabled capability it has
+passed: read, verify, local append, private send, or bounded publish. It may not
+advertise resilient decentralized availability until the independent-operator
+gate in Section 20.5 passes. Objects already released by a dependency retain
+the status of that dependency.
 
 The fourteen-round independent review and disposition record is
 [Agent Operation and Outcome Event V1 Review Report](AGENT_OPERATION_OUTCOME_EVENT_V1_REVIEW_REPORT.md).
@@ -274,10 +283,14 @@ events do not introduce a special publication authority or reuse the identity
 of the Action being described.
 
 Private transport similarly uses a new versioned `operation.private-send`
-entry binding owner, sending Agent, exact recipient/audience epoch, operation
-ID, operation-envelope digest, conversation-scope digest, and transport profile
-digest. It coexists with generic `messenger.send`; no caller-selected
-`authority_instance_id` may hide multiple event sends. Recipient-set or
+entry binding owner, sending Agent, exactly one recipient, the recipient's
+audience or membership epoch, operation ID, operation-envelope digest,
+conversation-scope digest, and transport profile digest. V1 deliberately
+forbids a multi-recipient request: one semantic Action and one sink resolution
+must never conceal partial fan-out. Sending the same event to a group therefore
+creates one independently authorized, fenced, recoverable Action per recipient.
+It coexists with generic `messenger.send`; no caller-selected
+`authority_instance_id` may hide multiple event sends. A recipient or
 membership-epoch change creates a different semantic Action. Timeout,
 cross-device retry, and writer takeover query the same Action before any retry.
 
@@ -1121,9 +1134,10 @@ audience, purpose, derivation, and union. Unknown policy, omitted provenance,
 audience widening, or budget exhaustion fails closed.
 
 Non-public evidence uses a released authenticated-encryption envelope binding
-object digest, audience-policy digest, retention-policy digest, evidence role,
-and canonical size as associated data. Keys are per object or retention epoch
-and wrapped only to authorized recipient keys; nonce reuse is forbidden.
+the schema version, cipher suite, key-reference digest, object digest,
+audience-policy digest, retention-policy digest, evidence role, and canonical
+size as associated data. Keys are per object or retention epoch and wrapped
+only to authorized recipient keys; nonce reuse is forbidden.
 Retention policy fixes expiry, deletion deadline, cache and backup treatment,
 legal-hold behavior, and required custodian acknowledgements.
 
@@ -1304,7 +1318,8 @@ closed under owner policy.
   Carrier, operation-envelope, audience/disclosure, retry, and conflict rules;
   retain the Intent-specific `publication.publish` entry unchanged, with no ID
   rewrite or aliasing.
-- Add `operation.private-send` with recipient/audience epoch,
+- Add `operation.private-send` with exactly one recipient per Action, the
+  recipient's audience/membership epoch,
   conversation/transport profile, envelope identity, query-before-retry,
   ambiguous delivery, device-takeover, and membership-change vectors.
 - Bind carriage through `AgentOperationEnvelopeV1` and distinguish event
@@ -1582,29 +1597,32 @@ immutable operations are not described as “rolled back.”
 - Carrier or market loss cannot change Agreement, Action, settlement, or chain
   truth.
 
-## 21. Phase-0 blocking decisions
+## 21. Release status and remaining operational gates
 
-Before schema freeze, record:
+The implementation candidate closes the protocol decisions that previously
+blocked Phase 0. This table is normative about claim scope; code existence does
+not substitute for operational evidence.
 
-1. complete schemas, encodings, registries, authority/cardinality rules, stable
-   errors, and vectors for every candidate `V1` object and assertion profile in
-   this document;
-2. exact ordering-domain digest, operation-ID projection, construction DAG,
-   `operation.publish`, `operation.private-send`, request/receipt digests, and
-   retry semantics;
-3. authority resolver and historical delegation proof formats;
-4. clock skew, durable observation, and authority-time rules;
-5. disclosure projection and anti-composition rules;
-6. encrypted evidence, retention, and key-destruction profiles;
-7. Agent Operation opcode/profile mapping;
-8. stable error registry and malformed-versus-conflict behavior;
-9. cross-version sequence/predecessor behavior; and
-10. independent verifier language, location, corpus, CI ownership, named
-    Carrier/custodian deployments, and cross-repository release manifest.
+| Decision or artifact | Candidate status | Remaining release or deployment gate |
+|---|---|---|
+| Core schemas, canonical encoding and structural bounds | Implemented in the V1 schema and protocol codec | Freeze coordinated repository commits and publish the release manifest |
+| Profile and stable-error registries | Implemented as generated, sorted registries | Registry revisions must be immutable after release |
+| Ordering domain, operation ID, construction DAG and append semantics | Implemented with append authority high-water and exact request binding | Externally pin signed checkpoints to detect whole-directory rollback |
+| `operation.journal.append`, `operation.publish`, and `operation.private-send` identities | Implemented with exact-byte vectors; private send is exactly one recipient per Action | Every deployed sink must persist action resolution and fence high-water |
+| Historical Agent-operation and evidence authority | Implemented through explicit resolver APIs and authenticated pinned profiles | A deployment must retain superseded pins or select and name a historical delegation provider |
+| Observation time and authority-time qualification | Implemented with bounded intervals and pinned proofs | Deployment clock and proof-retention policy must be named in its manifest |
+| Disclosure, audience, hiding commitment and anti-composition fields | Implemented; public release also passes an owner-authored declassification policy | Public profile/audience allowlists remain default-deny |
+| Encrypted evidence | Implemented with AES-256-GCM, random 96-bit nonces and authenticated schema, suite, key reference, object, audience, retention, role and size context | The selected storage provider must define key rotation, nonce-volume limits, retention and deletion attestation |
+| Agent Operation payload mapping and Messenger type | Implemented without a new consensus opcode | Peers advertise the exact payload/profile revisions they accept |
+| Independent verification | Implemented by the Python reference verifier over the language-neutral corpus | CI ownership and immutable release artifact location must be recorded |
+| Carrier propagation | Two separate implementations exist: the Gateway HTTP Carrier and OpenFox directory Carrier | Resilient-public claims require two independently operated failure domains and a witnessed database-loss recovery campaign |
 
-Until these decisions and vectors exist, OpenFox may retain explicitly
-local-private experimental events. Public propagation, cross-host risk
-learning, and production completion claims remain disabled.
+Local-private capture, verification, projection, archive and private transport
+may be deployed after their selected release artifacts are frozen. Bounded
+public publication may be enabled only with explicit declassification policy,
+pinned Carrier receipt keys, quotas and action fencing. Cross-host risk-learning
+and resilient decentralized-publication claims remain disabled until their
+corresponding Section 20 gates have operational evidence.
 
 ## 22. Final design test
 

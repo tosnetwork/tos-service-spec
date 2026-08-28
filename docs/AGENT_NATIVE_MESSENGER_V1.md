@@ -8,6 +8,11 @@
 **Root architecture:**
 [`TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md`](TOS_AGENTIC_INTERNET_OPERATION_ARCHITECTURE_V1.md)
 
+**Typed operation/outcome transport:**
+[`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md).
+Messenger preserves exact encrypted event bytes and transport observations but
+does not derive Agreement, execution, payment, or global outcome truth.
+
 ## 1. Purpose
 
 This document defines how the existing TOS ecosystem can be extended into a

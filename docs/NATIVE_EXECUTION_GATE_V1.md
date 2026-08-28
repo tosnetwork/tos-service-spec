@@ -1,5 +1,11 @@
 # Native Execution Gate V1
 
+Gate admission, start, failure and terminal facts may be represented through
+the generic
+[`Agent Operation and Outcome Event V1`](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
+layer. Such an event only reports the exact Gate evidence; it never authorizes
+execution or replaces finalized TOS authority and the one-shot slot below.
+
 ## Purpose
 
 The Native Execution Gate is the provider-side boundary between transport and
