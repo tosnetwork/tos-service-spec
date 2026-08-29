@@ -429,3 +429,15 @@ the exact request and policy context.
 The registry is not a global transaction database. Each owner and participating
 sink retains only the actions it must authorize or resolve. No Carrier, market,
 or chain-wide canonical action head is introduced.
+
+## 10. Trusted Capability and Owner Control entries
+
+The machine registry additionally freezes the nineteen V1 action kinds required
+by `AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md`: five installation
+actions, four Admission actions, two Promotion actions, source-search and local
+draft recording, Owner Command submit/resolve, report generate/correct, owner
+projection checkpoint, and device-session revocation. The generated
+`agent-commerce-semantic-action-v1.json` corpus contains an exact preimage and
+stable identity for every released registry entry, including these kinds. The
+machine registry is authoritative for ordered fields and successor policy;
+this paragraph is not a second registry.

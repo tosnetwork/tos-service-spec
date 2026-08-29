@@ -207,6 +207,403 @@
     {
       "registry_version": 1,
       "entry_version": 1,
+      "action_kind": "capability.admit",
+      "domain_tag": "tos.semantic-action.capability.admit.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "admission_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "admission_body_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.gc",
+      "domain_tag": "tos.semantic-action.capability.gc.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "tombstone_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "reference_scan_root",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "deletion_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.install",
+      "domain_tag": "tos.semantic-action.capability.install.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "installation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "target_store_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_inventory_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.local-draft.create",
+      "domain_tag": "tos.semantic-action.capability.local-draft.create.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "requirement_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "sourcing_decision_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "draft_artifact_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.promotion.activate",
+      "domain_tag": "tos.semantic-action.capability.promotion.activate.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "promotion_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "promotion_body_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.promotion.revoke",
+      "domain_tag": "tos.semantic-action.capability.promotion.revoke.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "promotion_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_promotion_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "revocation_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.remove",
+      "domain_tag": "tos.semantic-action.capability.remove.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "installation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_inventory_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "deletion_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.resume",
+      "domain_tag": "tos.semantic-action.capability.resume.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "admission_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_admission_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "revocation_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.revoke",
+      "domain_tag": "tos.semantic-action.capability.revoke.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "admission_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_admission_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "revocation_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.rollback",
+      "domain_tag": "tos.semantic-action.capability.rollback.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "current_artifact_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "rollback_artifact_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "installation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_inventory_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.source-search.record",
+      "domain_tag": "tos.semantic-action.capability.source-search.record.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "requirement_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "source_policy_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "source_attempt_set_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.suspend",
+      "domain_tag": "tos.semantic-action.capability.suspend.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "admission_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_admission_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "revocation_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "capability.update",
+      "domain_tag": "tos.semantic-action.capability.update.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "predecessor_artifact_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "artifact_version_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "installation_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "expected_inventory_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
       "action_kind": "collateral.transition",
       "domain_tag": "tos.semantic-action.collateral.transition.v1",
       "ordered_semantic_fields": [
@@ -1189,6 +1586,142 @@
     {
       "registry_version": 1,
       "entry_version": 1,
+      "action_kind": "owner.command.resolve",
+      "domain_tag": "tos.semantic-action.owner.command.resolve.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "resolution_namespace",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "command_effect_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "target_resolution_state",
+          "field_type": "state"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "owner.command.submit",
+      "domain_tag": "tos.semantic-action.owner.command.submit.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "resolution_namespace",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "command_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "target_object_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "target_object_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "exact_parameter_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "governing_policy_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_target_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "command_instance_id",
+          "field_type": "id"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "owner.device-session.revoke",
+      "domain_tag": "tos.semantic-action.owner.device-session.revoke.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "session_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "session_generation",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "session_revocation_generation",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "owner.projection.checkpoint",
+      "domain_tag": "tos.semantic-action.owner.projection.checkpoint.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "projection_source_set_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "event_set_root",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "snapshot_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
       "action_kind": "payment.direct",
       "domain_tag": "tos.semantic-action.payment.direct.v1",
       "ordered_semantic_fields": [
@@ -1502,6 +2035,68 @@
         }
       ],
       "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "report.correct",
+      "domain_tag": "tos.semantic-action.report.correct.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "report_series_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "prior_report_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "correction_revision",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "correction_delta_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "report.generate",
+      "domain_tag": "tos.semantic-action.report.generate.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "report_series_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "source_snapshot_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "correction_revision",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
     },
     {
       "registry_version": 1,

@@ -1,0 +1,253 @@
+{
+  "$id": "https://tos.network/schemas/trusted-capability-owner-control-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Released object-kind and owner-command registry. Canonical CBOR shape and semantic validation are frozen by the linked body schemas and conformance vectors.",
+  "properties": {
+    "object_kinds": {
+      "const": [
+        "artifact",
+        "content-manifest",
+        "entrypoint-descriptor",
+        "permission-manifest",
+        "dependency-manifest",
+        "publisher-envelope",
+        "publisher-revocation-observation",
+        "capability-requirement",
+        "sourcing-decision",
+        "evaluation-manifest",
+        "evaluation-result",
+        "evaluation-evidence",
+        "authorization-envelope",
+        "owner-policy",
+        "capability-admission",
+        "admission-mutation",
+        "promotion-authority",
+        "promotion-mutation",
+        "use-lease",
+        "installation-transaction",
+        "inventory-snapshot",
+        "capability-use-binding",
+        "owner-report",
+        "report-source-coverage",
+        "projection-event",
+        "projection-snapshot",
+        "owner-bootstrap",
+        "owner-recovery",
+        "device-enrollment",
+        "device-session",
+        "owner-command-lease",
+        "owner-command-effect",
+        "owner-command-attempt",
+        "owner-command-resolution",
+        "semantic-confirmation",
+        "owner-exit-plan",
+        "migration",
+        "action-outcome-evidence"
+      ]
+    },
+    "owner_command_kinds": {
+      "const": [
+        "agreement.amendment.propose",
+        "agreement.approve",
+        "agreement.reject",
+        "capability.admit",
+        "capability.promotion.activate",
+        "capability.promotion.revoke",
+        "capability.remove",
+        "capability.resume",
+        "capability.revoke",
+        "capability.suspend",
+        "credential.revoke",
+        "delegation.revoke",
+        "device-session.revoke",
+        "evidence.export",
+        "intent.publish",
+        "intent.revise",
+        "intent.withdraw",
+        "owner.exit",
+        "owner.pause",
+        "owner.policy.propose",
+        "owner.resume",
+        "reconcile.apply",
+        "reconcile.dry-run",
+        "session.revoke",
+        "steering.bounded"
+      ]
+    },
+    "owner_command_profiles": {
+      "const": [
+        {
+          "command_kind": "agreement.amendment.propose",
+          "target_object_kind": "agreement",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "agreement.approve",
+          "target_object_kind": "agreement",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "agreement.reject",
+          "target_object_kind": "agreement",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.admit",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.promotion.activate",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.promotion.revoke",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.remove",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.resume",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.revoke",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "capability.suspend",
+          "target_object_kind": "capability",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "credential.revoke",
+          "target_object_kind": "credential",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "delegation.revoke",
+          "target_object_kind": "delegation",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "device-session.revoke",
+          "target_object_kind": "device-session",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "evidence.export",
+          "target_object_kind": "evidence-export",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "intent.publish",
+          "target_object_kind": "intent",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "intent.revise",
+          "target_object_kind": "intent",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "intent.withdraw",
+          "target_object_kind": "intent",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "owner.exit",
+          "target_object_kind": "owner",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "owner.pause",
+          "target_object_kind": "agent",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "owner.policy.propose",
+          "target_object_kind": "owner-policy",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "owner.resume",
+          "target_object_kind": "agent",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "reconcile.apply",
+          "target_object_kind": "portfolio",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "reconcile.dry-run",
+          "target_object_kind": "portfolio",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "session.revoke",
+          "target_object_kind": "device-session",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        },
+        {
+          "command_kind": "steering.bounded",
+          "target_object_kind": "owner-policy",
+          "require_agent_scope": true,
+          "command_instance_id_policy": "required"
+        }
+      ]
+    },
+    "profile_uri": {
+      "const": "tos.trusted-capability-owner-control.v1"
+    },
+    "profile_version": {
+      "const": 1
+    },
+    "registry_digest_hex": {
+      "const": "cccc155ee5687abee43a798fb8139e56d172b4d175886849cfe6f581d92d462c",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "profile_uri",
+    "profile_version",
+    "registry_digest_hex",
+    "object_kinds",
+    "owner_command_kinds",
+    "owner_command_profiles"
+  ],
+  "title": "TOS Trusted Capability and Owner Control V1 Registry",
+  "type": "object"
+}

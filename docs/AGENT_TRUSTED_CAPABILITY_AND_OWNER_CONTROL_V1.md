@@ -299,6 +299,15 @@ asset, configuration template, transitive lockfile, and generated component
 that can affect behavior. Mutable URLs and floating dependency ranges are not
 content identity.
 
+V1 registers `content-manifest` and `entrypoint-descriptor` as critical typed
+objects. A content entry binds its normalized relative path, object type,
+behavior-relevant mode, exact size, and file digest; entries are sorted by path
+and commit a domain-separated closure root. Local acquisition timestamps and
+catalog display metadata are stored outside this closure and are never copied
+into the executable object. A verifier recomputes both the manifest object
+digest and closure root from quarantined bytes before `verified`, after
+materialization, and immediately before every consequential start.
+
 For a local server or tool, the entrypoint descriptor commits executable
 digest, arguments, working-directory policy, runtime user, an empty-by-default
 environment with an exact name and value-source-class allowlist, filesystem
@@ -396,6 +405,89 @@ needed network access uses enumerated broker capabilities and becomes committed
 evaluation evidence. Gate S includes path/link escape, special-file, parser,
 hook, decompression-bomb, resource-exhaustion, and quarantine-to-host mutation
 vectors.
+
+All acquisition clients for one Owner/Agent use one linearizable quarantine
+ledger and one external acquisition namespace. Model tools, Web imports,
+operator CLI, and direct library callers reserve quota before retrieval and
+prepare a recoverable commit record before requesting commit admission. The
+retrieval tree is captured through pinned no-follow handles into a bounded,
+detached snapshot; digest and accounting are computed from that one snapshot.
+The external commit acknowledgement precedes publication of those same
+snapshot bytes at the content-addressed path. The caller-controlled retrieval
+tree is never renamed into retained storage. Linux capture and publication use
+descriptor-relative `openat2` traversal with `RESOLVE_BENEATH`,
+`RESOLVE_NO_SYMLINKS`, and `RESOLVE_NO_MAGICLINKS`; publication creates and
+fsyncs a private snapshot, removes file write bits, and uses
+`renameat2(RENAME_NOREPLACE)` beneath the pinned ledger-root descriptor. The
+ledger keeps that root descriptor open for its full lifetime; locks, state,
+capture, staging, publication, recovery, reconciliation, accounting and removal
+resolve through it rather than reopening the configured pathname. The root
+device/inode identity is persisted in ledger state and in the commit receipt,
+and is revalidated on receipt reopening. The published descriptor identity is
+rechecked after rename. A crash
+replays only that exact acquisition ID; it cannot allocate a successor, and an
+already-acknowledged ID remains queryable after the global fence closes. A
+superseded ledger object is unusable after releasing its exclusive lock.
+Unknown content-addressed directories cannot be deleted unless the same ledger
+proves they are neither retained objects nor prepared commits.
+
+The external transition is the canonical object below, not a bearer-only
+`acquisition_id` acknowledgement:
+
+```text
+CapabilityAcquisitionTransitionV1 {
+  schema_version
+  owner_id
+  agent_id
+  ledger_id
+  acquisition_id
+  phase                    # reserve | commit
+  principal
+  source_id
+  source_generation
+  reserved_bytes
+  reserved_files
+  expires_at_unix
+  content_digest           # empty bytes for reserve; exact digest for commit
+  content_bytes
+  content_files
+  prior_revision
+  next_revision
+}
+```
+
+One separately administered authority binds exactly one `ledger_id` to the
+Owner/Agent acquisition scope and performs an idempotent compare-and-swap from
+`prior_revision` to `next_revision`. The same revision and acquisition ID with
+different provenance, quota, expiry, phase, content, byte count, or file count
+is equivocation and is rejected. Both reserve and commit are durably
+`prepared` locally before this CAS. A restored local snapshot can only replay
+the exact previously accepted transition; it cannot substitute bytes or start
+a second ledger. A single-host filesystem lock is only a local optimization,
+not the cross-host authority.
+
+Inventory registration accepts only a `QuarantineCommitReceiptV1` containing
+the Owner, Agent, ledger root and exact accepted commit transition. The runtime
+reopens and exclusively locks that ledger, replays the transition against the
+external authority, verifies the ledger ID/revision/object record, derives the
+content-addressed direct-child path, and rehashes its closure and accounting.
+The exact commit transition MUST remain durably attached to the retained object
+until authorized garbage collection. Acquisition APIs SHOULD also return it to
+their caller, but loss of an API response, a process crash, or an error-only
+caller MUST NOT make the receipt unrecoverable. An authenticated local operator
+interface MUST be able to export the retained receipts for Inventory
+registration. A content-addressed duplicate returns the original durable
+receipt and MUST NOT replace it with a later transition that would invalidate a
+receipt already handed to another workflow.
+There is no exported raw-path registration operation. Reconciliation rehashes
+every retained object, not merely its byte and file counts; any mismatch
+poisons the ledger and cannot be repaired by allocating a new acquisition ID.
+
+Adaptive model drafting is an acquisition entry point. In `apply` mode, the
+candidate may be materialized only through this same transition, ledger and
+owner-exit fence. If the external authority is unavailable, the feedback loop
+may retain an abstract draft record but must not create a materialized Skill
+tree. Draft identifiers are evidence labels and are never path components.
 
 ## 8. Permission manifest
 
@@ -620,10 +712,13 @@ ProfileAuthorizationEnvelopeV1 {
 }
 ```
 
-Proofs are sorted by their complete canonical bytes and unique. Each proof
-commits algorithm, key/authority reference, signature bytes, historical
-authority-proof reference, and proof validity. `proof_set_digest` is computed
-over the proof descriptors with signature bytes absent. Each signature signs:
+Proof descriptors are sorted by their signature-absent canonical bytes and are
+unique before `proof_set_digest` is computed. After signatures are produced,
+wire proofs are sorted by their complete canonical bytes and are unique. This
+two-stage rule removes the signature/digest ordering cycle. Each proof commits
+algorithm, key/authority reference, signature bytes, historical authority-proof
+reference, and proof validity. `proof_set_digest` is computed over the sorted
+proof descriptors with signature bytes absent. Each signature signs:
 
 ```text
 SHA256(
@@ -639,6 +734,15 @@ algorithm, key and signature encoding, threshold, historical authority proof,
 and stable errors; an unspecified profile is rejected. Substitution across
 kind, profile, domain, owner, Agent, policy, validity, or predecessor therefore
 fails verification.
+
+The released `tos.profile-proof.ed25519.v1` profile is a single-direct-key
+profile: it requires exactly one proof, a null historical-authority reference,
+and `issuer_subject = (verification-key,
+tos.profile-proof.ed25519.v1, SHA256("tos.profile-proof.ed25519.v1/key-reference"
+|| 0x00 || public_key))`. The proof `key_reference` must equal that identifier.
+Threshold, delegation, or historical-chain authorization requires a different
+released profile with its own resolver and conformance vectors; implementations
+must not infer those semantics from multiple otherwise valid signatures.
 
 Each authority chain is linear under `(domain_kind, domain_id, owner_id,
 agent_id, authority_kind, authority_id)`. Genesis has revision zero and a null
@@ -687,6 +791,13 @@ The policy selects a released trusted-time profile. Each sink persists the
 maximum accepted signed time epoch and local expiry observation in
 rollback-resistant storage. Restart, restore, suspend/resume, and takeover fail
 closed when trustworthy time cannot prove a value at or above that high-water.
+Every remote time, state-read, state-check, and compare-and-advance request
+contains a fresh 256-bit client challenge. The signed response echoes that
+challenge, commits the exact request digest, and acknowledges the
+operation-specific revision and commitment. A signed response to an identical
+older semantic request therefore cannot be replayed after restart or through a
+compromised proxy. Challenge generation failure, mismatched acknowledgement,
+or missing authority connectivity fails closed.
 An object once observed expired at a sink never becomes active there again.
 Wall-clock rollback, unsigned peer time, and model-provided time cannot extend
 authority.
@@ -774,14 +885,22 @@ state. It is never equivalent to `admitted`.
 At revocation linearization, new loads and new execution starts fail in that
 authority domain. Every cross-host use requires a short-lived
 `CapabilityUseLeaseV1` binding admission digest, current revocation generation,
-artifact, permission subset, authority epoch, policy digest/revision, sink
-identity, execution/action identity, `not_before`, `start_not_after`, and expiry.
+admission revision, artifact, installation and Inventory revisions, permission
+subset, authority epoch, policy digest/revision, current
+`control_scope_generation`, sink identity, execution/action identity,
+`not_before`, `start_not_after`, and expiry.
+It also binds `invocation_descriptor_digest`, the canonical commitment to the
+exact entrypoint or authenticated service descriptor, selected tool names and
+schemas, caller-side argument ceilings, and transport/session requirements.
+An unsigned sidecar may carry those values but cannot select or expand them.
 When promotion is required, it also binds the promotion-envelope digest,
 promotion revision, promotion revocation generation, and promotion expiry. The
 admitting authority issues it only after a linearizable check of both authority
 heads. A sink persists rollback-resistant high-waters for authority epoch and
 both revocation generations, rejects lower values, and cannot mint or extend a
-lease. During loss of authority connectivity, it may start only before
+lease. Pause and resume both advance the control generation, so an unused lease
+issued before either transition cannot be paired with a refreshed unsigned use
+binding. During loss of authority connectivity, it may start only before
 `start_not_after` under an already admitted lease. Expired or unverifiable
 leases fail closed, as does either authority expiry. Thus revocation is bounded
 by the previously authorized lease window rather than falsely claiming global
@@ -847,6 +966,15 @@ Promotion authority is valid only as the exact body plus a detached
 body-bound approver policy. The verifier derives the required approver set from
 the body and active predecessor policy; a caller cannot choose a weaker profile
 after the body is signed.
+
+The exact same Promotion Authority body MUST also carry a detached generator
+authorization envelope. Its authority kind is `capability-generator`, its
+verified issuer identifier equals `generator_identity_digest`, and the active
+owner policy binds that issuer to the generator role and its controlling
+principal. This envelope proves generator participation, not approval: it
+cannot satisfy the promotion-approver or independent-verifier predicate.
+Naming an authorized but uninvolved generator, or placing its identifier only
+in an unsigned evidence object, MUST fail closed.
 
 The promotion issuer MUST satisfy the owner policy's separation rule. The
 candidate, generating model/process, task issuer, catalog, evaluator acting
@@ -1009,6 +1137,7 @@ CapabilityUseBindingV1 {
   network_broker_policy_digest
   remote_session_handshake_digest_or_null
   start_not_after_unix
+  invocation_descriptor_digest
 }
 ```
 
@@ -1019,6 +1148,78 @@ generation and immutable loaded handle. Each post-start broker effect repeats
 the applicable checks. Vectors cover stale generation, lease/environment/handle
 substitution, remote reconnect, and concurrent pause/revoke. Actual bytes,
 endpoints, tools, credentials, and broker policy must match the binding.
+For a local MCP process, the configured command and arguments MUST resolve to
+the executable and argument vector in the admitted immutable content and
+entrypoint manifests. After identity verification, a conforming runtime MUST
+launch from the verified immutable handle rather than resolving the pathname
+again. The Linux profile copies the verified bytes into a sealed memory file
+and executes the inherited descriptor; platforms without an equivalent
+immutable handle fail closed. Consequential remote MCP remains disabled unless its
+authenticated nonce-, identity-, generation- and expiry-bound handshake
+profile is released and the response digest is bound above. Every consequential
+local tool call has a stable Action ID and exact request digest durably recorded
+before the pipe write. A lost response is `ambiguous`; neither restart,
+reconnect, nor allocation of a different Action ID may submit the same exact
+request while that record is unresolved. The original Action must be queried
+or explicitly resolved before an intentional repeat can be admitted.
+For consequential MCP, the signed Use Lease closure also commits the one exact
+tool name, exact canonical request digest, and released `executor.effect`
+Action ID. That ID derives from the Agreement, obligation, execution,
+Gate-frozen plan-effect ID, effect profile, authenticated server target,
+operation kind, and exact request semantic key. A runtime-generated random ID,
+a mere argument-size ceiling, or a model-selected destination is insufficient.
+Changing arguments requires a new authorized plan effect and cannot reuse the
+prior use slot or lease.
+The execution sink computes the exact canonical `CapabilityUseBindingV1`
+digest before slot lookup. An existing execution ID is idempotent only when
+action ID, exact request digest, and started state all match; every other reuse
+is a permanent conflict.
+
+The initial Linux V1 local-MCP runtime profile is deliberately static-ELF-only
+and compute-only. Scripts, `PT_INTERP`, shared-library imports, and other
+executables whose interpreter, loader, library, module, certificate, or runtime
+closure is not self-contained are rejected before use admission.
+The selected permission manifest has an empty process, filesystem, network,
+credential, data-read/write, disclosure, upload, destructive and extension
+surface. Configuration-supplied environment variables and environment files
+are rejected. The process starts from the sealed executable descriptor inside
+a fresh user/PID/network/IPC/UTS/cgroup namespace, receives a fixed empty user
+environment, has no OpenFox instance/workspace mount, and sees only the
+read-only system runtime needed to load the executable plus private ephemeral
+home/tmp directories. The exact released runtime, environment, empty
+credential set, empty filesystem-handle set and empty network-broker set
+digests must equal `ObservedUseContext` immediately before `exec`. The sandbox
+launcher is selected by an administrator-pinned absolute path, must be a
+root-owned non-writable single-link regular file, and its exact bytes plus the
+released namespace/mount profile determine `runtime_and_sandbox_digest`.
+Ambient `PATH` never selects the launcher. The admitted executable is supplied
+through a sealed descriptor and a read-only descriptor bind, not a mutable
+pathname. No host `/usr`, `/bin`, loader, library, certificate, timezone, or
+language-runtime tree is mounted by this profile. A later dynamically linked or
+interpreted profile requires a separately admitted content-addressed immutable
+rootfs whose complete closure digest is bound and revalidated immediately
+before exec. A platform
+without this profile fails closed. Resource-bearing MCP profiles require a
+later released broker and sandbox profile; they cannot reinterpret this one.
+
+Tool arguments are accepted as one closed plain-JSON object, serialized once,
+decoded away from caller-owned mutable maps/slices or custom marshalers, and
+re-encoded canonically once. The exact immutable argument bytes determine the
+request digest, are passed to the effect authorizer, journaled, and are the
+same `json.RawMessage` placed on the MCP pipe. Concurrent mutation or a
+stateful marshaler cannot change the request after authorization.
+
+`ActionOutcomeEvidenceV1` is the generic recovery object for a sink that can
+authoritatively answer that query. It binds the Owner, Agent, action kind,
+stable Action ID, exact request digest, optional execution ID, terminal
+disposition, exact result digest, sink authority identity and epoch, observation
+time and validity window. It is authorized under the current Owner Policy's
+`action-outcome` predicate. It can transition only an already-`ambiguous`
+record with the same immutable identity; it cannot authorize a new execution,
+change a request, or clear ambiguity on the strength of the original launch
+token. Forged, expired, stale-epoch, cross-Action and cross-request evidence
+fails closed. If no admitted sink authority can produce this evidence, the
+record remains ambiguous and continues to block deletion, replay and Owner Exit.
 
 ## 16. Deterministic owner report bundle
 
@@ -1310,8 +1511,13 @@ OwnerCommandAuthorizationAttemptV1 {
 ```
 
 The canonical effect digest commits immutable business semantics and request
-bytes but excludes replaceable device-session authorization. The Action
-registry derives the effect Action ID from that digest and semantic fields.
+bytes but excludes replaceable device-session authorization. To avoid a digest
+cycle, the Action registry derives the Action ID only from the registered
+semantic key (owner, Agent, namespace, command/target, exact parameter and
+governing-policy digests, expected revision, and allowed command-instance
+identity). The Semantic Confirmation then binds that Action ID; its digest is
+embedded in the final effect, and the exact request digest binds the final
+effect bytes.
 Multiple attempt digests may authorize exactly one tuple of
 `(resolution_namespace, Action ID, exact request digest)`. A replacement device
 may query or attach fresh authorization to that effect; it cannot create a
@@ -1324,6 +1530,13 @@ Action ID)`. Failover first advances the sink cluster epoch and acquires that
 fenced record. A replacement may resolve or continue an already linearized
 Action but cannot independently admit it again. The authoritative status query
 returns that record and exact request digest.
+
+An already-journaled Action retains its immutable original sink identity and
+epoch. Recovery MAY run at a later epoch only when the sink identity is exactly
+unchanged, the new epoch is monotonically greater than or equal to the retained
+epoch, and the shared linearizable journal returns the retained Action's current
+fencing token. A later epoch never permits a new semantic command under an old
+effect and never permits an old sink replica to reconcile.
 
 ```text
 SemanticConfirmationV1 {
@@ -1345,8 +1558,11 @@ SemanticConfirmationV1 {
 ```
 
 `semantic_confirmation_digest` hashes these canonical typed bytes. Released
-command profiles define the complete critical-field set and ordering. Trusted
-client code renders full canonical values and trusted-origin indicators; model
+command profiles define the complete critical-field set and ordering. The sink
+decodes the exact parameter body and independently derives every displayed
+recipient, permission delta, amount/cost ceiling, policy delta, target, and
+null combination; a client-supplied rendering that differs in any field is
+invalid. Trusted client code renders full canonical values and trusted-origin indicators; model
 labels, remote markup, hidden fields, silent truncation, and locale-dependent
 number parsing are forbidden. Pixel-independent fixtures prove that Web, iOS,
 and Android confirm the same bytes.
@@ -1362,7 +1578,11 @@ revision, then requires byte-for-byte equality with
 `authority_predicate_set_digest` before evaluating proofs. Policy changes,
 admission, promotion, revocation, credential actions, and reconciliation apply
 use mandatory non-overridable profiles with disjoint-principal and self-approval
-checks.
+checks. Each authorization subject is also bound by the governing policy to an
+authority role and a controlling-principal identity. Distinct keys under one
+controller do not satisfy a disjoint-principal quorum, and every required role
+must be covered by a different permitted controller where the predicate says
+so.
 
 The sink requires a one-to-one match among canonical effect digest, registered
 Action ID, and exact request digest. A retry or another device reuses all three.
@@ -1432,6 +1652,21 @@ represents custody closure, external-effect cancellation, or completed exit.
 After the tombstone, only evidence verification and explicitly retained Action
 resolution remain available.
 
+From `fence-new-work` through the terminal tombstone, every entry point that can
+import, quarantine, verify, admit, promote, install, activate, load, or begin a
+capability or MCP side effect MUST consult one common exit fence. Terminal exit
+permits only bounded evidence inspection and resolution of Actions already
+retained before the fence; surviving publisher, admission, installation, or
+session credentials cannot create new work.
+The external monotonic authority MUST apply the capability-control high-water
+successor and acquisition state (`accepting` or `fenced`) in one
+compare-and-advance transaction. A local exit projection and an unrelated
+acquisition acknowledgement are not conforming. Pause and the first
+`fence-new-work` successor close acquisition; authorized resume or pre-commit
+exit abort reopens it atomically. Acquisition admission returns the current
+external revision and rejects new IDs while fenced, while preserving
+idempotent resolution of IDs admitted before the fence.
+
 ## 19. Semantic Action registry additions
 
 Before release, `SEMANTIC_ACTION_IDENTITY_V1.md` and its machine-readable
@@ -1480,7 +1715,7 @@ semantic effect.
 
 | Repository or component | Required responsibility | Must not become |
 |---|---|---|
-| `tos-service-spec` | This design, machine-readable schemas/registries/errors/vectors, code-independent reference verifier, Gate S/M profiles, and transport-neutral owner-control API | OpenFox UI or local ranking policy |
+| `tos-service-spec` | This design, machine-readable schemas/registries/errors/vectors (including `trusted-capability-bodies-v1.json`), code-independent reference verifier, Gate S/M profiles, and transport-neutral owner-control API | OpenFox UI or local ranking policy |
 | `tos-service-protocol` | Production codecs, signatures, subject/profile verification, identities, state mutations, command/action helpers, projection/report verification, and cross-verifier CI | Catalog trust oracle, second copy of the reference verifier, or promotion authority |
 | `openfox` | Consequential-use classifier, Inventory, reuse-first coordinator, quarantine, verification/admission journals, promotion enforcement, deterministic report queries/Skills, owner projection and command sink | Custody, global capability database, unrestricted model authority |
 | Skills/MCP catalogs and optional Carriers | Bounded listings, signed metadata/revocation observations, retrieval, provenance, source-local cursors | Owner trust, complete market, admission, promotion, execution authority |

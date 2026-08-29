@@ -1,0 +1,19 @@
+{
+  "schema": "tos.trusted-capability-compatibility.v1",
+  "deployment_format_epoch": 1,
+  "minimum_reader": {"profile_uri": "tos.trusted-capability-owner-control.v1", "profile_version": 1},
+  "minimum_writer": {"profile_uri": "tos.trusted-capability-owner-control.v1", "profile_version": 1},
+  "mixed_version_mode": "read-only",
+  "legacy_classification": "UNVERIFIED_LEGACY",
+  "unknown_required_behavior": "fail-closed",
+  "downgrade": "authorized-lossless-export-only",
+  "claims": {
+    "source-present": "permitted after repository verification",
+    "local-tests": "permitted only with retained logs",
+    "same-host-integration": "diagnostic-only",
+    "independent-operation": "forbidden without two independent PASS attestations",
+    "physical-mobile": "forbidden until Gate M",
+    "public-network": "forbidden without retained public-network evidence",
+    "external-profit": "forbidden until Campaign 6"
+  }
+}

@@ -1,0 +1,5595 @@
+{
+  "schema": "tos.trusted-capability-body-schemas.v1",
+  "profile_uri": "tos.trusted-capability-owner-control.v1",
+  "version": 1,
+  "registry_digest_hex": "cccc155ee5687abee43a798fb8139e56d172b4d175886849cfe6f581d92d462c",
+  "body_schemas": [
+    {
+      "object_kind": "artifact",
+      "go_type": "ExecutableCapabilityArtifactBodyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "artifact_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "artifact_namespace",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "artifact_name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "artifact_version",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "publisher_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "publisher_authority_profile",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "source_descriptor_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "content_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "entrypoint_descriptor_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "permission_manifest_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "dependency_manifest_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "license_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "standards_profile_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "compatibility_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "supply_chain_evidence_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "optional_service_capability_id",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "content-manifest",
+      "go_type": "CapabilityContentManifestV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "entries",
+          "type": "array:object:ContentManifestEntryV1",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "closure_root",
+          "type": "bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ContentManifestEntryV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "path",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "object_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "mode",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "content_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "entrypoint-descriptor",
+      "go_type": "CapabilityEntrypointDescriptorV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "executable_object_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "arguments",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "working_directory_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "runtime_subject_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "environment_name_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "environment_value_source_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "filesystem_root_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "process_model_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "sandbox_profile_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "remote_service_descriptor_digest",
+          "type": "nullable:bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "permission-manifest",
+      "go_type": "CapabilityPermissionManifestV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "artifact_pre_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "tool_capabilities",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "process_capabilities",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "filesystem_capabilities",
+          "type": "array:object:FilesystemCapabilityV1",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "network_capabilities",
+          "type": "array:object:NetworkCapabilityV1",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "credential_capabilities",
+          "type": "array:object:CredentialCapabilityV1",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "data_classes_read",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "data_classes_write",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "disclosure_capabilities",
+          "type": "array:object:DisclosureCapabilityV1",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "upload_capabilities",
+          "type": "array:object:UploadCapabilityV1",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "destructive_capabilities",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "resource_ceiling",
+          "type": "object:ResourceCeilingV1",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "direct_cost_ceiling",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "concurrency_ceiling",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "retention_policy",
+          "type": "object:RetentionPolicyV1",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "logging_policy",
+          "type": "object:LoggingPolicyV1",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "CredentialCapabilityV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "broker_handle",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "issuer",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "audience",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "scopes",
+              "type": "array:text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "origin",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "destination",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "action",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "use_count",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "non_delegable",
+              "type": "bool",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "DisclosureCapabilityV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "data_class",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "audience_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "purpose_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "maximum_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "FilesystemCapabilityV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "root_handle_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "relative_prefix",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "operations",
+              "type": "array:text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "no_follow",
+              "type": "bool",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "read_only",
+              "type": "bool",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "maximum_bytes",
+              "type": "uint",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "LoggingPolicyV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "allowed_data_classes",
+              "type": "array:text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "maximum_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "redaction_required",
+              "type": "bool",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "NetworkCapabilityV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "scheme",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "host",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "port",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "resolver_profile_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "prohibited_address_classes",
+              "type": "array:text",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "maximum_dns_answers",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "maximum_dns_ttl",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "redirect_count",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "same_origin_redirects",
+              "type": "bool",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "proxy_identity",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 11,
+              "json_name": "tls_profile_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 12,
+              "json_name": "maximum_request_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 13,
+              "json_name": "maximum_response_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 14,
+              "json_name": "timeout_millis",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 15,
+              "json_name": "connection_ceiling",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 16,
+              "json_name": "retry_ceiling",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 17,
+              "json_name": "proxy_connect_destinations",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ResourceCeilingV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "cpu_millis",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "memory_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "storage_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "runtime_millis",
+              "type": "uint",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "RetentionPolicyV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "maximum_retention_seconds",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "delete_on_terminal",
+              "type": "bool",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "evidence_only_after_delete",
+              "type": "bool",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "UploadCapabilityV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "destination_origin",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "data_class",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "maximum_bytes",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "credential_handle",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "dependency-manifest",
+      "go_type": "DependencyManifestV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "artifact_pre_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "resolver_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "build_toolchain_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "platform_and_feature_predicate_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "nodes",
+          "type": "array:object:DependencyNodeV1",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "edges",
+          "type": "array:object:DependencyEdgeV1",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "closure_root_digest",
+          "type": "bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "DependencyEdgeV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "from_node_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "to_node_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "dependency_kind",
+              "type": "text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "DependencyNodeV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "node_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "immutable_artifact_reference",
+              "type": "object:ImmutableObjectReferenceV1",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "publisher_envelope_reference",
+              "type": "object:ImmutableObjectReferenceV1",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "source_snapshot_reference",
+              "type": "object:ImmutableObjectReferenceV1",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "build_input_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "build_output_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "install_and_build_hook_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "effective_permission_contribution_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "publisher-envelope",
+      "go_type": "ArtifactPublisherEnvelopeBodyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "artifact_pre_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "artifact_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "artifact_namespace",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "artifact_name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "artifact_version",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "publisher_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "permission_manifest_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "dependency_manifest_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "content_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "entrypoint_descriptor_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "predecessor_version_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "publisher-revocation-observation",
+      "go_type": "PublisherRevocationObservationV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "publisher_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "publisher_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "observed_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "revoked",
+          "type": "bool",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "source_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "source_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "checkpoint_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "observed_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "capability-requirement",
+      "go_type": "CapabilityRequirementV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "agreement_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "obligation_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "semantic_capability_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "input_schema_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "output_schema_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "evidence_requirement_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "permission_ceiling_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "maximum_direct_cost_atomic",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "maximum_runtime_millis",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "allowed_artifact_kinds",
+          "type": "array:text",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "inventory_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "compiler_evidence_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "sourcing-decision",
+      "go_type": "CapabilitySourcingDecisionV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "requirement_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "owner_source_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "source_attempts",
+          "type": "array:object:SourceAttemptV1",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "candidate_decisions",
+          "type": "array:object:CandidateDecisionV1",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "selected_artifact_version_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "decision",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "CandidateDecisionV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "artifact_version_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "disposition",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "stable_reason_codes",
+              "type": "array:text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "evidence_manifest_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "SourceAttemptV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "source_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "source_snapshot_reference",
+              "type": "object:ImmutableObjectReferenceV1",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "advisory_source_cursor",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "query_commitment",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "started_at_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "completed_at_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "disposition",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "result_commitment",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "source_generation",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "administrative_domain_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 11,
+              "json_name": "failure_domain_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "evaluation-manifest",
+      "go_type": "CapabilityEvaluationManifestV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "candidate_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "permission_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "runtime_sandbox_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "corpus_commitment",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "unseen_task_commitment",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "complete_result_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "primary_metric_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "harm_metric_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "allowed_regression_bounds_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "retained_control_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "retained_control_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "rollback_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "rollback_plan_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "evaluator_identity_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "reproducibility_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "evidence_object_digests",
+          "type": "array:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "evaluation-result",
+      "go_type": "EvaluationResultV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "candidate_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "baseline_artifact_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "permission_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "runtime_sandbox_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "corpus_commitment",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "allocation_seed",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "reveal_reference",
+          "type": "object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "complete_result_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "exclusion_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "metric_definition_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "threshold_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "retained_control_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "observed_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "evaluation-evidence",
+      "go_type": "EvaluationEvidenceV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "evidence_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "candidate_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "permission_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "producer_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "content_commitment",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "authorization-envelope",
+      "go_type": "ProfileAuthorizationEnvelopeV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "body",
+          "type": "object:ProfileAuthorizationEnvelopeBodyV1",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "proofs",
+          "type": "array:object:ProfileAuthorizationProofV1",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ProfileAuthorizationEnvelopeBodyV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "schema_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "body_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "body_profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "body_profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "body_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "owner_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "agent_id",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "authority_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 11,
+              "json_name": "authority_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 12,
+              "json_name": "authority_revision",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 13,
+              "json_name": "authority_epoch",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 14,
+              "json_name": "policy_revision",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 15,
+              "json_name": "policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 16,
+              "json_name": "issuer_subject",
+              "type": "object:TypedAuthoritySubjectV1",
+              "required": true
+            },
+            {
+              "cbor_key": 17,
+              "json_name": "proof_profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 18,
+              "json_name": "proof_profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 19,
+              "json_name": "not_before_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 20,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 21,
+              "json_name": "predecessor_envelope_digest",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 22,
+              "json_name": "proof_set_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 23,
+              "json_name": "extensions_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ProfileAuthorizationProofV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "algorithm",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "key_reference",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "public_key",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "signature",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "historical_authority_proof_reference",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "not_before_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "owner-policy",
+      "go_type": "OwnerPolicyBodyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "policy_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "predecessor_policy_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "authority_profile_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "command_profile_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "capability_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "promotion_separation_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "recovery_quorum_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "valid_time_profile_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "capability-admission",
+      "go_type": "CapabilityAdmissionBodyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "admission_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "permission_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "requirement_scope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "evaluation_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "sourcing_decision_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "runtime_compatibility_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "authority_subject",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "authority_profile_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "admitted_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "in_flight_revocation_policy",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "admission-mutation",
+      "go_type": "AuthorityMutationV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "object_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "prior_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "target_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "predecessor_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "mutation_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "reason_code",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "effective_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "evidence_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "revocation_generation",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "promotion-authority",
+      "go_type": "PromotionAuthorityBodyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "promotion_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "authority_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "predecessor_envelope_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "candidate_artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "candidate_permission_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "candidate_origin_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "generator_identity_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "sourcing_decision_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "evaluation_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "evaluation_result_reference",
+          "type": "object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "verifier_authorization_envelope_reference",
+          "type": "object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "retained_control_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "retained_control_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "unseen_task_commitment",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "primary_metric_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "harm_metric_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "allowed_regression_bounds_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "independent_verifier_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "approver_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 23,
+          "json_name": "approver_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 24,
+          "json_name": "activation_scope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 25,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 26,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 27,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 28,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 29,
+          "json_name": "rollback_artifact_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 30,
+          "json_name": "rollback_plan_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 31,
+          "json_name": "revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 32,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "promotion-mutation",
+      "go_type": "AuthorityMutationV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "object_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "prior_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "target_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "predecessor_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "mutation_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "reason_code",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "effective_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "evidence_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "revocation_generation",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "use-lease",
+      "go_type": "CapabilityUseLeaseV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "lease_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "sink_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "execution_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "permission_subset_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "admission_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "admission_revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "promotion_envelope_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "promotion_revocation_generation",
+          "type": "nullable:uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "start_not_after_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "invocation_descriptor_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "admission_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "promotion_revision",
+          "type": "nullable:uint",
+          "required": true
+        },
+        {
+          "cbor_key": 23,
+          "json_name": "installation_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 24,
+          "json_name": "inventory_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 25,
+          "json_name": "control_scope_generation",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "installation-transaction",
+      "go_type": "CapabilityInstallationTransactionV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "installation_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "source_object_reference",
+          "type": "object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "quarantine_object_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "target_store_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "expected_inventory_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "dependency_closure_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "install_plan_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "rollback_plan_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "admission_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "writer_fence_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "stable_action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "exact_request_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "state",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "inventory-snapshot",
+      "go_type": "CapabilityInventorySnapshotV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "snapshot_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "source_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "portfolio_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "consistency_token",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "entries",
+          "type": "array:object:InventoryEntryV1",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "InventoryEntryV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "artifact_version_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "admission_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "admission_revision",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "promotion_id",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "permission_manifest_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "revocation_generation",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "projected_state",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "evidence_refs",
+              "type": "array:object:ImmutableObjectReferenceV1",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "capability-use-binding",
+      "go_type": "CapabilityUseBindingV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "agreement_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "obligation_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "execution_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "installation_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "loaded_object_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "permission_subset_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "admission_envelope_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "admission_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "admission_revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "promotion_required",
+          "type": "bool",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "promotion_envelope_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "promotion_revision",
+          "type": "nullable:uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "promotion_revocation_generation",
+          "type": "nullable:uint",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "use_lease_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "control_scope_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 23,
+          "json_name": "inventory_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 24,
+          "json_name": "runtime_and_sandbox_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 25,
+          "json_name": "effective_environment_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 26,
+          "json_name": "credential_capability_reference_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 27,
+          "json_name": "filesystem_handle_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 28,
+          "json_name": "network_broker_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 29,
+          "json_name": "remote_session_handshake_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 30,
+          "json_name": "start_not_after_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 31,
+          "json_name": "invocation_descriptor_digest",
+          "type": "bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "owner-report",
+      "go_type": "OwnerReportDescriptorV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "report_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "report_series_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "correction_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "report_profile_uri",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "report_profile_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "report_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "producer_artifact_version_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "period_start_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "period_end_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "cutoff_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "timezone_id",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "accounting_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "economic_perimeter_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "source_snapshot_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "source_coverage_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "query_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "evidence_manifest_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "typed_report_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "rendered_report_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 23,
+          "json_name": "attachment_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 24,
+          "json_name": "completeness",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 25,
+          "json_name": "prior_report_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 26,
+          "json_name": "correction_reason_and_delta_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 27,
+          "json_name": "confidentiality_class",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 28,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "report-source-coverage",
+      "go_type": "ReportSourceCoverageManifestV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "report_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "required_source_ids",
+          "type": "array:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "observed_sources",
+          "type": "array:object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "missing_source_ids",
+          "type": "array:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "coverage_cutoff_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "completeness",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "evidence_root_digest",
+          "type": "bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "projection-event",
+      "go_type": "OwnerProjectionEventV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "projection_source_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "event_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "source_sequence",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "object_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "object_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "object_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "event_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "verified_state",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "advisory_state",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "authority_reference_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "evidence_reference_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "redaction_profile_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "freshness_observed_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "occurred_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "emitted_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "prior_event_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "projection-snapshot",
+      "go_type": "OwnerProjectionSnapshotV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "domain_kind",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "snapshot_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "redaction_profile_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "source_checkpoints",
+          "type": "array:object:OwnerProjectionSourceCheckpointV1",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "event_set_merkle_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "materializer_version",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "verified_state_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "advisory_state_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "gap_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "conflict_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "predecessor_snapshot_digest",
+          "type": "nullable:bytes",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "OwnerProjectionSourceCheckpointV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "projection_source_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "source_generation",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "contiguous_cursor",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "chain_head_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "removed",
+              "type": "bool",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "owner-bootstrap",
+      "go_type": "OwnerBootstrapCeremonyV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "domain_kind",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "root_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "recovery_subjects",
+          "type": "array:object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "possession_challenge_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "genesis_policy_object_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "authority_subject_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "ceremony_nonce",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "owner_confirmation_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "state",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "owner-recovery",
+      "go_type": "OwnerAuthorityRecoveryV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "recovery_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "last_common_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "observed_fork_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "recovery_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "replacement_authority_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "recovery_quorum_evidence_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "selected_head_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "device-enrollment",
+      "go_type": "OwnerDeviceEnrollmentV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "enrollment_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "device_public_key",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "challenge_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "requested_command_classes_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "audience",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "channel_binding_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "device-session",
+      "go_type": "OwnerDeviceSessionV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "session_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "issuer_subject",
+          "type": "object:TypedAuthoritySubjectV1",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "device_public_key",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "allowed_command_classes_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "audience",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "channel_binding_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "session_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "session_revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "authority_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "predecessor_envelope_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "revocation_object_reference",
+          "type": "object:ImmutableObjectReferenceV1",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "owner-command-lease",
+      "go_type": "OwnerCommandLeaseV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "lease_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "domain_kind",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "device_session_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "allowed_command_classes_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "audience",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "sink_authority_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "sink_cluster_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "control_scope_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "owner-command-effect",
+      "go_type": "OwnerCommandEffectV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "domain_kind",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "agent_id",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "command_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "command_instance_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "target_object_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "target_object_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "sink_authority_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "sink_cluster_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "resolution_namespace",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "control_scope_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "expected_target_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "exact_parameter_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "policy_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "semantic_confirmation_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "authority_predicate_set_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "owner-command-attempt",
+      "go_type": "OwnerCommandAuthorizationAttemptV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "command_effect_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "exact_request_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "device_session_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "session_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "session_revocation_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "authority_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "command_lease_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "authorization_envelopes",
+          "type": "array:object:ProfileAuthorizationEnvelopeV1",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "attempted_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ProfileAuthorizationEnvelopeBodyV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "schema_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "body_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "body_profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "body_profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "body_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "owner_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "agent_id",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "authority_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 11,
+              "json_name": "authority_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 12,
+              "json_name": "authority_revision",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 13,
+              "json_name": "authority_epoch",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 14,
+              "json_name": "policy_revision",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 15,
+              "json_name": "policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 16,
+              "json_name": "issuer_subject",
+              "type": "object:TypedAuthoritySubjectV1",
+              "required": true
+            },
+            {
+              "cbor_key": 17,
+              "json_name": "proof_profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 18,
+              "json_name": "proof_profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 19,
+              "json_name": "not_before_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 20,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 21,
+              "json_name": "predecessor_envelope_digest",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 22,
+              "json_name": "proof_set_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 23,
+              "json_name": "extensions_digest",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ProfileAuthorizationEnvelopeV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "body",
+              "type": "object:ProfileAuthorizationEnvelopeBodyV1",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "proofs",
+              "type": "array:object:ProfileAuthorizationProofV1",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "ProfileAuthorizationProofV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "algorithm",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "key_reference",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "public_key",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "signature",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "historical_authority_proof_reference",
+              "type": "nullable:bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "not_before_unix",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "expires_at_unix",
+              "type": "uint",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type_name": "TypedAuthoritySubjectV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "namespace",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "identifier",
+              "type": "bytes",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "owner-command-resolution",
+      "go_type": "OwnerCommandResolutionV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "state",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "effect_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "accepted_attempt_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "exact_request_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "target_prior_revision",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "target_result_revision",
+          "type": "nullable:uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "authority_evidence_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "sink_identity",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "effect_references",
+          "type": "array:object:ImmutableObjectReferenceV1",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "error_code",
+          "type": "nullable:text",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "observed_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": [
+        {
+          "type_name": "ImmutableObjectReferenceV1",
+          "fields": [
+            {
+              "cbor_key": 1,
+              "json_name": "domain_kind",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 2,
+              "json_name": "domain_id",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 3,
+              "json_name": "object_kind",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 4,
+              "json_name": "profile_uri",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 5,
+              "json_name": "profile_version",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 6,
+              "json_name": "object_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 7,
+              "json_name": "canonical_size",
+              "type": "uint",
+              "required": true
+            },
+            {
+              "cbor_key": 8,
+              "json_name": "media_type",
+              "type": "text",
+              "required": true
+            },
+            {
+              "cbor_key": 9,
+              "json_name": "retrieval_policy_digest",
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "cbor_key": 10,
+              "json_name": "retrieval_hints",
+              "type": "array:text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "object_kind": "semantic-confirmation",
+      "go_type": "SemanticConfirmationV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "display_profile_uri",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "display_profile_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "risk_class",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "domain_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "command_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "target",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "recipient_or_destination",
+          "type": "nullable:text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "permission_delta",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "amount_and_asset_or_cost_ceiling",
+          "type": "nullable:text",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "policy_delta",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "critical_parameters",
+          "type": "array:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "owner-exit-plan",
+      "go_type": "OwnerExitPlanV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "exit_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "predecessor_policy_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "stage",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "stage_evidence_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "ambiguous_action_set_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "custody_disposition_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "export_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "tombstone_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "revision",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "migration",
+      "go_type": "CapabilityInventoryMigrationV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "migration_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "installation_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "deployment_format_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "cutover_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "deployment_sink_membership_snapshot_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "sink_fence_and_handle_acknowledgement_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "maximum_legacy_authority_expiry_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "unreachable_sink_disposition_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "source_store_identity_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "source_store_generation",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "source_snapshot_count",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "source_snapshot_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "target_inventory_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 17,
+          "json_name": "source_writer_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 18,
+          "json_name": "target_writer_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 19,
+          "json_name": "per_record_classification_root",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 20,
+          "json_name": "durable_cursor",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 21,
+          "json_name": "reconciliation_result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 22,
+          "json_name": "predecessor_migration_digest",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 23,
+          "json_name": "state",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 24,
+          "json_name": "created_at_unix",
+          "type": "uint",
+          "required": true
+        }
+      ],
+      "definitions": []
+    },
+    {
+      "object_kind": "action-outcome-evidence",
+      "go_type": "ActionOutcomeEvidenceV1",
+      "fields": [
+        {
+          "cbor_key": 1,
+          "json_name": "schema_version",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 2,
+          "json_name": "evidence_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 3,
+          "json_name": "owner_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 4,
+          "json_name": "agent_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 5,
+          "json_name": "action_kind",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 6,
+          "json_name": "action_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 7,
+          "json_name": "exact_request_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 8,
+          "json_name": "execution_id",
+          "type": "nullable:bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 9,
+          "json_name": "disposition",
+          "type": "text",
+          "required": true
+        },
+        {
+          "cbor_key": 10,
+          "json_name": "result_digest",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 11,
+          "json_name": "sink_authority_id",
+          "type": "bytes",
+          "required": true
+        },
+        {
+          "cbor_key": 12,
+          "json_name": "sink_epoch",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 13,
+          "json_name": "observed_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 14,
+          "json_name": "not_before_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 15,
+          "json_name": "expires_at_unix",
+          "type": "uint",
+          "required": true
+        },
+        {
+          "cbor_key": 16,
+          "json_name": "extensions",
+          "type": "array:bytes",
+          "required": true
+        }
+      ],
+      "definitions": []
+    }
+  ]
+}
