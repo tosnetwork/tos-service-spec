@@ -16,6 +16,9 @@ conformance evidence.
 **Review record:** [Codex Review
 Report](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN_REVIEW_REPORT.md)
 
+**Implementation record:** [Local Implementation
+Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_IMPLEMENTATION.md)
+
 **Controlling references:**
 
 - [Product Strategy](PRODUCT_STRATEGY.md)

@@ -92,6 +92,7 @@ UI layout, and notification preferences remain application/client-local.
 - [OpenFox Autonomous Earning — Operation-Composed Cross-Repository Design](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
 - [OpenFox Agent Commerce Trust and Market Infrastructure — Post-Experiment Delta Design](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md)
 - [OpenFox Agent Commerce Trust and Market Infrastructure — Codex Review Report](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN_REVIEW_REPORT.md)
+- [OpenFox Agent Commerce Trust and Market Infrastructure — Local Implementation Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_IMPLEMENTATION.md)
 - [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
 - [OpenFox Autonomous Earning Roadmap](OPENFOX_AUTONOMOUS_EARNING_ROADMAP.md)
 

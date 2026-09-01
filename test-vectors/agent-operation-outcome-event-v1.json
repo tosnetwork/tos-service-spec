@@ -642,6 +642,66 @@
       "digest": "sha256:e141f97e43e3ae3413be159ca6639f9f509edeafb9a573103f310c074f6d82cb"
     },
     {
+      "name": "cost_genesis",
+      "digest_domain": "tos.operation-outcome.cost.v1",
+      "json_model": {
+        "subject_kind": "execution",
+        "subject_id": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "cost_item_id": "model:fixture",
+        "cost_class": "usage_measured",
+        "category": "model",
+        "asset_identity_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "amount_atomic": "125",
+        "economic_direction": "debit",
+        "quantity_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "meter_interval_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "meter_unit": "token",
+        "invoice_identity_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "payment_request_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "meter_or_invoice_evidence_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "accounting_policy_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "incurred_at_unix": 2000000000,
+        "original_cost_assertion_ref": {
+          "network_id": "",
+          "actor_agent_id": "",
+          "operation_id": "",
+          "operation_envelope_digest": ""
+        }
+      },
+      "canonical_cbor_base64": "sWhjYXRlZ29yeWVtb2RlbGpjb3N0X2NsYXNzbnVzYWdlX21lYXN1cmVkam1ldGVyX3VuaXRldG9rZW5qc3ViamVjdF9pZHhHc2hhMjU2Ojg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODhsY29zdF9pdGVtX2lkbW1vZGVsOmZpeHR1cmVsc3ViamVjdF9raW5kaWV4ZWN1dGlvbm1hbW91bnRfYXRvbWljYzEyNW9xdWFudGl0eV9kaWdlc3R4R3NoYTI1Njo0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0cGluY3VycmVkX2F0X3VuaXgadzWUAHJlY29ub21pY19kaXJlY3Rpb25lZGViaXR1YXNzZXRfaWRlbnRpdHlfZGlnZXN0eEdzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM3VtZXRlcl9pbnRlcnZhbF9kaWdlc3R4R3NoYTI1Njo1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1dnBheW1lbnRfcmVxdWVzdF9kaWdlc3R4R3NoYTI1Njo3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3d2ludm9pY2VfaWRlbnRpdHlfZGlnZXN0eEdzaGEyNTY6NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NngYYWNjb3VudGluZ19wb2xpY3lfZGlnZXN0eEdzaGEyNTY6OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OXgbb3JpZ2luYWxfY29zdF9hc3NlcnRpb25fcmVmpGpuZXR3b3JrX2lkYGxvcGVyYXRpb25faWRgbmFjdG9yX2FnZW50X2lkYHgZb3BlcmF0aW9uX2VudmVsb3BlX2RpZ2VzdGB4IG1ldGVyX29yX2ludm9pY2VfZXZpZGVuY2VfZGlnZXN0eEdzaGEyNTY6ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4OA==",
+      "digest": "sha256:9276174f2060f5ecd39958729e371adaa429572ed1b49b032e1590842aa49056"
+    },
+    {
+      "name": "cost_contra",
+      "digest_domain": "tos.operation-outcome.cost.v1",
+      "json_model": {
+        "subject_kind": "execution",
+        "subject_id": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "cost_item_id": "model:fixture:reversal",
+        "cost_class": "contra",
+        "category": "model",
+        "asset_identity_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "amount_atomic": "125",
+        "economic_direction": "credit",
+        "quantity_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "meter_interval_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "meter_unit": "token",
+        "invoice_identity_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "payment_request_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "meter_or_invoice_evidence_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "accounting_policy_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "incurred_at_unix": 2000000000,
+        "original_cost_assertion_ref": {
+          "network_id": "tos:testnet",
+          "actor_agent_id": "agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "operation_id": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "operation_envelope_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "canonical_cbor_base64": "sWhjYXRlZ29yeWVtb2RlbGpjb3N0X2NsYXNzZmNvbnRyYWptZXRlcl91bml0ZXRva2VuanN1YmplY3RfaWR4R3NoYTI1Njo4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4bGNvc3RfaXRlbV9pZHZtb2RlbDpmaXh0dXJlOnJldmVyc2FsbHN1YmplY3Rfa2luZGlleGVjdXRpb25tYW1vdW50X2F0b21pY2MxMjVvcXVhbnRpdHlfZGlnZXN0eEdzaGEyNTY6NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NHBpbmN1cnJlZF9hdF91bml4Gnc1lAByZWNvbm9taWNfZGlyZWN0aW9uZmNyZWRpdHVhc3NldF9pZGVudGl0eV9kaWdlc3R4R3NoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzdW1ldGVyX2ludGVydmFsX2RpZ2VzdHhHc2hhMjU2OjU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTV2cGF5bWVudF9yZXF1ZXN0X2RpZ2VzdHhHc2hhMjU2Ojc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzd3aW52b2ljZV9pZGVudGl0eV9kaWdlc3R4R3NoYTI1Njo2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2eBhhY2NvdW50aW5nX3BvbGljeV9kaWdlc3R4R3NoYTI1Njo5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5eBtvcmlnaW5hbF9jb3N0X2Fzc2VydGlvbl9yZWakam5ldHdvcmtfaWRrdG9zOnRlc3RuZXRsb3BlcmF0aW9uX2lkeEdzaGEyNTY6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW5hY3Rvcl9hZ2VudF9pZHhGYWdlbnQ6YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYXgZb3BlcmF0aW9uX2VudmVsb3BlX2RpZ2VzdHhHc2hhMjU2OmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJ4IG1ldGVyX29yX2ludm9pY2VfZXZpZGVuY2VfZGlnZXN0eEdzaGEyNTY6ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4OA==",
+      "digest": "sha256:06887310ec4a29f911c6066e6be7c75db0640c656f1cd365a01807ca066ba5c0"
+    },
+    {
       "name": "gift_transfer",
       "digest_domain": "tos.operation-outcome.transfer.gift.v1",
       "json_model": {
@@ -993,6 +1053,9 @@
     "unsorted-evidence",
     "cross-issuer-content-deduplication",
     "publication-action-reused-across-carriers",
-    "private-send-reused-after-membership-epoch-change"
+    "private-send-reused-after-membership-epoch-change",
+    "genesis-cost-with-original-reference",
+    "contra-cost-without-original-reference",
+    "contra-cost-with-malformed-original-reference"
   ]
 }

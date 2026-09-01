@@ -830,6 +830,15 @@ claims. Corrections and reversals append a contra event naming the original
 assertion; both remain visible. Profit reports expose unpaid invoices and
 contra entries separately and count only policy-selected classes.
 
+`original_cost_assertion_ref` is the all-empty assertion reference for every
+non-`contra` cost observation. A `contra` observation must instead name the
+exact non-empty original cost assertion that it corrects or reverses. This
+makes a first cost observation constructible without a circular envelope
+reference and prevents an ordinary cost row from silently claiming correction
+semantics. The referenced assertion is still independently verified; the
+reference alone does not authorize a reversal or prove that both observations
+belong to the same accounting perimeter.
+
 Different assets are never summed without separate conversion evidence binding
 source, time, rate, fee, and rounding. Expected profit and probability are
 local projections, not cost events.

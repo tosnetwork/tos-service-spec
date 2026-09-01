@@ -91,6 +91,8 @@ OBJECT_SCHEMA_DEFINITIONS = {
     "evidence_availability": "EvidenceAvailabilityObservationV1",
     "gate_execution": "GateExecutionObservationV1",
     "carrier_receipt": "CarrierReceiptObservationV1",
+    "cost_genesis": "CostObservationPayloadV1",
+    "cost_contra": "CostObservationPayloadV1",
     "gift_transfer": "TransferObservationV1",
     "agreement_payment": "TransferObservationV1",
     "tos_escrow_transfer": "TOSEscrowObservationV1",
@@ -100,6 +102,19 @@ OBJECT_SCHEMA_DEFINITIONS = {
     "cohort_membership_proof": "OutcomeCohortMembershipProofV1",
     "learning_dataset": "LearningDatasetManifestV1",
     "skill_promotion": "SkillPromotionDecisionV1",
+}
+
+EXPECTED_NEGATIVE_MUTATIONS = {
+    "caller-selected-operation-id",
+    "event-payload-substitution",
+    "envelope-signature-substitution",
+    "unsorted-evidence",
+    "cross-issuer-content-deduplication",
+    "publication-action-reused-across-carriers",
+    "private-send-reused-after-membership-epoch-change",
+    "genesis-cost-with-original-reference",
+    "contra-cost-without-original-reference",
+    "contra-cost-with-malformed-original-reference",
 }
 
 
@@ -131,7 +146,6 @@ def verify_schema_model(value, rule: dict, schema: dict, path: str) -> None:
         if not reference.startswith(prefix) or reference[len(prefix):] not in schema["$defs"]:
             raise ValueError(f"{path}: unresolved local schema reference")
         verify_schema_model(value, schema["$defs"][reference[len(prefix):]], schema, path)
-        return
     if "oneOf" in rule:
         matches = 0
         for candidate in rule["oneOf"]:
@@ -142,7 +156,24 @@ def verify_schema_model(value, rule: dict, schema: dict, path: str) -> None:
                 pass
         if matches != 1:
             raise ValueError(f"{path}: expected one schema match, got {matches}")
-        return
+    for index, candidate in enumerate(rule.get("allOf", [])):
+        if not isinstance(candidate, dict):
+            raise ValueError(f"{path}: allOf[{index}] is not a schema")
+        verify_schema_model(value, candidate, schema, f"{path}:allOf[{index}]")
+    if "if" in rule:
+        condition = rule["if"]
+        if not isinstance(condition, dict):
+            raise ValueError(f"{path}: if is not a schema")
+        try:
+            verify_schema_model(value, condition, schema, f"{path}:if")
+            branch = "then"
+        except ValueError:
+            branch = "else"
+        if branch in rule:
+            selected = rule[branch]
+            if not isinstance(selected, dict):
+                raise ValueError(f"{path}: {branch} is not a schema")
+            verify_schema_model(value, selected, schema, f"{path}:{branch}")
     if "const" in rule and value != rule["const"]:
         raise ValueError(f"{path}: const mismatch")
     if "enum" in rule and value not in rule["enum"]:
@@ -151,15 +182,6 @@ def verify_schema_model(value, rule: dict, schema: dict, path: str) -> None:
     if kind == "object":
         if not isinstance(value, dict):
             raise ValueError(f"{path}: expected object")
-        missing = set(rule.get("required", [])) - set(value)
-        if missing:
-            raise ValueError(f"{path}: missing fields {sorted(missing)}")
-        properties = rule.get("properties", {})
-        if rule.get("additionalProperties") is False and not set(value) <= set(properties):
-            raise ValueError(f"{path}: unknown fields {sorted(set(value) - set(properties))}")
-        for name, member in value.items():
-            if name in properties:
-                verify_schema_model(member, properties[name], schema, f"{path}.{name}")
     elif kind == "array":
         if not isinstance(value, list):
             raise ValueError(f"{path}: expected array")
@@ -179,6 +201,24 @@ def verify_schema_model(value, rule: dict, schema: dict, path: str) -> None:
             raise ValueError(f"{path}: expected integer")
         if value < rule.get("minimum", -(2**1024)) or value > rule.get("maximum", 2**1024):
             raise ValueError(f"{path}: integer is out of range")
+    if isinstance(value, dict):
+        missing = set(rule.get("required", [])) - set(value)
+        if missing:
+            raise ValueError(f"{path}: missing fields {sorted(missing)}")
+        properties = rule.get("properties", {})
+        if rule.get("additionalProperties") is False and not set(value) <= set(properties):
+            raise ValueError(f"{path}: unknown fields {sorted(set(value) - set(properties))}")
+        for name, member in value.items():
+            if name in properties:
+                verify_schema_model(member, properties[name], schema, f"{path}.{name}")
+
+
+def require_schema_rejection(value, rule: dict, schema: dict, name: str) -> None:
+    try:
+        verify_schema_model(value, rule, schema, name)
+    except ValueError:
+        return
+    raise ValueError(f"{name}: negative schema mutation was accepted")
 
 
 def verify_schema_document(schema: dict) -> None:
@@ -366,12 +406,34 @@ def main() -> None:
         "event_body", "operation_body", "operation_envelope", "carrier_request", "private_request", "journal_append_request", "submission_receipt",
         "economic_perimeter", "revenue_recognition", "asset_conversion", "forecast",
         "calibration_report", "financial_report", "censoring", "evidence_availability",
-        "gate_execution", "carrier_receipt", "gift_transfer", "agreement_payment", "tos_escrow_transfer",
+        "gate_execution", "carrier_receipt", "cost_genesis", "cost_contra", "gift_transfer", "agreement_payment", "tos_escrow_transfer",
         "audience_policy", "encrypted_evidence", "disclosure_projection", "learning_dataset", "skill_promotion",
         "cohort_membership_proof",
     }
     if names != required:
         raise ValueError("object vector coverage mismatch")
+    empty_cost_ref = {"network_id": "", "actor_agent_id": "", "operation_id": "", "operation_envelope_digest": ""}
+    if object_models["cost_genesis"]["cost_class"] == "contra" or \
+            object_models["cost_genesis"]["original_cost_assertion_ref"] != empty_cost_ref:
+        raise ValueError("genesis cost incorrectly claims correction lineage")
+    contra = object_models["cost_contra"]
+    if contra["cost_class"] != "contra" or contra["original_cost_assertion_ref"] == empty_cost_ref:
+        raise ValueError("contra cost lacks correction lineage")
+    cost_schema = schema["$defs"]["CostObservationPayloadV1"]
+    genesis_with_original = dict(object_models["cost_genesis"])
+    genesis_with_original["original_cost_assertion_ref"] = dict(contra["original_cost_assertion_ref"])
+    contra_without_original = dict(contra)
+    contra_without_original["original_cost_assertion_ref"] = dict(empty_cost_ref)
+    contra_with_malformed_original = dict(contra)
+    malformed_ref = dict(contra["original_cost_assertion_ref"])
+    malformed_ref["operation_id"] = "operation:malformed"
+    contra_with_malformed_original["original_cost_assertion_ref"] = malformed_ref
+    for mutation_name, mutation in {
+        "genesis-cost-with-original-reference": genesis_with_original,
+        "contra-cost-without-original-reference": contra_without_original,
+        "contra-cost-with-malformed-original-reference": contra_with_malformed_original,
+    }.items():
+        require_schema_rejection(mutation, cost_schema, schema, mutation_name)
     verify_fixture_signatures(object_models)
     kinds: set[str] = set()
     for action in vectors.get("semantic_actions", []):
@@ -382,8 +444,16 @@ def main() -> None:
         verify_action(action, registry[kind])
     if kinds != {"operation.journal.append", "operation.publish", "operation.private-send"}:
         raise ValueError("Action vector coverage mismatch")
-    if len(vectors.get("negative_mutations", [])) < 7:
-        raise ValueError("negative mutation matrix is incomplete")
+    negative_mutations = vectors.get("negative_mutations")
+    if not isinstance(negative_mutations, list) or any(not isinstance(name, str) for name in negative_mutations):
+        raise ValueError("negative mutation matrix is not a string list")
+    mutation_names = set(negative_mutations)
+    if len(mutation_names) != len(negative_mutations):
+        raise ValueError("negative mutation matrix contains duplicates")
+    if mutation_names != EXPECTED_NEGATIVE_MUTATIONS:
+        missing = sorted(EXPECTED_NEGATIVE_MUTATIONS - mutation_names)
+        unexpected = sorted(mutation_names - EXPECTED_NEGATIVE_MUTATIONS)
+        raise ValueError(f"negative mutation matrix mismatch: missing={missing}, unexpected={unexpected}")
     print(f"PASS: {len(names)} objects, {len(kinds)} Actions, {len(vectors['negative_mutations'])} negative mutations")
 
 

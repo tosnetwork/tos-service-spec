@@ -133,6 +133,22 @@
         "operation_envelope_digest": { "$ref": "#/$defs/Digest32" }
       }
     },
+    "EmptyOutcomeAssertionRefV1": {
+      "type": "object", "additionalProperties": false,
+      "required": ["network_id", "actor_agent_id", "operation_id", "operation_envelope_digest"],
+      "properties": {
+        "network_id": { "const": "" },
+        "actor_agent_id": { "const": "" },
+        "operation_id": { "const": "" },
+        "operation_envelope_digest": { "const": "" }
+      }
+    },
+    "CostOriginalAssertionRefV1": {
+      "oneOf": [
+        { "$ref": "#/$defs/OutcomeAssertionRefV1" },
+        { "$ref": "#/$defs/EmptyOutcomeAssertionRefV1" }
+      ]
+    },
     "OperationOutcomeEventBodyV1": {
       "type": "object", "additionalProperties": false,
       "required": ["schema_version", "event_kind", "primary_subject_ref", "causal_predecessor_assertion_refs", "assertion_profile_uri", "assertion_payload_digest", "assertion_payload_size", "evidence_manifest_digest", "extension_set_digest"],
@@ -292,8 +308,13 @@
         "meter_interval_digest": { "$ref": "#/$defs/Digest32" }, "meter_unit": { "$ref": "#/$defs/Token" },
         "invoice_identity_digest": { "$ref": "#/$defs/Digest32" }, "payment_request_digest": { "$ref": "#/$defs/Digest32" },
         "meter_or_invoice_evidence_digest": { "$ref": "#/$defs/Digest32" }, "accounting_policy_digest": { "$ref": "#/$defs/Digest32" },
-        "incurred_at_unix": { "$ref": "#/$defs/U64" }, "original_cost_assertion_ref": { "$ref": "#/$defs/OutcomeAssertionRefV1" }
-      }
+        "incurred_at_unix": { "$ref": "#/$defs/U64" }, "original_cost_assertion_ref": { "$ref": "#/$defs/CostOriginalAssertionRefV1" }
+      },
+      "allOf": [{
+        "if": { "properties": { "cost_class": { "const": "contra" } }, "required": ["cost_class"] },
+        "then": { "properties": { "original_cost_assertion_ref": { "$ref": "#/$defs/OutcomeAssertionRefV1" } } },
+        "else": { "properties": { "original_cost_assertion_ref": { "$ref": "#/$defs/EmptyOutcomeAssertionRefV1" } } }
+      }]
     },
     "CohortCheckpointPayloadV1": {
       "type": "object", "additionalProperties": false,
