@@ -55,10 +55,13 @@ and design are diagnostic evidence, not authority or proof that formal gates
 passed. Sections 7--15 map the PR's capability identity, sourcing, admission,
 promotion, and safety-ceiling gaps; Sections 16--18 map deterministic reports,
 owner projection, mobile sessions, and replay-safe commands. Gates S/M and the
-formal Campaigns 1--6 remain unresolved. The remaining work includes
-trusted capability sourcing, candidate-specific promotion, deterministic
-financial and market reports, a durable owner projection, replay-safe owner
-commands, and Web/iOS/Android control surfaces.
+formal Campaigns 1--6 remain unresolved. Coordinated implementations now cover
+many of these surfaces as recorded in the
+[implementation report](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1_IMPLEMENTATION.md),
+but source presence and local tests do not release them. Remaining acceptance
+work includes formal Phase 0 independent reproduction and claim evidence, Gate
+S, physical Web/iOS/Android Gate M evidence, cross-host independent operation,
+and the formal campaigns.
 
 The campaign evidence established a local integration baseline and produced
 useful Operation/Outcome records. It did not establish independent capability

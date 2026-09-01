@@ -15,6 +15,13 @@ acceptance pending
 **Optional high-assurance settlement profile:**
 [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 
+**Post-experiment capability reconciliation:**
+[`OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md`](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md)
+
+The post-experiment document is an incubation delta over this composition. It
+does not replace the released/candidate Intent, Agreement, settlement, action,
+or Outcome semantics referenced here.
+
 ## 1. Executive decision
 
 OpenFox autonomous earning is an application composed from general Agentic

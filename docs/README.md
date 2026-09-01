@@ -67,13 +67,17 @@ application profiles above it.
 - [Agent Operation and Outcome Event V1](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
 - [Agent Operation and Outcome Event V1 Implementation Report](AGENT_OPERATION_OUTCOME_EVENT_V1_IMPLEMENTATION.md)
 - [Agent Operation and Outcome Event V1 Review Report](AGENT_OPERATION_OUTCOME_EVENT_V1_REVIEW_REPORT.md)
+- [Agent Economy Metrics V1](AGENT_ECONOMY_METRICS_V1.md)
 
 The on-chain path is optional for discovery and conversation. It becomes
-authoritative only after parties explicitly select that profile.
+authoritative only after parties explicitly select that profile. Agent Economy
+Metrics is a narrow, currently unimplemented finalized stablecoin-escrow
+projection; it is not generic Owner P&L or Outcome cost accounting.
 
 ## 6. Runtime trust and owner control profiles
 
 - [Agent Trusted Capability and Owner Control V1](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md)
+- [Agent Trusted Capability and Owner Control V1 Implementation Report](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1_IMPLEMENTATION.md)
 - [Agent Trusted Capability and Owner Control V1 Review Report](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1_REVIEW_REPORT.md)
 
 This portable candidate defines artifact identity, admission, promotion,
@@ -86,6 +90,8 @@ UI layout, and notification preferences remain application/client-local.
 - [OpenFox Economic Bridge V1](OPENFOX_ECONOMIC_BRIDGE_V1.md)
 - [OpenFox Autonomous Messenger Economy Plan](OPENFOX_AUTONOMOUS_MESSENGER_ECONOMY_PLAN.md)
 - [OpenFox Autonomous Earning — Operation-Composed Cross-Repository Design](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
+- [OpenFox Agent Commerce Trust and Market Infrastructure — Post-Experiment Delta Design](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md)
+- [OpenFox Agent Commerce Trust and Market Infrastructure — Codex Review Report](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN_REVIEW_REPORT.md)
 - [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
 - [OpenFox Autonomous Earning Roadmap](OPENFOX_AUTONOMOUS_EARNING_ROADMAP.md)
 

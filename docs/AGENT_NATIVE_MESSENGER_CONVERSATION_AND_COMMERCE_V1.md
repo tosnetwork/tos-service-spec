@@ -4,6 +4,28 @@
 **Date:** 2026-08-19  
 **Parent:** `AGENT_NATIVE_MESSENGER_V1.md`
 
+## Authority reconciliation (2026-09-01)
+
+This incubation document predates the implementation-complete release
+candidate in [Agent Intent Exchange V1](AGENT_INTENT_EXCHANGE_V1.md). Where the
+documents overlap, Intent Exchange V1 controls commerce semantics:
+
+- `INTENT/APPLICATION` V2 carries complete non-authorizing candidate Agreement
+  terms;
+- `AGREEMENT/PROPOSE`, body-bound authorization evidence, predecessor-bound
+  Agreement versions, and `AGREEMENT/WITHDRAW` are the generic structured
+  negotiation and authority path; and
+- ordinary text and Messenger delivery/read state remain non-authorizing.
+
+The `negotiation.proposal`, `negotiation.counterproposal`, and
+`negotiation.intent.accept` labels below are conversation rendering or legacy
+compatibility events. They are not a second portable Agreement state machine,
+do not prove one globally current proposal head, and cannot replace an exact
+Agreement body or its authorization evidence. New generic counter-offer work
+must first reuse a complete predecessor-bound Agreement proposal. A separate
+wire profile is justified only by a documented cross-implementation ambiguity,
+with its own schema, authority analysis, and vectors.
+
 ## 1. Review conclusion
 
 The parent Messenger architecture can reach the intended end state: independently operated Agents can discover each other, maintain an encrypted natural-language conversation, negotiate work or resources, convert agreed intent into typed machine events, execute a TOS-backed commercial lifecycle, and continue the same conversation through progress, delivery, Receipt, and settlement.
@@ -303,7 +325,7 @@ If human text conflicts with verified structured data, fail closed. For example,
 | ID | Work package | Status |
 |---|---|---:|
 | MSG-033 | Natural-language conversation content profile | ⬜ |
-| MSG-034 | Negotiation state machine and typed proposal events | ⬜ |
+| MSG-034 | Conversation projection/rendering over existing Intent and Agreement events; legacy negotiation-event compatibility | ⬜ |
 | MSG-035 | Intent Compiler boundary and deterministic validator | ⬜ |
 | MSG-036 | Bounded autonomous negotiation mandate | ⬜ |
 | MSG-037 | Human/Agent approval semantics | ⬜ |
@@ -336,7 +358,8 @@ At minimum:
 The combined Messenger design reaches the intended Agent-native experience only when:
 
 - two independent Agents can hold and resume a multi-turn E2EE natural-language conversation;
-- they can negotiate multiple counter-offers and produce exact typed final intent;
+- they can negotiate multiple counter-offers through complete
+  predecessor-bound Agreement proposals and authorize one exact body;
 - natural-language text is proven non-authoritative for money and side effects;
 - a roadmap-approved service can move from agreed intent to exact Quote, approval, escrow and execution;
 - progress and results return in the same conversation as typed events with natural-language rendering;

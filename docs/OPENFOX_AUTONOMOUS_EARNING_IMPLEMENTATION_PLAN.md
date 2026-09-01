@@ -27,6 +27,8 @@ The application itself never creates commercial authority.
   [`AGENT_OPERATION_OUTCOME_EVENT_V1.md`](AGENT_OPERATION_OUTCOME_EVENT_V1.md)
 - Cross-repository design:
   [`OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md`](OPENFOX_AUTONOMOUS_EARNING_CROSS_REPOSITORY_DESIGN.md)
+- Post-experiment capability reconciliation:
+  [`OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md`](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md)
 - Optional TOS escrow profile:
   [`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 - Historical source baseline: OpenFox PR
@@ -110,7 +112,17 @@ building blocks:
 Those components prove isolated capabilities. They do not yet prove the
 generic autonomous business loop in this plan.
 
-## 3. Development gaps
+## 3. Historical development-gap baseline
+
+The table below records the original gap baseline that this implementation
+plan was written to close. It is not a current missing-capability list. The
+status block above, the controlling V1 specifications, the ROADMAP, and the
+post-experiment reconciliation determine current maturity. In particular,
+generic Intent, Application V2, Agreement/version authority, obligation DAGs,
+billing, Portfolio reservation, and stable action identity now have specified
+and implemented surfaces; their remaining work is profile-specific validation,
+deployment, independent operation, or external acceptance unless a current
+authority document identifies an exact portable gap.
 
 | Required behavior | Gap to close |
 |---|---|

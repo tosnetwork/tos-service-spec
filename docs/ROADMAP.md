@@ -536,13 +536,19 @@ gate item.
 - [Agent Trusted Capability and Owner Control V1](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1.md)
   defines portable executable-artifact, admission, promotion, revocation,
   report, owner-projection, device-session, and command evidence for Agent
-  runtimes. **Status: ⬜ Design candidate; Phase 0 `FAIL`/not started.** The
-  machine schemas, registries, exact vectors, independent reference verifier,
-  production codec, runtime enforcement, mobile clients, Gate S, and Gate M do
-  not yet exist. It receives no Gate D--G credit and cannot enable new
-  consequential behavior. Implementation follows the existing earning-loop
-  foundation; earlier campaign runs are diagnostic input, while formal campaign
-  reruns follow the profile's Phase 0--3 and Gates S/M. No catalog, model,
+  runtimes. **Status: ⬜ Design candidate with coordinated implementation
+  surfaces; formal Phase 0, Gate S, and Gate M have not passed.** Machine
+  schemas and registries, exact local vectors, a code-independent reference
+  verifier, a production codec, and bounded runtime enforcement surfaces now
+  exist as recorded in the
+  [implementation report](AGENT_TRUSTED_CAPABILITY_AND_OWNER_CONTROL_V1_IMPLEMENTATION.md).
+  Source presence and local tests do not release the profile: two independent
+  reproductions, the complete release corpus and claim evidence, Gate S,
+  physical Web/iOS/Android Gate M evidence, independent operation, and formal
+  campaign acceptance remain missing. It receives no Gate D--G credit and
+  cannot enable a capability unsupported by the current released tuple.
+  Earlier campaign runs are diagnostic input; formal reruns follow the
+  profile's Phase 0--3, Gates S/M, and Campaigns 1--6. No catalog, model,
   report, projection, UI, or campaign result becomes authority.
 - [Decentralized Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
   defines an optional supply-Intent and generic-Agreement profile for ordinary
