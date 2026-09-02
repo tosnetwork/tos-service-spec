@@ -19,6 +19,9 @@ Report](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN_REVIEW_REP
 **Implementation record:** [Local Implementation
 Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_IMPLEMENTATION.md)
 
+**Round 4 reconciliation:** [Pre-Run Implementation
+Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_ROUND_4_CHECKPOINT.md)
+
 **Controlling references:**
 
 - [Product Strategy](PRODUCT_STRATEGY.md)

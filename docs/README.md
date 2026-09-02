@@ -93,6 +93,8 @@ UI layout, and notification preferences remain application/client-local.
 - [OpenFox Agent Commerce Trust and Market Infrastructure — Post-Experiment Delta Design](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN.md)
 - [OpenFox Agent Commerce Trust and Market Infrastructure — Codex Review Report](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_DESIGN_REVIEW_REPORT.md)
 - [OpenFox Agent Commerce Trust and Market Infrastructure — Local Implementation Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_IMPLEMENTATION.md)
+- [OpenFox Agent Commerce Trust and Market Infrastructure — Round 4 Reconciliation and Run Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_ROUND_4_CHECKPOINT.md)
+- [OpenFox Agent Commerce Trust and Market Infrastructure — Round 5 Design and Acceptance Checkpoint](OPENFOX_AGENT_COMMERCE_TRUST_AND_MARKET_INFRASTRUCTURE_ROUND_5_CHECKPOINT.md)
 - [OpenFox Autonomous Earning — Operation-Composed Implementation Plan](OPENFOX_AUTONOMOUS_EARNING_IMPLEMENTATION_PLAN.md)
 - [OpenFox Autonomous Earning Roadmap](OPENFOX_AUTONOMOUS_EARNING_ROADMAP.md)
 
