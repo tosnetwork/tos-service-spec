@@ -68,6 +68,10 @@ application profiles above it.
 - [Agent Operation and Outcome Event V1 Implementation Report](AGENT_OPERATION_OUTCOME_EVENT_V1_IMPLEMENTATION.md)
 - [Agent Operation and Outcome Event V1 Review Report](AGENT_OPERATION_OUTCOME_EVENT_V1_REVIEW_REPORT.md)
 - [Agent Economy Metrics V1](AGENT_ECONOMY_METRICS_V1.md)
+- [TOS PredictionMarket V1](PREDICTION_MARKET_V1.md)
+- [Prediction Order Authorization V1](PREDICTION_ORDER_AUTHORIZATION_V1.md)
+- [Prediction Resolution Statement V1](PREDICTION_RESOLUTION_STATEMENT_V1.md)
+- [Prediction Evidence and Challenge Evidence V1](PREDICTION_CHALLENGE_EVIDENCE_V1.md)
 
 The on-chain path is optional for discovery and conversation. It becomes
 authoritative only after parties explicitly select that profile. Agent Economy

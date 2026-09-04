@@ -201,6 +201,10 @@ contradict them.
 - Software-work Receipt TVM cell: [`docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md`](docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - Software-work execution and artifacts: [`docs/SOFTWARE_WORK_EXECUTION_V1.md`](docs/SOFTWARE_WORK_EXECUTION_V1.md)
 - Agent gas sponsorship and exact transaction relay: [`docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`](docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
+- Prediction market contract and accounting: [`docs/PREDICTION_MARKET_V1.md`](docs/PREDICTION_MARKET_V1.md)
+- Prediction order authorization: [`docs/PREDICTION_ORDER_AUTHORIZATION_V1.md`](docs/PREDICTION_ORDER_AUTHORIZATION_V1.md)
+- Prediction resolution statement: [`docs/PREDICTION_RESOLUTION_STATEMENT_V1.md`](docs/PREDICTION_RESOLUTION_STATEMENT_V1.md)
+- Prediction evidence and challenge evidence: [`docs/PREDICTION_CHALLENGE_EVIDENCE_V1.md`](docs/PREDICTION_CHALLENGE_EVIDENCE_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 

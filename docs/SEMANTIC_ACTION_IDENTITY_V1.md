@@ -143,6 +143,26 @@ otherwise. Fields appear in the exact order shown.
 | `billing.materialize` | `owner_id:id`, `agent_id:id`, `agreement_body_digest:digest32`, `agreement_obligation_id:id`, `sequence:u64` | none |
 | `billing.resolve` | `owner_id:id`, `agent_id:id`, `obligation_instance_id:digest32`, `target_state:state`, `evidence_set_digest:digest32` | terminal_successor |
 | `reconcile.apply` | `owner_id:id`, `agent_id:id`, `scope_digest:digest32`, `base_revision:u64`, `evidence_cut_digest:digest32` | terminal_successor |
+| `prediction.market.deploy` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `market_config_hash:digest32`, `deployment_salt:digest32`, `contract_code_hash:digest32` | none |
+| `prediction.collateral.deposit` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `amount_atomic:id`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.reserve.top-up` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `amount_atomic:id`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.trading-key.rotate` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `expected_key_epoch:u64`, `trading_public_key_digest:digest32` | none |
+| `prediction.order.authorize` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `order_digest:digest32`, `valid_until:u64`, `worst_case_risk_digest:digest32` | none |
+| `prediction.order.publish` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `order_digest:digest32`, `signed_order_cell_hash:digest32`, `carrier_id:id` | none |
+| `prediction.order.cancel-exact` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `order_digest:digest32`, `order_cell_hash:digest32` | none |
+| `prediction.order.nonce-floor.raise` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `expected_key_epoch:u64`, `new_nonce_floor:u64` | none |
+| `prediction.match.submit` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `maker_order_digest:digest32`, `taker_order_digest:digest32`, `quantity_lots:u64`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.position.split` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `quantity_lots:u64`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.position.merge` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `quantity_lots:u64`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.position.claim` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `beneficiary_account_digest:digest32`, `final_outcome:kind` | none |
+| `prediction.collateral.withdraw` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `account_binding_digest:digest32`, `amount_atomic:id`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.resolution.report` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `reporter_account_digest:digest32`, `round:kind`, `round_context_hash:digest32`, `vote_statement_hash:digest32` | none |
+| `prediction.resolution.challenge` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `challenger_account_digest:digest32`, `proposed_statement_hash:digest32`, `counter_outcome:kind`, `counter_evidence_root:digest32` | none |
+| `prediction.resolution.finalize` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `finalization_kind:kind`, `expected_context_hash:digest32`, `expected_statement_hash_or_zero:digest32` | none |
+| `prediction.challenge-bond.withdraw` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `challenger_account_digest:digest32`, `challenge_record_digest:digest32` | none |
+| `prediction.market.advance-phase` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `expected_phase_state_digest:digest32`, `authority_instance_id:digest32` | authority_instance |
+| `prediction.market.compact` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `expected_terminal_state_digest:digest32` | terminal_successor |
+| `prediction.terminal-surplus.withdraw` | `owner_id:id`, `agent_id:id`, `network_domain_digest:digest32`, `market_id:digest32`, `amount_atomic:id`, `reserve_recipient_digest:digest32`, `authority_instance_id:digest32` | authority_instance |
 
 `amount_atomic` is a canonical unsigned base-10 integer and therefore uses the
 `id` byte rule; leading zeroes are invalid except for the exact value `0` where
@@ -151,6 +171,14 @@ Adapter must project its complete canonical destination and asset identity into
 the listed digest. Omitting a chain, token contract, workchain, memo/tag that
 changes the recipient, wrapper code identity, or equivalent routing authority
 is invalid.
+
+Every prediction action is bound to both `network_domain_digest` and
+`market_id`; neither an RPC endpoint nor a transport retry appears in its
+identity. `authority_instance_id` separates economically repeatable actions
+while preserving exact retry identity. Order publication is intentionally
+distinct from order authorization: the former changes discovery state and the
+latter approves the exact executable `order_digest` and risk reservation.
+Neither an Intent signature nor a Carrier withdrawal is chain authority.
 
 An implementation that needs an unlisted side-effect kind must first add and
 release a registry entry and vectors. It cannot fall back to a caller-provided
