@@ -167,8 +167,21 @@ not create a late bounce that would contradict the market ledger.
 
 All state changes are internal messages. Business calls that carry value are
 bounceable and the contract checks inbound flags before creating any record or
-liability. The only non-bounce reserve input is an explicitly empty donation/
-top-up body. Bounced inbound messages are consumed before opcode parsing and
+liability. An explicitly empty body remains the only non-bounce reserve-
+donation form and accepts any positive value. Agent Account V2 cannot authorize
+an empty checked-call body, so automated reserve donation uses the distinct,
+bounceable typed body:
+
+```text
+pm_top_up_reserve#504d0019 query_id:uint64 = InternalMsgBody;
+```
+
+The typed form requires the ordinary operation budget, has exactly 96 bits and
+no references, and returns before reading or writing market state. Thus it is
+valid before activation and after terminal compaction without creating any
+liability; all value left after execution fees becomes reserve. Trailing bits
+or references, a non-bounce typed message, or insufficient operation budget
+fail closed. Bounced inbound messages are consumed before opcode parsing and
 never credited to a user ledger.
 
 The V1 surface comprises `activate`, `register_and_deposit`, `deposit`,
