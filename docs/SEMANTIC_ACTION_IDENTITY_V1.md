@@ -180,6 +180,25 @@ distinct from order authorization: the former changes discovery state and the
 latter approves the exact executable `order_digest` and risk reservation.
 Neither an Intent signature nor a Carrier withdrawal is chain authority.
 
+Prediction account fields (`account_binding_digest`,
+`beneficiary_account_digest`, `reporter_account_digest`,
+`challenger_account_digest`, and `reserve_recipient_digest`) use one frozen
+derivation. The input must be a canonical raw standard address in workchain
+`-1` or `0`; friendly/base64 and anycast forms are rejected. Let `account_id`
+be its 32-byte identifier and `wc_i8` its signed workchain encoded as one
+two's-complement byte:
+
+```text
+PredictionAccountBindingDigestV1 = SHA256(
+  UTF8("TOS_PREDICTION_ACCOUNT_BINDING_V1") || wc_i8 || account_id
+)
+```
+
+The semantic value is rendered with the `sha256:` prefix. For
+`-1:2222222222222222222222222222222222222222222222222222222222222222`,
+the result is
+`sha256:f10865e27a24d230e1342f118d5103d3619cc8dbb5d41d9beca324b184bfa9fc`.
+
 An implementation that needs an unlisted side-effect kind must first add and
 release a registry entry and vectors. It cannot fall back to a caller-provided
 UUID. A read-only calculation, cache update, model turn, or Carrier-derived rank
