@@ -72,6 +72,7 @@ application profiles above it.
 - [Prediction Order Authorization V1](PREDICTION_ORDER_AUTHORIZATION_V1.md)
 - [Prediction Resolution Statement V1](PREDICTION_RESOLUTION_STATEMENT_V1.md)
 - [Prediction Evidence and Challenge Evidence V1](PREDICTION_CHALLENGE_EVIDENCE_V1.md)
+- [Prediction Custody Effect Authorization V1](PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md)
 
 The on-chain path is optional for discovery and conversation. It becomes
 authoritative only after parties explicitly select that profile. Agent Economy

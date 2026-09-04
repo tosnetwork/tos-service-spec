@@ -194,6 +194,12 @@ body, forbid StateInit. The controller signature remains bound to Agent Account
 address/workchain, network, opcode, controller epoch, seqno and expiry through
 the existing signed-body hash. V1 transport remains byte-for-byte unchanged.
 
+Automated calls use the closed, independently signed
+`PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md` profile. It binds the exact
+semantic action and TVM effect to the finalized Agent Account V2 and market
+code identities. Escrow custody fields must not be fabricated for Prediction,
+and off-chain order authorization/publication never enters this effect union.
+
 ## 9. Capacity and retention
 
 Participants, live order records, reporter votes, distinct statements,

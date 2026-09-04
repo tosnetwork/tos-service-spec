@@ -205,6 +205,7 @@ contradict them.
 - Prediction order authorization: [`docs/PREDICTION_ORDER_AUTHORIZATION_V1.md`](docs/PREDICTION_ORDER_AUTHORIZATION_V1.md)
 - Prediction resolution statement: [`docs/PREDICTION_RESOLUTION_STATEMENT_V1.md`](docs/PREDICTION_RESOLUTION_STATEMENT_V1.md)
 - Prediction evidence and challenge evidence: [`docs/PREDICTION_CHALLENGE_EVIDENCE_V1.md`](docs/PREDICTION_CHALLENGE_EVIDENCE_V1.md)
+- Prediction custody effect authorization: [`docs/PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md`](docs/PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md)
 - Gateway authentication: [`docs/AUTH.md`](docs/AUTH.md)
 - Public service semantics: [`docs/API.md`](docs/API.md)
 
