@@ -213,7 +213,49 @@ semantic action and TVM effect to the finalized Agent Account V2 and market
 code identities. Escrow custody fields must not be fabricated for Prediction,
 and off-chain order authorization/publication never enters this effect union.
 
-## 9. Capacity and retention
+## 9. Durable two-hop resolution
+
+An automated call is not successful merely because the Agent Account consumed
+its controller sequence. Implementations persist the exact external BOC, the
+source account cursor and an exact masterchain checkpoint before broadcast,
+then advance only through the following evidence states:
+
+`Broadcasting -> SourceFinalized -> DestinationCommitted`, or
+`SourceActionSkipped`, or
+`DestinationFailedBounceCreated -> BounceCreditedAtAgent`, or the bounded
+terminal state `DestinationFailedNoBounce`.
+
+Source finality walks the authenticated account transaction chain back to the
+persisted cursor and uniquely locates the submitted external message. It then
+extracts the chain-created outbound and verifies exact target, value, complete
+body/StateInit, bounce bit and `extra_flags=3`. Once this source evidence is
+durable, the submitted BOC MUST NOT be broadcast again.
+
+Destination recovery scans forward from the pre-broadcast masterchain
+checkpoint through the shard blocks referenced by each masterchain state. It
+does not use a post-broadcast target cursor as a lower bound and does not apply
+a fixed latest-10,000 transaction window. A strict majority of independently
+pinned RPC operators must agree on the exact inbound transaction BOC, block
+identity and conservative finality head. The verifier independently parses the
+BOC and requires the fixed market code/config plus ordinary, non-aborted,
+compute-success and action-success execution. Exact inbound bytes together
+with immutable market code make the opcode transition deterministic; no latest
+getter is used as transaction-local state evidence.
+
+For failure, a rich bounce must be the unique output of that exact destination
+transaction and must commit the complete original message/body and failure
+phase. Source liquidity remains reserved until a later exact Agent Account
+transaction proves that same bounce in its inbound slot and its full value in
+the credit phase. If the destination transaction created no output, a bounded
+multi-operator observation window of at least the configured masterchain depth
+is required; this terminalizes the loss but does not claim a refund.
+
+All masterchain, shard-block, transaction, response-BOC, observer and
+outstanding-action collections have explicit admission bounds. Exhausting any
+bound leaves the action ambiguous and reserved rather than truncating the scan
+or guessing success.
+
+## 10. Capacity and retention
 
 Participants, live order records, reporter votes, distinct statements,
 evidence entries, input cells/depth, liabilities and all economic counters have
@@ -225,7 +267,7 @@ replicas through `claim_deadline + AUDIT_RETENTION`. Terminal compaction is
 allowed only after all account, order, bond and cleanup liabilities reach zero;
 it retains a minimum audit tombstone and immutable final provenance.
 
-## 10. Required conformance
+## 11. Required conformance
 
 Implementations consume `test-vectors/prediction-market-v1.json` and the
 semantic registry. Tests cover canonical/malformed cells, all eight Ed25519
