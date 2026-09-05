@@ -3,7 +3,7 @@
   "manifest_version": 1,
   "prediction_market": {
     "contract_code_version": 1,
-    "code_hash": "tvm-cell-sha256:37b7295a57407369871dc5bef0d6c9a7f2cb05b29dc054628656ff48e612919c",
+    "code_hash": "tvm-cell-sha256:4df40200c8fbb847fc327529e9fc2052174367ae4c79d88ade7b2ee37028fff9",
     "minimum_global_version": 14,
     "full_risk_global_versions": [14, 15],
     "risk_increasing_opcodes": [
