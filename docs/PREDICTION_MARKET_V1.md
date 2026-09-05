@@ -49,6 +49,17 @@ registration, deposit, split and match but retains cancellation, rotation,
 merge, resolution, challenge, claim and withdrawal exits. The contract parses
 ConfigParam 8 itself for every classified entry.
 
+The release tuple is frozen in
+[`prediction-market-v1-compatibility.json`](../manifests/prediction-market-v1-compatibility.json).
+It is deliberately a closed manifest: it pins both production contract code
+hashes, the checked-call transport, all Prediction semantic-action entry
+versions, the exact global-version classification, and the protocol-vector
+digests. It also pins the `prepare-agent` recovery boundary: the CLI must
+capture the source cursor and masterchain checkpoint from its pinned RPC,
+rather than allowing OpenFox or an Intent caller to choose the history-walk
+boundary. `scripts/verify-prediction-market-compatibility.py` verifies the
+manifest and fails on any unreviewed drift.
+
 ## 3. Ledgers and solvency
 
 For account `a`, `F[a]` is free collateral and `Y[a]`/`N[a]` are whole lots.

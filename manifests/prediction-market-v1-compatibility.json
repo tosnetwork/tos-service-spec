@@ -1,0 +1,80 @@
+{
+  "schema": "tos.prediction-market-compatibility.v1",
+  "manifest_version": 1,
+  "prediction_market": {
+    "contract_code_version": 1,
+    "code_hash": "tvm-cell-sha256:4df40200c8fbb847fc327529e9fc2052174367ae4c79d88ade7b2ee37028fff9",
+    "minimum_global_version": 14,
+    "full_risk_global_versions": [14, 15],
+    "risk_increasing_opcodes": [
+      "0x504d0001",
+      "0x504d0002",
+      "0x504d0003",
+      "0x504d0007",
+      "0x504d0009"
+    ],
+    "unknown_higher_version_exit_opcodes": [
+      "0x504d0004",
+      "0x504d0005",
+      "0x504d0006",
+      "0x504d0008",
+      "0x504d000a",
+      "0x504d000b",
+      "0x504d000c",
+      "0x504d000d",
+      "0x504d000e",
+      "0x504d000f",
+      "0x504d0010",
+      "0x504d0011",
+      "0x504d0012",
+      "0x504d0013",
+      "0x504d0014",
+      "0x504d0015",
+      "0x504d0016",
+      "0x504d0017",
+      "0x504d0018",
+      "0x504d0019"
+    ]
+  },
+  "agent_account": {
+    "code_hash": "tvm-cell-sha256:ed05692e549572d97291c591ec9e3dfa06827c1ab28d51c2d0643041e1a864ff",
+    "checked_contract_call": {
+      "opcode": "0x41475007",
+      "extra_flags": 3,
+      "state_init_forbidden": true
+    },
+    "prediction_relay_preparation": {
+      "schema": "tosctl.prediction-agent-effect-prepared.v1",
+      "pre_broadcast_recovery_boundary": "pinned-rpc"
+    }
+  },
+  "semantic_action_registry": {
+    "registry_version": 1,
+    "entries": [
+      {"action_kind": "prediction.challenge-bond.withdraw", "entry_version": 1},
+      {"action_kind": "prediction.collateral.deposit", "entry_version": 1},
+      {"action_kind": "prediction.collateral.withdraw", "entry_version": 1},
+      {"action_kind": "prediction.market.advance-phase", "entry_version": 1},
+      {"action_kind": "prediction.market.compact", "entry_version": 1},
+      {"action_kind": "prediction.market.deploy", "entry_version": 1},
+      {"action_kind": "prediction.match.submit", "entry_version": 1},
+      {"action_kind": "prediction.order.authorize", "entry_version": 1},
+      {"action_kind": "prediction.order.cancel-exact", "entry_version": 1},
+      {"action_kind": "prediction.order.nonce-floor.raise", "entry_version": 1},
+      {"action_kind": "prediction.order.publish", "entry_version": 1},
+      {"action_kind": "prediction.position.claim", "entry_version": 1},
+      {"action_kind": "prediction.position.merge", "entry_version": 1},
+      {"action_kind": "prediction.position.split", "entry_version": 1},
+      {"action_kind": "prediction.reserve.top-up", "entry_version": 1},
+      {"action_kind": "prediction.resolution.challenge", "entry_version": 1},
+      {"action_kind": "prediction.resolution.finalize", "entry_version": 1},
+      {"action_kind": "prediction.resolution.report", "entry_version": 1},
+      {"action_kind": "prediction.terminal-surplus.withdraw", "entry_version": 1},
+      {"action_kind": "prediction.trading-key.rotate", "entry_version": 1}
+    ]
+  },
+  "protocol_vectors": {
+    "prediction-market-v1.json": "sha256:562fad507064dec4e4a7320af1a201bde4b6657cc3905b47301a37cfd30f71c2",
+    "agent-commerce-semantic-action-v1.json": "sha256:0914f1220c11f42ff1131e4cfc160afae19b874b72e28da58c20b6ad7552d48d"
+  }
+}
