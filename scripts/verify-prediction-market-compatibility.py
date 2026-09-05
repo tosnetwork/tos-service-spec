@@ -2,6 +2,7 @@
 """Fail closed on accidental edits to the PredictionMarket V1 release tuple."""
 
 import argparse
+import os
 import hashlib
 import json
 import re
@@ -63,6 +64,7 @@ def verify_checkout_tuple(document, tosctl, protocol_root, openfox_root):
         "minimum_global_version": market["minimum_global_version"],
         "full_risk_global_versions": market["full_risk_global_versions"],
         "prepared_artifact": "exact-signed-external-message-boc",
+        "agent_relay_preparation": account["prediction_relay_preparation"],
         "get_methods": ["get_prediction_state", "get_prediction_accounting", "get_prediction_account",
                         "get_prediction_order", "get_market_phase", "get_resolution_contexts"],
     }, "tosctl Prediction capability tuple drifted")
@@ -77,8 +79,12 @@ def verify_checkout_tuple(document, tosctl, protocol_root, openfox_root):
             "protocol Prediction semantic registry drifted")
     for root, packages in ((protocol_root, ["./pkg/predictionmarket", "./pkg/agentcommerce"]),
                            (openfox_root, ["./pkg/prediction", "./pkg/earning"])):
+        environment = os.environ.copy()
+        # Compatibility must be a property of each repository's declared
+        # module, not of a developer's enclosing go.work workspace.
+        environment["GOWORK"] = "off"
         completed = subprocess.run(["go", "test", *packages], cwd=root, check=False, text=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment)
         if completed.returncode:
             raise ValueError(f"cross-repository tests failed in {root}: {completed.stderr.strip()}")
 
@@ -123,12 +129,16 @@ def main():
     require(not set(RISK_INCREASING) & set(EXIT_OPCODES), "risk and exit opcode sets overlap")
 
     account = document["agent_account"]
-    require(set(account) == {"code_hash", "checked_contract_call"} and
+    require(set(account) == {"code_hash", "checked_contract_call", "prediction_relay_preparation"} and
             CELL_HASH.fullmatch(account["code_hash"]), "invalid Agent Account identity")
     checked_call = account["checked_contract_call"]
     require(checked_call == {"opcode": "0x41475007", "extra_flags": 3,
                              "state_init_forbidden": True},
             "checked-call transport changed")
+    require(account["prediction_relay_preparation"] == {
+        "schema": "tosctl.prediction-agent-effect-prepared.v1",
+        "pre_broadcast_recovery_boundary": "pinned-rpc",
+    }, "Prediction relay preparation boundary changed")
 
     registry = document["semantic_action_registry"]
     require(set(registry) == {"registry_version", "entries"} and registry["registry_version"] == 1,

@@ -42,6 +42,10 @@
       "opcode": "0x41475007",
       "extra_flags": 3,
       "state_init_forbidden": true
+    },
+    "prediction_relay_preparation": {
+      "schema": "tosctl.prediction-agent-effect-prepared.v1",
+      "pre_broadcast_recovery_boundary": "pinned-rpc"
     }
   },
   "semantic_action_registry": {

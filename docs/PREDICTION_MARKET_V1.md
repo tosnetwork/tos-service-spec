@@ -54,7 +54,10 @@ The release tuple is frozen in
 It is deliberately a closed manifest: it pins both production contract code
 hashes, the checked-call transport, all Prediction semantic-action entry
 versions, the exact global-version classification, and the protocol-vector
-digests. `scripts/verify-prediction-market-compatibility.py` verifies the
+digests. It also pins the `prepare-agent` recovery boundary: the CLI must
+capture the source cursor and masterchain checkpoint from its pinned RPC,
+rather than allowing OpenFox or an Intent caller to choose the history-walk
+boundary. `scripts/verify-prediction-market-compatibility.py` verifies the
 manifest and fails on any unreviewed drift.
 
 ## 3. Ledgers and solvency
