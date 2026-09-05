@@ -1878,6 +1878,730 @@
     {
       "registry_version": 1,
       "entry_version": 1,
+      "action_kind": "prediction.challenge-bond.withdraw",
+      "domain_tag": "tos.semantic-action.prediction.challenge-bond.withdraw.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "challenger_account_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "challenge_record_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.collateral.deposit",
+      "domain_tag": "tos.semantic-action.prediction.collateral.deposit.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.collateral.withdraw",
+      "domain_tag": "tos.semantic-action.prediction.collateral.withdraw.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.market.advance-phase",
+      "domain_tag": "tos.semantic-action.prediction.market.advance-phase.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_phase_state_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.market.compact",
+      "domain_tag": "tos.semantic-action.prediction.market.compact.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_terminal_state_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "terminal_successor"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.market.deploy",
+      "domain_tag": "tos.semantic-action.prediction.market.deploy.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_config_hash",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "deployment_salt",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "contract_code_hash",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.match.submit",
+      "domain_tag": "tos.semantic-action.prediction.match.submit.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "maker_order_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "taker_order_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "quantity_lots",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.order.authorize",
+      "domain_tag": "tos.semantic-action.prediction.order.authorize.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "order_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "valid_until",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "worst_case_risk_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.order.cancel-exact",
+      "domain_tag": "tos.semantic-action.prediction.order.cancel-exact.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "order_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "order_cell_hash",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.order.nonce-floor.raise",
+      "domain_tag": "tos.semantic-action.prediction.order.nonce-floor.raise.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_key_epoch",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "new_nonce_floor",
+          "field_type": "u64"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.order.publish",
+      "domain_tag": "tos.semantic-action.prediction.order.publish.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "order_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "signed_order_cell_hash",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "carrier_id",
+          "field_type": "id"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.position.claim",
+      "domain_tag": "tos.semantic-action.prediction.position.claim.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "beneficiary_account_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "final_outcome",
+          "field_type": "kind"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.position.merge",
+      "domain_tag": "tos.semantic-action.prediction.position.merge.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "quantity_lots",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.position.split",
+      "domain_tag": "tos.semantic-action.prediction.position.split.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "quantity_lots",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.reserve.top-up",
+      "domain_tag": "tos.semantic-action.prediction.reserve.top-up.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.resolution.challenge",
+      "domain_tag": "tos.semantic-action.prediction.resolution.challenge.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "challenger_account_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "proposed_statement_hash",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "counter_outcome",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "counter_evidence_root",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.resolution.finalize",
+      "domain_tag": "tos.semantic-action.prediction.resolution.finalize.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "finalization_kind",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "expected_context_hash",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_statement_hash_or_zero",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.resolution.report",
+      "domain_tag": "tos.semantic-action.prediction.resolution.report.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "reporter_account_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "round",
+          "field_type": "kind"
+        },
+        {
+          "field_name": "round_context_hash",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "vote_statement_hash",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.terminal-surplus.withdraw",
+      "domain_tag": "tos.semantic-action.prediction.terminal-surplus.withdraw.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "amount_atomic",
+          "field_type": "id"
+        },
+        {
+          "field_name": "reserve_recipient_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "authority_instance_id",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "authority_instance"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
+      "action_kind": "prediction.trading-key.rotate",
+      "domain_tag": "tos.semantic-action.prediction.trading-key.rotate.v1",
+      "ordered_semantic_fields": [
+        {
+          "field_name": "owner_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "agent_id",
+          "field_type": "id"
+        },
+        {
+          "field_name": "network_domain_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "market_id",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "account_binding_digest",
+          "field_type": "digest32"
+        },
+        {
+          "field_name": "expected_key_epoch",
+          "field_type": "u64"
+        },
+        {
+          "field_name": "trading_public_key_digest",
+          "field_type": "digest32"
+        }
+      ],
+      "successor_policy": "none"
+    },
+    {
+      "registry_version": 1,
+      "entry_version": 1,
       "action_kind": "provider.offer",
       "domain_tag": "tos.semantic-action.provider.offer.v1",
       "ordered_semantic_fields": [

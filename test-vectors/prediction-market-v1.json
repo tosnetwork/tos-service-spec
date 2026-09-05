@@ -1,0 +1,147 @@
+{
+  "schema": "tos.prediction-market-conformance.v1",
+  "schema_version": 1,
+  "price_scale": 10000,
+  "order_digest": "tvm-cell-sha256:f6ed4e0395a1787d27b90daad080b6977de5ff1ceb95a9386f792e0b3291fa09",
+  "public_key_hex": "8b237d788e8eaaef550c6d125823fa45f1fd5fc29b2c88bdf871119471fc1312",
+  "signature_hex": "2330df8f78c3dbce994ef979823f78dbea32165fbe9f502130d6bbbf31030ab705664ba5ce58a4aece4b5b86648cd471436c66518ec0360d321851423fe80709",
+  "positive_vectors": [
+    {
+      "name": "prediction-order",
+      "logical_fields": {
+        "action": "buy",
+        "allow_partial": true,
+        "counterparty": "0:3333333333333333333333333333333333333333333333333333333333333333",
+        "global_id": 42,
+        "key_epoch": 7,
+        "limit_price_tick": 6250,
+        "liquidity_role": "maker",
+        "market_address": "0:1111111111111111111111111111111111111111111111111111111111111111",
+        "market_config_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "min_fill_lots": 10,
+        "nonce": 19,
+        "outcome": "yes",
+        "owner_address": "0:2222222222222222222222222222222222222222222222222222222222222222",
+        "quantity_lots": 100,
+        "salt": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "valid_after": 1700000000,
+        "valid_until": 1700003600,
+        "workchain_id": 0
+      },
+      "boc_base64": "te6cckEBAwEA6gACuVBPUjEAAQAAACoAAAAABwAAAAAAAAATVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUAAAAAAAAAZAAAAAAAAAAKGGoAAAAAZVPxAAAAAABlU/8QAAAAwAECAIOAAiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIoiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiJAAhYAERERERERERERERERERERERERERERERERERERERERERFgAZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmegc6HX",
+      "cell_hash": "tvm-cell-sha256:522c29e58e110437cae43bf8b45467da2836283d573a813a015851ac64fcf950",
+      "boc_sha256": "sha256:d76a14806849ed4547436ef566d4f62946ff712fdfa367d550964deb780b09bb"
+    },
+    {
+      "name": "order-authorization",
+      "logical_fields": {
+        "contract_code_version": 1,
+        "order_cell_hash": "tvm-cell-sha256:522c29e58e110437cae43bf8b45467da2836283d573a813a015851ac64fcf950"
+      },
+      "boc_base64": "te6cckEBAgEAlAABWlBPQTEAAfl3ToB3EV9m5EoQv2gecf9LYAjq6gips+qIrRhAEHJtAAAAKgAAAQEAw4ACIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIikWFPLHCIIb5XId/FoqM+0UGxQeq51AnQCsKNYyfnyoQ1rbl7w==",
+      "cell_hash": "tvm-cell-sha256:f6ed4e0395a1787d27b90daad080b6977de5ff1ceb95a9386f792e0b3291fa09",
+      "boc_sha256": "sha256:c181ae4016e0282f1de8cd08ad1087d45822f7f82f9d4fdf6a7db2bd2c134d7c"
+    },
+    {
+      "name": "signed-prediction-order",
+      "logical_fields": {
+        "order_digest": "tvm-cell-sha256:f6ed4e0395a1787d27b90daad080b6977de5ff1ceb95a9386f792e0b3291fa09"
+      },
+      "boc_base64": "te6cckECBQEAAVYAAkxQU08xAAGLI314jo6q71UMbRJYI/pF8f1fwpssiL34cRGUcfwTEgECArlQT1IxAAEAAAAqAAAAAAcAAAAAAAAAE1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVAAAAAAAAAGQAAAAAAAAAChhqAAAAAGVT8QAAAAAAZVP/EAAAAMADBACAIzDfj3jD286ZTvl5gj942+oyFl++n1AhMNa7vzEDCrcFZkulzlikrs5LW4ZkjNRxQ2xmUY7ANg0yGFFCP+gHCQCDgAIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiKIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiQAIWABERERERERERERERERERERERERERERERERERERERERERYAGZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZnSyQBLQ==",
+      "cell_hash": "tvm-cell-sha256:870e05091bd091a61296b6226a51f795a49abb6113e21ac794e8fb60a9ee5f97",
+      "boc_sha256": "sha256:f1f1ad6d5689d2315d6eff812a03f0fe30a0a62585e15e5b4d967bc936fecd67"
+    },
+    {
+      "name": "normal-round-context",
+      "logical_fields": {
+        "market_id": "sha256:6161616161616161616161616161616161616161616161616161616161616161",
+        "rules_hash": "sha256:6262626262626262626262626262626262626262626262626262626262626262"
+      },
+      "boc_base64": "te6cckEBAgEAowABfFBOQzEAAYRk+In9etVl01M1WX0E18di8cUCxdEXy7wwuGcUfRMKAAAAAGVUGBAAAAAAZVQYdAAAAABlVBv4AQDAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjX4cZ9Q==",
+      "cell_hash": "tvm-cell-sha256:707ffd4dc27bedde63eb0e67849e7fb4e8a3a13a4c6799466a544ada3c4bdc0d",
+      "boc_sha256": "sha256:6004e79dbd630a326aad687d5f4fd030e4b05996fad280c91f63ab9ed9f095b6"
+    },
+    {
+      "name": "normal-evidence-manifest",
+      "logical_fields": {
+        "entry_count": 1,
+        "outcome": "yes"
+      },
+      "boc_base64": "te6cckECCAEAAWMAAhBQRU0xAAEAAQECAMBhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJicH/9TcJ77d5j6w5nhJ5/tOijoTpMZ5lGalRK2jxL3A0BD1BFTDEAAYDAAwQOUEVFMQABAQQFBgcAXFBUWDEAAQAmaHR0cHM6Ly9yZXN1bHRzLmV4YW1wbGUvZWxlY3Rpb24vZmluYWwArlBUWDEAAQBPdG9zLWNhcy1zaGEyNTY6NzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MAA0UFRYMQABABJlbGVjdGlvbi1yZXN1bHQvdjEAbFBFTVQAAXBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwAAAAAGVUGNgAAAAAZVQYdEvKYvU=",
+      "cell_hash": "tvm-cell-sha256:0a8ff26eddbd34585897f2726f4a631fb892f5fe0e142214538385787ecdd41c",
+      "boc_sha256": "sha256:51f55f8083618ed7a9bf45037a7c45b3affbd748913d839662903a33a1a1401e"
+    },
+    {
+      "name": "challenge-evidence-manifest",
+      "logical_fields": {
+        "counter_outcome": "no",
+        "entry_count": 1
+      },
+      "boc_base64": "te6cckECCAEAAWMAAhBQQ0UxAAEBAQECAMBhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJicnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnIBD1BFTDEAAYDAAwQOUEVFMQABAQQFBgcAXFBUWDEAAQAmaHR0cHM6Ly9yZXN1bHRzLmV4YW1wbGUvZWxlY3Rpb24vZmluYWwArlBUWDEAAQBPdG9zLWNhcy1zaGEyNTY6NzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MDcwNzA3MAA0UFRYMQABABJlbGVjdGlvbi1yZXN1bHQvdjEAbFBFTVQAAXBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwAAAAAGVUGNgAAAAAZVQYdDpx3Nk=",
+      "cell_hash": "tvm-cell-sha256:043c91fb0443d923960fdaabd74ad43218372a309178f65e3b1222a5c32ba1d9",
+      "boc_sha256": "sha256:ab519ebde29d81c5a6c23f0f01f5a6a3f5b1a78f13c060b6323af37aea19fd41"
+    },
+    {
+      "name": "review-base-context",
+      "logical_fields": {
+        "reason": "challenge"
+      },
+      "boc_base64": "te6cckECBAEAAQ4AA35QUkIxAAGNCmyae4id0bnLx4kI/8JN76J3DIL0QNU50Mx/FEp3+wEAAAAAZVQcXAAAAABlVB2IAAAAAGVUH+ABAgMAgGFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAgnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJyAAqP8m7dvTRYWJfycm9KYx+4kvX+DhQiFFODhXh+zdQcAIWADu7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7gIIeSP2CIeyRywftVeulahkMG5UYSLx7Lx2JEVLhldDswci78ow==",
+      "cell_hash": "tvm-cell-sha256:bc3e3e572615bdd8e62a74540ed6177ead685c4db7e387a9a30d867eca11415f",
+      "boc_sha256": "sha256:eac73a306ac6775a446712fc0edc662e8d480ccd0f993ecf6ffb675950dd8231"
+    },
+    {
+      "name": "review-vote-context",
+      "logical_fields": {
+        "review_base_context_hash": "tvm-cell-sha256:bc3e3e572615bdd8e62a74540ed6177ead685c4db7e387a9a30d867eca11415f"
+      },
+      "boc_base64": "te6cckEBAQEAcAAA3FBSVjEAAddzwAifTXKuzy1D2WSClEU9rkVEKQPxGqgoV8ECMRi2vD4+VyYVvdjmKnRUDtYXfq1oXE2344epow2GfsoRQV9zc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzcwAAAABlVB2Ihx9rmQ==",
+      "cell_hash": "tvm-cell-sha256:73f433c89e6abbba995d98ae6845ae90f8aec83a6ede360786ca5a7ba20a30ac",
+      "boc_sha256": "sha256:2bd60164b184a984234b95737859966102efc3d822f91ab70d2bf5768fe7f9d6"
+    },
+    {
+      "name": "resolution-statement",
+      "logical_fields": {
+        "outcome": "no",
+        "round": "appeal"
+      },
+      "boc_base64": "te6cckECAwEAAQYAAvhQUlMxAAHPYl81h2tVAn2h5UvtrAzUOKBc2rvxEfpFu+yzSZKt2wAAACoBAQAAAABlVB3sAAAAAGVUH3xz9DPInmq7upldmK5oRa6Q+K7IOm7eNgeGylp7ogowrAQ8kfsEQ9kjlg/aq9dK1DIYNyowkXj2XjsSIqXDK6HZAQIAg4ACIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMACAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJ0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dAVpKZM=",
+      "cell_hash": "tvm-cell-sha256:166fc158415ff3810a0ffd9cb6bbcd9a09ac7653186216fb3631c35dfe68e4e9",
+      "boc_sha256": "sha256:9149342dbcf223b06175ce6f818004e1be31d103784d78452e2f9ff3c6fdbadc"
+    }
+  ],
+  "negative_vectors": [
+    {
+      "name": "order-trailing-bit",
+      "target": "prediction-order",
+      "mutation": "append one zero bit to the root",
+      "boc_base64": "te6cckEBAwEA6gACuVBPUjEAAQAAACoAAAAABwAAAAAAAAATVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUAAAAAAAAAZAAAAAAAAAAKGGoAAAAAZVPxAAAAAABlU/8QAAAAoAECAIOAAiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIoiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiJAAhYAERERERERERERERERERERERERERERERERERERERERERFgAZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmfKEMNw",
+      "expected": "reject"
+    },
+    {
+      "name": "signature-trailing-reference",
+      "target": "signed-prediction-order",
+      "mutation": "append an empty ref to the signature cell",
+      "boc_base64": "te6cckECBgEAAVkAAkxQU08xAAGLI314jo6q71UMbRJYI/pF8f1fwpssiL34cRGUcfwTEgECArlQT1IxAAEAAAAqAAAAAAcAAAAAAAAAE1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVAAAAAAAAAGQAAAAAAAAAChhqAAAAAGVT8QAAAAAAZVP/EAAAAMADBAGAIzDfj3jD286ZTvl5gj942+oyFl++n1AhMNa7vzEDCrcFZkulzlikrs5LW4ZkjNRxQ2xmUY7ANg0yGFFCP+gHCQUAg4ACIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIkACFgAREREREREREREREREREREREREREREREREREREREREREWABmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZwAAP+bDUQ==",
+      "expected": "reject"
+    },
+    {
+      "name": "order-signature-over-payload-hash",
+      "target": "signed-prediction-order",
+      "mutation": "sign order_cell_hash instead of order_digest",
+      "expected": "reject"
+    },
+    {
+      "name": "evidence-mutable-locator",
+      "target": "normal-evidence-manifest",
+      "mutation": "replace content-addressed locator with mutable HTTPS URL",
+      "expected": "reject"
+    },
+    {
+      "name": "review-missing-challenge-provenance",
+      "target": "review-base-context",
+      "mutation": "encode CHALLENGE without proposal/challenger/counter evidence",
+      "expected": "reject"
+    }
+  ]
+}
