@@ -3,7 +3,7 @@
 Status: release candidate / incubation profile.
 
 This object is the owner-custody capability for one exact PredictionMarket V1
-call sent through an Agent Account V2 checked contract call. It is distinct
+call sent through an Agent Account checked-contract-call v2 action. It is distinct
 from an order authorization, an OpenFox Intent, and the escrow custody effect
 schema. No field from an Agreement or escrow obligation is synthesized to use
 this profile.
@@ -16,7 +16,7 @@ binds:
 - the owner authority, Agent, current writer generation and writer-fence
   digest;
 - the full TOS network domain and source Agent Account;
-- the audited Agent Account V2 code hash and checked-call transport;
+- the audited Agent Account code hash and checked-call v2 transport;
 - the immutable market ID, address, config hash and code hash;
 - the exact destination value and canonical body cell hash; and
 - the stable semantic action ID, exact request digest and expiry.

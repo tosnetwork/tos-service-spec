@@ -168,9 +168,9 @@ not create a late bounce that would contradict the market ledger.
 All state changes are internal messages. Business calls that carry value are
 bounceable and the contract checks inbound flags before creating any record or
 liability. An explicitly empty body remains the only non-bounce reserve-
-donation form and accepts any positive value. Agent Account V2 cannot authorize
-an empty checked-call body, so automated reserve donation uses the distinct,
-bounceable typed body:
+donation form and accepts any positive value. The Agent Account checked-call v2
+action cannot authorize an empty body, so automated reserve donation uses the
+distinct, bounceable typed body:
 
 ```text
 pm_top_up_reserve#504d0019 query_id:uint64 = InternalMsgBody;
@@ -223,18 +223,19 @@ configurations to reproduce the same context BOC, review-base BOC, status,
 review reason and deadline before preparing a vote. A display hash without its
 canonical BOC is not sufficient Oracle authorization.
 
-## 8. Agent Account V2 requirement
+## 8. Agent Account checked-call requirement
 
-Value-bearing market calls require the V2 checked-bounceable transport. It
+Value-bearing market calls require the checked-contract-call v2 action. It
 commits the complete canonical body reference DAG, builds internal header
 `0x18`, and fixes `extra_flags=3`: require bounceable target, require nonempty
 body, forbid StateInit. The controller signature remains bound to Agent Account
 address/workchain, network, opcode, controller epoch, seqno and expiry through
-the existing signed-body hash. V1 transport remains byte-for-byte unchanged.
+the existing signed-body hash. Earlier Agent Account action encodings remain
+byte-for-byte unchanged within the same contract template.
 
 Automated calls use the closed, independently signed
 `PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md` profile. It binds the exact
-semantic action and TVM effect to the finalized Agent Account V2 and market
+semantic action and TVM effect to the finalized Agent Account and market
 code identities. Escrow custody fields must not be fabricated for Prediction,
 and off-chain order authorization/publication never enters this effect union.
 

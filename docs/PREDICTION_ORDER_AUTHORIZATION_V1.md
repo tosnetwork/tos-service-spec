@@ -109,7 +109,7 @@ exactly 512-bit signature cell with no references. Public keys must be a
 canonical compressed Edwards25519 point and must not equal any of the eight
 canonical encodings of the curve's 8-torsion subgroup. This application rule
 is stricter than the TOS v14 VM's zero/identity footgun check and must be
-identical in SDK, Agent Account V2, and PredictionMarket code.
+identical in SDK, Agent Account, and PredictionMarket code.
 
 The signed wrapper and order DAG together use at most six cells and depth
 three. Network admission may impose a smaller byte envelope but never a larger
