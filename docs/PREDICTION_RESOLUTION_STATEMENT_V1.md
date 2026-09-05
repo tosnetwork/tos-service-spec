@@ -84,6 +84,15 @@ base but does not open voting. A later, separate `advance_phase` creates the
 nonce and vote context only during the half-open appellate vote window. Thus a
 report authorization cannot exist before the exact dispute is known.
 
+The reporter obtains these exact cells through the contract's bounded
+`get_resolution_contexts` getter. It MUST NOT attempt to derive a cell from the
+published hash: the contract-generated nonce and opening timestamp are not
+otherwise recoverable. The client recomputes the returned cell hashes, matches
+them against `get_market_phase` at the same checkpoint, and requires an
+independently pinned RPC strict majority to reproduce the identical BOCs and
+phase metadata. NORMAL requires no review base; APPEAL requires the exact base
+whose hash appears inside `PredictionReviewVoteContextV1`.
+
 ## 4. Resolution statement
 
 ```text

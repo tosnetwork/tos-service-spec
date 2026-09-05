@@ -198,6 +198,31 @@ wrong phase/window/context, authorization/signature/replay failure, price/pair/
 fill failure, capacity/contribution failure, arithmetic/liability/reserve
 failure, quorum/challenge conflict and action-budget failure.
 
+### 7.1 Read surface and exact Oracle contexts
+
+The bounded V1 getter surface is `get_prediction_state`,
+`get_prediction_accounting`, `get_prediction_account(owner)`,
+`get_prediction_order(owner, epoch, nonce)`, `get_market_phase`, and
+`get_resolution_contexts`. None scans a dictionary.
+
+`get_resolution_contexts` returns the fixed stack
+`(current_present:int, current_context:cell, review_base_present:int,
+review_base_context:cell)`. An absent value has presence `0` and the canonical
+empty-cell sentinel. A present value is the exact cell constructed by the
+contract; it is never reconstructed by an RPC client from display fields.
+During an opened NORMAL round, `current_context` is the canonical normal
+context. During an opened APPEAL round, it is the canonical review vote
+context and `review_base_context` is also present. Review entry may expose the
+base before the separate vote-opening transaction exposes a current context.
+
+Clients MUST run `get_resolution_contexts` and `get_market_phase` at the same
+explicit masterchain checkpoint, recompute each present cell hash, and require
+exact equality with the corresponding phase hash. Oracle workers additionally
+require a strict majority of independently pinned, network-domain-verified RPC
+configurations to reproduce the same context BOC, review-base BOC, status,
+review reason and deadline before preparing a vote. A display hash without its
+canonical BOC is not sufficient Oracle authorization.
+
 ## 8. Agent Account V2 requirement
 
 Value-bearing market calls require the V2 checked-bounceable transport. It
