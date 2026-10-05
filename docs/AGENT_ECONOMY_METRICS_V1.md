@@ -69,6 +69,7 @@ verifies the complete terminal chain:
 
 ```text
 finalized escrow deployment whose authenticated StateInit embeds the Accepted Quote
+→ finalized bound-buyer-wallet acceptance (pending_acceptance → awaiting_funding)
 → authenticated finalized escrow funding
 → canonical Receipt commitment
 → authenticated stablecoin-wallet transfer
@@ -236,7 +237,7 @@ provider rankings.
 | `settled_provider_receipts_atomic` | Same attributable amount, presented as provider receipts. |
 | `unattributed_released_value_atomic` | Conclusively non-attributable released value; never Agent GDP. |
 | `attribution_unresolved_released_value_atomic` | Released value whose provider attribution cannot be resolved; excluded from Agent GDP. |
-| `accepted_job_count` | Unique jobs whose schema-dispatched Quote acceptance event finalized in the window: authenticated escrow deployment for frozen schema 1, or the bound-wallet-authenticated `pending_acceptance -> awaiting_funding` transition for the paid-demand successor. |
+| `accepted_job_count` | Unique jobs whose Quote acceptance event finalized in the window: the bound-wallet-authenticated `pending_acceptance -> awaiting_funding` escrow v2 transition. |
 | `funded_job_count` | Unique jobs whose exact escrow funding finalized. |
 | `released_escrow_count` | Unique jobs with an authenticated terminal provider-wallet payment. |
 | `attributed_settled_job_count` | Released jobs that pass every provider-attribution rule. |
@@ -261,10 +262,9 @@ reject overflow.
 
 Event times are unambiguous:
 
-- acceptance time is schema-dispatched: the authenticated containing-block Unix
-  time of canonical escrow deployment for schema 1, or of the bound-wallet-
-  authenticated `pending_acceptance -> awaiting_funding` transition for the
-  paid-demand successor;
+- acceptance time is the authenticated containing-block Unix time of the
+  bound-wallet-authenticated `pending_acceptance -> awaiting_funding` escrow v2
+  transition;
 - funding time is the authenticated containing-block Unix time of the escrow
   transaction that accepts the stablecoin `transfer_notification`;
 - pending-entry time is the authenticated containing-block Unix time of the

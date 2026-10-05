@@ -248,7 +248,7 @@ successor, `accept_by == Quote.expires_at` gates only the accept transition;
 after acceptance, funding is eligible when the handling transaction's contract
 time satisfies `now <= funding_deadline`, without reapplying that acceptance
 cutoff. Later finality observation does not change either transaction-time
-predicate. Schema 1 retains its frozen funding rule. Bulk task inputs, outputs,
+predicate. Bulk task inputs, outputs,
 conversation history, and evidence remain off-chain and are bound by immutable
 digests where required.
 
@@ -274,11 +274,9 @@ catalog. The second is the distributed bulletin path defined by this document.
 A user interface may call a Capability projection an `offering`, but V1 does
 not introduce a second mutable Offering identity or a platform-owned catalog.
 Both lanes converge before funding and reuse one commercial state machine.
-They retain their schema-appropriate acceptance rule: the frozen schema-1
-Capability-first escrow uses finalized deployment as acceptance, while the
-paid-demand successor uses `pending_acceptance` followed by the bound buyer
-wallet's versioned `accept` operation. Neither schema is reinterpreted as the
-other. The paid-demand D2 source-independence campaign gates only a claim that
+Both use the escrow v2 acceptance rule: `pending_acceptance` followed by the
+bound buyer wallet's versioned `accept` operation. Deployment-as-acceptance
+retired with escrow version 1 on 2026-10-05. The paid-demand D2 source-independence campaign gates only a claim that
 the new public Demand-first profile is resilient to loss of one source and its
 complete database. It is not truth consensus and does not prohibit contact or
 an otherwise authorized response to one independently verified exact artifact.
@@ -1680,9 +1678,8 @@ their transaction semantics.
   offer;
 - one qualified source path and its complete persistent store become unavailable
   before acceptance while the other still resolves and exposes the exact bytes;
-- a paired lane test keeps Capability-first schema-1 deployment acceptance and
-  Demand-first successor bound-wallet acceptance distinct, without
-  reinterpretation;
+- a lane test shows that deployment alone never accepts a Quote and that only
+  the bound-wallet `accept` transition does;
 - the Provider authorizes one canonical `PaidDemandQuoteBindingBodyV1`, including
   its exact portable authority-reference digest;
 - a second Provider supplies a competing independently valid Offer, and the
@@ -1798,7 +1795,7 @@ must still decide the exact encodings and bounds:
    representation freeze the separate binding matrix without circular signing
    or duplicating existing Receipt authority?
 6. Which exact compatibility and rollout rules allow the versioned binding
-   while leaving all schema-1 Accepted Quotes and escrows unchanged?
+   now that escrow version 1 and its schema-1 acceptance are retired?
 7. What provider ingress authentication, buyer upload proof-of-possession key,
    challenge/status format, encryption, maximum bytes/files, retention,
    revocation, acknowledgement, and recovery rules freeze the buyer-push

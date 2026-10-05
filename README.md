@@ -120,8 +120,6 @@ contradict them.
 - [Gateway Federation V1](docs/GATEWAY_FEDERATION_V1.md) defines client-side
   multi-Gateway search and content-addressed manifest failover without shared
   semantic authority.
-- [Safe Handoff V1](docs/SAFE_HANDOFF_V1.md) defines portable post-acceptance
-  recovery from finalized escrow without the original Gateway.
 - [Public Errors V1](docs/PUBLIC_ERRORS_V1.md) freezes typed Connect error and
   retry dispositions, including mandatory resolution after ambiguous mutation
   outcomes.
@@ -197,7 +195,7 @@ contradict them.
 - Quotes and settlement: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md)
 - Software-work manifest: [`docs/SOFTWARE_WORK_MANIFEST_V1.md`](docs/SOFTWARE_WORK_MANIFEST_V1.md)
 - Accepted Quote TVM cell: [`docs/ACCEPTED_QUOTE_TVM_V1.md`](docs/ACCEPTED_QUOTE_TVM_V1.md)
-- Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V1.md`](docs/STABLECOIN_ESCROW_TVM_V1.md)
+- Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V2.md`](docs/STABLECOIN_ESCROW_TVM_V2.md)
 - Software-work Receipt TVM cell: [`docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md`](docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - Software-work execution and artifacts: [`docs/SOFTWARE_WORK_EXECUTION_V1.md`](docs/SOFTWARE_WORK_EXECUTION_V1.md)
 - Agent gas sponsorship and exact transaction relay: [`docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`](docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)

@@ -162,7 +162,7 @@ idempotency or authorization fallback.
 ## Stable errors
 
 Validation errors use `NativeErrorV1` Connect error details. Numeric values
-`2200` through `2213` exactly match the Native Registry TVM exit-code family.
+`2200` through `2215` exactly match the Native Registry TVM exit-code family.
 Clients branch on the enum value or stable identifier and must not parse the
 human diagnostic. The frozen negative corpus in
 `test-vectors/tos-service-v1-registry.json` pins representative preflight

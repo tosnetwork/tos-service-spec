@@ -74,10 +74,10 @@ candidate is re-resolved from finalized TOS state before spending.
    Capability allow-list, daily budget, and confirmation mode.
 5. Build the Accepted Quote and deterministic escrow StateInit.
 6. Authorize and submit the exact acceptance action through the `tosctl` custody
-   boundary, then wait for finalized Quote acceptance. For schema-1 Capability-
-   first escrow this is finalized deployment; a paid-demand schema successor
-   uses its bound-buyer-wallet `pending_acceptance -> awaiting_funding`
-   transition.
+   boundary, then wait for finalized Quote acceptance: the escrow v2
+   bound-buyer-wallet `pending_acceptance -> awaiting_funding` transition.
+   Deployment is never acceptance; escrow version 1, which treated it as such,
+   was retired on 2026-10-05.
 7. Send the exact stablecoin funding through the bound buyer wallet, enter
    funding resolution, and wait for the finalized exact transfer notification.
 8. Submit the task over A2A, MCP, or Agent Packet only after finalized funding.

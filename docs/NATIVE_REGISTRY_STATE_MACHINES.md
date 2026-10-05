@@ -91,11 +91,17 @@ authorize Capability operations or later Agent mutations.
 
 ## 3. Controller policy
 
-A policy is a bounded, canonically ordered set of Ed25519 controllers. Each
-controller contains:
+A policy is a canonically ordered set of 1 to 20 Ed25519 controllers. A policy
+naming more than 20 controllers is refused with `NATIVE_POLICY_TOO_WIDE`
+(2215) before any controller is read, and a signature list holds at most one
+signature per controller, so at most 20. Each controller contains:
 
 - key ID exactly `ed25519:<lowercase-public-key-hex>`;
-- the matching 32-byte public key;
+- the matching 32-byte public key, which must not be a small-order or
+  non-canonical Ed25519 encoding (the eight torsion points, the identity or
+  order-2 point with the sign bit set, or any encoding with `y >= 2^255 - 19`);
+  such a key is refused with `NATIVE_WEAK_KEY` (2214), and the all-zero key
+  with `NATIVE_BAD_POLICY` (2207);
 - positive weight;
 - purpose bitmask; and
 - recovery designation.

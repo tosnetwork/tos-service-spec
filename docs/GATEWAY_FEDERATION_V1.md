@@ -66,8 +66,7 @@ escrow preimages, finalized chain references, owner-held journals, and
 content-addressed artifacts. A replacement Gateway acknowledgement is never a
 prerequisite for execution, Receipt checking, refund, or settlement.
 
-`SAFE_HANDOFF_V1.md` defines the exact portable bundle, finalized-state checks,
-funded/release-pending decisions, and negative conformance matrix. Proposal
+Proposal
 expiry is enforced while selecting a Quote; after acceptance, the finalized
 escrow anchors immutable reconstruction and no current Gateway clock or
 acknowledgement participates.

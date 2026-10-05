@@ -42,7 +42,7 @@ These carry to any network and must match exactly.
 | Software-work profile | V1 only |
 | Registry contract code hash | `tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0` |
 | Executable Capability version used by the latest rehearsal | `1.2.0` |
-| Canonical manifest / Accepted Quote / Receipt encodings | frozen in this repository (`SOFTWARE_WORK_MANIFEST_V1.md`, `ACCEPTED_QUOTE_TVM_V1.md`, `SOFTWARE_WORK_RECEIPT_TVM_V1.md`, `STABLECOIN_ESCROW_TVM_V1.md`) |
+| Canonical manifest / Accepted Quote / Receipt encodings | frozen in this repository (`SOFTWARE_WORK_MANIFEST_V1.md`, `ACCEPTED_QUOTE_TVM_V1.md`, `SOFTWARE_WORK_RECEIPT_TVM_V1.md`, `STABLECOIN_ESCROW_TVM_V2.md`; escrow version 1 retired on 2026-10-05) |
 | Pinned executor OCI toolchain (Go 1.26.5) index digest | `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105` |
 | Strict verifier | `tos/scripts/tos-service-software-work-paid-evidence.py`, run via `tos/test/tostester`, quorum 2 |
 | Endpoint config template | `deployments/public-testnet.template.json` |

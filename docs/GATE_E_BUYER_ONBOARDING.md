@@ -97,8 +97,9 @@ procedure.
   `tos-service-protocol` commit `a18162af3df971af265bf101ae9d40396e3c1370`
 - verified test-fixture custody import and exact-message submit CLI: `tos`
   commit `c8fbead6851cf63c4858035195045b4de0406302`
-- canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and
-  `docs/STABLECOIN_ESCROW_TVM_V1.md`
+- canonical Quote and escrow rules: `docs/ACCEPTED_QUOTE_TVM_V1.md` and the
+  escrow version 1 specification (retired on 2026-10-05; the current escrow is
+  `docs/STABLECOIN_ESCROW_TVM_V2.md`)
 - external commercial lifecycle: `docs/GATE_D_EXTERNAL_PILOT.md`
 
 Before the buyer item can be complete, run a fresh-buyer session with no source

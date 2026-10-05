@@ -38,11 +38,11 @@ and below `2^120`.
 The Quote commitment transitively binds the Capability ID, immutable version,
 manifest, endpoint, asset, provider, signer authorization, terms, and expiry.
 Bulk output, reports, source, and artifacts remain content-addressed off-chain.
-Where a typed Quote successor commits an execution deadline, its Gate and
-Receipt builder must additionally prove `completed_at <= execution_deadline`,
-and that successor escrow must decode the bound deadline and enforce the same
-comparison before accepting release. Provider-side tooling alone cannot enforce
-a buyer term. Schema-1 escrow has no such field and retains its frozen rule.
+The Paid Demand Quote commits an execution deadline; its Gate and Receipt
+builder must additionally prove `completed_at <= execution_deadline`, and the
+escrow v2 contract decodes the bound deadline and enforces the same comparison
+before accepting release. Provider-side tooling alone cannot enforce a buyer
+term.
 The timestamp remains signed evidence; it does not extend the escrow cutoff or
 reserve a settlement position.
 
@@ -55,20 +55,29 @@ not releasable under that profile.
 
 ## Settlement intent and message
 
-The execution signer signs the TVM representation hash of:
+The execution signer signs the TVM representation hash of the version 2
+settlement intent that the escrow v2 contract rebuilds before checking the
+signature:
 
 ```text
-settlement_intent$_ magic:uint32=0x4e534931 schema:uint16=1
-  query_id:uint64 charged_atomic_amount:uint128
-  escrow:MsgAddressInt quote_commitment:uint256 receipt_commitment:uint256
-  = EscrowSettlementIntentV1;
+settlement_intent$_ magic:uint32=0x4e534931 version:uint16=2
+  global_id:int32 query_id:uint64 charged_atomic_amount:uint128
+  escrow:MsgAddressInt ^settlement_hashes = EscrowSettlementIntentV2;
+
+settlement_hashes$_ quote_commitment:uint256 receipt_commitment:uint256
+  = EscrowSettlementHashesV2;
 ```
+
+`global_id` is the network's ConfigParam 19 (`GLOBALID`), so a signature made
+for one network does not settle the same escrow state on another. The version 1
+intent, which named no network and carried the hashes inline, was retired with
+escrow version 1 on 2026-10-05; the contract refuses it with exit code 2407.
 
 The release message is:
 
 ```text
 release$_ op:uint32=0x4e450001 query_id:uint64 signature:bits512
-  ^receipt = EscrowReleaseV1;
+  ^receipt = EscrowReleaseV2;
 ```
 
 The retry-stable semantic release template is the domain-separated tuple of
@@ -76,12 +85,12 @@ escrow, Quote commitment, Receipt commitment, and charged amount; it excludes
 `query_id`, signature bytes, local revision/cursor/time, and transport-attempt
 metadata. A stable release action ID commits to that template. Each protocol
 attempt then selects one `query_id`, constructs the exact
-`EscrowSettlementIntentV1`, and obtains its exact signature. An ambiguous
+`EscrowSettlementIntentV2` for the network's global ID, and obtains its exact signature. An ambiguous
 broadcast reuses those same bytes until resolved. After an authenticated bounce
 restores `funded`, operator-controlled recovery tooling may create a new query-
 specific intent and signature under the unchanged semantic release action, but
-automatic policy does not retry and query distinctness is not a V1 contract
-invariant.
+automatic policy does not retry and query distinctness is not an escrow
+contract invariant.
 
 The contract reconstructs the intent from its own address and stored Quote,
 checks Ed25519 over `cell_hash(settlement_intent)`, validates the complete
@@ -107,7 +116,7 @@ fixture as an operational signing input.
 The timeout refund message is:
 
 ```text
-refund$_ op:uint32=0x4e450002 query_id:uint64 = EscrowRefundV1;
+refund$_ op:uint32=0x4e450002 query_id:uint64 = EscrowRefundV2;
 ```
 
 The retry-stable semantic refund template binds the domain, escrow, Quote

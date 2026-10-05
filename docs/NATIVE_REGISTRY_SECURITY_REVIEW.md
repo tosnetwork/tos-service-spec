@@ -347,7 +347,7 @@ and results before the independent Gate B item becomes complete.
   `test-vectors/tos-service-v1-registry.json`
 - Primary implementation: `tos-service-protocol/pkg/nativecore`
 - Independent implementation: `tos-service-protocol/internal/referencecodec`
-- Stable error range: `2200` through `2213`, shared with TVM exit codes
+- Stable error range: `2200` through `2215`, shared with TVM exit codes
 - Contract release manifest:
   `tos/crypto/smartcont/tos-service-registry-v1.release.json`
 - Reproducible build test: `tos/scripts/test-tos-service-registry-v1.sh`
