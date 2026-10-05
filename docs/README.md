@@ -57,7 +57,7 @@ application profiles above it.
 - [OpenFox Agent Gifts V1](OPENFOX_AGENT_GIFTS_V1.md)
 - [Settlement](SETTLEMENT.md)
 - [Accepted Quote TVM V1](ACCEPTED_QUOTE_TVM_V1.md)
-- [Stablecoin Escrow TVM V1](STABLECOIN_ESCROW_TVM_V1.md)
+- [Stablecoin Escrow TVM V2](STABLECOIN_ESCROW_TVM_V2.md)
 - [Software Work Receipt TVM V1](SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - [Paid-Demand Accepted-Quote Binding V1](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md)
 - [Agent Gas Sponsorship and Transaction Relay V1](AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
@@ -121,7 +121,6 @@ definition of TOS.
 ## 9. Operations and acceptance evidence
 
 - [Production Readiness Runbook V1](PRODUCTION_READINESS_RUNBOOK_V1.md)
-- [Safe Handoff V1](SAFE_HANDOFF_V1.md)
 - [Public Errors V1](PUBLIC_ERRORS_V1.md)
 - [Gate D External Pilot](GATE_D_EXTERNAL_PILOT.md)
 - [Gate D Pilot Readiness](GATE_D_PILOT_READINESS.md)

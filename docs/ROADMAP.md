@@ -430,7 +430,8 @@ Deliver:
   `tos-service-gateway` commit `7a0b58f` applies it to every public Gateway boundary and
   verifies detail survival across the Connect wire;
 - ✅ pre-acceptance routing and post-acceptance failover rules —
-  `docs/SAFE_HANDOFF_V1.md` freezes the portable boundary; the production
+  `docs/SAFE_HANDOFF_V1.md` froze the portable boundary for escrow version 1
+  (retired with that escrow on 2026-10-05); the production
   verifier reconstructs Quote, Accepted Quote, Receipt, and settlement intent
   solely from owner-held inputs and finalized escrow, covers funded and
   release-pending recovery, and fails closed on every authority boundary; the

@@ -55,11 +55,10 @@ The existing rail remains governed by:
 
 - [`SETTLEMENT.md`](SETTLEMENT.md);
 - [`ACCEPTED_QUOTE_TVM_V1.md`](ACCEPTED_QUOTE_TVM_V1.md);
-- [`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md);
+- [`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md);
 - [`NATIVE_EXECUTION_GATE_V1.md`](NATIVE_EXECUTION_GATE_V1.md);
 - [`SOFTWARE_WORK_EXECUTION_V1.md`](SOFTWARE_WORK_EXECUTION_V1.md);
-- [`SOFTWARE_WORK_RECEIPT_TVM_V1.md`](SOFTWARE_WORK_RECEIPT_TVM_V1.md);
-- [`SAFE_HANDOFF_V1.md`](SAFE_HANDOFF_V1.md); and
+- [`SOFTWARE_WORK_RECEIPT_TVM_V1.md`](SOFTWARE_WORK_RECEIPT_TVM_V1.md); and
 - [`OPENFOX_ECONOMIC_BRIDGE_V1.md`](OPENFOX_ECONOMIC_BRIDGE_V1.md).
 
 Where this document conflicts with an existing rail invariant, the existing
@@ -103,13 +102,16 @@ one authoritative settlement rail.
 Accepted Quote schema 1 has no extension slot, and its frozen decoders reject
 trailing data. An implementation therefore needs an explicit Accepted Quote
 schema successor (or a separately approved generic extension), a corresponding
-escrow code/parser identity, and resolver, safe-handoff, and Gate support for
-that version. Existing schema-1 Quotes and escrow contracts remain unchanged.
+escrow code/parser identity, and resolver and Gate support for that version.
+Schema 1 survives only as the native-terms projection the successor commits
+to; escrow version 1, which accepted schema-1 Quotes by deployment, was
+retired on 2026-10-05.
 This is a versioned payload/parser integration, not an application-side digest
 or a second lifecycle.
 
-Schema 1 keeps its frozen deployment-as-acceptance rule and cannot carry this
-profile. It is never reinterpreted as having the successor state below.
+Deployment-as-acceptance retired with escrow version 1; no schema-1 Quote is
+accepted on chain, and none is reinterpreted as having the successor state
+below.
 
 That successor also needs a recoverable buyer-acceptance transition. Its
 deterministic StateInit starts in `pending_acceptance`; deployment alone is not
@@ -203,7 +205,7 @@ finalized escrow must again be `funded` at or after the refund boundary.
 Otherwise recovery remains
 `AMBIGUOUS(origin=SETTLEMENT_REQUESTING, SAME_ACTION_ONLY)`. An authenticated
 initial bounce of a refund request leaves only that same semantic refund action.
-Honest tooling may propose a new lower-level query/attempt, but escrow V1 does
+Honest tooling may propose a new lower-level query/attempt, but the escrow does
 not retain consumed queries: any public old attempt may win a permissionless
 replay race. The resolver groups all old/new queries under the semantic action;
 automatic paid-demand policy does not retry after bounce.
@@ -373,9 +375,7 @@ contract time satisfies `now <= funding_deadline`, even when that contract time
 is later than `expires_at`; the transaction may be observed as finalized after
 the cutoff. Resolver observation or finality wall time MUST NOT substitute for
 the contract time, and the funding handler MUST NOT reapply the acceptance-only
-cutoff. Funding while `pending_acceptance` remains invalid. Schema 1 retains its
-frozen rule that an `awaiting_funding` notification satisfy both its
-`funding_deadline` and Quote `expires_at` cutoffs.
+cutoff. Funding while `pending_acceptance` remains invalid.
 
 #### Deadline safety and settlement slack
 
@@ -472,11 +472,11 @@ the body commits the exact total, which may be larger than the profile minimum.
 The Gate must use that committed value, never silently replace it with the
 minimum.
 
-Frozen escrow V1 clears `pending_query_id` when a wallet request bounces and
+The escrow clears `pending_query_id` when a wallet request bounces and
 retains no consumed-query history or settlement generation. Any public old
 release/refund message can then be permissionlessly replayed from `funded` and
 race an honest new-query attempt. Thus no finite nonzero-bounce attempt budget
-is a V1 contract invariant, and distinct query IDs do not repair the bound.
+is an escrow contract invariant, and distinct query IDs do not repair the bound.
 Before automatic paid-demand execution, the released profile must prove and
 test a zero-bounce initial release path under the exact wallet code/state,
 attached value, balance, fee, and network assumptions. If it cannot, the margin
@@ -558,8 +558,7 @@ A successful Receipt for this successor must record
 the bound deadline and reject release when that condition fails; relying on the
 Provider's Receipt builder alone would not enforce a buyer term. The escrow must
 also accept the release request while `now < refund_available_at`; otherwise
-only the committed timeout-refund path remains. Schema-1 escrow semantics remain
-unchanged. This is deterministic liveness budgeting, not an Evaluator or
+only the committed timeout-refund path remains. This is deterministic liveness budgeting, not an Evaluator or
 discretionary quality decision.
 
 The contract comparison enforces the signed timestamp field, not wall-clock
@@ -713,9 +712,9 @@ semantics. It adds version-dispatched predicates: the
 demand funding rule that rejects funding before acceptance and, after
 acceptance, checks `funding_deadline` without reapplying `expires_at`; exact
 paid-demand body/proof, deadline, duration, start-preflight, and slack checks at
-the Gate; and the successor release-time execution-deadline predicate. Schema 1
-remains byte-for-byte valid under its frozen acceptance, funding, and release
-rules and is not reinterpreted for this paid-demand path.
+the Gate; and the successor release-time execution-deadline predicate. Schema-1
+acceptance, funding, and release rules retired with escrow version 1 and are
+not reinterpreted for this paid-demand path.
 
 The extension binds buyer Agent-to-wallet context, Demand/Mutation/Offer
 provenance, Provider Offer proof, task/input/source and
@@ -874,7 +873,7 @@ recovery.
 
 ## 10. Existing Gate, Receipt, and recovery integration
 
-The Native Execution Gate retains its existing authority, five schema-1 core
+The Native Execution Gate retains its existing authority, five core
 claim fields, and at-most-once record keyed by `(Quote commitment, escrow
 address)`. Quote-version dispatch adds the exact
 `input_acceptance_record_digest` to the paid-demand claim and every admitting
@@ -899,8 +898,8 @@ demand payload, and its current schema already binds input/source and objective
 result fields. This profile does not require a second Receipt field unless a
 separate concrete binding-sufficiency review proves one is missing.
 
-After Quote finality, public-feed state is irrelevant to recovery. Existing
-safe handoff and finalized escrow/wallet resolution must reconstruct the Quote,
+After Quote finality, public-feed state is irrelevant to recovery. Finalized
+escrow/wallet resolution must reconstruct the Quote,
 typed extension, signed Demand context, Provider proof, Receipt,
 release/refund, and settlement
 without a Gateway, Messenger database, market index, OpenFox journal, or
@@ -959,9 +958,7 @@ The extension requires frozen positive vectors and mutations for:
   rejection of a wrong-sender `accept`, duplicate/conflicting `accept`, funding
   before acceptance, and acceptance at or after its deadline; successful
   successor funding at `accept_by + 1` after an earlier accepted transition and
-  at `funding_deadline`, plus rejection at `funding_deadline + 1`; schema-1
-  vectors continue to enforce both its Quote-expiry and funding-deadline
-  cutoffs; delayed acceptance and funding finality at every committed pre-input
+  at `funding_deadline`, plus rejection at `funding_deadline + 1`; delayed acceptance and funding finality at every committed pre-input
   pipeline boundary, and rejection when either complete pipeline bound is too
   small or unavailable;
 - cross-profile acceptance consistency: a finalized bound-wallet `accept` with
@@ -1007,7 +1004,7 @@ The extension requires frozen positive vectors and mutations for:
 Existing rail conformance tests remain mandatory and must pass unchanged except
 where an explicitly versioned vector is added. Passing the paid-demand extension
 tests cannot waive any existing Quote, escrow, Gate, execution, Receipt, refund,
-safe-handoff, or settlement invariant.
+or settlement invariant.
 
 ## 13. Acceptance criteria
 
@@ -1029,8 +1026,7 @@ The paid-demand binding is accepted only when:
    that transition, successor funding uses contract time
    `now <= funding_deadline` without reapplying `expires_at`, while pre-
    acceptance or late-contract-time funding is rejected, finality observation
-   time is ignored for the deadline, and schema-1 funding semantics remain
-   unchanged;
+   time is ignored for the deadline;
 6. Provider-private fencing prevents stale or partitioned writers and aggregate
    overcommitment without entering public canonical bytes;
 7. private input reaches only the bound proof-of-possession ingress after exact
@@ -1093,16 +1089,16 @@ Before implementation, the specification PR must freeze:
    obligation/predicate/target commitments, bounds, canonical ordering, digest
    domains, equality projection, and positive/negative vectors;
 2. the Accepted Quote successor or generic typed-extension mechanism, including
-   unknown-version and trailing-data behavior while schema 1 remains unchanged;
+   unknown-version and trailing-data behavior;
 3. the corresponding escrow StateInit/code identity, deterministic address
    derivation for one exact Provider Offer, initial `pending_acceptance` state,
    buyer-wallet-authenticated `accept` message and transition, wrong-sender and
    duplicate behavior, acceptance deadline, predeployment recovery, funding
    rejection before acceptance, and version-dispatched post-acceptance funding
    predicate through `funding_deadline` without reapplying `expires_at`, plus
-   release-time enforcement of the bound `execution_deadline` while schema 1
-   retains its frozen dual-cutoff funding and release rules;
-4. resolver, safe-handoff, and Native Execution Gate immutable version-dispatch
+   release-time enforcement of the bound `execution_deadline`, with the
+   released code pinned (`STABLECOIN_ESCROW_TVM_V2.md`);
+4. resolver and Native Execution Gate immutable version-dispatch
    tuple from network/Quote schema/binding profile to exact Quote parser, escrow
    parser/code hash, Gate claim-extension parser/predicate set, and field-by-
    field comparison rules, with no retry/preflight redispatch;

@@ -1972,5 +1972,5 @@ opcode or market database. Its Roadmap expansion gate remains locked.
 
 [`NATIVE_EXECUTION_GATE_V1.md`](NATIVE_EXECUTION_GATE_V1.md),
 [`SOFTWARE_WORK_RECEIPT_TVM_V1.md`](SOFTWARE_WORK_RECEIPT_TVM_V1.md), and
-[`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md) apply only when the
+[`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md) apply only when the
 selected Agreement and settlement adapter invoke them.

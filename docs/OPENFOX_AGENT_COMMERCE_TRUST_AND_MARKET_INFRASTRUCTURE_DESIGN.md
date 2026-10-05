@@ -100,7 +100,7 @@ all of them.
 | Multi-round negotiation | Natural-language negotiation is supported; changed terms use exact Agreement versions and predecessor digests; `AGREEMENT/PROPOSE`, accept, and withdraw are typed | A standalone `CounterOffer` wire object would overlap Agreement proposal/version authority and Messenger's older incubation labels | `VALIDATE` reuse first; a new portable object is `CANDIDATE` only after an ambiguity is demonstrated |
 | Milestones and staged obligations | `AgreementObligationV1`, dependencies, acceptance evidence, cancellation/dispute policy, `BillingTermsV1`, and `SettlementObligationV1` already express milestone, deposit, installment, periodic, refund, and mixed-adapter graphs | A second milestone Agreement or global commerce state machine would duplicate existing authority | `REUSE`; OpenFox may keep only a derived local projection |
 | Aggregate loss and capacity | The autonomous earning plan and Semantic Action Identity registry already require atomic Portfolio reservation, Writer Fence admission, stable actions, and recovery | Presenting exposure reservation as a new protocol primitive obscures an existing safety invariant | `REUSE` and add adapter-integration tests |
-| Current Paid Demand escrow | Escrow V1 has `awaiting_funding`, `funded`, `release_pending`, and `refund_pending`, with derived full release/refund outcomes for one fixed-price objective job | The earlier draft added partial funding, buyer acceptance, revision, `disputed`, split remedy, adjudication, and fee states that V1 does not have | Preserve V1. Test multiple independent escrows; any richer contract is separately versioned `CANDIDATE` work |
+| Current Paid Demand escrow | Escrow V2 has `pending_acceptance`, `awaiting_funding`, `funded`, `release_pending`, and `refund_pending`, with derived full release/refund outcomes for one fixed-price objective job (escrow V1 retired on 2026-10-05) | The earlier draft added partial funding, revision, `disputed`, split remedy, adjudication, and fee states that V2 does not have | Preserve V2. Test multiple independent escrows; any richer contract is separately versioned `CANDIDATE` work |
 | Escrow asset | The current commercial profile settles one exact supported stablecoin issued on TOS Network; native TOS pays network fees | A native-TOS 4/1.5 escrow test would claim support that the current profile does not define | Use one exact TOS-network stablecoin for escrow tests and account for native-TOS Gas separately |
 | Acceptance and dispute evidence | Agreement obligations already bind acceptance requirements and dispute policy; Outcome Events can observe acceptance, rejection, rework, dispute, refund, and ambiguity | An Outcome observation or local state was at risk of becoming release authority | `REUSE` as evidence; prove the selected settlement profile separately authorizes every custody transition |
 | Portable history | Outcome Event V1 already defines immutable negative and positive observations, event sets, evidence manifests, disclosure projections, completeness/cohort checkpoints, conflicts, and economic perimeters | A new dossier/reputation wire layer would duplicate Outcome Event and risk a global score | `REUSE`; define a bounded product view and local counterparty outcome-risk only |
@@ -293,11 +293,11 @@ new Quote/escrow/Gate slot under current semantics. A successfully executed
 The composition must not imply partial funding inside one escrow, partial
 release, buyer-selected post-delivery acceptance, revision re-execution under
 one Quote, a chain `disputed` state, fee split, adjudicator callback, or
-subjective quality enforcement. Those semantics are absent from escrow V1.
+subjective quality enforcement. Those semantics are absent from escrow V2.
 
 The current escrow's deadline boundaries, chain time, finality, and bounce
 behavior remain exact profile rules; OpenFox must not replace them with one
-generic timeout. After an authenticated wallet-request bounce, escrow V1 may
+generic timeout. After an authenticated wallet-request bounce, escrow V2 may
 return to `funded` and may accept an old public release/refund request again.
 Recovery must therefore prove that no second terminal economic payout occurs
 and must account for any additional native-TOS fee; it must not claim that a
@@ -325,7 +325,7 @@ must retain the source namespace and authority of every state:
 
 | Namespace | Examples | Authority and use |
 |---|---|---|
-| Chain escrow V1 | `awaiting_funding`, `funded`, `release_pending`, `refund_pending`, derived released/refunded outcomes | Finalized contract and stablecoin-wallet state; custody authority |
+| Chain escrow V2 | `pending_acceptance`, `awaiting_funding`, `funded`, `release_pending`, `refund_pending`, derived released/refunded outcomes | Finalized contract and stablecoin-wallet state; custody authority |
 | Agreement and obligation projection | proposed/authorized Agreement versions; settlement obligation `pending`, `partially_paid`, `paid`, `overdue`, `cancelled`, `disputed`, `written_off` | Typed Agreement evidence plus adapter-qualified payment evidence; business obligation accounting, not contract state |
 | Semantic action resolution | admitted, submitted, ambiguous, succeeded, failed, terminal successor | Side-effect idempotency, Writer Fence takeover, reservation retention, and query-before-retry recovery |
 | Outcome observation | attempt, rejection, rework, dispute, refund, cost, unknown, conflict, correction | Immutable evidence and local projections; never action or custody authority |
@@ -333,7 +333,7 @@ must retain the source namespace and authority of every state:
 A local OpenFox UI may combine these into one view only if it preserves each
 qualified source and does not invent a transition. In particular:
 
-- `SettlementObligationStateV1.disputed` does not mean escrow V1 has a
+- `SettlementObligationStateV1.disputed` does not mean escrow V2 has a
   `disputed` contract state;
 - `DELIVERED` or `ACCEPTED` in a workflow view does not authorize release;
 - an Outcome Event saying `refunded` does not replace finalized refund
@@ -452,7 +452,7 @@ permission to implement locked expansions.
 |---|---|
 | `tos-service-spec` | Own this reconciliation; freeze a genuinely missing portable profile only after a recorded reuse failure and normal versioning/review |
 | `tos-service-protocol` | Reuse canonical codecs/verifiers; provide portable helpers and projections only for released or candidate profiles |
-| `tos` and `tosctl` | Keep escrow V1 unchanged; implement a future version only after its separate specification, gate, and security review |
+| `tos` and `tosctl` | Keep escrow V2 unchanged; implement a future version only after its separate specification, gate, and security review |
 | `tos-messenger` | Carry authenticated conversation and existing typed commerce objects; do not create commercial truth from delivery or read state |
 | `openfox` | AI reasoning, demand drafting, Owner policy, orchestration, Portfolio admission, local negotiation/outcome-risk/accounting projections, meters, UX, and campaigns |
 | Carriers and Gateways | Bounded transport, indexes, provenance, availability, and optional ranking; never Agreement, trust, acceptance, or settlement authority |

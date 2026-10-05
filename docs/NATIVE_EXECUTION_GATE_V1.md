@@ -62,8 +62,8 @@ input_digest
 source_digest
 ```
 
-Those five fields are the frozen schema-1 core. Quote-version dispatch requires
-a paid-demand successor transport to add:
+Those five fields are the claim core. The Paid Demand profile, the only Quote
+profile with a supported escrow, requires every transport to add:
 
 ```text
 input_acceptance_record_digest
@@ -107,9 +107,10 @@ Quote schema/profile to exactly one tuple:
       Gate claim-extension parser and predicate set)
 ```
 
-Schema 1 maps to its released five-field claim and frozen escrow semantics; the
-paid-demand successor maps to its own exact parser/code/predicates and mandatory
-`input_acceptance_record_digest`. Unknown, ambiguous, trailing-data, wrong-code,
+The Paid Demand profile maps to its exact parser, the released escrow v2 code
+hash, its predicates, and the mandatory `input_acceptance_record_digest`. A
+schema-1 Quote has no supported escrow (escrow version 1 was retired on
+2026-10-05) and is refused. Unknown, ambiguous, trailing-data, wrong-code,
 or cross-version parser/profile combinations fail closed. The selected dispatch-
 entry digest is bound into the first durable claim and cannot change on retry or
 preflight to reinterpret the purchase more permissively.
@@ -222,7 +223,7 @@ proves that boundary. The
 release-pipeline margin covers bounded objective validation; evidence/report and
 Receipt construction; query-specific signing; initial release inclusion;
 and definitive downstream acceptance of the initial escrow-wallet request
-without bounce. It is not task-runner time. Frozen escrow V1 clears pending
+without bounce. It is not task-runner time. The escrow clears pending
 query history on bounce, so a public old attempt may be permissionlessly
 replayed from `funded`; no finite nonzero-bounce retry bound is enforced.
 Automatic paid-demand admission therefore requires a proven zero-bounce initial
@@ -281,16 +282,9 @@ Because a safe refresh resets only this receipt-validity interval, the field is
 not a promise about total time from the original Gate claim to process start;
 the fresh execution and refund deadline comparisons bound that total delay.
 
-Schema-1 Quotes retain their frozen protocol validity and contain no committed
-paid-demand margin or admission deadline. A production Provider must apply a
-nonzero local late-start refusal policy before enabling schema-1 execution. That
-policy conservatively reserves the manifest wall-clock maximum plus local
-preflight/start delay and the same complete validation, Receipt, signing,
-and proven zero-bounce initial-wallet-request pipeline described above. It
-remains an operator safety policy, not a buyer term, Quote field, or new schema-1
-validity rule. If the operator has not configured and tested those bounds,
-schema-1 production admission remains disabled rather than being presented as a
-protocol commitment.
+Schema-1 Quotes are not admitted: they have no committed margin or admission
+deadline, and the escrow version 1 that settled them was retired on
+2026-10-05.
 
 The paid-demand profile must freeze allowed duration/delay/margin ranges, each
 pre-input pipeline's complete step bound, `InputAcceptanceRecordV1` and ingress-
@@ -359,7 +353,7 @@ Unit and race tests must cover canonical Accepted Quote decode, exact escrow
 and Registry identities, Agent tombstone, Capability ownership/version/revoke,
 expired escrow, identical retry, concurrent conflicting claims across every
 admitting transport (A2A, MCP, and Agent Packet),
-schema-1 core versus paid-demand claim dispatch, omitted/substituted/different
+refusal of schema-1 and other non-Paid-Demand claims, omitted/substituted/different
 `input_acceptance_record_digest`,
 unknown/mismatched Quote/parser/escrow-code/Gate-predicate dispatch, cross-
 version substitution, and retry/preflight attempts to redispatch a bound claim,
@@ -378,8 +372,8 @@ fresh start preflight while durably `prepared`,
 escrow settlement, Agent tombstone, Capability transfer/revocation/version
 change, code substitution, checkpoint regression, or fork conflict between
 admission and every refreshed preflight, atomic `prepared -> starting`, crash
-ambiguity after that transition, overflow, clock-skew rejection, and schema-1
-versus successor version dispatch without recomputing a more permissive prior
+ambiguity after that transition, overflow, clock-skew rejection, and refusal of any
+other Quote version without recomputing a more permissive prior
 decision. It must also cover the profile's exact wallet/attached-value/fee
 assumptions, zero-bounce proof, old-query permissionless release/refund replay,
 concurrent old/new attempts, repeated replay/fee consumption, semantic-action

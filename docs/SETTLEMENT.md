@@ -69,30 +69,31 @@ this specification.
 Escrow creation references the Accepted Quote commitment and locks no more than
 its maximum price in the selected asset. State transitions are contract-
 defined. Exact replay cannot create another wallet request while escrow is
-pending or terminal. After an authenticated bounce restores `funded`, frozen
-schema 1 may accept an old public request again because it retains no consumed-
+pending or terminal. After an authenticated bounce restores `funded`, the
+escrow may accept an old public request again because it retains no consumed-
 query history; resolver-level idempotency groups that transition under the same
 semantic action. Gateway accounting is a projection of finalized escrow and
 settlement transactions.
 
-The first escrow contract distinguishes `awaiting_funding`, `funded`,
+The escrow contract ([`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md))
+distinguishes `pending_acceptance`, `awaiting_funding`, `funded`,
 `release_pending`, and `refund_pending`, plus the chain-derived economic
-outcomes released or refunded. `accepted_for_execution`, `result_ready`,
-and any future `evaluating` label are Gate or SDK projections, not V1 escrow
-states. Mutually exclusive pending states prevent a second economic transfer
+outcomes released or refunded. Escrow version 1, which had no
+`pending_acceptance` state and treated deployment as acceptance, was retired
+on 2026-10-05. `accepted_for_execution`, `result_ready`, and any future
+`evaluating` label are Gate or SDK projections, not escrow states. Mutually exclusive pending states prevent a second economic transfer
 request. The finalized resolver derives the terminal outcome from the exact
 stablecoin wallet transaction chain; a gateway callback or the standard
 wallet's unbound `excesses` message is not settlement authority.
 
 For the first release, escrow supports fixed-price release before the committed
 refund boundary and timeout refund at or after it. The Execution Gate must
-reserve the schema-dispatched worst case. For the paid-demand successor, that
-means the exact committed preflight-to-start delay, effective runtime derived
+reserve the worst case. That means the exact committed preflight-to-start delay, effective runtime derived
 no greater than the manifest limit, and a nonzero margin for bounded objective
 validation; evidence/report and Receipt construction; query-specific signing;
 initial release inclusion; and definitive downstream acceptance of that initial
 wallet request without bounce, strictly before the refund boundary, with a
-fresh same-claim preflight before first process start. Frozen escrow V1 forgets
+fresh same-claim preflight before first process start. The escrow forgets
 the pending query on bounce, so a public old release/refund attempt may be
 permissionlessly replayed from `funded`; distinct queries do not create a finite
 contract-enforced retry bound. Automatic execution therefore requires a proven
@@ -151,7 +152,7 @@ authorization, immutable version, amount bounds, and prior state. It then
 records one pending transfer intent and asks the bound stablecoin wallet to
 perform the economic transition. While escrow remains pending or reaches a
 terminal outcome, replay or conflicting receipt/amount data cannot create
-another transfer request. Frozen schema 1 clears the pending query if that
+another transfer request. The escrow clears the pending query if that
 wallet request authentically bounces, however, so an old public release/refund
 attempt may recreate the same semantic action from restored `funded` and race a
 new operator attempt. The resolver groups those attempts; automatic policy does

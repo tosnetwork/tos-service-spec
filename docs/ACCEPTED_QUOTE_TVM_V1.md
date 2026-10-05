@@ -7,12 +7,14 @@ proposal into the cell below. Its TVM cell hash is the Accepted Quote
 commitment. `proposal_id` is deliberately excluded, so gateways cannot become
 part of canonical commercial identity.
 
-The first finalized transaction carrying this exact cell makes the terms an
-Accepted Quote. For the first commercial lifecycle, the transaction is the
-deployment of the stablecoin escrow whose StateInit embeds this cell. The
-escrow is a real custody and settlement state machine, not an Action Anchor.
-Its exact StateInit linkage and asynchronous settlement requirements are
-defined in [`STABLECOIN_ESCROW_TVM_V1.md`](STABLECOIN_ESCROW_TVM_V1.md).
+This schema-1 cell is not itself accepted on chain: escrow version 1, whose
+deployment made the embedded schema-1 cell an Accepted Quote, was retired on
+2026-10-05. The cell remains the exact native-terms projection that the Paid
+Demand Accepted Quote (schema 2) commits to. Only the schema-2 cell is embedded
+in an escrow, and it becomes accepted when the bound buyer's `accept`
+transition finalizes; see
+[`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md) and
+[`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md).
 
 ## Cell layout
 
