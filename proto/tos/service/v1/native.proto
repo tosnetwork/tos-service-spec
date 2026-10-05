@@ -30,6 +30,8 @@ enum NativeErrorCodeV1 {
   NATIVE_ERROR_CODE_V1_IMMUTABLE_VERSION = 2211;
   NATIVE_ERROR_CODE_V1_TIMELOCK = 2212;
   NATIVE_ERROR_CODE_V1_DUPLICATE_SIGNATURE = 2213;
+  NATIVE_ERROR_CODE_V1_WEAK_KEY = 2214;
+  NATIVE_ERROR_CODE_V1_POLICY_TOO_WIDE = 2215;
   NATIVE_ERROR_CODE_V1_PUBLIC_BAD_REQUEST = 2300;
   NATIVE_ERROR_CODE_V1_PUBLIC_NOT_FOUND = 2301;
   NATIVE_ERROR_CODE_V1_PUBLIC_CONFLICT = 2302;
@@ -91,6 +93,7 @@ message ControllerPolicyV1 {
   uint32 threshold = 1;
   uint32 recovery_threshold = 2;
   uint64 recovery_timelock_seconds = 3;
+  // 1..20 controllers; a wider policy is refused with POLICY_TOO_WIDE.
   repeated ControllerV1 controllers = 4;
 }
 

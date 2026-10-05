@@ -44,7 +44,7 @@ Connect codes, forbidden delays, and out-of-range delays all fail closed as
 | `PUBLIC_UNAUTHENTICATED` | `unauthenticated` | `NEVER` |
 | `PUBLIC_PERMISSION_DENIED` | `permission_denied` | `NEVER` |
 
-Native Registry validation codes `2200..2213` retain their existing stable
+Native Registry validation codes `2200..2215` retain their existing stable
 identifiers and use `NEVER`: the exact action is deterministically invalid at
 the checked state. A newly constructed action may be valid only after the
 caller resolves current state and deliberately reviews and signs it.
