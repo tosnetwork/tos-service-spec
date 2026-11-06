@@ -1,13 +1,17 @@
-# Native Registry V2: post-quantum controllers (design proposal)
+# Native Registry: post-quantum controllers (design)
 
-**Status:** proposal for review, revision 3. Not normative until reviewed, frozen with
-vectors and a security review, and approved for deployment, as
-`NATIVE_REGISTRY_TVM_V1.md` requires for any code change.
+**Status:** design, revision 4. It changes the existing Native Registry in place. TOS is
+pre-launch and no registry object exists on any public network (inventory memo
+7e540d9), so there is no earlier registry to keep, migrate or tell apart: the
+Ed25519 controller scheme is replaced, not versioned. The changed contract still needs
+the gates of section 7, a frozen code identity with vectors, a security review and a
+deployment decision, as `NATIVE_REGISTRY_TVM_V1.md` requires for any code change.
 
 **Owner decisions it implements (2026-11-06):** post-quantum service-layer signatures
-are a priority; public Native Registry registration waits for this version; a policy
+are a priority; public Native Registry registration waits for this change; a policy
 holds at most **8** controllers, with the contract optimized as specified in section 4.2
-(the earlier cap of 16 was withdrawn after the lifecycle measurement in section 5).
+(the earlier cap of 16 was withdrawn after the lifecycle measurement in section 5); no
+V1/V2 split, the existing registry is changed in place.
 
 ## 1. Why
 
@@ -16,13 +20,13 @@ variants, but every service contract (Native Registry, Service Actor, Task Escro
 Proof Attestation, Agent Account, Dispute) authorizes with Ed25519 `CHKSIGNU` only.
 Registry policies publish their controller public keys on chain, so an adversary able
 to forge Ed25519 from a public key could take over every Agent and Capability at once.
-This version replaces the controller signature scheme of the Native Registry. The other
+This change replaces the controller signature scheme of the Native Registry. The other
 service contracts follow in their own designs; Service Actor, the chosen settlement
 rail, comes next.
 
 ## 2. What does not change
 
-The object model, identifiers, state machines and routing of V1 stay as specified in
+The object model, identifiers, state machines and routing stay as specified in
 `NATIVE_REGISTRY_STATE_MACHINES.md` and `NATIVE_REGISTRY_TVM_V1.md`:
 
 - Agents and Capabilities as deterministic accounts, one object per account;
@@ -34,7 +38,9 @@ The object model, identifiers, state machines and routing of V1 stay as specifie
   per-purpose threshold reachability, and possession: installing a policy (registration,
   policy update, recovery initiation) needs a signature from every controller of the
   installed policy; registration consent is the agent-control weight among them
-  (`verify_registration_consent`, as in the current release `c7958fb6`).
+  (`verify_registration_consent`, as in the current release `c7958fb6`);
+- the cell families and their magics and schema values (`NVD1`, `NVS1`, `NVA1`, `NVP1`,
+  `NVI1`, schema 1), and the identity, action, state and data layouts.
 
 ## 3. What changes
 
@@ -45,8 +51,7 @@ global version 16). There is no Ed25519 controller and no mixed policy. A second
 algorithm is a protocol change, as `crypto/smartcont/pq-bytes.fc` already rules.
 
 A mixed policy keeps the weaker scheme's forgery power over every purpose whose
-threshold it can reach, so it buys no security; TOS is pre-launch and has no registry
-objects on the public testnet (inventory memo 7e540d9), so there is nothing to migrate.
+threshold it can reach, so it buys no security.
 
 ### 3.2 Key material and key identity
 
@@ -62,21 +67,16 @@ objects on the public testnet (inventory memo 7e540d9), so there is nothing to m
 - **Text form** (replaces `ed25519:<public key hex>` in `NATIVE_IDENTIFIERS_V1.md`):
   `mldsa44:<64 lowercase hex key id>`.
 
-### 3.3 Exact V2 layouts
+### 3.3 Changed layouts
 
-Every cell family keeps its magic and carries schema `2`; decoders require the exact
-schema, bit length, reference shape and exhaustion, and refuse V1 cells. Where V1 had an
-object-kind field in the same position, V2 keeps it and adds the schema before it.
+Only the policy, its controllers and the signature sets change; every other layout keeps
+its current form.
 
 ```text
-policy     = "NVP1":uint32 schema:uint16(=2) threshold:uint32 recovery_threshold:uint32
+policy     = "NVP1":uint32 schema:uint16(=1) threshold:uint32 recovery_threshold:uint32
              recovery_timelock:uint64 count:uint8 ^controller
 controller = key_id:uint256 weight:uint32 purposes:uint16 recovery:Bool
              ^stored_key [^controller]                -- strictly ascending key_id
-identity   = "NVI1":uint32 schema:uint16(=2) object_kind:uint8 ...   -- V1 fields follow
-action     = "NVA1":uint32 schema:uint16(=2) ...                      -- V1 fields follow
-state      = "NVS1":uint32 schema:uint16(=2) object_kind:uint8 ...
-data       = "NVD1":uint32 schema:uint16(=2) object_kind:uint8 ...
 signatures = count:uint8 [^entry]       -- count = 0 has no reference
 entry      = key_id:uint256 ^stored_signature [^entry]   -- strictly ascending key_id
 stored_signature = len:uint32(=2420) ^chain
@@ -86,15 +86,15 @@ stored_signature = len:uint32(=2420) ^chain
   set is refused with `policy_too_wide` before any entry is read.
 - The empty signature set (`count = 0`, no reference) is the only encoding of "no
   signatures" and is what kinds without counterparty consent carry.
-- Agent and Capability ids differ from V1 because the identity preimage now carries the
-  schema and the policy hash it commits to differs. The exact preimages and their test
-  vectors are frozen with the contract.
+- Agent ids change because the policy hash they commit to changes; Capability ids change
+  with their owner Agent's id. The exact preimages and their test vectors are frozen with
+  the contract.
 
 ### 3.4 Signatures
 
 - **Scheme:** Pure ML-DSA-44 over the 32 raw bytes of the canonical action hash (the TVM
-  cell hash of the `NVA1` action cell), with the context string `TOS-NATIVE-REGISTRY-v2`
-  (22 bytes, within the instruction's 0..255). No prehash, no external-mu.
+  cell hash of the `NVA1` action cell), with the context string `TOS-NATIVE-REGISTRY`
+  (19 bytes, within the instruction's 0..255). No prehash, no external-mu.
 - **Threshold authorization:** every signer is a controller of the current policy with
   the required purpose (and the recovery designation for recovery actions); weights of
   distinct signers sum to the threshold.
@@ -107,8 +107,8 @@ stored_signature = len:uint32(=2420) ^chain
 
 ### 3.5 Workchain
 
-V2 objects live in the basechain only (workchain 0), and the contract refuses to run
-elsewhere. This is a deliberate constraint, consistent with the PQ multisig, not a
+Registry objects live in the basechain only (workchain 0), and the contract refuses to
+run elsewhere. This is a deliberate constraint, consistent with the PQ multisig, not a
 sizing necessity: the basechain gas limit and the per-account state limits (65,536 cells
 against 2,048 in the masterchain) leave room for later growth of policy state.
 
@@ -121,7 +121,7 @@ delivered to that wallet by one external message: the route tos-service-protocol
 uses (`pkg/chainactionpublisher`, which prepares the exact message with
 `tosctl wallet send --build-only` from an ordinary wallet and broadcasts only those
 bytes). A registration's internal message carries the StateInit with the registry code
-and its V2 account data.
+and its account data.
 
 The relayer wallet pays fees and holds **no registry authority**: an action is authorized
 only by the ML-DSA-44 controller signatures inside its body, which bind the action hash,
@@ -173,15 +173,15 @@ What it measures, and what it does not:
   gas unit on every case within the emulator fixture's 1,000,000 limit.
 - **Message size:** the serialized BOC of the route's whole external message: the relayer
   wallet's external message (real `ext_in` header, wallet v3r2 body) carrying the
-  internal message with the V2 action, payload, both signature sets over the exact action
-  hash, and, for a registration, the StateInit with the current registry code and V2
-  account data. It is a **structurally representative serialized estimate**, not a
-  broadcast and not the exact route encoding: the relayer's signature and seqno are
-  placeholders of the right width; the wallet body omits the 4-byte `global_id` field
-  TOS's v3r2 request carries; the action uses one kind and placeholder state and domain
-  fields for every path; controller and signature lists are not in canonical key-id order;
-  and the current registry code stands in for the V2 code. None of these changes the
-  size by more than a few bytes per message, except the V2 code for a registration.
+  internal message with the action, payload, both signature sets over the exact action
+  hash, and, for a registration, the StateInit with the current registry code and account
+  data. It is a **structurally representative serialized estimate**, not a broadcast and
+  not the exact route encoding: the relayer's signature and seqno are placeholders of the
+  right width; the wallet body omits the 4-byte `global_id` field TOS's v3r2 request
+  carries; the action uses one kind and placeholder state and domain fields for every
+  path; controller and signature lists are not in canonical key-id order; and the current
+  registry code stands in for the changed code. None of these changes the size by more
+  than a few bytes per message, except the changed code for a registration.
 - **Not measured:** the second transfer leg is not executed separately (it verifies the
   receiving owner's threshold signatures, the same workload as the first leg), and neither
   leg's sender authentication or forwarding is executed.
@@ -203,40 +203,40 @@ What it measures, and what it does not:
   and every new key, and no code. At 10 controllers the estimates leave 52 bytes (update)
   and 44 bytes (recovery initiation) under `max_ext_msg_size`, which the omitted
   `global_id` and any growth of the envelope or payload fields would erase; at 12 they no
-  longer fit. Registration carries the code instead and is about 16 KB lighter at 8, so V2
+  longer fit. Registration carries the code instead and is about 16 KB lighter at 8, so
   code growth is checked against registration separately. In these estimates eight
   controllers fit every path with about 13 KB of margin, pending the real-message gate of
   section 7.
-- These are gates for the V2 contract, not results: it must be re-measured on both VMs
-  for every policy-walking path at 8 controllers, with full-transaction gas at or below
+- These are gates for the changed contract, not results: it must be re-measured on both
+  VMs for every policy-walking path at 8 controllers, with full-transaction gas at or below
   800,000 and every path's real relayer message at or below 65,535 bytes.
 
 ## 6. Consumers to change
 
 | Component | Change |
 |---|---|
-| tos `crypto/smartcont/native-registry-code.fc` | V2 layouts, ML-DSA-44 policy and signatures with section 4.2 rules, cap 8, basechain only |
-| tos `contracts::native_registry` (Rust builders, tos `#425`) | V2 encoders, key ids, test signer |
-| tos-service-protocol `pkg/nativecore`, `internal/referencecodec` | V2 policy and signature encoders, key-id derivation, ML-DSA-44 verification |
-| tos-service-protocol relayer and journal | registration preflight: possession for every controller plus agent-control consent weight (fixed for V1 in tos-service-protocol `#28`); operation identity = action hash, while a broadcast attempt keeps its exact body, funding, destination and StateInit; a re-signed body for the same action must neither be rejected after completion nor broadcast twice |
+| tos `crypto/smartcont/native-registry-code.fc` | ML-DSA-44 policy and signatures with section 4.2 rules, cap 8, basechain only |
+| tos `contracts::native_registry` and its sandbox suites | ML-DSA-44 policy and signature encoders, key ids, test signer |
+| tos-service-protocol `pkg/nativecore`, `internal/referencecodec` | policy and signature encoders, key-id derivation, ML-DSA-44 verification |
+| tos-service-protocol relayer and journal | registration preflight: possession for every controller plus agent-control consent weight (fixed in tos-service-protocol `#28`); operation identity = action hash, while a broadcast attempt keeps its exact body, funding, destination and StateInit; a re-signed body for the same action must neither be rejected after completion nor broadcast twice |
 | tos-service-protocol wallet, tosctl vault | ML-DSA-44 controller keys and signing; no private key leaves custody |
-| tos-service-spec | `NATIVE_IDENTIFIERS_V1.md`, `NATIVE_IDENTITY_V1.md`, `NATIVE_REGISTRY_TVM_V1.md` code identity, frozen V2 vectors |
-| gateway, tos-ai, openfox | follow the protocol version that ships V2 |
+| tos-service-spec | `NATIVE_IDENTIFIERS_V1.md`, `NATIVE_IDENTITY_V1.md`, `NATIVE_REGISTRY_TVM_V1.md` code identity, frozen vectors, edited in place |
+| gateway, tos-ai, openfox | follow the protocol release that ships the change |
 
 ## 7. Verification before freeze
 
-- Contract sandbox on both VMs: every V1 lifecycle and refusal case re-run with ML-DSA-44,
-  including a mixed-purpose registration (a controller isolated to delegation, Capability
-  control or recovery signs for possession only) accepted by the contract and by the
-  protocol relayer preflight, and recovery completion promoting the pending policy with
-  an empty counterparty set.
+- Contract sandbox on both VMs: every current lifecycle and refusal case re-run with
+  ML-DSA-44, including a mixed-purpose registration (a controller isolated to delegation,
+  Capability control or recovery signs for possession only) accepted by the contract and
+  by the protocol relayer preflight, and recovery completion promoting the pending policy
+  with an empty counterparty set.
 - Adversarial cases: wrong context; a cross-role signature (same key, consensus or quorum
   context); signature by a non-member; a stored key whose id does not match; library or
   exotic cells substituted for the wrapper and for continuation cells of keys and
   signatures; trailing bits or references; malformed lengths; 9 controllers; 9 signature
   entries; duplicate and out-of-order entries; possession missing one controller; two
   valid randomized signature sets for one action producing exactly one state transition;
-  V1 cells sent to V2 through direct and forwarded paths; deployment outside workchain 0.
+  Ed25519-shaped policies and signature entries refused; deployment outside workchain 0.
 - Gas at 8 controllers for every policy-walking path (registration, disjoint 8-to-8
   update, 8-to-8 recovery initiation and completion, both transfer legs) at or below
   800,000 on both VMs.
@@ -250,4 +250,4 @@ What it measures, and what it does not:
   independent reference codec.
 - Relayer journal tests: randomized re-signatures of one action across prepared,
   broadcasting, completed, concurrent and restarted states.
-- Independent security review of the V2 contract and the protocol changes.
+- Independent security review of the changed contract and the protocol changes.
