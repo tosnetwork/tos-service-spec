@@ -475,6 +475,22 @@ Pointers for follow-up changes; no code is written here.
   Receipts, off-chain; (b) carry and decode the Receipt in `respond`.
   *Recommend (a)* for this profile; (b) costs gas and body size per call and
   still proves only what the attestor signed.
+- **D10 Historical request snapshot (open).** Existing-request verification
+  (section 2.4, steps 6-8) needs the request entry the `call` wrote, but chain
+  queries return account state per block, not per transaction, and a
+  transaction carries only the old and new account hashes; when `call` and
+  `respond` execute in the same block, no queryable state holds the entry.
+  Options: (a) the contract emits the request snapshot (request ID, caller,
+  `request_hash`, `terms_hash`, price, attestor flag and key or key id) as an
+  external out-message at `call`, which a resolver reads from the finalized
+  `call` transaction and which also closes the missing `request_id` event of
+  section 7; (b) resolvers replay the `call` transaction from the authenticated
+  preceding account state and check the resulting state hash against the
+  transaction; (c) restrict historical verification to pending requests and
+  treat terminal outcomes as unverifiable by Capability. *Recommend (a)*: one
+  bounded log message per call, independent of block packing, and the only
+  option a light client can check without re-executing the contract. Raised by
+  the third non-author review round; left open rather than patched.
 
 ## 9. Verification before freeze
 
