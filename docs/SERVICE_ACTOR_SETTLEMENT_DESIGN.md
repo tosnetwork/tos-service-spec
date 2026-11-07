@@ -1,8 +1,11 @@
 # Service Actor Settlement Binding (design)
 
-**Status:** design proposal, spec-first. Not normative until the owner decisions
-in section 8 are taken and the gates in section 9 are met. No code, schema or
-vector changes are made by this document.
+**Status:** decided 2026-11-07 (owner: D1-D10 as recommended). The decisions of
+section 8 are taken; the normative contract surface they produce is
+[`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md), and the in-place
+specification edits are in the documents section 10 lists. The gates in section
+9 are still open: no contract code, code identity or vector exists yet for the
+changed contract.
 
 **Owner decision it implements (2026-11-06):** the current-domain
 `tos_service_v1` end-to-end acceptance settles on the Service Actor contract
@@ -163,31 +166,51 @@ are not part of the terms.
 version revoked after the `call` does not invalidate the request (revocation
 does not touch the actor). Then, instead of steps 5-8:
 
-5. locate the finalized `call` transaction and its `request_id` (section 3.2);
-   its caller is the buyer and its inbound body carries the buyer's
-   `request_hash` and the Quote's `terms_hash`;
-6. read the request snapshot, in **every** request state: from `get_request(id)`
-   (SA:917-929) while pending, otherwise from the entry the `call` wrote, in the
-   account state right after the finalized `call` transaction. The snapshot's
-   caller, `request_hash`, `terms_hash` and price equal step 5 and the Quote;
-7. the snapshot has `has_attestor = 1` and its attestor key equals the step 4
-   key, the one the manifest and the Quote name and admission verified. This is
-   the check that matters after an owner action: a rotation from K1 to K2
+5. locate the finalized `call` transaction (section 3.2); its caller is the
+   buyer and its inbound body carries the buyer's `request_hash` and the
+   Quote's `terms_hash`;
+6. read the request snapshot from that transaction alone (D10): the
+   successful `call` emits exactly one external out-message whose body is the
+   `ServiceActorRequestSnapshotV1` cell of `SERVICE_ACTOR_TVM_V1.md`. It is
+   decoded exactly (magic, schema, bit lengths, references, exhaustion); zero
+   or more than one such message, or a trailing field, is a verification
+   error. Its `request_id` is the request's identity. Its caller equals the
+   `call` sender and the buyer, its `request_hash` and `terms_hash` equal the
+   inbound body and the Quote, and its price, storage fee and policy version
+   equal the Quote. No account state is read, so the result is the same in
+   **every** request state and does not depend on block packing: a `call`
+   and a `respond` in one block, which leave no queryable state holding the
+   entry, verify like any other pair;
+7. the snapshot has `has_attestor = 1` and its attestor key id equals the step
+   4 key, the one the manifest and the Quote name and admission verified. This
+   is the check that matters after an owner action: a rotation from K1 to K2
    without a new manifest gives later requests the snapshot K2, and a
-   `revoke_attestor` keeps the stored key but clears the bit (SA:853-859), so
-   later requests snapshot `has_attestor = 0` and `respond` then needs no
-   signature at all (SA:610-621). Both are refused here, whatever the request
-   state;
-8. the `terms_hash` preimage is the actor policy in the `call` transaction's
-   pre-state. Recomputing it yields the snapshot value, its `metadata_hash`
-   equals `NSM1` for the quoted version, its `proof_scheme_hash` equals the
-   section 2.3 value, and its attestor fields equal step 7;
+   `revoke_attestor` clears the attestor, so later requests snapshot
+   `has_attestor = 0` and `respond` then needs no signature at all
+   (SA:610-621). Both are refused here, whatever the request state;
+8. the snapshot carries the policy fields that `terms_hash` covers (policy
+   version, price, storage fee, cleanup bounty, response SLA, refund claim
+   window). Recompute `terms_hash` from them with `metadata_hash` set to `NSM1`
+   for the quoted version and network, `proof_scheme_hash` set to the section
+   2.3 value and the attestor fields of step 7; the result must equal the
+   snapshot's `terms_hash`. Because `terms_hash` is a cell hash, a match proves
+   the actor's policy at `call` committed to that metadata, Receipt scheme and
+   attestor without reading the policy. Also require `response_deadline =
+   now(call transaction) + response_sla` and `refund_claim_deadline =
+   response_deadline + refund_claim_window`;
 9. the outcome: pending, or from transaction history (section 5.1). A
-   `respond` is checked against the step 7 key and SRP2 (section 4); a refund
-   or sweep against the refund entry and the transaction.
+   `respond` is the finalized successful `respond` transaction for the
+   snapshot's `request_id`: the contract verified the signature against the
+   snapshotted key whose id step 7 checked, over SRP2 rebuilt from the
+   snapshot (section 4). A resolver that re-verifies the signature takes the
+   stored key from the finalized transaction that installed it (the
+   `rotate_attestor_key` body or the deploy StateInit), recomputes its key id
+   and requires it to equal step 7. A refund or sweep is checked against the
+   transaction and the snapshot.
 
 The current attestor, `metadata_hash` and policy are never consulted for an
-existing request; only its snapshot and the attestor admission verified are.
+existing request; only its snapshot message and the attestor admission verified
+are.
 
 ## 3. Quote Proposal, Accepted Quote and `call`
 
@@ -240,9 +263,10 @@ non-zero (SA:556, SA:571-574); conforming clients must refuse a zero value.
 The finalized `call` transaction is the acceptance event. It stores both
 deadlines computed from chain time: `response_deadline = now + response_sla`,
 `refund_claim_deadline = response_deadline + refund_claim_window`
-(SA:561-562). The assigned `request_id` is not emitted in any message; a
-resolver finds it as the new entry with `(caller, request_hash)` in the
-post-transaction state, so a buyer must never reuse a `request_hash`.
+(SA:561-562). The assigned `request_id` is not emitted in any message by the
+current contract; under D10 the changed contract emits it in the request
+snapshot message of the `call` transaction (section 2.4 step 6). A buyer must
+still never reuse a `request_hash`, so that one `request_hash` names one request.
 
 `tosctl agent service send --operation call` defaults `expected_terms_hash` to
 the actor's live terms (CMD:1147-1152). That default re-reads the terms the call
@@ -441,41 +465,48 @@ Pointers for follow-up changes; no code is written here.
 | tos-ai | `pkg/a2aadapter/adapter.go`, `pkg/mcpadapter/adapter.go` | carry `(actor, request_id)` instead of `EscrowAddress`; settler submits `respond`; attestor signing keeps the Receipt document's two-stage custody (emit the 32-byte SRP2 hash, verify the signature before building `respond`); `pkg/softwarework` unchanged |
 | openfox | `pkg/servicebridge/interfaces.go`, `buyer.go`, `provider.go`, `nativeimpl/purchase_coordinator.go`, `nativeimpl/tosctl_runner.go` | `call` instead of fund (`ResolveEscrow`, `SignAndFundEscrow`); new buyer duty to `expire` and `claim_refund` before `refund_claim_deadline` (`pkg/earning/paid_demand_*` stays escrow-bound) |
 
-## 8. Owner decisions required
+## 8. Owner decisions (taken 2026-11-07)
+
+The owner took every decision as recommended on 2026-11-07. Each entry keeps
+the options that were weighed and records the one taken.
 
 - **D1 Attestor suite.** (A) stored ML-DSA-44 key snapshotted by reference;
   (B) key id snapshot, key carried in `respond`; (C) keep Ed25519.
   *Recommend A* (section 6.2). C contradicts the 2026-11-06 PQ priority.
+  **Taken: A.**
 - **D2 Accepted Quote cell.** (a) replace schema 1 in place with the rail cell
   of 3.1 and retire schema 2 with escrow v2; (b) add a new schema beside them.
   *Recommend (a)*: pre-launch, no backward compatibility, and no escrow remains
-  on tos main to accept schema 1 or 2.
+  on tos main to accept schema 1 or 2. **Taken: (a).**
 - **D3 Sweep of an unanswered request.** (a) keep: price to owner revenue
   (SA:779); (b) change the contract to return the price to the caller on sweep,
   bounty still from `storage_fee`. *Recommend (b)* while the contract changes
   for D1: under (a) a provider earns from a buyer's inattention.
+  **Taken: (b).**
 - **D4 Storage fee on provider failure.** (a) keep it non-refundable (SA:698);
   (b) refund `storage_fee - cleanup_bounty` on `claim_refund`. *Recommend (a)*,
   disclosed in the Quote: it pays for the entry the buyer created.
+  **Taken: (a).**
 - **D5 Attestor key pinning.** (a) the manifest pins the key (rotation needs a
   new Capability version under Agent policy); (b) actor state only (owner
   wallet rotates alone). *Recommend (a)*: otherwise an owner-wallet
-  compromise also rotates the attestation authority.
+  compromise also rotates the attestation authority. **Taken: (a).**
 - **D6 Manifest.** (a) edit `SOFTWARE_WORK_MANIFEST_V1.md` in place (key 21,
   key 18 meaning, native TOS in key 20, refund condition); (b) a new manifest
-  version. *Recommend (a)*, same reason as D2.
+  version. *Recommend (a)*, same reason as D2. **Taken: (a).**
 - **D7 Quote expiry.** (a) buyer-side only: refuse to call after `expires_at`;
   (b) add an acceptance deadline to `call`. *Recommend (a)*: `terms_hash` already
   makes a stale quote fail closed, and expiry protects only the buyer.
+  **Taken: (a).**
 - **D8 Settlement asset.** (a) native TOS for current-domain acceptance, and
   amend `PRODUCT_STRATEGY.md` §9 and `SETTLEMENT.md`; stablecoin pricing waits
   for a token integration that reports payout outcomes. (b) block acceptance on
-  stablecoin support. *Recommend (a)*.
+  stablecoin support. *Recommend (a)*. **Taken: (a).**
 - **D9 Release condition.** (a) attestor custody refuses non-releasable
   Receipts, off-chain; (b) carry and decode the Receipt in `respond`.
   *Recommend (a)* for this profile; (b) costs gas and body size per call and
-  still proves only what the attestor signed.
-- **D10 Historical request snapshot (open).** Existing-request verification
+  still proves only what the attestor signed. **Taken: (a).**
+- **D10 Historical request snapshot.** Existing-request verification
   (section 2.4, steps 6-8) needs the request entry the `call` wrote, but chain
   queries return account state per block, not per transaction, and a
   transaction carries only the old and new account hashes; when `call` and
@@ -490,7 +521,8 @@ Pointers for follow-up changes; no code is written here.
   treat terminal outcomes as unverifiable by Capability. *Recommend (a)*: one
   bounded log message per call, independent of block packing, and the only
   option a light client can check without re-executing the contract. Raised by
-  the third non-author review round; left open rather than patched.
+  the third non-author review round. **Taken: (a)**; section 2.4 steps 6-9
+  use the snapshot message.
 
 ## 9. Verification before freeze
 
