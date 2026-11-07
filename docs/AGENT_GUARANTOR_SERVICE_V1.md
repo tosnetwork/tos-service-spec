@@ -693,9 +693,9 @@ References whose names end in `_body_digest` deliberately commit only the
 named canonical body. This distinction prevents a verifier from substituting a
 different key, authorization proof, or wrapper around equal body bytes.
 
-When an `Authorized*V1` envelope selects the native Ed25519 Agent profile, its
-authorization evidence signs the complete canonical authorization statement,
-not only the business body:
+When an `Authorized*V1` envelope selects the native ML-DSA-44 Agent profile,
+its authorization evidence signs the complete canonical authorization
+statement, not only the business body:
 
 ```text
 NativeObjectAuthorizationStatementV1 {
@@ -713,7 +713,21 @@ message = SHA-256(
   signature_domain || "\0" ||
   uint32_big_endian(len(canonical_authorization_statement)) ||
   canonical_authorization_statement)
+
+signature = ML-DSA-44.Sign(controller_key, message,
+                           context = "TOS-AGENT-GUARANTOR-V1")
 ```
+
+The signature is Pure ML-DSA-44 (FIPS 204, no pre-hash) over the 32-byte
+`message`. It is made by one of the authority subject's Native Registry
+ML-DSA-44 controller keys, under the 22-byte context string
+`TOS-AGENT-GUARANTOR-V1`. The context is distinct from the Native Registry
+(`TOS-NATIVE-REGISTRY`), Agent packet (`TOS-AGENT-PACKET-V1`), contact card
+(`TOS-AGENT-CONTACT-V1`) and Service Actor (`TOS-SERVICE-ACTOR-RESPOND-V1`)
+contexts, so a Guarantor signature can never authorize another use, and the
+reverse. Within Guarantor, the object-specific `signature_domain` in `message`
+separates object kinds. Implementations sign through the controller's custody
+(`tosctl` vault); controller private keys never enter this profile's objects.
 
 | Object envelope | Native Agent signature domain |
 | --- | --- |
@@ -754,9 +768,14 @@ the assertion is later admitted. For an authority-produced receipt,
 `validation_time_unix` is the trusted admission, release, or resolution time
 selected by the released result profile.
 
-Within native Ed25519 evidence, public keys use `ed25519:` followed by 64
-lowercase hexadecimal characters. Signatures use `ed25519:` followed by
-unpadded RFC 4648 URL-safe Base64.
+Within native ML-DSA-44 evidence, `key_id` uses `mldsa44:` followed by the 64
+lowercase hexadecimal characters of the controller key ID
+(`NATIVE_IDENTIFIERS_V1.md`). `signature` uses `mldsa44:` followed by the
+unpadded RFC 4648 URL-safe Base64 of exactly 2,420 signature bytes. The
+evidence does not carry the public key: the verifier takes the 1,312-byte key
+stored for that key ID in the subject's Agent policy, as proven at
+`validation_time_unix` by `historical_authority_proof`, and requires that key
+to derive the key ID.
 Uppercase hex, padded Base64, aliases, replaceable wrapper paths, or signatures
 over noncanonical bytes fail closed.
 
@@ -787,9 +806,9 @@ domain, role, and validation time. The required bindings are:
 | exposure, pre-acceptance release, acceptance, activation, claim-admission, decision-application, claim-state-transition, post-acceptance exposure-release, or coverage-resolution evidence | the exact `authority_id` and its role bound by the accepted Agreement, firm offer, or service profile |
 
 Agent keys use the released historical Agent-authority resolver. Authority,
-custody, wallet, contract, quorum, or non-Ed25519 subjects use the exact
+custody, wallet, contract, quorum, or non-native subjects use the exact
 profile-qualified authorization evidence selected by the Agreement; they
-cannot be represented by placing an arbitrary Ed25519 key in native evidence.
+cannot be represented by placing an arbitrary ML-DSA-44 key ID in native evidence.
 The verifier checks key epoch, delegation scope and history, revocation order,
 validity interval, profile digest, and subject-to-participant relationship at
 the authorized object's signed validation time. Current-key lookup alone is
@@ -1162,9 +1181,9 @@ ProfileQualifiedObjectAuthorizationV1 {
   evidence
 }
 
-NativeEd25519AgentAuthorizationEvidenceV1 {
-  public_key
-  signature
+NativeMLDSA44AgentAuthorizationEvidenceV1 {
+  key_id                       # mldsa44:<64 lowercase hex>
+  signature                    # mldsa44:<unpadded base64url, 2,420 bytes>
   historical_authority_proof
 }
 
@@ -1270,14 +1289,14 @@ the body digest exists. `authorized_object_kind` and `authorized_body_digest`
 MUST equal the containing envelope's released kind and recomputed canonical
 body digest. Native Agent authorization uses the corresponding
 object-specific signature domain in section 9 and embeds
-`NativeEd25519AgentAuthorizationEvidenceV1`; contract, wallet, custody, quorum,
+`NativeMLDSA44AgentAuthorizationEvidenceV1`; contract, wallet, custody, quorum,
 or other profiles embed their released evidence instead.
 
 Authorization elements sort by complete canonical encoded bytes and reject
 duplicate subjects, duplicated quorum domains, conflicting bytes under one
 profile evidence identity, missing required subjects, and extraneous evidence.
-The complete envelope digest covers the set. Thus native Ed25519 signatures and
-non-Ed25519 Adapter evidence have one tagged wire boundary without treating a
+The complete envelope digest covers the set. Thus native ML-DSA-44 signatures
+and other Adapter evidence have one tagged wire boundary without treating a
 public key as self-authorizing.
 
 `CanonicalGuarantorEvidenceSetV1.items[]` is sorted by content type, profile
@@ -2103,7 +2122,7 @@ both authority-ID fields are byte-identical and equal, at admission time, to
 the one `authority_id`, public key, and authorization proof carried by
 `AuthorizedActionV1` and the same issuer/key carried by `WriterFenceV1`. A
 contract, threshold group, quorum, separate action signer and fence issuer, or
-profile-qualified non-Ed25519 proof cannot be projected into those scalar
+profile-qualified non-native proof cannot be projected into those scalar
 fields in V1. Supporting one requires a separately versioned generic action
 envelope and new Agreement, operation-binding, schema, registry, and exact-byte
 vectors; it cannot be enabled by interpreting these fields differently.
@@ -2270,8 +2289,9 @@ expected prior state, and Action digest; verifies the complete scalar
 authority/key, scope, generation, validity, and proofs to match both the stage
 binding and admission time. `admission_state` is exactly `accepted` and its
 positive revision is the rollback-resistant action-admission revision. The one
-`action_admission_authorization` is a native Ed25519 authorization by the exact
-scalar Action Authority over
+`action_admission_authorization` is an authorization by the exact scalar
+Action Authority, under that authority's `SEMANTIC_ACTION_IDENTITY_V1`
+signature scheme, over
 `Digest("tos.service.agent-guarantor-stage-action-admission.v1", body)` at
 `admitted_at_unix`; it proves the Action/Fence high-water admission independently
 of the business-evidence quorum. The body deliberately excludes the resulting
@@ -2898,7 +2918,7 @@ the decision body, while the former linearizes that body into the claim log.
 For `independently-enforceable`, the resulting decision-admission receipt must
 independently satisfy that selected profile, subject set, and quorum after the
 Guarantor control-deletion test. The mutation that admits it separately uses
-the immutable `terminal_decision` stage's scalar Ed25519 Action Authority and
+the immutable `terminal_decision` stage's scalar Action Authority (`SEMANTIC_ACTION_IDENTITY_V1`) and
 Writer Fence from `GuarantorStageActionAuthorityV1`. These are different
 typed authorization layers and are never compared for byte equality or
 substituted for one another; both must independently pass control deletion. The
@@ -9889,7 +9909,7 @@ and expected failure classes for:
    receipt;
 5. atomic reserve-and-sign result, firm offer, and its exact generic Agreement
    evidence projection;
-6. complete mixed-profile Agreement authorization and native plus non-Ed25519
+6. complete mixed-profile Agreement authorization and native ML-DSA-44 plus other-profile
    profile-qualified object authorization;
 7. terminal-negative issuance with atomic private reservation unwind, plus
    expired non-acceptance evidence and its pre-acceptance
@@ -10312,7 +10332,7 @@ Required tests include:
   otherwise dependent on the deleted Provider authority, while lower-assurance
   release still requires its disclosed Provider authority;
 - reject a stage binding with multiple action subjects, an action quorum,
-  different action and fence subjects or keys, a contract/non-Ed25519 action
+  different action and fence subjects or keys, a contract/other-profile action
   proof, or any projection that cannot be represented byte-for-byte by the
   released scalar `AuthorizedActionV1` and `WriterFenceV1` envelopes;
 - at `unsecured-signed` and `collateral-attested`, execute and recover every
