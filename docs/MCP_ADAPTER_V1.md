@@ -1,5 +1,12 @@
 # MCP Software-Work Tool Adapter V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+The escrow address input below is superseded by the `(actor, request_id)` of a pending Service Actor request; the settler submits `respond` with the attestor's SRP2 signature. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 The MCP tool `tos_service_software_work` maps the official MCP Go SDK's typed
 `tools/call` boundary into the same Native software-work runner. MCP is
 model-controlled transport; tool discovery, arguments, client identity, and

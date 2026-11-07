@@ -1,5 +1,12 @@
 # A2A Software-Work Adapter V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Escrow addresses and funded-escrow checks below are superseded by the `(actor, request_id)` of a pending Service Actor request; the settler submits `respond` with the attestor's SRP2 signature. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 ## Scope
 
 This adapter maps the Linux Foundation A2A 1.0 Task model into the existing
