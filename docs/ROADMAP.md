@@ -288,7 +288,8 @@ Deliver on the Service Actor rail:
 - ⬜ Service Actor contract change for D1 (ML-DSA-44 attestor), D3 (sweep
   returns the price to the caller) and D10 (request snapshot message), with
   sandbox tests on both VMs, gas and size measurements and an independent
-  security review;
+  security review (implemented on tos branch `feat/service-actor-pq` at
+  `1a469f6e2`, not merged, not deployed; no part of this item is accepted);
 - ⬜ published Service Actor release manifest and code hash;
 - ⬜ vectors generated from contract execution for `NSM1`, `NSR1`, the
   Accepted Quote rail cell, `terms_hash`, SRP2, the request snapshot and key

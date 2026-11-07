@@ -3,9 +3,10 @@
 **Status:** decided 2026-11-07 (owner: D1-D10 as recommended). The decisions of
 section 8 are taken; the normative contract surface they produce is
 [`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md), and the in-place
-specification edits are in the documents section 10 lists. The gates in section
-9 are still open: no contract code, code identity or vector exists yet for the
-changed contract.
+specification edits are in the documents section 10 lists. The contract change
+is implemented on tos branch `feat/service-actor-pq` at `1a469f6e2` (not merged,
+not deployed). The gates in section 9 are still open: no code identity or
+vector exists yet for the changed contract.
 
 **Owner decision it implements (2026-11-06):** the current-domain
 `tos_service_v1` end-to-end acceptance settles on the Service Actor contract
@@ -17,7 +18,10 @@ binds them to the Service Actor and lists the gaps. It introduces no new
 catalog, SDK, custody or authority path.
 
 **Sources pinned.** `SA:N` is line `N` of `crypto/smartcont/service-actor-code.fc`
-on tos main `c17d3fca5`. `SD:N` is `crypto/smartcont/signing-domain.fc`. `RS:N`
+on tos main `c17d3fca5`, the contract before the change; `SAP:N` is line `N` of
+the same file at `1a469f6e2`, the changed contract. Where the two differ,
+`SAP` and `SERVICE_ACTOR_TVM_V1.md` govern. `SD:N` is
+`crypto/smartcont/signing-domain.fc`. `RS:N`
 is `tosctl/src/node-control/contracts/src/service_actor.rs`. `CMD:N` is
 `tosctl/src/node-control/commands/src/commands/nodectl/service_actor_cmd.rs`.
 `SBX` is `tosctl/src/node-control/contracts/tests/service_actor_sandbox.rs`.
@@ -31,9 +35,9 @@ Spec references are to `tos-service-spec` main `80739a8`.
 | `respond` | owner sender **and**, if the request snapshotted an attestor, a valid attestor signature | deletes the request; credits `price + storage_fee` to owner revenue | SA:599-636 |
 | `expire` | anyone, in `[response_deadline, refund_claim_deadline)` | moves the request to the refund set | SA:638-665 |
 | `claim_refund` | the original caller only, before `refund_claim_deadline` | pays `price` to a caller-chosen destination | SA:667-703 |
-| `sweep_expired_request` | anyone, at or after `refund_claim_deadline` | deletes a pending or refundable entry; pays the cleanup bounty to the sweeper; credits the rest to owner revenue | SA:705-791 |
+| `sweep_expired_request` | anyone, at or after `refund_claim_deadline` | deletes a pending or refundable entry; pays the price to the caller and the cleanup bounty to the sweeper; credits `storage_fee - cleanup_bounty` to owner revenue (D3) | SAP:792-889 |
 | `update_policy` | owner | replaces price, fees, SLA, window, access, rate limit, `metadata_hash`, `proof_scheme_hash`; `policy_version + 1` | SA:793-835 |
-| `rotate_attestor_key` / `revoke_attestor` | owner | sets or clears the current attestor; pending requests unaffected | SA:837-861 |
+| `rotate_attestor_key` / `revoke_attestor` | owner | sets or clears the current attestor; pending requests unaffected | SAP:935-963 |
 | `withdraw_revenue` | owner | pays at most the revenue not needed to back live entries and the 1 TOS reserve, always to the owner address | SA:863-894 |
 
 Bounced messages are ignored (SA:490). All coin arithmetic is checked
@@ -52,14 +56,14 @@ returned (SA:533-538, SA:165, SA:586-588).
 | actor address `A = wc:cell_hash(StateInit)` | deterministic from the deploy StateInit | RS:228-236 |
 | actor code hash | account state | — |
 | owner address `O` (a wallet) | actor data, fixed for life | SA:14, SA:296; no owner-change op exists (SA:71-79) |
-| attestor key `K` (Ed25519 today) | actor data; snapshotted per request | SA:20-21, SA:573 |
+| attestor key `K` (ML-DSA-44 stored key and its key id) | actor data; snapshotted per request | SAP:20-21, SAP:653-656 |
 | `metadata_hash`, `proof_scheme_hash` | actor policy; owner-set | SA:20, SA:806-807 |
 
 ### 2.2 Who may deploy and own an actor
 
 Anyone may deploy an actor with any owner, any `metadata_hash` and any attestor:
-the StateInit is caller-supplied and only re-checked for policy bounds at `call`
-(SA:510-526). An actor's own claim to serve a Capability is therefore
+the StateInit is caller-supplied and only re-checked at `call` for policy bounds
+and for a consistent attestor encoding (SAP:582-608). An actor's own claim to serve a Capability is therefore
 unauthenticated. The owner wallet is not an Agent controller and the Agent policy
 has no authority over the actor.
 
@@ -137,8 +141,8 @@ admitted. The verifier therefore requires, and otherwise refuses:
 3. one code hash everywhere: the account's code hash `=` manifest key 21 code
    hash `=` the Quote's `rail.actor_code_hash` `=` the pinned Service Actor
    release hash (no release manifest publishes one today; gap, section 7); the
-   account is on workchain 0 and its data cell decodes exactly (SA:13-27,
-   SA:294-338), not only through the getter;
+   account is on workchain 0 and its data cell decodes exactly as
+   `SERVICE_ACTOR_TVM_V1.md` section 4 (SAP:13-27, SAP:319-364), not only through the getter;
 4. one attestor key everywhere: manifest key 21 (and key 18) `=` the Quote's
    `authority.attestor_key_id`.
 
@@ -148,14 +152,16 @@ the request to the Capability.
 
 **Admission-time verification (before `call`).** Additionally:
 
-5. current state: `active = 1`, `has_attestor = 1`, the current attestor key
-   equals step 4 and is not weak (`call` does not check it; only `respond` and
-   `rotate_attestor_key` do, SA:618, SA:841);
+5. current state: `active = 1`, `has_attestor = 1`, and the current
+   `attestor_key_id` equals step 4. `call` refuses with 1925 a policy whose
+   stored key is absent or derives a different id (SAP:599-608), so the decoded
+   id names the stored key; a verifier may also recompute it from the key
+   (`get_attestor_key` or the decoded data);
 6. current `metadata_hash` equals `NSM1` recomputed from step 1 and the network;
    `proof_scheme_hash` equals the section 2.3 value;
 7. policy bounds (SA:518-526) and admission: `open_access = 1` or
    `authorized_caller` equals the buyer wallet (SA:529-530);
-8. `terms_hash` computed from the decoded current policy (SA:241-264) equals the
+8. `terms_hash` computed from the decoded current policy (SAP:266-289) equals the
    Quote's `rail.terms_hash`, and the Quote's `policy_version`, `price` and
    `storage_fee` equal the decoded ones.
 
@@ -171,41 +177,41 @@ does not touch the actor). Then, instead of steps 5-8:
    Quote's `terms_hash`;
 6. read the request snapshot from that transaction alone (D10): the
    successful `call` emits exactly one external out-message whose body is the
-   `ServiceActorRequestSnapshotV1` cell of `SERVICE_ACTOR_TVM_V1.md`. It is
-   decoded exactly (magic, schema, bit lengths, references, exhaustion); zero
-   or more than one such message, or a trailing field, is a verification
-   error. Its `request_id` is the request's identity. Its caller equals the
-   `call` sender and the buyer, its `request_hash` and `terms_hash` equal the
-   inbound body and the Quote, and its price, storage fee and policy version
-   equal the Quote. No account state is read, so the result is the same in
-   **every** request state and does not depend on block packing: a `call`
-   and a `respond` in one block, which leave no queryable state holding the
-   entry, verify like any other pair;
+   `ServiceActorRequestSnapshotV1` cell of `SERVICE_ACTOR_TVM_V1.md` section
+   8.1 (tag `SAR1`). It is decoded exactly (tag, bit lengths, references,
+   exhaustion, attestor encoding, deadline order); zero or more than one such
+   message, or a trailing field, is a verification error. Its `request_id` is
+   the request's identity. Its caller equals the `call` sender and the buyer,
+   its `request_hash` equals the inbound body, and its price equals the
+   Quote. No account state is read, so the result is the same in **every**
+   request state and does not depend on block packing: a `call` and a
+   `respond` in one block, which leave no queryable state holding the entry,
+   verify like any other pair;
 7. the snapshot has `has_attestor = 1` and its attestor key id equals the step
    4 key, the one the manifest and the Quote name and admission verified. This
    is the check that matters after an owner action: a rotation from K1 to K2
    without a new manifest gives later requests the snapshot K2, and a
    `revoke_attestor` clears the attestor, so later requests snapshot
    `has_attestor = 0` and `respond` then needs no signature at all
-   (SA:610-621). Both are refused here, whatever the request state;
-8. the snapshot carries the policy fields that `terms_hash` covers (policy
-   version, price, storage fee, cleanup bounty, response SLA, refund claim
-   window). Recompute `terms_hash` from them with `metadata_hash` set to `NSM1`
-   for the quoted version and network, `proof_scheme_hash` set to the section
-   2.3 value and the attestor fields of step 7; the result must equal the
-   snapshot's `terms_hash`. Because `terms_hash` is a cell hash, a match proves
-   the actor's policy at `call` committed to that metadata, Receipt scheme and
-   attestor without reading the policy. Also require `response_deadline =
-   now(call transaction) + response_sla` and `refund_claim_deadline =
-   response_deadline + refund_claim_window`;
+   (SAP:694-708). Both are refused here, whatever the request state;
+8. the snapshot's `terms_hash` equals the inbound `expected_terms_hash` and the
+   Quote's `rail.terms_hash`. `terms_hash` is not recomputed from the snapshot,
+   which does not carry the policy fields it covers: the request's commitment
+   to the quoted `policy_version`, `storage_fee`, `metadata_hash`,
+   `proof_scheme_hash` and attestor is the Quote's `terms_hash`, which
+   admission-time verification (steps 5-8 above) checked against the decoded
+   policy before the `call` (gap, section 7). The deadlines are the
+   snapshot's;
 9. the outcome: pending, or from transaction history (section 5.1). A
    `respond` is the finalized successful `respond` transaction for the
    snapshot's `request_id`: the contract verified the signature against the
-   snapshotted key whose id step 7 checked, over SRP2 rebuilt from the
-   snapshot (section 4). A resolver that re-verifies the signature takes the
+   snapshotted key whose id step 7 checked, over SRP2 (section 4), whose
+   inputs are the snapshot, the actor address, `global_id` and the `respond`
+   body's `response_hash`. A resolver that re-verifies the signature takes the
    stored key from the finalized transaction that installed it (the
-   `rotate_attestor_key` body or the deploy StateInit), recomputes its key id
-   and requires it to equal step 7. A refund or sweep is checked against the
+   `rotate_attestor_key` body or the deploy StateInit) or, while the request
+   is pending, from `get_request_attestor_key`, recomputes its key id and
+   requires it to equal step 7. A refund or sweep is checked against the
    transaction and the snapshot.
 
 The current attestor, `metadata_hash` and policy are never consulted for an
@@ -263,9 +269,9 @@ non-zero (SA:556, SA:571-574); conforming clients must refuse a zero value.
 The finalized `call` transaction is the acceptance event. It stores both
 deadlines computed from chain time: `response_deadline = now + response_sla`,
 `refund_claim_deadline = response_deadline + refund_claim_window`
-(SA:561-562). The assigned `request_id` is not emitted in any message by the
-current contract; under D10 the changed contract emits it in the request
-snapshot message of the `call` transaction (section 2.4 step 6). A buyer must
+(SAP:643-644). The assigned `request_id` is emitted in the request snapshot
+message of the `call` transaction (D10, SAP:670-671; section 2.4 step 6). A
+buyer must
 still never reuse a `request_hash`, so that one `request_hash` names one request.
 
 `tosctl agent service send --operation call` defaults `expected_terms_hash` to
@@ -355,7 +361,7 @@ actor's finalized transaction history, not only its state.
 | lapsed | either entry found, `now >= refund_claim_deadline` | none; anyone may sweep |
 | responded | terminal: finalized `respond` transaction for `id` | verify Receipt (section 4) |
 | refunded | terminal: finalized `claim_refund` transaction | — |
-| forfeited | terminal: finalized `sweep_expired_request` transaction | — |
+| swept | terminal: finalized `sweep_expired_request` transaction | none; the price was paid to the caller |
 
 `respond` (`now < response_deadline`, SA:607) and `expire`
 (`response_deadline <= now`, SA:649) partition time exactly (SBX:863, SBX:885).
@@ -367,9 +373,10 @@ Terminal states are only distinguishable from the transaction history.
   even when the provider never answered (SA:698).
 - A refund takes two transactions inside `refund_claim_window` (at least one
   hour, SA:175): `expire`, then `claim_refund` from the caller address.
-- After `refund_claim_deadline` a sweep credits the price to the **owner**
-  (SA:779) and the bounty to the sweeper (SA:782). An unanswered request whose
-  buyer is offline for the whole window pays the provider for no work (D3).
+- After `refund_claim_deadline` a sweep pays the price to the **caller** and
+  the bounty to the sweeper, and credits `storage_fee - cleanup_bounty` to the
+  owner (D3, SAP:870-880). A buyer offline for the whole window still gets the
+  price back, from whoever sweeps; the storage fee is not refunded.
 - `claim_refund` sends to any destination (SA:669); a failed delivery is not
   restored (SA:743-747, SBX:1307).
 
@@ -379,10 +386,13 @@ Terminal states are only distinguishable from the transaction history.
   1903-1906, capacity 1907-1908, id overflow 1909, not authorized 1923, rate
   limit 1924, terms mismatch 1926, reserve unfunded 1928, allowance 1929
   (SA:81-114).
-- `respond`: not owner 1900, not pending 1913, window closed 1912, bad
-  signature 1911, weak key 1925. A weak key placed in the deploy StateInit is
-  admitted by `call` and makes every `respond` fail, so those requests can only
-  be refunded.
+- `call` also refuses an inconsistent attestor encoding in a deploy StateInit
+  (1925, or 62/63 for a non-canonical stored key; SAP:599-608).
+- `respond`: not owner 1900, not pending 1913, window closed 1912, missing
+  signature reference 9, malformed stored signature 62/63, failed verification
+  1911 (`SERVICE_ACTOR_TVM_V1.md` section 7.2). A key the owner installed but
+  does not control makes every `respond` for requests snapshotted under it
+  fail, so those requests can only be refunded.
 - `claim_refund` against an under-backed actor fails with 1921 and keeps the
   claim (SA:677-687); if under-backing lasts past the deadline the claim lapses.
   Rent can erode backing once the operator reserve is exhausted (SA:156-158).
@@ -392,14 +402,17 @@ Terminal states are only distinguishable from the transaction history.
 
 ## 6. Attestor key suite
 
-### 6.1 Snapshot, rotation and revocation (current contract)
+### 6.1 Snapshot, rotation and revocation
 
-`call` copies `has_attestor` and the key into the request (SA:573-574);
-`respond` uses only the copy (SA:606, SA:618-620). `rotate_attestor_key` and
-`revoke_attestor` change only future calls (SA:822-827, SA:842-859; SBX:1165,
-SBX:1261). They do not bump `policy_version`, but `terms_hash` covers the bit and
-the key (SA:252-253), so every outstanding quote fails with 1926 afterwards.
-`update_policy` cannot change the attestor (SA:832).
+`call` copies `has_attestor`, the key id and the stored-key reference into the
+request (SAP:653-656); `respond` uses only the copy (SAP:694-708).
+`rotate_attestor_key` and `revoke_attestor` change only future calls
+(SAP:935-963; SBX
+`update_policy_and_attestor_rotation_never_alter_already_snapshotted_requests`,
+`revoke_attestor_is_never_frozen_by_a_pending_request`). They do not bump
+`policy_version`, but `terms_hash` covers the bit and the key id
+(SAP:266-289), so every outstanding quote fails with 1926 afterwards.
+`update_policy` cannot change the attestor (SAP:926-931).
 
 Consequences: a lost attestor key turns pending requests into refunds; a
 compromised attestor key alone cannot respond (owner sender required, SA:600);
@@ -426,13 +439,25 @@ key id and text form `mldsa44:<id>` as in that design §3.2; the
 `terms_hash` attestor field carries the key id, so its layout is unchanged;
 the SRP2 preimage is unchanged and ML-DSA-44 signs its 32 raw hash bytes under
 the context above; signatures may be randomized, so a response is identified by
-`response_hash` and the request, never by signature bytes; workchain 0 only.
+`response_hash` and the request, never by signature bytes; workchain 0 only
+(a client rule: the contract does not check its workchain).
 
 **Recommendation: A.** `respond` runs once per paid call; A saves 1,378 gas and
 1,352 bytes on every one, while its storage cost is per distinct live key, and
 an old key stays referenced only while requests snapshotted under it are live.
 Admitting the key once at rotation mirrors registry rule §4.2(2). B is simpler
 state and needs no admission code at rotation. Owner decision D1.
+
+**As implemented** (`1a469f6e2`, `SERVICE_ACTOR_TVM_V1.md` sections 4.1, 7.8):
+`rotate_attestor_key` carries only `query_id` and the stored key; the contract
+validates the canonical stored key and derives the key id itself
+(`pq::key_id`). There is no possession signature: a key the owner does not
+control cannot produce SRP2 signatures, so a wrong key only makes `respond`
+impossible and the requests admitted under it refund to their callers;
+nothing can be taken. Because a deploy StateInit bypasses rotation, `call`
+re-derives the key id on every admission and refuses an inconsistent
+attestor encoding (1925). The shape probe's figures above are not measurements
+of this contract.
 
 The owner and buyer wallets remain Ed25519 until a post-quantum wallet is
 released for `tosctl`; under a forging adversary the two-key rule still
@@ -447,9 +472,8 @@ Pointers for follow-up changes; no code is written here.
 | tos | RS:18, RS:159-160 | the BOC is embedded and deserialized there, but no release manifest publishes its code hash for clients to pin; needed by 2.4 step 3 |
 | tos | CMD:1147-1152 | `call` defaults `expected_terms_hash` to live state |
 | tos | RS:218 | deploy is always `active = 1`; add an inactive deploy for 2.3 |
-| tos | SA:508-597 | `call` admits a weak snapshotted attestor key |
-| tos | SA:560 | no event carries the assigned `request_id` |
-| tos | service-actor-code.fc | ML-DSA-44 attestor (D1); sweep and fee changes if D3/D4 change |
+| tos | service-actor-code.fc | ML-DSA-44 attestor (D1), sweep to the caller (D3), request snapshot carrying `request_id` (D10) and the `call` attestor-encoding check: implemented on `feat/service-actor-pq` at `1a469f6e2`, not merged, not deployed |
+| tos | SAP:476-506 | the request snapshot omits `cleanup_bounty` (and `storage_fee`, `policy_version`, the policy commitments), so a resolver that did not run admission-time verification cannot open `terms_hash` from the `call` transaction; section 2.4 step 8 relies on the Quote's `terms_hash` |
 | spec | see section 10 | Accepted Quote, escrow v2, settlement, Receipt, manifest, execution gate (slot key `(quote_commitment, escrow_address)` becomes `(quote_commitment, actor, request_id)`), strategy §9, roadmap Gate D |
 | spec | `native.proto` 315-349 | `MoneyV1.asset` is stablecoin-only; `QuoteProposalV1` has no actor or `terms_hash`; `AcceptedQuoteV1` |
 | spec | `test-vectors/` | `NSM1`, `NSR1`, Accepted Quote, `terms_hash`, SRP2, from contract execution |
@@ -536,7 +560,9 @@ the options that were weighed and records the one taken.
   not match; library or exotic cells for the key wrapper and chain cells;
   malformed lengths and trailing data; two randomized signatures for one
   response giving one transition; Ed25519-shaped key and signature refused;
-  deployment outside workchain 0; actor substitution (an identical policy at a
+  a deploy StateInit with an attestor key whose id differs, or with a key or
+  key id but `has_attestor = 0`, admitting no request (1925); an actor outside
+  workchain 0 refused by the client verifier; actor substitution (an identical policy at a
   second address, so equal `terms_hash`, refused by 2.4 step 2 before `call`
   and never attributed afterwards); a Quote whose code hash or attestor key
   differs from the manifest or account (steps 3-4); existing-request
@@ -546,8 +572,8 @@ the options that were weighed and records the one taken.
   without a manifest update, then a new request answered under K2, refused by
   2.4 step 7 while pending and after `respond`; `revoke_attestor`, then a new
   request answered with no signature, refused by step 7 in every state; a
-  snapshot whose `proof_scheme_hash` differs from the prescribed one, refused by
-  step 8; `call` with a zero `request_hash` (client
+  snapshot whose `terms_hash` differs from the Quote's, refused by step 8;
+  `call` with a zero `request_hash` (client
   refusal) and with a duplicate `request_hash`; `call` after manifest
   revocation (accepted by the contract, refused by the buyer verifier); quote
   stale by `update_policy`, rotation and revocation each refused with 1926; and,
@@ -564,14 +590,14 @@ the options that were weighed and records the one taken.
 - **Resolver.** Both procedures of section 2.4, kept separate: admission-time
   verification against current policy, and existing-request verification
   against the request snapshot (`has_attestor = 1`, the admitted attestor key,
-  the prescribed `proof_scheme_hash`, in every request state) and transaction
+  the quoted `terms_hash`, in every request state) and transaction
   history, never against the
   current attestor, `metadata_hash` or terms. Every state of 5.1 derived from
   finalized state and transactions at one checkpoint, three endpoints, quorum
   two, with no gateway input; an actor, code-hash or attestor mismatch, a
   missing account or an ambiguous outcome is an error, never empty.
 - **Live chain.** On a v16 local network, one lifecycle per terminal state
-  (responded, refunded, forfeited) from deploy through Receipt, reconstructed
+  (responded, refunded, swept) from deploy through Receipt, reconstructed
   by a second resolver; then the same on the public testnet with an external
   buyer, independent provider and independent resolver (`ROADMAP.md` Gate D).
 - **Review.** Independent security review of the changed contract and protocol.
@@ -579,7 +605,8 @@ the options that were weighed and records the one taken.
 | Gate | Status (2026-11-07) |
 |---|---|
 | Sandbox, current Ed25519 contract | Met for that contract (SBX, 3,275 lines); not for the changed one |
-| ML-DSA-44 cost | Probe only (`b39fdba8a`); contract not changed |
+| Changed contract | Implemented on `feat/service-actor-pq` at `1a469f6e2` with its sandbox tests (SBX, 3,603 lines); not merged, not deployed, no gate accepted |
+| ML-DSA-44 cost | Probe only (`b39fdba8a`); not yet measured on the changed contract |
 | Everything else above | Open |
 
 ## 10. Contradictions found
@@ -601,7 +628,8 @@ the options that were weighed and records the one taken.
    SRP2 (SA:610-621, SA:631-633).
 5. `SETTLEMENT.md` and the V1 dispute policy promise a full refund after the
    timeout; the actor refunds `price` but keeps `storage_fee` (SA:698) and
-   forfeits the price to the owner after the window (SA:779).
+   forfeits the price to the owner after the window (SA:779); D3 changes the
+   sweep to pay the caller (SAP:874-876).
 6. `PRODUCT_STRATEGY.md` §9 and §15 denominate services and evidence targets in
    TOS-network stablecoins; the chosen rail is native TOS.
 7. `ROADMAP.md` Gate D lists stablecoin escrow, release and refund as delivered
