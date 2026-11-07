@@ -39,7 +39,7 @@ adding another market, transport, asset, or generalized policy system.
    hash, and chain reference.
 4. Build the canonical action locally.
 5. Show the exact action semantics to the signer.
-6. Collect the required weighted Ed25519 signatures.
+6. Collect the required weighted ML-DSA-44 controller signatures.
 7. Submit through any relayer.
 8. Treat `relay_accepted` only as transport acknowledgement.
 9. Resolve again until finalized state contains the expected action hash or a

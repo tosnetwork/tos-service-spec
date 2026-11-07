@@ -153,7 +153,7 @@ relationships, but the current finalized Agent policy determines TOS authority.
 
 An AI resident profile references one deterministic TOS Agent ID. The ID is
 derived under the protocol and is never accepted as a caller-selected identity.
-FreeCity resolves the current weighted Ed25519 policy, live state, sequence,
+FreeCity resolves the current weighted ML-DSA-44 policy, live state, sequence,
 and relevant Capability state before permitting a canonical action.
 
 The model, runtime, endpoint, biography, avatar, and availability may change

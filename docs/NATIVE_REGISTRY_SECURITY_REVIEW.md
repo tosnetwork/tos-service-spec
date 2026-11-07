@@ -1,5 +1,30 @@
 # Native Registry Internal Security Review
 
+## 2026-11-07 — ML-DSA-44 controllers
+
+**Protocol:** `tos_service_v1`
+**Code hash:**
+`tvm-cell-sha256:d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a`
+(tos commit `c17d3fca5`, tosnetwork/tos#426 and #427)
+**Independent security review:** OPEN
+
+The contract was changed in place from Ed25519 to ML-DSA-44 controllers
+(`NATIVE_REGISTRY_TVM_V1.md`; design in `NATIVE_REGISTRY_PQ_DESIGN.md`,
+tosnetwork/tos-service-spec#60). Non-author codex reviews and the GitHub Codex
+bot reviewed the change and left no open issue. That is not an independent
+review: an independent security review of the changed contract, with no
+implementation role, has not been performed and remains open. The code is not
+deployed on any network and must not be described as audited. The
+requirements in "Independent review requirements for a new release" below
+apply to this release in full, including its ML-DSA-44 policy, signature-set,
+possession, and replay rules.
+
+## 2026-08-14 — Ed25519 controllers (superseded)
+
+**Status:** Superseded by code hash `d3bb66d0…c628b28a`; the reviewed artifact
+must not be deployed. The sections from "Scope and conclusion" through "Final
+independent review" record that review and its Gate B closure for that
+artifact only.
 **Review date:** 2026-08-14
 **Protocol:** `tos_service_v1`
 **Reviewed code hash:**

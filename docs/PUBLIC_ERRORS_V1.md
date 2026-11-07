@@ -47,7 +47,9 @@ Connect codes, forbidden delays, and out-of-range delays all fail closed as
 Native Registry validation codes `2200..2215` retain their existing stable
 identifiers and use `NEVER`: the exact action is deterministically invalid at
 the checked state. A newly constructed action may be valid only after the
-caller resolves current state and deliberately reviews and signs it.
+caller resolves current state and deliberately reviews and signs it. Code
+`2214` (formerly `NATIVE_WEAK_KEY`) is retired: the number stays reserved and
+is never reused, and the current Native Registry contract does not emit it.
 
 ## Mutation rule
 

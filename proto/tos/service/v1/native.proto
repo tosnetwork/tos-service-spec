@@ -30,7 +30,11 @@ enum NativeErrorCodeV1 {
   NATIVE_ERROR_CODE_V1_IMMUTABLE_VERSION = 2211;
   NATIVE_ERROR_CODE_V1_TIMELOCK = 2212;
   NATIVE_ERROR_CODE_V1_DUPLICATE_SIGNATURE = 2213;
-  NATIVE_ERROR_CODE_V1_WEAK_KEY = 2214;
+  // 2214 (formerly WEAK_KEY, an Ed25519 weak-key refusal) is retired: the
+  // current Native Registry contract does not emit it and the number is never
+  // reused.
+  reserved 2214;
+  reserved "NATIVE_ERROR_CODE_V1_WEAK_KEY";
   NATIVE_ERROR_CODE_V1_POLICY_TOO_WIDE = 2215;
   NATIVE_ERROR_CODE_V1_PUBLIC_BAD_REQUEST = 2300;
   NATIVE_ERROR_CODE_V1_PUBLIC_NOT_FOUND = 2301;
@@ -80,10 +84,14 @@ message TOSAccountAddressV1 {
 }
 
 message ControllerV1 {
-  // Exactly ed25519:<lowercase 32-byte-public-key-hex>. Native v1 does not
+  // Exactly mldsa44:<64 lowercase hex key_id>, where
+  // key_id = SHA-256("TOS-PQ-CONSENSUS-KEY-v1" || 0x01 0x00 || public_key).
+  // It must equal the id derived from mldsa44_public_key; Native v1 does not
   // depend on an off-chain alias table to reconstruct controller identity.
   string key_id = 1;
-  bytes ed25519_public_key = 2;
+  // ML-DSA-44 (FIPS 204) public key, exactly 1,312 bytes.
+  bytes mldsa44_public_key = 2;
+  reserved "ed25519_public_key";
   uint32 weight = 3;
   uint32 purpose_mask = 4;
   bool recovery = 5;
@@ -93,13 +101,21 @@ message ControllerPolicyV1 {
   uint32 threshold = 1;
   uint32 recovery_threshold = 2;
   uint64 recovery_timelock_seconds = 3;
-  // 1..20 controllers; a wider policy is refused with POLICY_TOO_WIDE.
+  // 1..8 controllers in strictly ascending key_id order; a wider policy is
+  // refused with POLICY_TOO_WIDE.
   repeated ControllerV1 controllers = 4;
 }
 
 message SignatureV1 {
+  // Exactly mldsa44:<64 lowercase hex key_id> of a controller in the policy
+  // the signature is checked against.
   string key_id = 1;
-  bytes ed25519_signature = 2;
+  // Pure ML-DSA-44 (FIPS 204, no pre-hash) signature, exactly 2,420 bytes,
+  // over the 32 raw bytes of the action cell hash with context string
+  // "TOS-NATIVE-REGISTRY". Signing may be hedged, so the operation is
+  // identified by its action hash, never by these bytes.
+  bytes mldsa44_signature = 2;
+  reserved "ed25519_signature";
 }
 
 message CapabilityVersionV1 {
@@ -182,9 +198,11 @@ message NativeActionV1 {
 
 message SignedNativeActionV1 {
   NativeActionV1 action = 1;
+  // At most 8 entries in strictly ascending key_id order.
   repeated SignatureV1 authority_signatures = 2;
   // New-owner acceptance for Capability transfer, or proof of possession by
-  // every key in a newly installed Agent policy.
+  // every key in a newly installed Agent policy. At most 8 entries in strictly
+  // ascending key_id order.
   repeated SignatureV1 counterparty_signatures = 3;
   reserved 4, 5; // caller-supplied deterministic action results were removed
 }

@@ -47,7 +47,9 @@ Canonical Agent state contains only:
 
 The Agent ID is derived from network domain, object nonce, and canonical
 initial policy. The caller-supplied target must equal the derived ID. Every key
-in the initial policy proves possession by signing the registration action.
+in the initial policy proves possession by signing the registration action, in
+key-ID order, and each declared key ID must equal the ID derived from the key
+its possession signature verified against.
 
 ### Update policy
 
@@ -75,8 +77,10 @@ hash, execution time, and proposed policy.
 The action references the pending initiation, is submitted only after
 quorum-finalized chain time reaches the stored execution time, and satisfies
 the recovery authorization rule. The stored initiating-policy
-hash must still equal the live policy hash. Completion installs the stored
-policy, clears recovery state, advances generation, and resets sequence while
+hash must still equal the live policy hash. Completion carries an empty
+counterparty signature set and installs the stored policy exactly as it was
+admitted and possession-proven at initiation, without re-validating it; it
+clears recovery state, advances generation, and resets sequence while
 retaining the immediately preceding typed-state hash as its predecessor.
 
 Any policy replacement clears pending recovery. Mutations that do not replace
@@ -91,17 +95,18 @@ authorize Capability operations or later Agent mutations.
 
 ## 3. Controller policy
 
-A policy is a canonically ordered set of 1 to 20 Ed25519 controllers. A policy
-naming more than 20 controllers is refused with `NATIVE_POLICY_TOO_WIDE`
-(2215) before any controller is read, and a signature list holds at most one
-signature per controller, so at most 20. Each controller contains:
+A policy is a set of 1 to 8 ML-DSA-44 controllers in strictly ascending key-ID
+order. A policy naming more than 8 controllers is refused with
+`NATIVE_ERROR_CODE_V1_POLICY_TOO_WIDE` (2215) where it would be installed; an
+authorizing signature set with more than 8 entries is refused with
+`NATIVE_ERROR_CODE_V1_THRESHOLD` (2209) before any entry is read. A signature
+set holds at most one signature per controller.
+Each controller contains:
 
-- key ID exactly `ed25519:<lowercase-public-key-hex>`;
-- the matching 32-byte public key, which must not be a small-order or
-  non-canonical Ed25519 encoding (the eight torsion points, the identity or
-  order-2 point with the sign bit set, or any encoding with `y >= 2^255 - 19`);
-  such a key is refused with `NATIVE_WEAK_KEY` (2214), and the all-zero key
-  with `NATIVE_BAD_POLICY` (2207);
+- key ID, text form exactly `mldsa44:<64 lowercase hex key_id>`
+  (`NATIVE_IDENTIFIERS_V1.md`);
+- the matching ML-DSA-44 public key of exactly 1,312 bytes, from which the key
+  ID is derived;
 - positive weight;
 - purpose bitmask; and
 - recovery designation.
@@ -201,7 +206,14 @@ to request a transition.
 - wrong network, code hash, object ID, address, sender, or state hash;
 - malformed or over-bound cell trees and trailing data;
 - duplicate, unknown, unsorted, wrong-purpose, or invalid signatures;
-- unreachable thresholds and controller key mismatch;
+- unreachable thresholds and controller key mismatch, including a declared key
+  ID that does not match the stored key;
+- wrong or cross-role signature context, library or exotic cells in key and
+  signature chains, malformed stored lengths, and 9 controllers or 9 signature
+  entries;
+- two valid re-signed signature sets for one action producing exactly one state
+  transition, the second accepted as a replay;
+- deployment outside workchain 0;
 - caller-selected registration identity;
 - stale predecessor, skipped sequence, conflicting replay, or wrong generation;
 - policy installation without proof of possession;

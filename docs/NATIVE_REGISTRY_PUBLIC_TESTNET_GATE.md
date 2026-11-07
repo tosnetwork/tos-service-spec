@@ -13,9 +13,10 @@ The initial profile permits three validator-backed endpoints operated on one
 host when all limitations are published in the deployment record. It requires:
 
 - at least three live TOS validator-backed JSON-RPC endpoints and quorum two;
-- ConfigParam 8 at version 14 or later;
+- ConfigParam 8 at global version 16 or later, which provides
+  `PQCHECKSIG_MLDSA44` for ML-DSA-44 controller signatures;
 - one immutable network/genesis identity and frozen Registry release;
-- distinct Agent controller keys for the transfer lifecycle;
+- distinct ML-DSA-44 Agent controller keys for the transfer lifecycle;
 - the production quorum resolver and typed-state decoder, not direct database
   inspection; and
 - a complete finalized lifecycle with transaction and checkpoint evidence.
@@ -31,9 +32,13 @@ A deployment record must publish:
 
 - protocol `tos_service_v1`;
 - exact TOS network ID and genesis root/file hashes;
-- Registry workchain;
+- Registry workchain, which is 0;
 - frozen code BOC, TVM code hash, BOC container SHA-256, byte size, source
-  commit, and reproducible build command;
+  commit, and reproducible build command; for the current release these are
+  `tvm-cell-sha256:d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a`,
+  `sha256:dcf41afaa7da7761839f3d26955ebab8dcd8adfe1d428b89229780c6647cdb9b`,
+  4,143 bytes, tos commit `c17d3fca5`, and the manifest
+  `crypto/smartcont/tos-service-native-registry-v1.release.json`;
 - at least three validator-backed JSON-RPC endpoints and a strict majority
   quorum, with operator and transport limitations stated explicitly;
 - deployment time and finality policy; and
@@ -49,8 +54,9 @@ must resolve to the same pinned code hash.
 
 The signing wallet must:
 
-- load controller seeds only from owner-private local or hardware-backed
-  storage;
+- hold ML-DSA-44 controller keys only in owner-private `tosctl` custody
+  (vault) or hardware-backed storage, and sign through that custody so no
+  controller private key leaves it;
 - display network, target object, contract code hash, generation, sequence,
   predecessor, action type, and action hash;
 - require explicit semantic confirmation before signing;

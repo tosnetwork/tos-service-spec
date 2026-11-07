@@ -25,7 +25,8 @@ claim multiple roles under different test identities.
    Receipt, settlement transaction, and provider-wallet credit.
 
 All test identities must be freshly generated through `tosctl` or another
-reviewed Ed25519 custody boundary. The plaintext identities under
+reviewed custody boundary; ML-DSA-44 Agent controller keys stay in `tosctl`
+custody (vault). The plaintext identities under
 `test-vectors/` are local test fixtures and are forbidden in the external
 pilot. No seed, mnemonic, private key, vault export, or signing credential may
 appear in the evidence bundle.

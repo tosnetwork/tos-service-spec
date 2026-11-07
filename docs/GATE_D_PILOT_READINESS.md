@@ -40,7 +40,7 @@ These carry to any network and must match exactly.
 | Invariant | Value / location |
 |---|---|
 | Software-work profile | V1 only |
-| Registry contract code hash | `tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0` |
+| Registry contract code hash | `tvm-cell-sha256:d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a` (ML-DSA-44 controllers, tos `c17d3fca5`; independent security review open) |
 | Executable Capability version used by the latest rehearsal | `1.2.0` |
 | Canonical manifest / Accepted Quote / Receipt encodings | frozen in this repository (`SOFTWARE_WORK_MANIFEST_V1.md`, `ACCEPTED_QUOTE_TVM_V1.md`, `SOFTWARE_WORK_RECEIPT_TVM_V1.md`, `STABLECOIN_ESCROW_TVM_V2.md`; escrow version 1 retired on 2026-10-05) |
 | Pinned executor OCI toolchain (Go 1.26.5) index digest | `sha256:9624bca74096f810c5b24e489521dde124fadcfa1808581648b38bdc1ba1b105` |
@@ -68,7 +68,8 @@ shown as shape reference only — **do not reuse them**.
 ## 5. Per-role checklist
 
 ### Provider (organization P)
-- [ ] generate + retain Agent controller and execution-signer keys via `tosctl`
+- [ ] generate + retain the ML-DSA-44 Agent controller key (in `tosctl` vault
+      custody) and the execution-signer key via `tosctl`
 - [ ] register Agent and Capability on the public network; publish the exact V1
       manifest and content digests
 - [ ] agree a non-canonical Quote Proposal with the buyer; both inspect the full
@@ -132,7 +133,7 @@ Accept only when it returns `PASS_INDEPENDENT_PAID_SOFTWARE_WORK_SETTLEMENT`.
   },
   "release_commits": {"tos": "", "tos_service_protocol": "", "tos_service_spec": ""},
   "network": {"network_id": "", "genesis_root_hash": "", "genesis_file_hash": "",
-              "registry_code_hash": "tvm-cell-sha256:600f2fda…a91ffa0"},
+              "registry_code_hash": "tvm-cell-sha256:d3bb66d0…c628b28a"},
   "capability": {"id": "", "version": "1.2.0"},
   "stablecoin": {"master": "", "wallet_code_hash": ""},
   "accepted_quote": {"commitment": "", "cell": ""},
