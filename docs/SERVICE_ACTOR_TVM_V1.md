@@ -4,7 +4,7 @@
 decided on 2026-11-07 (`SERVICE_ACTOR_SETTLEMENT_DESIGN.md` section 8: D1
 ML-DSA-44 attestor, D3 sweep returns the price to the caller, D10 request
 snapshot message). Implemented on tos branch `feat/service-actor-pq` at
-`1a469f6e2` (not merged, not deployed).
+`4c62edcae` (not merged, not deployed).
 
 **Pending, not invented here:** the released code BOC, code hash and release
 manifest, and every test vector (`terms_hash`, SRP2 domain hash, request
@@ -15,7 +15,7 @@ cannot pin to a published release (`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`
 section 2.4 step 3).
 
 **Sources.** `SA:N` is line `N` of `crypto/smartcont/service-actor-code.fc` at
-tos `1a469f6e2`. `PB:N` is `crypto/smartcont/pq-bytes.fc` and `SD:N` is
+tos `4c62edcae`. `PB:N` is `crypto/smartcont/pq-bytes.fc` and `SD:N` is
 `crypto/smartcont/signing-domain.fc` at the same commit. `RS` is
 `tosctl/src/node-control/contracts/src/service_actor.rs` and `SBX` is
 `tosctl/src/node-control/contracts/tests/service_actor_sandbox.rs`. Design
@@ -27,7 +27,7 @@ A Service Actor sells per-call access in native TOS. One actor serves one
 (Capability, version) at a time (design §2.3). Its authority boundary:
 
 - `call` admits a request, pays nothing out but the caller's change, and
-  commits the caller to the quoted `terms_hash` (SA:580-681, SA:651);
+  commits the caller to the quoted `terms_hash` (SA:576-678, SA:648);
 - `respond` releases a request's price and storage fee to owner revenue only
   when the owner sends it **and**, if the request snapshotted an attestor, that
   attestor signed the SRP2 statement (section 6);
@@ -44,7 +44,7 @@ check its workchain.
 
 ## 2. Constants
 
-SA:132, SA:170-202:
+SA:133, SA:171-203:
 
 | Name | Value |
 |---|---|
@@ -89,7 +89,7 @@ stored_signature = len:uint32(=2420) ^chain = StoredSignatureV1;
 - Signatures are Pure ML-DSA-44 (FIPS 204, no pre-hash, no external mu) checked
   with `PQCHECKSIG_MLDSA44` (TVM global version 16).
 - Context string for every Service Actor attestor signature:
-  `TOS-SERVICE-ACTOR-RESPOND-V1` (28 ASCII bytes; SA:705, RS
+  `TOS-SERVICE-ACTOR-RESPOND-V1` (28 ASCII bytes; SA:702, RS
   `SERVICE_ACTOR_RESPOND_CONTEXT`). It differs from the registry context
   `TOS-NATIVE-REGISTRY`, so a signature made for one role cannot be read as
   the other even under one key.
@@ -104,7 +104,7 @@ and are outside this suite (design §6.2).
 
 ### 4.1 Root, policy and accounting
 
-SA:13-27, SA:319-417:
+SA:13-27, SA:321-419:
 
 ```text
 service_actor_data$_ owner:MsgAddress active:uint1 next_request_id:uint64
@@ -136,7 +136,7 @@ present and `attestor_key_id = pq::key_id` of it. `rotate_attestor_key` and
 
 A deploy StateInit is deployer-controlled and passes through no admission
 code, so `call` re-checks the commitments on every admission before reading
-the body (SA:599-608): with `has_attestor = 1` it refuses an absent key (1925),
+the body (SA:595-604): with `has_attestor = 1` it refuses an absent key (1925),
 a key that is not a canonical stored key (62 or 63) and a key whose derived id
 differs from `attestor_key_id` (1925); with `has_attestor = 0` it refuses a
 present key or a non-zero `attestor_key_id` (1925). An actor deployed with an
@@ -145,7 +145,7 @@ the canonical encoding for a deploy with or without an attestor.
 
 ### 4.2 Pending request
 
-SA:40-44, SA:421-474:
+SA:40-44, SA:423-476:
 
 ```text
 pending_request$_ caller:MsgAddressInt price:Coins storage_fee:Coins
@@ -159,14 +159,14 @@ pending_commitments$_ request_hash:uint256 terms_hash:uint256
 
 At `call` the contract copies `has_attestor`, `attestor_key_id` and, only when
 `has_attestor = 1`, the **same** stored-key cell reference from the current
-policy (SA:653-656). Cells are deduplicated by hash, so storage grows per
+policy (SA:650-653). Cells are deduplicated by hash, so storage grows per
 distinct live key, not per request, and an old key stays stored only while a
 request snapshotted under it is live (design §6.2). `respond` uses only the
-snapshot (SA:688-708).
+snapshot (SA:685-705).
 
 ### 4.3 Refund
 
-SA:50-52, SA:508-528:
+SA:50-52, SA:504-524:
 
 ```text
 refund$_ caller:MsgAddressInt price:Coins storage_fee:Coins
@@ -175,7 +175,7 @@ refund$_ caller:MsgAddressInt price:Coins storage_fee:Coins
 
 ## 5. `terms_hash`
 
-SA:266-289; RS `terms_hash_of_data` / `terms_hash_of_init`:
+`terms_cell`, SA:263-291; RS `terms_hash_of_data` / `terms_hash_of_init`:
 
 ```text
 terms_hash = cell_hash(terms)
@@ -186,15 +186,17 @@ terms_tail$_ metadata_hash:uint256 proof_scheme_hash:uint256
   has_attestor:uint1 attestor_key_id:uint256 = ServiceActorTermsTailV1;
 ```
 
-`attestor_key_id` is written as zero when `has_attestor = 0` (SA:273).
+`attestor_key_id` is written as zero when `has_attestor = 0` (SA:275).
 Admission gates (`open_access`, `authorized_caller`, `rate_limit_per_day`) are
-excluded (SA:29-38, SA:254-260). For the software-work profile `metadata_hash`
+excluded (SA:29-38, SA:255-261). For the software-work profile `metadata_hash`
 and `proof_scheme_hash` are fixed by design §2.3 (`NSM1` and
-`SHA-256("tos.service.service-actor.receipt.software-work-v1")`).
+`SHA-256("tos.service.service-actor.receipt.software-work-v1")`). `call` builds
+this cell once, compares its hash with `expected_terms_hash`, stores the hash
+and emits the cell itself in the request snapshot (SA:641-648, section 8.1).
 
 ## 6. Response statement (SRP2)
 
-SA:146-147, SA:299-315; `begin_signing_domain` SD:12-21:
+SA:147-148, SA:301-317; `begin_signing_domain` SD:12-21:
 
 ```text
 srp2$_ tag:uint32=0x53525032 global_id:int32 actor_wc:int8 actor_addr:uint256
@@ -207,24 +209,26 @@ response_domain_hash = cell_hash(srp2)
 
 `global_id` is ConfigParam 19 (`GLOBALID`); the actor address is the
 contract's own address. Every other field is in the request snapshot
-(section 8.1), except `response_hash`, which the `respond` body carries. The
-attestor signs the 32 raw bytes of `response_domain_hash` with ML-DSA-44 under
-the context of section 3, and the contract verifies with `PQCHECKSIG_MLDSA44`
-against the request's snapshotted stored key (SA:699-707; RS
-`sign_service_response` / `verify_service_response`). For the software-work
-profile `response_hash` is `cell_hash(SoftwareWorkReceiptV1)`
+(section 8.1: `terms_hash` is the hash of its terms cell and `price` is that
+cell's `price_per_call`), except `response_hash`, which the `respond` body
+carries. The attestor signs the 32 raw bytes of `response_domain_hash` with
+ML-DSA-44 under the context of section 3, and the contract verifies with
+`PQCHECKSIG_MLDSA44` against the request's snapshotted stored key
+(SA:696-704; RS `sign_service_response` / `verify_service_response`). For the
+software-work profile `response_hash` is `cell_hash(SoftwareWorkReceiptV1)`
 (`SOFTWARE_WORK_RECEIPT_TVM_V1.md`).
 
 ## 7. Inbound messages
 
-Every body starts with `op:uint32 query_id:uint64`. Bounced messages and empty
-bodies are ignored (SA:562, SA:567). Unknown ops fail with 1910 (SA:998). Every
-handler ends its body parse with `end_parse`, so trailing bits or references
-fail with the TVM cell-underflow exit 9, as does a missing field.
+SA:54-71 list every inbound body. Every body starts with `op:uint32
+query_id:uint64`. Bounced messages and empty bodies are ignored (SA:558,
+SA:563). Unknown ops fail with 1910 (SA:996). Every handler ends its body parse
+with `end_parse`, so trailing bits or references fail with the TVM
+cell-underflow exit 9, as does a missing field.
 
 ### 7.1 `call`
 
-SA:55-56, SA:580-681:
+SA:55-56, SA:576-678:
 
 ```text
 call#53564301 query_id:uint64 request_hash:uint256 expected_terms_hash:uint256
@@ -241,14 +245,14 @@ Effect: stores the pending request (section 4.2) under
 `request_id = next_request_id`, increments the counters, liabilities and storage
 lock, reserves all preexisting backing plus `price + storage_fee`, emits the
 request snapshot (section 8.1), and returns the unused value to the caller with
-mode 128 (SA:653-679).
+mode 128 (SA:650-676).
 
 `request_hash` is stored opaquely; conforming clients refuse a zero value and
 never reuse one (design §3.1, §3.2).
 
 ### 7.2 `respond`
 
-SA:57-59, SA:683-723:
+SA:57-59, SA:680-720:
 
 ```text
 respond#53564302 query_id:uint64 request_id:uint64 response_hash:uint256
@@ -269,20 +273,20 @@ sandbox pins 62 (SBX `malformed_attestor_keys_and_signatures_are_refused`) and
 an attested request is pinned only as aborted (SBX
 `attestor_signed_respond_matches_the_compiled_bytecode`).
 
-Effect (SA:711-721): deletes the request; credits `price + storage_fee` to
+Effect (SA:708-718): deletes the request; credits `price + storage_fee` to
 `withdrawable_revenue`; releases the storage-fee lock, the pending liability and
 the request's capacity. No message is sent.
 
 ### 7.3 `expire`
 
-SA:60, SA:725-752: permissionless; the request is pending (1913) and
+SA:60, SA:722-749: permissionless; the request is pending (1913) and
 `response_deadline <= now < refund_claim_deadline` (1914, 1915); moves the
 request to the refund set and its price from pending to refundable liability;
 capacity is not released.
 
 ### 7.4 `claim_refund`
 
-SA:61-62, SA:754-790:
+SA:61-62, SA:751-787:
 
 ```text
 claim_refund#53564304 query_id:uint64 request_id:uint64 destination:MsgAddressInt
@@ -298,20 +302,23 @@ releases its capacity; reserves `backing - price`, pays `price` to
 
 ### 7.5 `sweep_expired_request`
 
-SA:63, SA:792-889 (D3):
+SA:63, SA:789-887 (D3):
 
 - permissionless; the request is pending or refundable (1920) and
   `now >= refund_claim_deadline` (1919);
 - with `backing` the balance minus this message's value: `backing` must cover
   `cleanup_bounty`, then `price`, then every other entry's price and storage
-  lock plus `MINIMUM_OPERATING_RESERVE`, subtracted one at a time (1921); at
-  least `PAYOUT_GAS_ALLOWANCE` attached (1929);
+  lock, subtracted one at a time (1921). The operating reserve is not required
+  (SA:853-854): the swept price is a customer's principal and, as in a refund,
+  ranks ahead of the reserve, so a rent-eroded reserve never strands it (SBX
+  `solvency_sweep_pays_principal_before_the_operating_reserve`). At least
+  `PAYOUT_GAS_ALLOWANCE` attached (1929);
 - deletes the entry and releases its liability, storage lock and capacity;
-- credits `storage_fee - cleanup_bounty` to owner revenue (SA:870-871);
+- credits `storage_fee - cleanup_bounty` to owner revenue (SA:868-869);
 - `raw_reserve(backing - cleanup_bounty - price)` (`remaining_after_payouts`,
-  SA:242-244, SA:873), then sends `price` to the request's **caller** (mode 1,
+  SA:243-245, SA:871), then sends `price` to the request's **caller** (mode 1,
   if non-zero), then `cleanup_bounty` to the sweeper (mode 1, if non-zero),
-  then the change to the sweeper (mode 128) (SA:874-880).
+  then the change to the sweeper (mode 128) (SA:872-878).
 
 Every swept entry is unanswered (a responded request no longer exists), so a
 sweep always returns the price to the caller. The sends carry no
@@ -322,14 +329,14 @@ entry.
 
 ### 7.6 `update_policy`
 
-SA:64-68, SA:891-933: owner only (1900); bounds as `call` (1903-1906); replaces
+SA:64-68, SA:889-931: owner only (1900); bounds as `call` (1903-1906); replaces
 price, fees, SLA, window, `active`, access, rate limit, `metadata_hash` and
 `proof_scheme_hash`, and sets `policy_version + 1`. It cannot change the
 attestor.
 
 ### 7.7 `revoke_attestor`
 
-SA:76, SA:951-963:
+SA:70, SA:949-961:
 
 ```text
 revoke_attestor#53564308 query_id:uint64
@@ -343,7 +350,7 @@ set, `terms_hash` changes, so outstanding quotes fail with 1926;
 
 ### 7.8 `rotate_attestor_key`
 
-SA:69, SA:935-949:
+SA:69, SA:933-947:
 
 ```text
 rotate_attestor_key#53564307 query_id:uint64 attestor_key:^StoredKeyV1
@@ -363,61 +370,68 @@ key only after a new Capability version names it in manifest key 21.
 
 ### 7.9 `withdraw_revenue`
 
-SA:77, SA:965-996: owner only (1900); `backing` must cover pending and
-refundable liability, the storage lock and `MINIMUM_OPERATING_RESERVE`, and
-`amount` must not exceed the lesser of `withdrawable_revenue` and the remainder
-(1922, including a zero amount when the obligations are not covered); at least
-`PAYOUT_GAS_ALLOWANCE` attached (1929). Pays `amount` to the owner address
-(mode 1) and the change to the sender (mode 128).
+SA:71, SA:963-994:
+
+```text
+withdraw_revenue#53564309 query_id:uint64 amount:Coins
+```
+
+Owner only (1900); `backing` must cover pending and refundable liability, the
+storage lock and `MINIMUM_OPERATING_RESERVE`, and `amount` must not exceed the
+lesser of `withdrawable_revenue` and the remainder (1922, including a zero
+amount when the obligations are not covered); at least `PAYOUT_GAS_ALLOWANCE`
+attached (1929). Pays `amount` to the owner address (mode 1) and the change to
+the sender (mode 128).
 
 ## 8. Outbound messages
 
 ### 8.1 Request snapshot (D10)
 
-SA:72-75, SA:150, SA:476-506, SA:670-671. A successful `call` emits exactly one
+SA:73-78, SA:151, SA:478-502, SA:667-668. A successful `call` emits exactly one
 external out-message: `ext_out_msg_info` with `src = addr_none`,
 `dest = addr_none`, no `init`, and the body by reference, sent with mode 1:
 
 ```text
 request_snapshot#53415231 request_id:uint64 caller:MsgAddressInt
-  request_hash:uint256 terms_hash:uint256 ^request_snapshot_tail
-  = ServiceActorRequestSnapshotV1;
-
-request_snapshot_tail$_ price:Coins response_deadline:uint64
-  refund_claim_deadline:uint64 has_attestor:uint1 attestor_key_id:uint256
-  = ServiceActorRequestSnapshotTailV1;
+  request_hash:uint256 response_deadline:uint64 refund_claim_deadline:uint64
+  terms:^ServiceActorTermsV1 = ServiceActorRequestSnapshotV1;
 ```
 
 The tag is ASCII `SAR1` (RS `SERVICE_ACTOR_REQUEST_SNAPSHOT_TAG`). There is no
-schema field. Every value equals the stored pending request: `caller` is the
-`call` sender, `price` is the admitted `price_per_call`, and `has_attestor` and
-`attestor_key_id` are the request's snapshot, with `attestor_key_id = 0` when
-`has_attestor = 0`. The stored key, `storage_fee`, `cleanup_bounty`,
-`policy_version` and the policy commitments are not emitted. The message is
-sent after the reserve and before the mode-128 change transfer, so its forward
-fee is paid from the caller's attached value, never from retained backing.
+schema field. `terms` is the exact `terms_hash` preimage of section 5, the same
+cell `call` hashed: its cell hash is the request's `terms_hash`, and it carries
+`policy_version`, `price_per_call` (the request's price), `storage_fee`,
+`cleanup_bounty`, `response_sla`, `refund_claim_window`, `metadata_hash`,
+`proof_scheme_hash`, `has_attestor` and `attestor_key_id` (zero when
+`has_attestor = 0`). Every value equals the stored pending request; `caller` is
+the `call` sender, `response_deadline = now + response_sla` and
+`refund_claim_deadline = response_deadline + refund_claim_window` at the `call`
+(SA:639-640). The stored key is not emitted. The message is sent after the
+reserve and before the mode-128 change transfer, so its forward fee is paid
+from the caller's attached value, never from retained backing.
 
-A conforming decoder (RS `decode_request_snapshot`) refuses any other tag, a
-missing field, trailing bits or references in either cell, `has_attestor = 1`
-with a zero key id, `has_attestor = 0` with a non-zero key id, and
-`refund_claim_deadline <= response_deadline`.
+A conforming decoder (RS `decode_request_snapshot`) takes `terms_hash` as the
+cell hash of `terms` and refuses any other tag, a missing field, trailing bits
+or references in any of the three cells, `has_attestor = 1` with a zero key
+id, `has_attestor = 0` with a non-zero key id, and
+`response_deadline + refund_claim_window != refund_claim_deadline` (checked
+addition).
 
 Resolvers read the snapshot only from the finalized `call` transaction and
-verify an existing request against it (design §2.4 steps 5-9). With the actor
-address, `global_id` and the `respond` body's `response_hash`, the snapshot
-supplies every SRP2 input. It does not carry the policy fields needed to
-recompute `terms_hash`; a verifier compares its `terms_hash` with the terms hash
-the Accepted Quote commits to (design §2.4 step 8).
+verify an existing request against it (design §2.4 steps 5-9). It opens
+`terms_hash` without reading account state, and with the actor address,
+`global_id` and the `respond` body's `response_hash` it supplies every SRP2
+input.
 
 ### 8.2 Value transfers
 
-SA:204-213, SA:246-252: `send_value` builds a non-bounceable internal message
+SA:205-214, SA:247-253: `send_value` builds a non-bounceable internal message
 (`0x10` flags) with an empty body. Payouts use mode 1; change uses mode 128
 after a `raw_reserve` of the backing that must stay.
 
 ## 9. Exit codes
 
-SA:93-127 and PB:18-20.
+SA:94-128 and PB:18-20.
 
 | Code | Name | Raised by |
 |---:|---|---|
@@ -460,7 +474,7 @@ ML-DSA-44 suite.
 
 ## 10. Getters
 
-SA:1003-1073. Convenience only; resolvers decode the account data exactly
+SA:1001-1071. Convenience only; resolvers decode the account data exactly
 (design §2.4 step 3).
 
 | Getter | Returns |
@@ -468,7 +482,7 @@ SA:1003-1073. Convenience only; resolvers decode the account data exactly
 | `get_service_data()` | `owner, active, policy_version, price_per_call, storage_fee, cleanup_bounty, response_sla, refund_claim_window, open_access, has_authorized_caller, authorized_caller, rate_limit_per_day, metadata_hash, proof_scheme_hash, has_attestor, attestor_key_id, next_request_id, pending_count, live_count, withdrawable_revenue, locked_storage_fees, pending_liability, refundable_liability, call_day, calls_today` |
 | `get_request(request_id)` | `found, caller, price, storage_fee, cleanup_bounty, response_deadline, refund_claim_deadline, policy_version, request_hash, terms_hash, has_attestor, attestor_key_id`; all zero and a null caller when not pending |
 | `get_refund(request_id)` | `found, caller, price, storage_fee, cleanup_bounty, refund_claim_deadline`; all zero and a null caller when absent |
-| `get_attestor_key()` | the policy's stored key cell, or null |
+| `get_attestor_key()` | the policy's stored key cell, or null when there is no attestor (`load_state` is `impure`, so the key it loads is kept; SA:321, SA:1043-1046) |
 | `get_request_attestor_key(request_id)` | the pending request's snapshotted stored key cell, or null; fails with 1913 when the request is not pending |
 | `get_pending_count()` | `pending_count` |
 | `get_live_count()` | `live_count` |
@@ -477,11 +491,11 @@ SA:1003-1073. Convenience only; resolvers decode the account data exactly
 ## 11. Invariants
 
 1. Coins arithmetic is checked below `2^120`; liabilities never go negative
-   (SA:132-144).
+   (SA:133-145).
 2. Balance covers `pending_liability + refundable_liability +
-   locked_storage_fees + MINIMUM_OPERATING_RESERVE` after every admission,
-   sweep and withdrawal; a refund may consume the reserve but no other
-   customer's backing (SA:226-235, SA:773-774).
+   locked_storage_fees + MINIMUM_OPERATING_RESERVE` after every admission and
+   withdrawal. A refund or a sweep may consume the reserve, but no other
+   customer's price or storage backing (SA:227-236, SA:770-771, SA:853-854).
 3. A request resolves exactly once: respond (price to owner revenue), refund
    (price to the caller's destination) or sweep (price to the caller). The
    storage fee is never refunded; on sweep its bounty part goes to the sweeper.
@@ -492,7 +506,8 @@ SA:1003-1073. Convenience only; resolvers decode the account data exactly
 6. The policy and every pending request hold the single "no attestor" encoding
    or a key whose derived id equals the stored id.
 7. Every successful `call` emits exactly one request snapshot message that
-   equals the stored request.
+   equals the stored request, and whose terms cell hashes to the stored
+   `terms_hash`.
 
 ## 12. Gates before this layout is frozen
 
@@ -500,5 +515,5 @@ Listed in design §9: sandbox on both VMs, the adversarial cases, gas and size
 (including the `respond` and `rotate_attestor_key` owner-wallet external
 messages within 65,535 bytes), vectors generated from contract execution, the
 resolver, live-chain lifecycles and an independent security review. Sandbox
-tests exist on the implementing branch (SBX at `1a469f6e2`); none of the gates
+tests exist on the implementing branch (SBX at `4c62edcae`); none of the gates
 has been accepted as of 2026-11-07.
