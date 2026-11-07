@@ -85,14 +85,17 @@ Reverse link, in the actor:
 ```text
 metadata_hash = cell_hash(service_actor_metadata)
 service_actor_metadata$_ magic:uint32="NSM1" schema:uint16=1
-  ^network_domain capability_id:uint256 provider_agent_id:uint256
-  capability_version_sha256:uint256 manifest_digest:uint256
-  = ServiceActorMetadataV1;
+  capability_id:uint256 provider_agent_id:uint256
+  ^network_domain ^service_actor_version = ServiceActorMetadataV1;   -- 560 bits
+service_actor_version$_ capability_version_sha256:uint256
+  manifest_digest:uint256 = ServiceActorVersionV1;                  -- 512 bits
 proof_scheme_hash = SHA-256("tos.service.service-actor.receipt.software-work-v1")
 ```
 
 `network_domain` is the existing `NetworkDomainV1` cell of
-`ACCEPTED_QUOTE_TVM_V1.md`. Because `terms_hash` includes `metadata_hash` and
+`ACCEPTED_QUOTE_TVM_V1.md` (768 bits). The four 256-bit identities and the
+48-bit header (1,072 bits) do not fit one 1,023-bit cell, so the version pair
+moves into a referenced cell. Because `terms_hash` includes `metadata_hash` and
 `proof_scheme_hash` (SA:250-251), every admitted request commits to the exact
 network, Capability version, manifest and Receipt scheme.
 
@@ -106,31 +109,73 @@ their snapshotted `terms_hash` (SA:571-574). `RS:218` deploys with `active = 1`,
 so a deploy-then-configure window exists; no buyer's quoted `terms_hash` can
 match it, but an inactive deploy option is a tooling gap (section 7).
 
-### 2.4 Buyer verification from finalized state alone
+### 2.4 Verification from finalized state alone
 
-At one quorum-finalized checkpoint (atomic-read rule in `CLAUDE.md`), the buyer
-or any resolver:
+Every read below is taken at one quorum-finalized checkpoint (atomic-read rule
+in `CLAUDE.md`). Nothing is supplied by a gateway. There are two procedures:
+admission-time verification checks the actor's **current** policy before a
+`call`; existing-request verification checks a request against **its own
+snapshot**, because a later rotation or `update_policy` changes the current
+policy but not admitted requests (SA:571-574, SA:604-620).
 
-1. resolves the Capability: not tombstoned, version present and not revoked,
-   owner Agent not tombstoned; reads `manifest_digest`;
-2. obtains manifest bytes from any source and checks the digest; reads key 21;
-3. reads account `A` on workchain 0: code hash equals the pinned Service Actor
-   release hash (none is frozen today; gap); decodes the data cell exactly
-   (layout SA:13-27, SA:294-338), not only the getter;
-4. checks `active = 1`, `has_attestor = 1`, attestor key equals the manifest's,
-   the key is not weak (`call` does not check it; only `respond` and
+**Common: identity and actor equality.** `terms_hash` hashes neither the actor
+address nor its owner (SA:241-264): an identical policy deployed at another
+address yields the same `terms_hash`, and a matching `call` there would be
+admitted. The verifier therefore requires, and otherwise refuses:
+
+1. the Capability is not tombstoned, the version is present and not revoked
+   (admission only; see below), the owner Agent is not tombstoned; the manifest
+   bytes match the version's `manifest_digest`;
+2. one actor address everywhere: manifest key 21 actor `=` the Quote's
+   `rail.actor` `=` the destination of the `call` (before sending: the message
+   the buyer builds; afterwards: the finalized `call` transaction's account).
+   The owner is fixed per address (SA:71-79), so address equality also fixes the
+   owner;
+3. one code hash everywhere: the account's code hash `=` manifest key 21 code
+   hash `=` the Quote's `rail.actor_code_hash` `=` the pinned Service Actor
+   release hash (no release manifest publishes one today; gap, section 7); the
+   account is on workchain 0 and its data cell decodes exactly (SA:13-27,
+   SA:294-338), not only through the getter;
+4. one attestor key everywhere: manifest key 21 (and key 18) `=` the Quote's
+   `authority.attestor_key_id`.
+
+A mismatch in 2-4 is a verification error, never an empty or partial result.
+The buyer must not build or sign the `call`, and a resolver must not attribute
+the request to the Capability.
+
+**Admission-time verification (before `call`).** Additionally:
+
+5. current state: `active = 1`, `has_attestor = 1`, the current attestor key
+   equals step 4 and is not weak (`call` does not check it; only `respond` and
    `rotate_attestor_key` do, SA:618, SA:841);
-5. recomputes `metadata_hash` from step 1 and the network, and checks
-   `proof_scheme_hash`;
-6. checks policy bounds (SA:518-526) and admission: `open_access = 1` or
+6. current `metadata_hash` equals `NSM1` recomputed from step 1 and the network;
+   `proof_scheme_hash` equals the section 2.3 value;
+7. policy bounds (SA:518-526) and admission: `open_access = 1` or
    `authorized_caller` equals the buyer wallet (SA:529-530);
-7. computes `terms_hash` from the decoded policy (SA:241-264) and requires it to
-   equal the Quote's.
+8. `terms_hash` computed from the decoded current policy (SA:241-264) equals the
+   Quote's `rail.terms_hash`, and the Quote's `policy_version`, `price` and
+   `storage_fee` equal the decoded ones.
 
 Capacity and the daily rate limit (SA:539-554) can still refuse the call; they
-are not part of the terms. Nothing in this procedure is supplied by a gateway.
-A later revocation of the Capability version does not touch the actor or its
-pending requests; it only stops new verified quotes.
+are not part of the terms.
+
+**Existing-request verification (after `call`).** Steps 1-4, except that a
+version revoked after the `call` does not invalidate the request (revocation
+does not touch the actor). Then, instead of steps 5-8:
+
+5. locate the finalized `call` transaction and its `request_id` (section 3.2);
+   its caller is the buyer and its inbound body carries the buyer's
+   `request_hash` and the Quote's `terms_hash`;
+6. if pending, `get_request(id)` (SA:917-929) returns that caller,
+   `request_hash`, `terms_hash`, price and the snapshotted attestor key, and the
+   key equals step 4; the current attestor, `metadata_hash` and policy are not
+   consulted;
+7. the `terms_hash` preimage is the actor policy at the `call` transaction's
+   pre-state; recomputing it yields the snapshot value, and its
+   `metadata_hash` equals `NSM1` for the quoted version;
+8. if not pending, the outcome comes from transaction history (section 5.1): a
+   `respond` is checked against the snapshot key and SRP2 (section 4), a refund
+   or sweep against `get_refund` and the transaction.
 
 ## 3. Quote Proposal, Accepted Quote and `call`
 
@@ -146,11 +191,18 @@ accepted_quote$_ magic:uint32=0x4e415131 schema:uint16=<D2>
 identity  = capability_id provider_agent_id ^(capability_version_sha256
             manifest_digest transport_binding_digest expires_at:uint64
             ^capability_version_snake)                -- unchanged from V1
-rail      = actor:MsgAddressInt actor_code_hash:uint256 terms_hash:uint256
-            policy_version:uint32 price:Coins storage_fee:Coins
+rail      = actor:MsgAddressInt actor_code_hash:uint256 policy_version:uint32
+            ^rail_terms                                 -- 555 bits
+rail_terms = terms_hash:uint256 price:Coins storage_fee:Coins   -- <= 504 bits
 authority = attestor_key_id:uint256
 quote_commitment = cell_hash(accepted_quote)
 ```
+
+In one cell the rail would be 267 (standard address) + 256 + 256 + 32 + 2 x 124
+(Coins, 4-bit length plus up to 120 bits) = 1,059 bits. It is split rather than
+given a narrower amount bound: the contract accepts any Coins value below
+`2^120` (SA:120-132), and a smaller Quote bound would either refuse policies the
+contract admits or need a second bound kept in step with it.
 
 The request commitment carried by `call`:
 
@@ -356,7 +408,7 @@ Pointers for follow-up changes; no code is written here.
 
 | Repository | File | Gap |
 |---|---|---|
-| tos | RS:18 | no release manifest, frozen BOC or code hash; needed by 2.4 step 3 |
+| tos | RS:18, RS:159-160 | the BOC is embedded and deserialized there, but no release manifest publishes its code hash for clients to pin; needed by 2.4 step 3 |
 | tos | CMD:1147-1152 | `call` defaults `expected_terms_hash` to live state |
 | tos | RS:218 | deploy is always `active = 1`; add an inactive deploy for 2.3 |
 | tos | SA:508-597 | `call` admits a weak snapshotted attestor key |
@@ -424,7 +476,13 @@ Pointers for follow-up changes; no code is written here.
   not match; library or exotic cells for the key wrapper and chain cells;
   malformed lengths and trailing data; two randomized signatures for one
   response giving one transition; Ed25519-shaped key and signature refused;
-  deployment outside workchain 0; `call` with a zero `request_hash` (client
+  deployment outside workchain 0; actor substitution (an identical policy at a
+  second address, so equal `terms_hash`, refused by 2.4 step 2 before `call`
+  and never attributed afterwards); a Quote whose code hash or attestor key
+  differs from the manifest or account (steps 3-4); existing-request
+  verification after `rotate_attestor_key`, `revoke_attestor` and
+  `update_policy`, still accepting the request by its snapshot while
+  admission-time verification refuses new quotes; `call` with a zero `request_hash` (client
   refusal) and with a duplicate `request_hash`; `call` after manifest
   revocation (accepted by the contract, refused by the buyer verifier); quote
   stale by `update_policy`, rotation and revocation each refused with 1926; and,
@@ -438,10 +496,13 @@ Pointers for follow-up changes; no code is written here.
   domain hash, key id, and signatures over the exact 32 raw bytes, produced
   from contract execution and reproduced by the tos Rust builders,
   `nativecore` and the independent reference codec.
-- **Resolver.** Section 2.4 and every state of 5.1 derived from finalized state
-  and transactions at one checkpoint, three endpoints, quorum two, with no
-  gateway input; a missing account, wrong code hash or ambiguous outcome is an
-  error, never empty.
+- **Resolver.** Both procedures of section 2.4, kept separate: admission-time
+  verification against current policy, and existing-request verification
+  against the request snapshot and transaction history, never against the
+  current attestor, `metadata_hash` or terms. Every state of 5.1 derived from
+  finalized state and transactions at one checkpoint, three endpoints, quorum
+  two, with no gateway input; an actor, code-hash or attestor mismatch, a
+  missing account or an ambiguous outcome is an error, never empty.
 - **Live chain.** On a v16 local network, one lifecycle per terminal state
   (responded, refunded, forfeited) from deploy through Receipt, reconstructed
   by a second resolver; then the same on the public testnet with an external
