@@ -4,124 +4,102 @@ Prepared, submitted, ambiguous, rejected and finalized settlement facts may be
 published as immutable, profile-qualified observations under
 [`Agent Operation and Outcome Event V1`](AGENT_OPERATION_OUTCOME_EVENT_V1.md).
 That evidence layer cannot authorize a transfer, replace finality, or change
-the Quote, escrow, Receipt, refund, and dispute rules in this document.
+the Quote, custody, Receipt, refund, and dispute rules in this document.
 
 ## Delivery scope
 
 This document defines the target economic model. The first implementation is
-limited to machine-checkable software work, one supported stablecoin issued on
-TOS Network, native TOS network fees, objective release or refund, and narrowly
-bounded dispute evidence. Additional TOS-network assets, subjective work,
+limited to machine-checkable software work settled in native TOS on the Service
+Actor contract ([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md), binding
+rules in [`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)),
+objective release or refund, and narrowly bounded dispute evidence.
+Stablecoin pricing, additional TOS-network assets, subjective work,
 generalized arbitration, and high-frequency payment channels require later
-roadmap gates.
+roadmap gates. Stablecoin pricing in particular waits for a token integration
+that reports payout outcomes.
 
 ## Quote Proposal
 
-A gateway may construct `QuoteProposalV1` after resolving a Capability version.
-The proposal binds:
+A gateway may construct `QuoteProposalV1` after resolving a Capability version
+and the Service Actor its manifest names. The proposal binds:
 
 - Capability ID and exact version;
 - provider Agent ID;
 - manifest digest;
 - transport binding digest;
-- maximum price and asset;
-- escrow terms digest;
-- dispute policy digest; and
-- expiry.
+- the actor address and code hash;
+- the actor's policy version, `terms_hash`, exact price and non-refundable
+  storage fee in nanoTOS;
+- the attestor key id; and
+- a buyer-side expiry.
 
 `proposal_id` is gateway-local correlation data. A proposal can be discarded,
 replaced, or compared with proposals from other gateways. It does not authorize
-payment or execution.
+payment or execution, and every rail field must equal finalized actor state and
+the manifest before a buyer uses it.
 
 ## Accepted Quote
 
-The client validates terms and chooses an execution-signer authorization. The
-deterministic Accepted Quote commitment binds network and all commercial and
-execution fields except the gateway-local proposal ID. The client submits the
-commitment in a TOS transaction.
+The client verifies the proposal against finalized state and converts it into
+the Accepted Quote cell of [`ACCEPTED_QUOTE_TVM_V1.md`](ACCEPTED_QUOTE_TVM_V1.md).
+The deterministic Accepted Quote commitment binds network and all commercial and
+execution fields except the gateway-local proposal ID. The attestor key is not
+chosen by the client: it is the key the manifest pins (D5).
 
-An Accepted Quote exists only after the transaction is finalized and checked.
-Its chain reference includes workchain, account, logical time, transaction
-hash, contract code hash, and finalized checkpoint.
+The buyer commits to the Quote through the `request_hash` of one Service Actor
+`call` that also carries the quoted `terms_hash` and the payment. An Accepted
+Quote exists for that request only after the `call` transaction is finalized
+and checked. Its chain reference includes workchain, account, logical time,
+transaction hash, contract code hash, finalized checkpoint, and the request ID
+from the call's request snapshot message.
 
 ## Amounts
 
-Money uses an asset identifier and unsigned atomic amount encoded as canonical
-base-10 text:
+Amounts are unsigned nanoTOS encoded as canonical base-10 text:
 
 ```text
 0 | [1-9][0-9]*
 ```
 
 No sign, decimal point, exponent, whitespace, locale formatting, or leading
-zero is allowed. Arithmetic uses checked integers with asset-specific bounds.
+zero is allowed. Arithmetic uses checked integers below `2^120`, the bound of
+the contract's Coins fields. A price is non-zero.
 
-The typed `asset` identity contains the wc=0 master account ID, master code
-hash, wallet code hash, and decimals on the same TOS network as the Accepted
-Quote. Resolution verifies every value and active status from finalized TOS
-state. A ticker such as `USD` or `USDT` is display metadata and is never a
-canonical asset identifier. Gateways cannot represent an off-chain balance,
-bridged claim on another network, or private ledger entry as settlement under
-this specification.
+Gateways cannot represent an off-chain balance, bridged claim on another
+network, or private ledger entry as settlement under this specification.
 
-## Escrow
+## Custody
 
-Escrow creation references the Accepted Quote commitment and locks no more than
-its maximum price in the selected asset. State transitions are contract-
-defined. Exact replay cannot create another wallet request while escrow is
-pending or terminal. After an authenticated bounce restores `funded`, the
-escrow may accept an old public request again because it retains no consumed-
-query history; resolver-level idempotency groups that transition under the same
-semantic action. Gateway accounting is a projection of finalized escrow and
-settlement transactions.
+The Service Actor holds each admitted request's price and storage fee from the
+`call` until the request resolves. State transitions are contract-defined:
 
-The escrow contract ([`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md))
-distinguishes `pending_acceptance`, `awaiting_funding`, `funded`,
-`release_pending`, and `refund_pending`, plus the chain-derived economic
-outcomes released or refunded. Escrow version 1, which had no
-`pending_acceptance` state and treated deployment as acceptance, was retired
-on 2026-10-05. `accepted_for_execution`, `result_ready`, and any future
-`evaluating` label are Gate or SDK projections, not escrow states. Mutually exclusive pending states prevent a second economic transfer
-request. The finalized resolver derives the terminal outcome from the exact
-stablecoin wallet transaction chain; a gateway callback or the standard
-wallet's unbound `excesses` message is not settlement authority.
+- `call` admits a request only under the quoted `terms_hash` and stores a
+  snapshot of the policy and attestor; it emits that snapshot in the call
+  transaction;
+- `respond` by the owner with the snapshotted attestor's ML-DSA-44 signature
+  over the SRP2 statement, before `response_deadline`, credits the price and
+  storage fee to the provider's revenue;
+- after `response_deadline` anyone may `expire` the request; the caller may
+  then `claim_refund` the price before `refund_claim_deadline`;
+- at or after `refund_claim_deadline` anyone may sweep an unanswered request;
+  the sweep returns the price to the caller and pays the sweeper a bounded
+  cleanup bounty out of the storage fee.
 
-For the first release, escrow supports fixed-price release before the committed
-refund boundary and timeout refund at or after it. The Execution Gate must
-reserve the worst case. That means the exact committed preflight-to-start delay, effective runtime derived
-no greater than the manifest limit, and a nonzero margin for bounded objective
-validation; evidence/report and Receipt construction; query-specific signing;
-initial release inclusion; and definitive downstream acceptance of that initial
-wallet request without bounce, strictly before the refund boundary, with a
-fresh same-claim preflight before first process start. The escrow forgets
-the pending query on bounce, so a public old release/refund attempt may be
-permissionlessly replayed from `funded`; distinct queries do not create a finite
-contract-enforced retry bound. Automatic execution therefore requires a proven
-zero-bounce initial release path, otherwise it remains disabled. A separately
-versioned settlement-critical successor may preserve the valid pre-cutoff
-semantic release action or consumed-query generation across bounces; that is
-outside current V1. Merely starting before the refund time is unsafe. A
-downstream accepted transfer may finalize provider
-credit later because `release_pending` already blocks refund; the bound
-establishes release priority, not terminal payout latency. A binding Evaluator,
-disputed state, fee split, or challenge flow
-requires a separately versioned Quote and escrow profile with an explicit
-timeout fallback. It cannot be added by a general-purpose arbitration callback
-or by reinterpreting V1 state.
-
-For the first lifecycle, escrow deployment embeds the complete Accepted Quote
-cell in StateInit. Its finalized deployment transaction is the canonical Quote
-acceptance transaction. This does not reintroduce an Action Anchor: the escrow
-exists because it has continuing custody and settlement behavior.
+Respond and expire partition time exactly at `response_deadline`. A request
+resolves once. Gateway accounting is a projection of finalized actor
+transactions; a gateway callback is not settlement authority.
 
 ## Execution
 
-Execution begins only after the Accepted Quote and required escrow state are
-finalized. The dispatch envelope binds Quote commitment, Capability version,
-manifest, endpoint, authorized signer, input digest, idempotency identity, and
-deadline.
+Execution begins only after the `call` is finalized and the request is
+verified pending under the quoted `terms_hash` and `request_hash`. The dispatch
+envelope binds Quote commitment, Capability version, manifest, endpoint,
+attestor key id, input digest, idempotency identity, the actor and request ID,
+and `response_deadline`. The provider must reserve enough time before
+`response_deadline` for execution, Receipt construction, attestor signing, and
+inclusion of the `respond`; after the deadline only a refund is possible.
 
-A routing change is valid only if it remains within the endpoint and signer set
+A routing change is valid only if it remains within the endpoint and attestor
 committed by the Accepted Quote. Otherwise the client must accept a new Quote.
 
 ## Receipt
@@ -132,9 +110,8 @@ A successful receipt binds:
 - Capability and version;
 - input digest;
 - result and artifact digests;
-- measured usage used for pricing;
-- charged atomic amount;
-- provider Agent and execution signer;
+- charged amount, equal to the price;
+- provider Agent;
 - completion time; and
 - any evidence commitment required by the Quote.
 
@@ -142,48 +119,49 @@ For the software-work profile, the Receipt also binds repository or source
 reference, toolchain or sandbox image digest, operation descriptor, exit status,
 test or scan report digest, and reproducible artifact digest where applicable.
 
-The authorized execution signer signs the canonical receipt. Bulk outputs and
-evidence remain off-chain and are checked by digest.
+The attestor signs the SRP2 statement whose `response_hash` is the Receipt cell
+hash ([`SOFTWARE_WORK_RECEIPT_TVM_V1.md`](SOFTWARE_WORK_RECEIPT_TVM_V1.md)).
+Bulk outputs and evidence remain off-chain and are checked by digest.
 
 ## Settlement
 
-Settlement verifies Accepted Quote, escrow, receipt signature, signer
-authorization, immutable version, amount bounds, and prior state. It then
-records one pending transfer intent and asks the bound stablecoin wallet to
-perform the economic transition. While escrow remains pending or reaches a
-terminal outcome, replay or conflicting receipt/amount data cannot create
-another transfer request. The escrow clears the pending query if that
-wallet request authentically bounces, however, so an old public release/refund
-attempt may recreate the same semantic action from restored `funded` and race a
-new operator attempt. The resolver groups those attempts; automatic policy does
-not retry after bounce and requires a proven zero-bounce initial release path.
-The terminal projection requires finalized wallet transaction evidence.
+The contract verifies the owner sender, the request's pending state and
+deadline, and the snapshotted attestor's signature over SRP2. It does not decode
+the Receipt: the exit status, charge and digests are enforced by attestor
+custody, which refuses to sign a Receipt that is not releasable under the
+manifest (D9). A buyer holding a signed non-conforming Receipt has off-chain
+evidence of misbehaviour, not an on-chain remedy.
+
+`respond` sends no value: the release is a credit to the provider's revenue,
+which the owner later withdraws. A refund or sweep pays the caller directly.
+The terminal outcome is derived from the actor's finalized transaction history
+(responded, refunded, or swept), never from a gateway.
 
 ## Disputes
 
-The Accepted Quote commits to dispute terms before execution. A dispute refers
-to the Quote, escrow, receipt or failure evidence, and exact challenged amount.
-Resolution authority and allowed outcomes come from the committed policy, not
-from the gateway that routed the job.
+The dispute policy is fixed by contract code: an attested response before the
+deadline pays; otherwise the price returns to the caller. A dispute refers to
+the Quote, the request snapshot, the Receipt or failure evidence, and the exact
+challenged amount, and it has no on-chain effect in this profile.
 
-Initial-release disputes are narrow exceptions around objective software-work
-evidence. Subjective quality judgments and generalized marketplace arbitration
-are outside scope.
+Subjective quality judgments and generalized marketplace arbitration are outside
+scope.
 
 ## Asset roles
 
-Native TOS pays contract execution, Registry operations, relaying, and protocol
-security costs. The provider service is denominated in the exact TOS-network
-stablecoin selected by the Accepted Quote. Wallets and accounting views must
-show stablecoin service payment and native TOS fees separately.
+Native TOS pays contract execution, Registry operations, relaying, protocol
+security costs, and, in the current domain, the provider service itself. Wallets
+and accounting views must show the service price, the non-refundable storage
+fee, and network fees separately.
 
 ## Invariants
 
 1. Proposal creation moves no funds.
-2. Only finalized acceptance creates canonical purchase terms.
-3. Execution cannot silently change bound version, endpoint, or signer.
-4. Total release plus refund never exceeds funded escrow.
-5. One escrow creates at most one terminal economic transfer, and its outcome
-   is derived from finalized wallet transaction evidence.
+2. Only a finalized `call` under the quoted `terms_hash` creates canonical
+   purchase terms for a request.
+3. Execution cannot silently change bound version, endpoint, or attestor.
+4. Each request resolves exactly once: its price goes either to provider
+   revenue on an attested response or back to the caller.
+5. The storage fee is never refunded; the Quote discloses it.
 6. Gateway balances and histories are rebuildable from finalized chain state.
 7. An ambiguous settlement request is resolved from chain state before retry.

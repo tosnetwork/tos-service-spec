@@ -1,15 +1,14 @@
 # Paid-Demand Binding to the Existing Accepted Quote Rail V1
 
-**Status:** implementation-complete release candidate; schema, production
-codec, V2 contract, Gate integration, custody path, and local three-node
-acceptance are available; public-testnet and independent production acceptance
-remain pending
-
-**Existing-rail status:** the Native commercial rail already supports the
-bounded Capability-first lifecycle from Quote Proposal through finalized
-Accepted Quote, stablecoin escrow, Native Execution Gate, bounded execution,
-Receipt, release or refund, and finalized settlement. This document does not
-replace that rail.
+**Status: retired (2026-11-07).** The Paid Demand Accepted Quote (schema 2)
+and the stablecoin escrow v2 contract it binds to are retired (owner decision
+D2); escrow v2 is removed from tos main and no conforming tooling targets it.
+The Accepted Quote is now the Service Actor rail cell of
+[`ACCEPTED_QUOTE_TVM_V1.md`](ACCEPTED_QUOTE_TVM_V1.md), settled on
+[`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md). Nothing below is
+normative; the file is kept because archived evidence and incubation designs
+cite it. A Paid Demand profile on the Service Actor would need its own
+specification.
 
 **Applicability:** this document is an optional high-assurance settlement
 adapter selected after negotiation under

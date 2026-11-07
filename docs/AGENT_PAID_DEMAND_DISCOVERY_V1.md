@@ -1,5 +1,12 @@
 # Agent Paid Demand Discovery V1 — Optional Escrowed Work Intent Profile
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+The escrow v2 acceptance rule and the Paid Demand Accepted Quote (schema 2) this incubation design relies on are retired; it must be rebased on the Service Actor before any schema freeze. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 **Status:** incubation design; schema freeze, implementation, and external
 acceptance pending
 

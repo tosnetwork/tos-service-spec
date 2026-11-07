@@ -1,5 +1,12 @@
 # Agent Economy Metrics V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Metrics defined below over escrow transitions and stablecoin settlement are superseded by the corresponding Service Actor transactions (`call`, `respond`, `claim_refund`, sweep) in nanoTOS. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 ## Status
 
 **Implementation status: ⬜ Not implemented.**

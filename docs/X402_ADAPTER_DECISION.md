@@ -1,5 +1,12 @@
 # x402 Adapter Decision
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Its constraints below name the retired escrow; any future x402 integration must instead negotiate over the Service Actor `call`, and the actor remains the single payment path. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 ## Decision
 
 TOS Service Protocol does not implement an x402 settlement scheme in Gate E. The optional

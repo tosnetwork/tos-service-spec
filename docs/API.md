@@ -129,14 +129,17 @@ establish canonical semantics.
 
 `RequestQuoteProposal` names an exact Capability version and canonical raw
 buyer address. A successful response carries `QuoteProposalV1` plus the exact
-canonical manifest CBOR and canonical single-root BOCs for escrow terms,
-transport binding, and objective dispute policy. Clients reject the package if
-any preimage digest, requested identity, buyer address, bound, or expiry
-conflicts. They still resolve Capability and asset state directly and select
-their own execution-signer authorization.
+canonical manifest CBOR and the canonical single-root transport-binding BOC.
+Clients reject the package if any preimage digest, requested identity, bound,
+or expiry conflicts. They still resolve the Capability, the manifest's key 21
+and the Service Actor's finalized state directly, and require the proposal's
+actor, code hash, policy version, `terms_hash`, price, storage fee and attestor
+key id to equal them; the attestor key is the manifest's, not the client's
+choice.
 
-The response remains discardable and non-canonical. Only the deterministic
-Accepted Quote escrow commitment finalized on TOS records accepted terms.
+The response remains discardable and non-canonical. Only a finalized Service
+Actor `call` committing to the Accepted Quote through its `request_hash`
+records accepted terms.
 
 ## Next commercial surface
 
