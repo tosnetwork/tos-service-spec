@@ -3,19 +3,40 @@
 **Status:** normative layout of the Service Actor contract with the changes
 decided on 2026-11-07 (`SERVICE_ACTOR_SETTLEMENT_DESIGN.md` section 8: D1
 ML-DSA-44 attestor, D3 sweep returns the price to the caller, D10 request
-snapshot message). Implemented on tos branch `feat/service-actor-pq` at
-`4c62edcae` (not merged, not deployed).
+snapshot message). Implemented and merged on tos main (tosnetwork/tos#429,
+`fc5e7723e`). Released by the reproducible release manifest
+`crypto/smartcont/tos-service-actor-v1.release.json` (tosnetwork/tos#430).
+Deployed on the public testnet (global_id 2) by the public Gate D/E run; it is
+not deployed on any mainnet.
 
-**Pending, not invented here:** the released code BOC, code hash and release
-manifest, and every test vector (`terms_hash`, SRP2 domain hash, request
-snapshot, key id, signatures). Until the contract lands with a release
-manifest and vectors generated from it, no code identity is conforming and this
-document carries no hash. Clients must refuse an actor whose code hash they
-cannot pin to a published release (`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`
-section 2.4 step 3).
+**Code identity.** The release manifest is the authority; these values are
+copied from it:
+
+```text
+code hash   tvm-cell-sha256:0594f9a5743440f9c5f63913ab790c0ea6f4fd5c627d9962d63e09428e42aa0c
+BOC sha256  sha256:21f1ea22576fce66ec3b218513adf037710b078ea12a8d84929eda970d62d5a8
+BOC size    4,590 bytes
+tos commit  fc5e7723e5dfb04890902abdd456aa41b4655a10
+compiler    FunC v0.4.6 (392bc162e)
+```
+
+Clients pin this code hash and refuse an actor with any other code
+(`SERVICE_ACTOR_SETTLEMENT_DESIGN.md` section 2.4 step 3). Changing the
+contract requires a new release manifest and new vectors.
+
+**Vectors.** Cross-language conformance vectors come from executing the
+release code. They are tos
+`tosctl/src/node-control/contracts/tests/fixtures/service_actor/conformance-vectors.json`
+(sandbox test `conformance_vectors_come_from_contract_execution`), reproduced
+byte for byte in tos-service-protocol
+`pkg/nativecore/testdata/service-actor-conformance-vectors.json`. They cover the
+deployed and after-admission data, the call body, the terms cell and
+`terms_hash`, the request snapshot, the SRP2 respond domain and an attestor
+signature over it.
 
 **Sources.** `SA:N` is line `N` of `crypto/smartcont/service-actor-code.fc` at
-tos `4c62edcae`. `PB:N` is `crypto/smartcont/pq-bytes.fc` and `SD:N` is
+tos `4c62edcae`. The contract sources are byte-identical at the release commit
+`fc5e7723e` and on main. `PB:N` is `crypto/smartcont/pq-bytes.fc` and `SD:N` is
 `crypto/smartcont/signing-domain.fc` at the same commit. `RS` is
 `tosctl/src/node-control/contracts/src/service_actor.rs` and `SBX` is
 `tosctl/src/node-control/contracts/tests/service_actor_sandbox.rs`. Design
