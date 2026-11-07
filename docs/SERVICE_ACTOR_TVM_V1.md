@@ -279,7 +279,14 @@ the request's capacity. No message is sent.
 
 ### 7.3 `expire`
 
-SA:60, SA:722-749: permissionless; the request is pending (1913) and
+SA:60, SA:722-749:
+
+```text
+expire#53564303 query_id:uint64 request_id:uint64
+```
+
+The body ends after `request_id`; trailing bits or references are refused (9).
+Permissionless; the request is pending (1913) and
 `response_deadline <= now < refund_claim_deadline` (1914, 1915); moves the
 request to the refund set and its price from pending to refundable liability;
 capacity is not released.
@@ -303,6 +310,12 @@ releases its capacity; reserves `backing - price`, pays `price` to
 ### 7.5 `sweep_expired_request`
 
 SA:63, SA:789-887 (D3):
+
+```text
+sweep_expired_request#53564305 query_id:uint64 request_id:uint64
+```
+
+The body ends after `request_id`; trailing bits or references are refused (9).
 
 - permissionless; the request is pending or refundable (1920) and
   `now >= refund_claim_deadline` (1919);
@@ -329,7 +342,24 @@ entry.
 
 ### 7.6 `update_policy`
 
-SA:64-68, SA:889-931: owner only (1900); bounds as `call` (1903-1906); replaces
+SA:64-68, SA:889-931:
+
+```text
+update_policy#53564306 query_id:uint64
+  price_per_call:Coins storage_fee:Coins cleanup_bounty:Coins
+  response_sla:uint32 refund_claim_window:uint32
+  active:uint1 open_access:uint1 has_authorized_caller:uint1
+  authorized_caller:MsgAddress rate_limit_per_day:uint32
+  ^[ metadata_hash:uint256 proof_scheme_hash:uint256 ]
+```
+
+Fields are read in exactly this order; the referenced cell and the body both
+end after their last field, and trailing bits or references are refused (9).
+`authorized_caller` is always present: when `has_authorized_caller = 0` it is a
+filler that admission never compares (section 7.1), and clients write the owner
+address there. `rate_limit_per_day = 0` means unlimited.
+
+Owner only (1900); bounds as `call` (1903-1906); replaces
 price, fees, SLA, window, `active`, access, rate limit, `metadata_hash` and
 `proof_scheme_hash`, and sets `policy_version + 1`. It cannot change the
 attestor.
