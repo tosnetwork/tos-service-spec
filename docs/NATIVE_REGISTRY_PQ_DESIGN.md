@@ -1,6 +1,8 @@
 # Native Registry: post-quantum controllers (design)
 
-**Status:** design, revision 4. It changes the existing Native Registry in place. TOS is
+**Status:** revision 5, **implemented on tos main** (tosnetwork/tos#426 with #427, merge
+`c17d3fca5`, 2026-11-07; release code hash `d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a`,
+4,143-byte BOC). Not deployed on any network. Section 7 records which gates are met. It changes the existing Native Registry in place. TOS is
 pre-launch and no registry object exists on any public network (inventory memo
 7e540d9), so there is no earlier registry to keep, migrate or tell apart: the
 Ed25519 controller scheme is replaced, not versioned. The changed contract still needs
@@ -211,6 +213,24 @@ What it measures, and what it does not:
   VMs for every policy-walking path at 8 controllers, with full-transaction gas at or below
   800,000 and every path's real relayer message at or below 65,535 bytes.
 
+**Measured on the changed contract** (tos `c17d3fca5`, `native_registry_sandbox`, 8
+controllers each holding every purpose and the recovery designation, every controller
+signing; full-transaction gas, not a probe). The 15 transactions of the gas test replay in
+the C++ transaction emulator with identical gas, exit code, actions, outgoing messages,
+balance, data and code (`scripts/replay-token-bridge-trace.py`). Message size is the
+route's envelope as the suite builds it: an `ext_in` header and a wallet v3r2 request with
+`global_id` around the real internal message.
+
+| Path | Gas | Relayer external message |
+|---|---|---|
+| registration | 92,005 | 36,580 B |
+| disjoint policy update (8 old + 8 new) | 175,444 | 52,498 B |
+| recovery initiation (8 + 8) | 177,113 | 52,506 B |
+| recovery completion | 83,390 | |
+| delegation / revocation | 82,352 / 82,025 | |
+| Capability register / add version / revoke (authorization leg) | 81,402 / 81,667 / 81,827 | |
+| transfer, old owner leg / new owner leg | 81,203 / 84,325 | 41,279 B |
+
 ## 6. Consumers to change
 
 | Component | Change |
@@ -251,3 +271,17 @@ What it measures, and what it does not:
 - Relayer journal tests: randomized re-signatures of one action across prepared,
   broadcasting, completed, concurrent and restarted states.
 - Independent security review of the changed contract and the protocol changes.
+
+### 7.1 Gate status (2026-11-07, tos main `c17d3fca5`)
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Sandbox lifecycle and refusal cases, both VMs | Met for the tos side | `native_registry_sandbox`: 39 pass; mixed-purpose registration accepted; recovery completion with an empty counterparty set; C++ replay of the gas test identical |
+| Adversarial cases | Met | wrong and cross-role contexts, non-member, mismatched key id, library cells for wrapper and continuation cells, trailing data, malformed lengths, 9 controllers, 9 entries, duplicate and out-of-order entries, missing possession, two re-signed copies of one action (one transition, the second accepted as a replay), Ed25519 shapes, workchain -1 — each refused with an exact exit code and unchanged state |
+| Gas at 8 controllers, both VMs | Met | section 5 table: at most 177,113 |
+| Real relayer message via `tosctl wallet send --build-only`, broadcast | Open | envelope sizes are from the suite (section 5), not a broadcast |
+| Both transfer legs separately | Met | old and new owner legs measured and executed in the sandbox and in the local Gate C run |
+| Frozen vectors from contract execution | Met for tos; open for `nativecore` and the reference codec | tos `protocol-vectors.json` (key id, public-key SHA-256, identities, actions, deterministic FIPS 204 signatures, submission bodies); reproduced byte for byte by the tos Rust builders and the local Python encoders |
+| Relayer journal re-signature tests | Open | tos-service-protocol |
+| Live chain | Local rehearsal met; public open | local Gate C on a two-validator v16 network: 12 lifecycle steps PASS (`PASS_LOCAL_REHEARSAL_ONLY`) |
+| Independent security review | Open | non-author codex reviews and the GitHub Codex bot only |
