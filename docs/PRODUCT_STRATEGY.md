@@ -61,8 +61,8 @@ These signals validate Agent commerce, but they also mean TOS Service Protocol e
 standards market rather than an empty category.
 
 References to stablecoins in external market signals describe those external
-systems. They do not expand the TOS Service Protocol asset model beyond stablecoins issued on
-TOS Network.
+systems. They do not expand the TOS Service Protocol asset model, which in the
+current domain settles in native TOS (section 9).
 
 ## 3. Competitive landscape — closest peers by philosophy
 
@@ -243,11 +243,10 @@ Development should complete exactly one end-to-end path:
 ```text
 resolve Agent and Capability
   -> obtain Quote Proposal
-  -> accept Quote on TOS
-  -> fund escrow
+  -> accept Quote and pay in one Service Actor call on TOS
   -> dispatch one bound job
-  -> receive artifact and signed Receipt
-  -> release or refund escrow
+  -> receive artifact and attestor-signed Receipt
+  -> attested respond, or timeout refund to the buyer
   -> resolve the complete history through another gateway
 ```
 
@@ -266,7 +265,8 @@ availability, usability, risk management, and operations.
 - reliable routing and low-latency relaying;
 - hosted resolver and indexer APIs;
 - wallet, budget, approval, and organizational policy tools;
-- TOS-network stablecoin checkout and accounting exports;
+- native-TOS checkout and accounting exports (stablecoin checkout once a
+  stablecoin rail exists);
 - risk, abuse, and compliance controls; and
 - operational support and service-level commitments.
 
@@ -292,7 +292,8 @@ making identity or transaction history portable only through itself.
 
 ## 9. Asset strategy
 
-Use native TOS and stablecoins issued on TOS Network for different jobs.
+Native TOS settles the current protocol domain; stablecoins issued on TOS
+Network are a deferred extension.
 
 ### TOS
 
@@ -300,24 +301,25 @@ Use native TOS and stablecoins issued on TOS Network for different jobs.
 - Agent and Capability registry operations;
 - relayer costs and spam resistance;
 - protocol staking, penalties, and incentives where required; and
-- services voluntarily priced in the TOS economy.
+- in the current protocol domain, the provider service itself: software work
+  is priced and settled in native TOS on the Service Actor contract
+  ([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md)).
 
-### TOS-network stablecoins
+The Accepted Quote fixes the actor, its terms and the exact nanoTOS price and
+non-refundable storage fee. Asset substitution after acceptance is impossible:
+the actor accepts and pays out only native TOS.
 
-- software work;
-- data and API access;
-- compute, storage, and inference;
-- enterprise procurement; and
-- longer-running commercial agreements.
+### TOS-network stablecoins (deferred)
 
-A practical transaction uses native TOS for network costs while denominating
-the provider service in a stablecoin issued on TOS Network. Both assets settle
-through finalized TOS contracts. The Accepted Quote fixes the exact stablecoin
-contract and amount bounds. Asset substitution after acceptance is forbidden.
+Stablecoin pricing of software work, data and API access, compute, storage,
+inference, enterprise procurement, and longer-running agreements remains a
+later product direction. It waits for a stablecoin integration that reports
+payout outcomes on chain, under its own specification, gate, and security
+review. No conforming rail settles a stablecoin today.
 
 An external-chain token, custodial balance, bridged claim on another network,
 or gateway database balance is not a settlement asset under the initial TOS Service Protocol
-protocol. Supporting a new stablecoin requires its TOS contract identity,
+protocol. Supporting a stablecoin later requires its TOS contract identity,
 issuer identity, decimals, and operational status to be independently
 resolvable from finalized TOS state.
 
@@ -351,7 +353,8 @@ should build compounding advantages in:
 5. cross-gateway conformance;
 6. reliable TOS finality and low transaction cost;
 7. provider deployment and Receipt tooling;
-8. enterprise TOS-network stablecoin and accounting integration; and
+8. enterprise accounting integration, and stablecoin integration once a
+   stablecoin rail exists; and
 9. developer onboarding measured in minutes, not weeks.
 
 The strongest network effect is a market where providers earn recurring revenue
@@ -425,8 +428,8 @@ Do not prioritize:
 
 ### Priority 1 — Complete Native commerce
 
-- Accepted Quote contract and transaction;
-- TOS-network stablecoin escrow;
+- Accepted Quote commitment and Service Actor `call` transaction;
+- native TOS Service Actor custody with timeout refund;
 - one bound software-work execution flow;
 - canonical execution Receipt;
 - release and refund;
@@ -480,7 +483,7 @@ The following are product evidence targets, not protocol constants:
 - at least 3 independently operated providers;
 - at least 2 independently operated gateways;
 - recurring transactions from buyers outside the core development team;
-- real TOS-network stablecoin settlement on a public TOS network;
+- real native-TOS Service Actor settlement on a public TOS network;
 - successful Quote-to-settlement completion through different gateways;
 - documented provider earnings and buyer repeat usage;
 - measured completion, refund, dispute, latency, and fee rates; and
