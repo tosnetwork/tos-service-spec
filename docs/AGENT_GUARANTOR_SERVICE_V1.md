@@ -826,19 +826,25 @@ from the signer:
    registry code hash (`NATIVE_REGISTRY_TVM_V1.md`);
 3. the Agent state effective at `validation_time_unix`: a finalized
    transaction of that account that produced the decoded `NVS1` state, with
-   block time at or before `validation_time_unix`; and the account's
-   contiguous finalized history from that transaction up to the first block
-   after `validation_time_unix` (or the proof's finalized checkpoint), with no
-   state-changing transaction in between. A rotation, recovery completion or
-   tombstone after `validation_time_unix` does not change which state was
-   effective;
+   block time at or before `validation_time_unix`; a finalized checkpoint
+   whose block time is at or after `validation_time_unix`; and the account's
+   contiguous finalized history from that transaction through every block
+   with time at or before `validation_time_unix`, containing no other
+   state-changing transaction of the account in that interval. Transactions
+   after `validation_time_unix` are not examined: a rotation, recovery
+   completion or tombstone after the signed time does not change which state
+   was effective;
 4. that state is not tombstoned, and its policy contains a controller whose
    key ID equals `key_id`, whose stored 1,312-byte key derives that key ID,
-   and whose purpose bit is the one the object's role requires (section 9.1).
-   Because native evidence is one signature per subject, that controller's
-   weight alone reaches the policy's threshold for that purpose; otherwise the
-   subject cannot sign natively and must use profile-qualified quorum
-   evidence;
+   and which carries the **Agent-control** purpose bit
+   (`NATIVE_REGISTRY_STATE_MACHINES.md` section 3). Every Guarantor object is
+   an assertion an Agent makes in its own name, so Agent-control is the only
+   purpose that authorizes it; delegation, Capability-control and recovery
+   purposes never do. Because native evidence is one signature per subject,
+   that controller's weight alone reaches the policy's ordinary `threshold`
+   (the threshold every normal purpose uses); recovery-only weight never
+   counts. Otherwise the subject cannot sign natively and must use
+   profile-qualified quorum evidence;
 5. the signature verifies against that stored key under
    `TOS-AGENT-GUARANTOR-V1` over the section 9 message.
 
@@ -10002,11 +10008,13 @@ Required tests include:
     (uppercase, padded, aliased or prefix-less);
   - refuse a key ID absent from the effective policy, a stored key that does
     not derive its key ID, a controller without the required purpose, and a
-    controller whose weight alone does not reach the threshold;
+    controller whose weight alone does not reach the ordinary threshold, and a
+    controller holding only delegation, Capability-control or recovery purposes;
   - historical resolution: a signature by a controller rotated out after
     `validation_time_unix` still verifies, and one made after its removal does
-    not; a proof without the contiguous effective-state history, from another
-    network or registry code, or not finalized is refused;
+    not; a proof whose finalized checkpoint precedes `validation_time_unix`,
+    that lacks the contiguous history through that time, that comes from
+    another network or registry code, or that is not finalized is refused;
   - `PortableStageActionAdmissionEvidenceV1` verifies only under the SAI
     Action Authority scheme, never as native evidence;
   - complete-envelope digests, closure and carriage size boundaries are
