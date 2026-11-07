@@ -143,8 +143,10 @@ admitted. The verifier therefore requires, and otherwise refuses:
    release hash (no release manifest publishes one today; gap, section 7); the
    account is on workchain 0 and its data cell decodes exactly as
    `SERVICE_ACTOR_TVM_V1.md` section 4 (SAP:13-27, SAP:321-366), not only through the getter;
-4. one attestor key everywhere: manifest key 21 (and key 18) `=` the Quote's
-   `authority.attestor_key_id`.
+4. one attestor key everywhere: manifest key 21 field 5, parsed from its
+   `mldsa44:<hex>` text, `=` the Quote's `authority.attestor_key_id`; and
+   manifest key 18 `=` SHA-256 of the ASCII bytes of that same key 21 field 5
+   text (key 18 commits to the text form, not to the raw key id).
 
 A mismatch in 2-4 is a verification error, never an empty or partial result.
 The buyer must not build or sign the `call`, and a resolver must not attribute
@@ -159,8 +161,9 @@ the request to the Capability.
    (`get_attestor_key` or the decoded data);
 6. current `metadata_hash` equals `NSM1` recomputed from step 1 and the network;
    `proof_scheme_hash` equals the section 2.3 value;
-7. policy bounds (SA:518-526) and admission: `open_access = 1` or
-   `authorized_caller` equals the buyer wallet (SA:529-530);
+7. policy bounds (SA:518-526) and admission: `open_access = 1`, or both
+   `has_authorized_caller = 1` and `authorized_caller` equals the buyer wallet
+   (SAP:607-608); otherwise `call` aborts with 1923;
 8. `terms_hash` computed from the decoded current policy (SAP:263-291) equals the
    Quote's `rail.terms_hash`, and the Quote's `policy_version`, `price` and
    `storage_fee` equal the decoded ones.

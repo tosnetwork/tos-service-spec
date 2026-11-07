@@ -388,8 +388,11 @@ the sender (mode 128).
 ### 8.1 Request snapshot (D10)
 
 SA:73-78, SA:151, SA:478-502, SA:667-668. A successful `call` emits exactly one
-external out-message: `ext_out_msg_info` with `src = addr_none`,
-`dest = addr_none`, no `init`, and the body by reference, sent with mode 1:
+external out-message, built as `ext_out_msg_info` with `src = addr_none`,
+`dest = addr_none`, no `init`, and the body by reference, sent with mode 1. The
+action phase replaces the source with the actor's own address, so in the
+finalized transaction the message has `src` = the actor and `dest = addr_none`;
+a resolver requires exactly that:
 
 ```text
 request_snapshot#53415231 request_id:uint64 caller:MsgAddressInt

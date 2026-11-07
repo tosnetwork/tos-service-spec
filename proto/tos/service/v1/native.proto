@@ -343,7 +343,8 @@ message QuoteProposalV1 {
   uint32 policy_version = 13;
   // 64 lowercase hex; the actor's terms_hash for the quoted policy.
   string terms_hash = 14;
-  // Exact price_per_call in nanoTOS: 0 | [1-9][0-9]*, below 2^120.
+  // Exact price_per_call in nanoTOS: positive, [1-9][0-9]*, below 2^120. A
+  // zero price is refused, as in ACCEPTED_QUOTE_TVM_V1 and SETTLEMENT.
   string price_nanotos = 15;
   // Non-refundable storage fee in nanoTOS, same encoding and bound.
   string storage_fee_nanotos = 16;
