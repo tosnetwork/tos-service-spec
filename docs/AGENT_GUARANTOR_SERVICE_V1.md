@@ -853,6 +853,45 @@ registry code or account, or cannot show the effective state fails closed.
 This proof establishes validity at signing time only; admission still applies
 the fresh-authority rule below.
 
+**Proof encoding.** The bytes of `historical_authority_proof` are the
+canonical CBOR encoding (this section) of exactly one
+`NativeAgentHistoricalAuthorityProofV1`, at most 65,536 bytes; any other
+encoding, unknown or missing field, or another `schema_version` fails closed.
+It is a locator only. The verifier reads every fact above itself by quorum and
+never takes a key, state, address or time from these bytes.
+
+```text
+NativeAgentHistoricalAuthorityProofV1 {
+  schema_version            # 1
+  network_id
+  genesis_root_hash         # sha256:<64 lowercase hex>
+  genesis_file_hash         # sha256:<64 lowercase hex>
+  registry_code_hash        # tvm-cell-sha256:<64 lowercase hex>
+  agent_account             # 0:<64 lowercase hex>
+  effective_transaction     # FinalizedTransactionRefV1
+  effective_checkpoint      # FinalizedCheckpointRefV1
+  bound_checkpoint          # FinalizedCheckpointRefV1
+}
+
+FinalizedTransactionRefV1 { logical_time transaction_hash }   # lt > 0; sha256:<hex>
+FinalizedCheckpointRefV1  { sequence root_hash file_hash }    # masterchain seqno > 0
+```
+
+- `network_id`, the genesis hashes and `registry_code_hash` must equal the
+  Agreement's network and the pinned registry release. `agent_account` must
+  equal the deterministic registry address the verifier derives from the
+  subject Agent ID; it is never trusted as given.
+- `effective_transaction` is the account's last transaction whose block time
+  (the transaction's `now`) is at or before `validation_time_unix`. It produced
+  the effective `NVS1` state of step 3.
+- At `effective_checkpoint`, that transaction is the account's last
+  transaction, so the account state read there is the effective state.
+- `bound_checkpoint` is a finalized masterchain block whose time is at or after
+  `validation_time_unix`, and `effective_checkpoint.sequence <=
+  bound_checkpoint.sequence`. The account's history read at
+  `bound_checkpoint` back to `effective_transaction` must contain no other
+  transaction with block time at or before `validation_time_unix`.
+
 Historical signature validity is necessary but never sufficient to create a
 new side effect. At the linearized admission checkpoint for a quote issuance,
 acceptance, claim, cancellation, decision, collateral transition, payout, or
