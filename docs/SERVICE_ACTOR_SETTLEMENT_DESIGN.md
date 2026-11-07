@@ -166,16 +166,28 @@ does not touch the actor). Then, instead of steps 5-8:
 5. locate the finalized `call` transaction and its `request_id` (section 3.2);
    its caller is the buyer and its inbound body carries the buyer's
    `request_hash` and the Quote's `terms_hash`;
-6. if pending, `get_request(id)` (SA:917-929) returns that caller,
-   `request_hash`, `terms_hash`, price and the snapshotted attestor key, and the
-   key equals step 4; the current attestor, `metadata_hash` and policy are not
-   consulted;
-7. the `terms_hash` preimage is the actor policy at the `call` transaction's
-   pre-state; recomputing it yields the snapshot value, and its
-   `metadata_hash` equals `NSM1` for the quoted version;
-8. if not pending, the outcome comes from transaction history (section 5.1): a
-   `respond` is checked against the snapshot key and SRP2 (section 4), a refund
-   or sweep against `get_refund` and the transaction.
+6. read the request snapshot, in **every** request state: from `get_request(id)`
+   (SA:917-929) while pending, otherwise from the entry the `call` wrote, in the
+   account state right after the finalized `call` transaction. The snapshot's
+   caller, `request_hash`, `terms_hash` and price equal step 5 and the Quote;
+7. the snapshot has `has_attestor = 1` and its attestor key equals the step 4
+   key, the one the manifest and the Quote name and admission verified. This is
+   the check that matters after an owner action: a rotation from K1 to K2
+   without a new manifest gives later requests the snapshot K2, and a
+   `revoke_attestor` keeps the stored key but clears the bit (SA:853-859), so
+   later requests snapshot `has_attestor = 0` and `respond` then needs no
+   signature at all (SA:610-621). Both are refused here, whatever the request
+   state;
+8. the `terms_hash` preimage is the actor policy in the `call` transaction's
+   pre-state. Recomputing it yields the snapshot value, its `metadata_hash`
+   equals `NSM1` for the quoted version, its `proof_scheme_hash` equals the
+   section 2.3 value, and its attestor fields equal step 7;
+9. the outcome: pending, or from transaction history (section 5.1). A
+   `respond` is checked against the step 7 key and SRP2 (section 4); a refund
+   or sweep against the refund entry and the transaction.
+
+The current attestor, `metadata_hash` and policy are never consulted for an
+existing request; only its snapshot and the attestor admission verified are.
 
 ## 3. Quote Proposal, Accepted Quote and `call`
 
@@ -482,7 +494,12 @@ Pointers for follow-up changes; no code is written here.
   differs from the manifest or account (steps 3-4); existing-request
   verification after `rotate_attestor_key`, `revoke_attestor` and
   `update_policy`, still accepting the request by its snapshot while
-  admission-time verification refuses new quotes; `call` with a zero `request_hash` (client
+  admission-time verification refuses new quotes; rotation from K1 to K2
+  without a manifest update, then a new request answered under K2, refused by
+  2.4 step 7 while pending and after `respond`; `revoke_attestor`, then a new
+  request answered with no signature, refused by step 7 in every state; a
+  snapshot whose `proof_scheme_hash` differs from the prescribed one, refused by
+  step 8; `call` with a zero `request_hash` (client
   refusal) and with a duplicate `request_hash`; `call` after manifest
   revocation (accepted by the contract, refused by the buyer verifier); quote
   stale by `update_policy`, rotation and revocation each refused with 1926; and,
@@ -498,7 +515,9 @@ Pointers for follow-up changes; no code is written here.
   `nativecore` and the independent reference codec.
 - **Resolver.** Both procedures of section 2.4, kept separate: admission-time
   verification against current policy, and existing-request verification
-  against the request snapshot and transaction history, never against the
+  against the request snapshot (`has_attestor = 1`, the admitted attestor key,
+  the prescribed `proof_scheme_hash`, in every request state) and transaction
+  history, never against the
   current attestor, `metadata_hash` or terms. Every state of 5.1 derived from
   finalized state and transactions at one checkpoint, three endpoints, quorum
   two, with no gateway input; an actor, code-hash or attestor mismatch, a
