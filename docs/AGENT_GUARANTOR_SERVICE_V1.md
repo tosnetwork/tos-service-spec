@@ -60,6 +60,8 @@ evidence; they cannot create coverage or enlarge the guarantor's liability.
 | exposure release receipt | `application/vnd.tos.service.agent-guarantor-exposure-release-receipt.v1+cbor` |
 | coverage resolution | `application/vnd.tos.service.agent-guarantor-resolution.v1+cbor` |
 | generic commerce profile event | `application/vnd.tos.service.commerce-profile-event.v1+cbor` |
+| native ML-DSA-44 Agent authorization evidence | `application/vnd.tos.service.agent-guarantor-native-authorization.v1+cbor` |
+| stage-action admission Action Authority evidence | `application/vnd.tos.service.agent-guarantor-action-authority-ed25519-evidence.v1+cbor` |
 
 The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
 RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL are interpreted as BCP 14.
@@ -1220,6 +1222,7 @@ PortableStageActionAdmissionEvidenceV1 {
   canonical_request                    # exact bounded canonical request bytes
   authorized_action                    # exact canonical AuthorizedActionV1
   writer_fence                         # exact canonical WriterFenceV1
+  action_resolution                    # exact canonical ActionResolutionV1
   action_admission_authorization       # exact scalar Action Authority authorization
 }
 
@@ -1366,7 +1369,8 @@ the body digest exists. `authorized_object_kind` and `authorized_body_digest`
 MUST equal the containing envelope's released kind and recomputed canonical
 body digest. Native Agent authorization uses the corresponding
 object-specific signature domain in section 9 and embeds
-`NativeMLDSA44AgentAuthorizationEvidenceV1`; contract, wallet, custody, quorum,
+`NativeMLDSA44AgentAuthorizationEvidenceV1` with `evidence_content_type`
+exactly `application/vnd.tos.service.agent-guarantor-native-authorization.v1+cbor`; contract, wallet, custody, quorum,
 or other profiles embed their released evidence instead.
 
 Authorization elements sort by complete canonical encoded bytes and reject
@@ -2403,7 +2407,10 @@ is signed by the immutable stage's scalar Action Authority under that
 authority's `SEMANTIC_ACTION_IDENTITY_V1` signature scheme (its key type and
 signature encoding are exactly those of the authority's `AuthorizedActionV1`)
 over the section 9 statement digest with signature domain
-`tos.service.agent-guarantor-stage-action-admission-signature.v1`. Its subject,
+`tos.service.agent-guarantor-stage-action-admission-signature.v1`, and its
+`evidence_content_type` is exactly
+`application/vnd.tos.service.agent-guarantor-action-authority-ed25519-evidence.v1+cbor`
+(distinct from the native type, so neither can be presented as the other). Its subject,
 key, and proof equal the immutable stage's scalar Action Authority; a
 business-decision signer, Writer-Fence proof alone, threshold projection, or
 second authorization profile cannot satisfy it. The complete evidence digest
