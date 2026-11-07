@@ -96,9 +96,11 @@ authorize Capability operations or later Agent mutations.
 ## 3. Controller policy
 
 A policy is a set of 1 to 8 ML-DSA-44 controllers in strictly ascending key-ID
-order. A policy naming more than 8 controllers, or a signature set with more
-than 8 entries, is refused with `NATIVE_POLICY_TOO_WIDE` (2215) before any
-entry is read, and a signature set holds at most one signature per controller.
+order. A policy naming more than 8 controllers is refused with
+`NATIVE_ERROR_CODE_V1_POLICY_TOO_WIDE` (2215) where it would be installed; an
+authorizing signature set with more than 8 entries is refused with
+`NATIVE_ERROR_CODE_V1_THRESHOLD` (2209) before any entry is read. A signature
+set holds at most one signature per controller.
 Each controller contains:
 
 - key ID, text form exactly `mldsa44:<64 lowercase hex key_id>`
