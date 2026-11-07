@@ -755,7 +755,6 @@ separates object kinds. Implementations sign through the controller's custody
 | `AuthorizedTerminalClaimSetEvidenceV1` | `tos.service.agent-guarantor-terminal-claim-set-signature.v1` |
 | `AuthorizedExposureReleaseReceiptV1` | `tos.service.agent-guarantor-exposure-release-receipt-signature.v1` |
 | `AuthorizedCoverageResolutionV1` | `tos.service.agent-guarantor-resolution-signature.v1` |
-| `PortableStageActionAdmissionEvidenceV1` | `tos.service.agent-guarantor-stage-action-admission-signature.v1` |
 
 The verifier first recomputes the canonical body digest and then requires every
 statement field to equal the containing
@@ -781,10 +780,10 @@ over noncanonical bytes fail closed.
 
 ### 9.1 Signer authority resolution
 
-A `public_key` carried by native authorization evidence is key material, not
-authority. Before
+A `key_id` carried by native authorization evidence names key material; it is
+not authority. Before
 accepting a signature, a verifier resolves the exact named signing subject and
-proves that the key was authorized for the object kind, network or authority
+the key stored for that key ID, and proves that the key was authorized for the object kind, network or authority
 domain, role, and validation time. The required bindings are:
 
 | Object envelope | Named signing subject or authority |
@@ -814,6 +813,39 @@ validity interval, profile digest, and subject-to-participant relationship at
 the authorized object's signed validation time. Current-key lookup alone is
 insufficient for historical evidence, and a self-issued key-binding statement
 is insufficient for every subject.
+
+**Historical authority proof (native ML-DSA-44).** `historical_authority_proof`
+is the only source of the verifying key. It is bounded by the released
+profile's maximum, and verification requires it to prove all of the following
+from quorum-finalized TOS state, checked by the verifier itself, not taken
+from the signer:
+
+1. the network domain (network ID, genesis root hash, genesis file hash)
+   equals the Agreement's;
+2. the subject Agent ID's deterministic Native Registry account, at the pinned
+   registry code hash (`NATIVE_REGISTRY_TVM_V1.md`);
+3. the Agent state effective at `validation_time_unix`: a finalized
+   transaction of that account that produced the decoded `NVS1` state, with
+   block time at or before `validation_time_unix`; and the account's
+   contiguous finalized history from that transaction up to the first block
+   after `validation_time_unix` (or the proof's finalized checkpoint), with no
+   state-changing transaction in between. A rotation, recovery completion or
+   tombstone after `validation_time_unix` does not change which state was
+   effective;
+4. that state is not tombstoned, and its policy contains a controller whose
+   key ID equals `key_id`, whose stored 1,312-byte key derives that key ID,
+   and whose purpose bit is the one the object's role requires (section 9.1).
+   Because native evidence is one signature per subject, that controller's
+   weight alone reaches the policy's threshold for that purpose; otherwise the
+   subject cannot sign natively and must use profile-qualified quorum
+   evidence;
+5. the signature verifies against that stored key under
+   `TOS-AGENT-GUARANTOR-V1` over the section 9 message.
+
+A proof that omits any element, is not finalized, names another network,
+registry code or account, or cannot show the effective state fails closed.
+This proof establishes validity at signing time only; admission still applies
+the fresh-authority rule below.
 
 Historical signature validity is necessary but never sufficient to create a
 new side effect. At the linearized admission checkpoint for a quote issuance,
@@ -2320,10 +2352,14 @@ encoded as a lower-assurance shortcut.
 
 The admission authorization's object kind is exactly
 `stage-action-admission`, its authorized body digest is the recomputed body
-digest, its validation time equals `admitted_at_unix`, and its native signature
-domain is
+digest, and its validation time equals `admitted_at_unix`. It is **not**
+native Agent evidence and never uses the `TOS-AGENT-GUARANTOR-V1` context. It
+is signed by the immutable stage's scalar Action Authority under that
+authority's `SEMANTIC_ACTION_IDENTITY_V1` signature scheme (its key type and
+signature encoding are exactly those of the authority's `AuthorizedActionV1`)
+over the section 9 statement digest with signature domain
 `tos.service.agent-guarantor-stage-action-admission-signature.v1`. Its subject,
-public key, and proof equal the immutable stage's scalar Action Authority; a
+key, and proof equal the immutable stage's scalar Action Authority; a
 business-decision signer, Writer-Fence proof alone, threshold projection, or
 second authorization profile cannot satisfy it. The complete evidence digest
 uses `tos.service.agent-guarantor-stage-action-admission-evidence.v1`.
@@ -9957,6 +9993,25 @@ alternate key/signature encodings, and non-shortest CBOR fail closed.
 
 Required tests include:
 
+- native ML-DSA-44 Agent authorization (section 9):
+  - accept a Pure ML-DSA-44 signature under `TOS-AGENT-GUARANTOR-V1`;
+  - refuse a pre-hash variant, an empty or other context (including the
+    registry, packet, contact and Service Actor contexts), a signature over
+    another object kind's domain, a signature length other than 2,420, a key
+    ID other than 32 bytes, and any non-canonical `mldsa44:` text form
+    (uppercase, padded, aliased or prefix-less);
+  - refuse a key ID absent from the effective policy, a stored key that does
+    not derive its key ID, a controller without the required purpose, and a
+    controller whose weight alone does not reach the threshold;
+  - historical resolution: a signature by a controller rotated out after
+    `validation_time_unix` still verifies, and one made after its removal does
+    not; a proof without the contiguous effective-state history, from another
+    network or registry code, or not finalized is refused;
+  - `PortableStageActionAdmissionEvidenceV1` verifies only under the SAI
+    Action Authority scheme, never as native evidence;
+  - complete-envelope digests, closure and carriage size boundaries are
+    recomputed with 2,420-byte signatures and maximal historical proofs, and an
+    independent verifier reproduces every native vector;
 - reserve-before-sign and crash between reserve, signature, and send;
 - crash at allocation, `RESERVED_UNSIGNED`, remote signing, signed persistence,
   and delivery, followed only by same-action recovery;

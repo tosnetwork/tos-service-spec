@@ -2,6 +2,14 @@
 
 # Agent Guarantor Service V1 Implementation Report
 
+> **Revision note (2026-11-07).** The profile's native Agent authorization moved
+> in place from Ed25519 to ML-DSA-44 controller keys (profile section 9). The
+> results below were produced at the pinned protocol revision, whose codec
+> signs and verifies Ed25519 and carries a `public_key`; they do **not**
+> validate the ML-DSA-44 revision. Before this report can support it, the
+> codec, the historical Agent-authority resolver, the generated schema, the
+> migration corpus and the vectors must be updated and re-run.
+
 ## 1. Status and evidence boundary
 
 This report records the implementation candidate produced on 2026-08-27 for
