@@ -78,11 +78,20 @@ bytes. ML-DSA-44 signing may be hedged, so the same action can arrive with a
 different but equally valid signature set and therefore a different body. Such
 a re-signed body is the same operation, not a conflict: when the slot is
 `complete`, the relayer answers with the recorded completed result; when it is
-`prepared` or `broadcasting`, the relayer keeps the slot's exact recorded body,
-funding, destination, and StateInit and never broadcasts the operation a second
-time. The contract independently accepts a resubmitted already-applied last
-action as a replay, so two valid signature sets for one action produce exactly
-one state transition.
+`broadcasting`, the relayer keeps the slot's exact recorded body, funding,
+destination, and StateInit and never broadcasts the operation a second time.
+When it is `prepared`, the relayer keeps the slot's exact recorded body,
+funding, destination, and StateInit, with one exception: if the recorded
+body's signature sets no longer authorize the action against the finalized
+state the relayer resolved for this attempt, while the retry's sets do, the
+slot's body is replaced by the retry's body in the same atomic transition that
+acquires the broadcast lease. A recorded body that cannot be decoded, or whose
+authorization cannot be determined because state or verification is
+unavailable, is never replaced. `prepared` proves the operation was never
+sent, so the replacement cannot cause a second broadcast. The contract
+independently accepts a resubmitted already-applied last action as a replay,
+so two valid signature sets for one action produce exactly one state
+transition.
 
 The slot phases are `prepared`, `broadcasting`, and `complete`. `prepared`
 proves the sender has not been entered and may be recovered after process
