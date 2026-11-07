@@ -135,7 +135,7 @@ profiles remain Expansion-Gate work.
 | Foundation | Status | Existing evidence | Reuse in the Messenger |
 |---|---:|---|---|
 | Finalized Agent and Capability objects | ✅ | `NATIVE_IDENTITY_V1.md`, Native Registry state machines, `tos`, and `tos-service-protocol` | Permanent Agent identity, live/tombstoned checks, controller authorization, Capability ownership |
-| Weighted Ed25519 controller policies and purpose separation | ✅ | `NATIVE_IDENTITY_V1.md` | Keep root and policy keys outside the messaging daemon; authorize bounded messaging keys through delegation |
+| Weighted ML-DSA-44 controller policies and purpose separation | ✅ | `NATIVE_IDENTITY_V1.md` | Keep root and policy keys outside the messaging daemon; authorize bounded messaging keys through delegation |
 | Off-chain delegation documents committed by digest | ✅ | `NATIVE_IDENTITY_V1.md` | Bind a Messaging Endpoint delegation without storing endpoint details or message data on-chain |
 | DHT implementation and DHT server | ✅ | `tos/dht`, `tos/dht-server` | Publish and resolve short-lived signed locators and content digests |
 | ADNL peer, channel, address, proxy, and tunnel primitives | ✅ | `tos/adnl` | Direct node transport and network-level routing primitives |
@@ -1305,7 +1305,7 @@ only for explicit high-value workflows, not as a default message log.
 ### 9.1 Existing Agent identity — ✅ implemented
 
 The permanent identity is the finalized TOS `AgentID`. Existing bounded,
-weighted Ed25519 policies, purpose separation, revocation, recovery, and
+weighted ML-DSA-44 policies, purpose separation, revocation, recovery, and
 delegation digests remain unchanged.
 
 #### `.tos` recipient aliases — ✅ canonicalization boundary implemented

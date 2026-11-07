@@ -73,6 +73,17 @@ claim time, and durable phase. A separate request record binds each
 `idempotency_key` to the action; it is not a fee-spend boundary. Reusing a
 request key, state slot, or action with different semantics is a conflict.
 
+The relay identity of an operation is its action hash, never its signature
+bytes. ML-DSA-44 signing may be hedged, so the same action can arrive with a
+different but equally valid signature set and therefore a different body. Such
+a re-signed body is the same operation, not a conflict: when the slot is
+`complete`, the relayer answers with the recorded completed result; when it is
+`prepared` or `broadcasting`, the relayer keeps the slot's exact recorded body,
+funding, destination, and StateInit and never broadcasts the operation a second
+time. The contract independently accepts a resubmitted already-applied last
+action as a replay, so two valid signature sets for one action produce exactly
+one state transition.
+
 The slot phases are `prepared`, `broadcasting`, and `complete`. `prepared`
 proves the sender has not been entered and may be recovered after process
 restart. Immediately before calling the sender, a process must atomically
@@ -90,7 +101,13 @@ alter on-chain semantics.
 
 The relayer must locally reject wrong network/code binding and every signature
 or proof-of-possession failure decidable from the registration policy or a
-finalized live policy. Failure to resolve required authority is an unavailable
+finalized live policy. Signature sets carry at most 8 entries in strictly
+ascending key-ID order; each entry is a 32-byte key ID and a 2,420-byte Pure
+ML-DSA-44 signature over the 32 raw action-hash bytes with context
+`TOS-NATIVE-REGISTRY`, verified against the 1,312-byte key stored for that key
+ID in the policy (`NATIVE_REGISTRY_TVM_V1.md`). Registration preflight requires
+a possession signature from every controller of the submitted policy plus
+Agent-control consent weight. Failure to resolve required authority is an unavailable
 decision, never permission to spend relay funds.
 
 The relayer must also resolve the finalized target object before claiming a
@@ -162,7 +179,8 @@ idempotency or authorization fallback.
 ## Stable errors
 
 Validation errors use `NativeErrorV1` Connect error details. Numeric values
-`2200` through `2215` exactly match the Native Registry TVM exit-code family.
+`2200` through `2215` exactly match the Native Registry TVM exit-code family;
+`2214` is retired and reserved, and the current contract does not emit it.
 Clients branch on the enum value or stable identifier and must not parse the
 human diagnostic. The frozen negative corpus in
 `test-vectors/tos-service-v1-registry.json` pins representative preflight

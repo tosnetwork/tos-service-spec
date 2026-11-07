@@ -21,7 +21,10 @@ direct provider endpoints, A2A, MCP, or a Gateway used only as a router.
 network tuple, HTTPS endpoint, bounded expiry, and optional Capability IDs. It
 can be exchanged through DNS, a file, QR code, or another rendezvous channel;
 the verifier resolves the Agent from finalized TOS state and checks that a live
-controller signed the card. Expired cards, public plaintext endpoints, and
+controller signed the card. The card carries the signing controller's 32-byte
+key ID; its signature is Pure ML-DSA-44 under context string
+`TOS-AGENT-CONTACT-V1`, verified against the 1,312-byte key stored for that key
+ID in the finalized Agent policy. Expired cards, public plaintext endpoints, and
 duplicate Capabilities are rejected; callers must additionally compare the
  card's network tuple with their local network policy. Production callers use
  `VerifyContactForNetwork` to enforce this comparison before dialing.
@@ -35,9 +38,14 @@ JSON are rejected before the card is used.
 The signed preimage includes protocol domain `tos.service.agent.packet.v1`, sender and
 recipient Agent IDs, Capability ID, optional finalized Accepted Quote
 commitment, strictly positive sender sequence, 32-byte nonce, creation time,
-sender Ed25519 public key, and SHA-256 of the payload. Payloads are bounded to
-1 MiB. The signature is Ed25519 and is checked against a controller in the
-finalized sender Agent policy.
+the signing controller's 32-byte key ID (`NATIVE_IDENTIFIERS_V1.md`), and
+SHA-256 of the payload. Payloads are bounded to 1 MiB. The signature is Pure
+ML-DSA-44 (FIPS 204, no pre-hash) by one of the sender Agent's ML-DSA-44
+controller keys over that preimage, with context string `TOS-AGENT-PACKET-V1`.
+The verifier resolves the controller by key ID in the finalized sender Agent
+policy and verifies against the 1,312-byte public key stored there. The context
+is distinct from the Native Registry context `TOS-NATIVE-REGISTRY`, so a packet
+signature can never authorize a registry action, and the reverse.
 
 The recipient must resolve the sender and recipient from finalized Native state
 before accepting the packet. A local durable replay guard must atomically claim
@@ -53,7 +61,9 @@ settlement still require their existing finalized-chain checks.
 
 `tos-service-protocol/pkg/agentpacket` implements signing, finalized-state verification,
 replay protection, and strict JSON wire encoding/decoding for transport
-interoperability. It deliberately has no Gateway database, no arbitrary
+interoperability. It performs ML-DSA-44 signing and verification by calling
+`tosctl` rather than linking a Go ML-DSA library; controller private keys stay
+in `tosctl` custody (vault). It deliberately has no Gateway database, no arbitrary
 on-chain message storage, and no Managed/Verified trust mode.
 
 Its standard-library HTTP adapter accepts only bounded JSON `POST` requests,

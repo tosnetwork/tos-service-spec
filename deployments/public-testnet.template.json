@@ -14,9 +14,9 @@
   "registry_workchain": 0,
   "release": {
     "source_commit": "REQUIRED",
-    "code_hash": "tvm-cell-sha256:600f2fda83462bc86a1c32af930c35a4fc8f80f1d2966f5593ceba217a91ffa0",
-    "boc_sha256": "sha256:e9845e6d7acda368f1d5ba8e7d32aa0f21022d36816ca33ec31e1b21348a6fcc",
-    "boc_bytes": 3763
+    "code_hash": "tvm-cell-sha256:d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a",
+    "boc_sha256": "sha256:dcf41afaa7da7761839f3d26955ebab8dcd8adfe1d428b89229780c6647cdb9b",
+    "boc_bytes": 4143
   },
   "endpoints": [
     {"url": "REQUIRED", "operator": "REQUIRED"},

@@ -68,18 +68,33 @@ string for different bytes is invalid. Revocation does not free the name.
 
 ## Controller key ID
 
-Controller key IDs are exactly:
+A controller key is an ML-DSA-44 public key of exactly 1,312 bytes. Its key ID
+is the 32-byte digest:
 
 ```text
-ed25519:<64 lowercase hex public key>
+key_id = SHA-256("TOS-PQ-CONSENSUS-KEY-v1" || 0x01 0x00 || public_key)
 ```
 
-This format makes the key identity reconstructible from canonical state without
-an alias registry.
+where `0x01 0x00` is suite number 1 (ML-DSA-44) as two little-endian bytes and
+`public_key` is the 1,312 raw key bytes. This is the identity a post-quantum key
+has in every TOS role; authority stays separated by the signature context and
+the bound action preimage.
+
+The text form of a controller key ID is exactly:
+
+```text
+mldsa44:<64 lowercase hex key_id>
+```
+
+The policy stores each controller's full public key next to its key ID, so the
+key identity is reconstructible from canonical state without an alias registry:
+a resolver recomputes `key_id` from the stored key and must reject a policy
+whose declared ID differs.
 
 ## Rejection rules
 
 Reject wrong prefixes, uppercase or short hexadecimal forms, whitespace,
 Unicode lookalikes, malformed digests, unknown object kinds, empty version
-names, inconsistent key IDs, and identifiers that disagree with deterministic
+names, inconsistent key IDs (including any controller key form other than
+`mldsa44:`), and identifiers that disagree with deterministic
 registration derivation.

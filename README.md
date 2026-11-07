@@ -28,7 +28,7 @@ are caches or projections only.
 
 ## Target core layers and objects
 
-- **Agent** — a deterministic identity controlled by a weighted Ed25519 policy.
+- **Agent** — a deterministic identity controlled by a weighted ML-DSA-44 policy.
 - **Capability** — a deterministic object owned by one Agent, with immutable
   version commitments and explicit revocation.
 - **Agent Operation** — a bounded signed envelope selecting an opcode profile,
@@ -260,6 +260,13 @@ test-vectors/tos-service-v1-registry.json   frozen Agent and Capability vectors,
 test-vectors/tos-service-test-identities-v1.json   plaintext test-only TOS mnemonics, Ed25519 keys,
                                            TVM addresses, and identity proof signatures
 ```
+
+`test-vectors/tos-service-v1-registry.json`,
+`test-vectors/tos-service-test-identities-v1.json`, and
+`test-vectors/mobile-buyer-contact-card-v1.json` still describe the earlier
+Ed25519 registry. They are being regenerated from execution of the ML-DSA-44
+contract (`docs/NATIVE_REGISTRY_TVM_V1.md`) and must not be used as current
+conformance evidence until then.
 
 Do not add a second object schema beside the Native protobuf contract. New
 canonical encodings belong in the Native schema and must include reproducible

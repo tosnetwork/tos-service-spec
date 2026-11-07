@@ -12,7 +12,7 @@ the Capability from public documentation in one working session.
 - finalized typed TOS state is the sole authority for Agent and Capability
   publication;
 - `tos-service-protocol/pkg/providersdk` prepares canonical bytes, verifies external
-  controller signatures, relays an exact reviewed action, and waits for the
+  ML-DSA-44 controller signatures (through `tosctl`), relays an exact reviewed action, and waits for the
   matching finalized state;
 - `tos-service-protocol/pkg/nativeclient` transports Native Submit/Resolve requests and
   requires HTTPS unless loopback development is explicitly selected;
@@ -24,18 +24,22 @@ the Capability from public documentation in one working session.
 
 ## Provider sequence
 
-1. Generate the provider Agent controller and execution signer through the
-   reviewed `tosctl` custody boundary. Register the Agent and resolve its exact
+1. Generate the provider Agent's ML-DSA-44 controller key and the execution
+   signer through the reviewed `tosctl` custody boundary; the controller
+   private key stays in `tosctl` custody (vault). Register the Agent and resolve its exact
    finalized state.
 2. Fill the frozen software-work manifest JSON. Use the provider SDK to
    strictly decode it, produce canonical CBOR and its digest, generate the
    Capability registration, and display the derived Capability ID and action
    hash.
-3. Review and sign the action outside the SDK. Submit the signatures through
+3. Review and sign the action outside the SDK with `tosctl` (Pure ML-DSA-44
+   over the action hash, context `TOS-NATIVE-REGISTRY`). Submit the signatures through
    the SDK with one durable idempotency key.
 4. Accept publication only when the SDK returns finalized typed Capability
    state containing the exact owner, version, manifest digest, action hash,
-   Registry code hash, network, and checkpoint.
+   Registry code hash (currently
+   `tvm-cell-sha256:d3bb66d0011a1f362dd0be8408ed688f4e740d096a0e2dc2a79fc0ffc628b28a`),
+   network, and checkpoint.
 5. Serve the canonical manifest bytes under their digest. Search caches may
    index the chain-derived association but cannot create or replace it.
 6. Install the dedicated provider runtime from `tos-ai/deploy/provider`. The
