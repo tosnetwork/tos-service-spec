@@ -67,8 +67,9 @@ stored_signature = len:uint32(=2420) ^chain
 - `key_id` is the 32-byte controller key ID of `NATIVE_IDENTIFIERS_V1.md`,
   derived from the stored key bytes.
 - A policy holds 1 to 8 controllers; a signature set holds 0 to 8 entries. A
-  wider policy or set is refused with `NATIVE_POLICY_TOO_WIDE` (2215) before
-  any entry is read.
+  wider policy is refused where it would be installed with
+  `NATIVE_ERROR_CODE_V1_POLICY_TOO_WIDE` (2215); an authorizing signature set of more than 8
+  entries is refused with `NATIVE_ERROR_CODE_V1_THRESHOLD` (2209) before any entry is read.
 - Controllers and signature entries are linked through their last reference
   and are strictly ascending by `key_id`; the last element has no `^next`
   reference.
@@ -85,6 +86,13 @@ stored_signature = len:uint32(=2420) ^chain
   every controller in key-ID order, then each declared `key_id` must equal the
   ID derived from the key the signature verified against. A stored policy is not
   re-validated; recovery completion promotes the admitted pending policy.
+- Which set carries possession: for a registration, the authority set (the
+  initial policy's own controllers; there is no current policy); for a policy
+  update and a recovery initiation, the counterparty set (the controllers of the
+  policy being installed), while the authority set carries the current policy's
+  threshold signatures. Every other action kind requires an empty counterparty
+  set, except a Capability transfer, whose counterparty set is the receiving
+  owner Agent's threshold signatures.
 
 The design rationale and measurements are in `NATIVE_REGISTRY_PQ_DESIGN.md`
 (tosnetwork/tos-service-spec#60). Measured at 8 controllers with full
