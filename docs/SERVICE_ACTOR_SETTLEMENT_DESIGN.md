@@ -4,9 +4,12 @@
 section 8 are taken; the normative contract surface they produce is
 [`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md), and the in-place
 specification edits are in the documents section 10 lists. The contract change
-is implemented on tos branch `feat/service-actor-pq` at `4c62edcae` (not merged,
-not deployed). The gates in section 9 are still open: no code identity or
-vector exists yet for the changed contract.
+is merged (tos `fc5e7723e`, #429) and released by
+`crypto/smartcont/tos-service-actor-v1.release.json` (#430; code identity in
+`SERVICE_ACTOR_TVM_V1.md`), with contract-execution vectors reproduced by the
+protocol implementation. The settlement path passed on the public testnet
+(global_id 2) on 2026-11-07, with the discovery catalog and quote transport as
+local stand-ins.
 
 **Owner decision it implements (2026-11-06):** the current-domain
 `tos_service_v1` end-to-end acceptance settles on the Service Actor contract
@@ -140,7 +143,7 @@ admitted. The verifier therefore requires, and otherwise refuses:
    owner;
 3. one code hash everywhere: the account's code hash `=` manifest key 21 code
    hash `=` the Quote's `rail.actor_code_hash` `=` the pinned Service Actor
-   release hash (no release manifest publishes one today; gap, section 7); the
+   release hash (`SERVICE_ACTOR_TVM_V1.md` "Code identity"); the
    account is on workchain 0 and its data cell decodes exactly as
    `SERVICE_ACTOR_TVM_V1.md` section 4 (SAP:13-27, SAP:321-366), not only through the getter;
 4. one attestor key everywhere: manifest key 21 field 5, parsed from its
@@ -484,7 +487,7 @@ Pointers for follow-up changes; no code is written here.
 
 | Repository | File | Gap |
 |---|---|---|
-| tos | RS:18, RS:159-160 | the BOC is embedded and deserialized there, but no release manifest publishes its code hash for clients to pin; needed by 2.4 step 3 |
+| tos | RS:18, RS:159-160 | closed: `crypto/smartcont/tos-service-actor-v1.release.json` (#430) publishes the code hash, and `scripts/check-service-actor-bytecode.py` rebuilds the source and requires the embedded SDK code (by root hash) and the release artifact (byte for byte) to match |
 | tos | CMD:1147-1152 | `call` defaults `expected_terms_hash` to live state |
 | tos | RS:218 | deploy is always `active = 1`; add an inactive deploy for 2.3 |
 | tos | service-actor-code.fc | ML-DSA-44 attestor (D1), sweep to the caller ahead of the operating reserve (D3), request snapshot carrying `request_id` and the exact terms preimage (D10, SAP:478-502) and the `call` attestor-encoding check: implemented on `feat/service-actor-pq` at `4c62edcae`, not merged, not deployed |
