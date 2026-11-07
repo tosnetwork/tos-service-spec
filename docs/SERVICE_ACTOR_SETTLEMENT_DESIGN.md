@@ -171,9 +171,18 @@ the request to the Capability.
 Capacity and the daily rate limit (SA:539-554) can still refuse the call; they
 are not part of the terms.
 
-**Existing-request verification (after `call`).** Steps 1-4, except that a
-version revoked after the `call` does not invalidate the request (revocation
-does not touch the actor). Then, instead of steps 5-8:
+**Existing-request verification (after `call`).** Steps 1-4, except that
+step 1's liveness conditions are judged at acceptance, not at the resolver's
+checkpoint. A version revoked, a Capability tombstoned or an owner Agent
+tombstoned **after** the finalized `call` does not invalidate the request: none
+of these transitions touches the actor, its requests or their finalized
+outcomes (`NATIVE_REGISTRY_STATE_MACHINES.md`). The order is proven from
+authenticated history: the transition that revoked or tombstoned the object
+is a finalized transaction of that object's account whose logical time is
+greater than the `call` transaction's. Without that proof, or when the
+transition precedes the `call`, the request is not attributed to the
+Capability. Admission keeps the current-state conditions of step 1. Then,
+instead of steps 5-8:
 
 5. locate the finalized `call` transaction (section 3.2); its caller is the
    buyer and its inbound body carries the buyer's `request_hash` and the
