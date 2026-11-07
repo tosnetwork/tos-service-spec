@@ -1,14 +1,18 @@
 # Native Stablecoin Escrow TVM V2
 
-**Status:** experimental; deployable only for non-production use (see
-[Deployment restriction](#deployment-restriction)).
+**Status: retired (2026-11-07).** Escrow v2 is removed from tos main, which
+guards against its return (`scripts/check-no-legacy-escrow.py`), and no
+conforming tooling builds, deploys, resolves, or settles against it. The
+`tos_service_v1` settlement rail is the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)),
+and the Paid Demand Accepted Quote (schema 2) that this escrow embedded is
+retired with it (owner decision D2). Nothing below is normative. The file is
+kept only because archived evidence and historical documents cite its layouts.
 
-**Released code:** `tos-service-stablecoin-escrow-v2`, code hash
+**Formerly released code:** `tos-service-stablecoin-escrow-v2`, code hash
 `tvm-cell-sha256:d6d53a11bcda151b2e7d6b4b2f275eeadea8eb9b66496c24b0b7c54453d6d209`.
-This is the only stablecoin escrow code that conforming tooling builds,
-deploys, resolves, or settles against. Escrow version 1 was retired on
-2026-10-05; its storage layout, settlement intent, and deployment-as-acceptance
-rule are not part of this protocol.
+Escrow version 1 was retired on 2026-10-05.
 
 ## Purpose and authority
 

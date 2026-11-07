@@ -107,7 +107,8 @@ contradict them.
 - [Gate E Provider Onboarding](docs/GATE_E_PROVIDER_ONBOARDING.md) defines the
   first SDK and deployment-template workflow without gateway-owned facts.
 - [Gate E Buyer Onboarding](docs/GATE_E_BUYER_ONBOARDING.md) defines canonical
-  Quote review, bounded stablecoin funding, and crash-safe buyer recovery.
+  Quote review, funding, and crash-safe buyer recovery (its stablecoin
+  funding path describes the retired escrow rail).
 - [A2A Software-Work Adapter V1](docs/A2A_ADAPTER_V1.md) maps official A2A
   Tasks and results into the same finalized Native commercial lifecycle.
 - [MCP Software-Work Tool Adapter V1](docs/MCP_ADAPTER_V1.md) exposes that
@@ -195,7 +196,9 @@ contradict them.
 - Quotes and settlement: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md)
 - Software-work manifest: [`docs/SOFTWARE_WORK_MANIFEST_V1.md`](docs/SOFTWARE_WORK_MANIFEST_V1.md)
 - Accepted Quote TVM cell: [`docs/ACCEPTED_QUOTE_TVM_V1.md`](docs/ACCEPTED_QUOTE_TVM_V1.md)
-- Stablecoin escrow TVM state: [`docs/STABLECOIN_ESCROW_TVM_V2.md`](docs/STABLECOIN_ESCROW_TVM_V2.md)
+- Service Actor TVM contract: [`docs/SERVICE_ACTOR_TVM_V1.md`](docs/SERVICE_ACTOR_TVM_V1.md)
+- Service Actor settlement binding: [`docs/SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](docs/SERVICE_ACTOR_SETTLEMENT_DESIGN.md)
+- Retired stablecoin escrow (historical): [`docs/STABLECOIN_ESCROW_TVM_V2.md`](docs/STABLECOIN_ESCROW_TVM_V2.md)
 - Software-work Receipt TVM cell: [`docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md`](docs/SOFTWARE_WORK_RECEIPT_TVM_V1.md)
 - Software-work execution and artifacts: [`docs/SOFTWARE_WORK_EXECUTION_V1.md`](docs/SOFTWARE_WORK_EXECUTION_V1.md)
 - Agent gas sponsorship and exact transaction relay: [`docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`](docs/AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md)
@@ -230,14 +233,18 @@ contradict them.
 
 ## Asset model
 
-Native TOS pays TOS Network fees and protocol execution costs. Commercial
-services may be denominated in supported stablecoins issued on TOS Network.
-Those stablecoins settle through TOS contracts on the same network as the
-Accepted Quote. External-chain tokens, bridged claims on another network,
-custodial balances, and gateway ledger entries are outside the protocol.
+Native TOS pays TOS Network fees and protocol execution costs and, in the
+current protocol domain, the commercial service itself: software work settles
+in native TOS on the Service Actor contract
+([`docs/SERVICE_ACTOR_TVM_V1.md`](docs/SERVICE_ACTOR_TVM_V1.md)). Stablecoins
+issued on TOS Network are a deferred extension that waits for an integration
+reporting payout outcomes on chain. External-chain tokens, bridged claims on
+another network, custodial balances, and gateway ledger entries are outside the
+protocol.
 
-An Accepted Quote identifies the exact TOS asset contract and atomic amount;
-a ticker symbol is display metadata and is never sufficient asset identity.
+An Accepted Quote identifies the exact Service Actor, its terms, and the
+nanoTOS price and non-refundable storage fee; a ticker symbol is display
+metadata and is never sufficient asset identity.
 
 ## Repository ownership
 
