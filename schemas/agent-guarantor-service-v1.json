@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "ActionAuthorityEd25519EvidenceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "historical_authority_proof": {
+          "contentEncoding": "base64",
+          "type": "string"
+        },
+        "public_key": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "public_key",
+        "signature",
+        "historical_authority_proof"
+      ],
+      "type": "object"
+    },
     "ActionResolution": {
       "additionalProperties": false,
       "properties": {
@@ -10245,14 +10266,14 @@
       ],
       "type": "object"
     },
-    "NativeEd25519AgentAuthorizationEvidenceV1": {
+    "NativeMLDSA44AgentAuthorizationEvidenceV1": {
       "additionalProperties": false,
       "properties": {
         "historical_authority_proof": {
           "contentEncoding": "base64",
           "type": "string"
         },
-        "public_key": {
+        "key_id": {
           "type": "string"
         },
         "signature": {
@@ -10260,7 +10281,7 @@
         }
       },
       "required": [
-        "public_key",
+        "key_id",
         "signature",
         "historical_authority_proof"
       ],
@@ -10825,7 +10846,7 @@
       "additionalProperties": false,
       "properties": {
         "action_admission_authorization": {
-          "$ref": "#/$defs/ProfileQualifiedObjectAuthorizationV1"
+          "$ref": "#/$defs/StageActionAdmissionAuthorizationV1"
         },
         "action_resolution": {
           "$ref": "#/$defs/ActionResolution"
@@ -11111,7 +11132,7 @@
           "type": "string"
         },
         "evidence": {
-          "$ref": "#/$defs/NativeEd25519AgentAuthorizationEvidenceV1"
+          "$ref": "#/$defs/NativeMLDSA44AgentAuthorizationEvidenceV1"
         },
         "evidence_content_type": {
           "type": "string"
@@ -11840,6 +11861,54 @@
       "required": [
         "adapter_uri",
         "required"
+      ],
+      "type": "object"
+    },
+    "StageActionAdmissionAuthorizationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_subject": {
+          "type": "string"
+        },
+        "authorized_body_digest": {
+          "pattern": "^(sha256|tvm-cell-sha256):[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "authorized_object_kind": {
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/ActionAuthorityEd25519EvidenceV1"
+        },
+        "evidence_content_type": {
+          "type": "string"
+        },
+        "profile_digest": {
+          "pattern": "^(sha256|tvm-cell-sha256):[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "profile_uri": {
+          "type": "string"
+        },
+        "profile_version": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "validation_time_unix": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "authority_subject",
+        "profile_uri",
+        "profile_version",
+        "profile_digest",
+        "authorized_object_kind",
+        "authorized_body_digest",
+        "validation_time_unix",
+        "evidence_content_type",
+        "evidence"
       ],
       "type": "object"
     },
