@@ -1,5 +1,12 @@
 # Native Execution Gate V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Every escrow input and predicate below is superseded: the purchase-slot key becomes `(quote_commitment, actor, request_id)`, and the funded-escrow predicate becomes "request pending under the quoted `terms_hash` and `request_hash`", verified as the design's section 2.4 specifies; stablecoin identities and the escrow settlement intent no longer apply. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 Gate admission, start, failure and terminal facts may be represented through
 the generic
 [`Agent Operation and Outcome Event V1`](AGENT_OPERATION_OUTCOME_EVENT_V1.md)

@@ -7,20 +7,20 @@ proposal into the cell below. Its TVM cell hash is the Accepted Quote
 commitment. `proposal_id` is deliberately excluded, so gateways cannot become
 part of canonical commercial identity.
 
-This schema-1 cell is not itself accepted on chain: escrow version 1, whose
-deployment made the embedded schema-1 cell an Accepted Quote, was retired on
-2026-10-05. The cell remains the exact native-terms projection that the Paid
-Demand Accepted Quote (schema 2) commits to. Only the schema-2 cell is embedded
-in an escrow, and it becomes accepted when the bound buyer's `accept`
-transition finalizes; see
-[`STABLECOIN_ESCROW_TVM_V2.md`](STABLECOIN_ESCROW_TVM_V2.md) and
-[`PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md`](PAID_DEMAND_ACCEPTED_QUOTE_BINDING_V1.md).
+The cell settles on the Service Actor rail
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md); binding rules in
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)
+sections 2-3). It is not itself stored on chain. The buyer commits to it through
+the `request_hash` of a `call` (section "Request commitment"), and the
+finalized successful `call` transaction is the acceptance event. Schema 1 is
+this layout; the earlier stablecoin-escrow layout of schema 1 and the Paid
+Demand schema 2 are retired and not accepted by any conforming tool.
 
 ## Cell layout
 
 ```text
 accepted_quote$_ magic:uint32=0x4e415131 schema:uint16=1
-  ^network_domain ^identity ^economic ^authority = AcceptedQuoteV1;
+  ^network_domain ^identity ^rail ^authority = AcceptedQuoteV1;
 
 network_domain$_ genesis_root:uint256 genesis_file:uint256
   network_id_sha256:uint256 = NetworkDomainV1;
@@ -32,29 +32,44 @@ version$_ capability_version_sha256:uint256 manifest_digest:uint256
   transport_binding_digest:uint256 expires_at:uint64
   ^capability_version_snake = QuoteVersionV1;
 
-economic$_ escrow_terms_digest:uint256 dispute_policy_digest:uint256
-  ^asset ^maximum_atomic_amount_snake = QuoteEconomicV1;
+rail$_ actor:MsgAddressInt actor_code_hash:uint256 policy_version:uint32
+  ^rail_terms = QuoteRailV1;                                -- 555 bits
 
-asset$_ workchain:int32 master_account_id:uint256
-  master_code_hash:uint256 wallet_code_hash:uint256 decimals:uint8
-  = TOSAssetIdentityV1;
+rail_terms$_ terms_hash:uint256 price:Coins storage_fee:Coins
+  = QuoteRailTermsV1;                                       -- <= 504 bits
 
-authority$_ execution_signer_authorization:uint256 = QuoteAuthorityV1;
+authority$_ attestor_key_id:uint256 = QuoteAuthorityV1;
 
 transport_binding$_ magic:uint32=0x4e544231 schema:uint16=1
   security_mode:uint8 max_request_bytes:uint32
   ^base_url_snake = NativeTransportBindingV1;
-
-dispute_policy$_ magic:uint32=0x4e445031 schema:uint16=1
-  mode:uint8 release_rule:uint8 refund_rule:uint8
-  = NativeObjectiveDisputePolicyV1;
 ```
 
+The rail is split across two cells because one cell would need 1,059 bits; the
+Quote keeps the contract's full Coins bound instead of a narrower one
+(design section 3.1).
+
+- `actor` is a canonical `addr_std` on workchain 0 with no anycast. It equals
+  manifest key 21 and the destination of the `call`.
+- `actor_code_hash` equals manifest key 21, the account's code hash and a
+  published Service Actor release (pending: no release is published yet, so no
+  Quote can currently be verified).
+- `policy_version`, `terms_hash`, `price` and `storage_fee` equal the decoded
+  current actor policy at quote time; `terms_hash` is computed as
+  `SERVICE_ACTOR_TVM_V1.md` section 5 defines it. `price` is the exact
+  `price_per_call` in nanoTOS, below `2^120` and non-zero; `storage_fee` is
+  non-refundable and the Quote must disclose it as such (D4).
+- `attestor_key_id` is the ML-DSA-44 key id that manifest key 21 names and that
+  `terms_hash` covers; its text form is `mldsa44:<64 lowercase hex>`.
+- `expires_at` is a buyer-side acceptance deadline only: a buyer refuses to
+  `call` at or after it. The contract does not see it; a stale quote fails
+  closed through `terms_hash` (D7).
+- The asset is native TOS and has no field: this rail settles nothing else (D8).
+- The dispute policy is fixed by contract code: an attested response pays,
+  otherwise the price returns to the caller (design section 3.3). There is no
+  dispute-policy digest.
+
 Strings are printable ASCII, minimally encoded as byte-aligned TVM snakes.
-Atomic amounts use `0 | [1-9][0-9]*`, with no sign, fraction, exponent,
-whitespace, or leading zero. V1 accepts only wc=0 stablecoins, 1–18 decimals,
-and non-zero account and code hashes on the surrounding TOS network domain.
-A ticker such as `USDT` is never an asset identity.
 
 The transport digest is `cell_hash(transport_binding)`. Security mode `0` is
 Connect RPC over plaintext HTTP and is permitted only for an explicit loopback
@@ -65,32 +80,39 @@ continuation references. `max_request_bytes` is non-zero and at most 16 MiB. The
 by this schema to `tos.service.v1.NativeService`; it is not supplied by a
 gateway. A production Quote must use mode `1`.
 
-The dispute digest is `cell_hash(dispute_policy)`. V1 supports exactly one
-policy: `mode=0`, `release_rule=1`, and `refund_rule=1`, meaning no discretionary
-arbitrator, full fixed-price release only for a valid signer-authorized Receipt,
-and full refund only after the committed timeout. Subjective quality disputes
-and early operator-directed refunds are not representable in V1.
-
-The escrow StateInit embeds both typed preimages and rejects deployment unless
-their cell hashes exactly equal the Accepted Quote transport and dispute
-digests. They are therefore reconstructible from finalized TOS state and are
-not gateway-private metadata.
-
 The manifest digest is the digest of the canonical software-work manifest.
 The exact Capability version in finalized Registry state must bind the same
-digest and must be non-revoked. The provider must be the finalized Capability
-owner when the Quote is accepted.
+digest and must be non-revoked when the buyer calls. The provider must be the
+finalized Capability owner.
 
-## Vector and transaction rule
+## Request commitment
 
-[`accepted-quote-v1.json`](../test-vectors/accepted-quote-v1.json) freezes the
-cell and commitment using the test-only tUSDT contract identity, the finalized
-software-work Capability ID, concrete escrow terms, and the test execution
-signer's Ed25519 public key. Production and independent Go encoders reproduce
-it without sharing Quote encoding code and verify the typed preimage hashes.
+```text
+quote_commitment = cell_hash(accepted_quote)
+request_hash     = cell_hash(service_request)
+service_request$_ magic:uint32=0x4e535231 schema:uint16=1
+  quote_commitment:uint256 execution_id:uint256 input_digest:uint256
+  = ServiceRequestV1;
+```
 
-The vector proves encoding only. Before escrow deployment, a resolver must also
-verify the network genesis, Capability version and owner, stablecoin master and
-wallet code, decimals, expiry, and exact escrow code identity from finalized
-TOS state. Deployment fails closed if any authoritative value is absent or
-ambiguous.
+`magic` is ASCII `NSR1`. Every field is non-zero. The `call` carries
+`request_hash` and `expected_terms_hash = rail_terms.terms_hash`; buyer tooling
+always passes the quoted value, never the actor's live terms. A buyer never
+reuses a `request_hash`.
+
+## Verification rule
+
+Before building a `call`, the buyer runs admission-time verification, and a
+resolver attributes an existing request only after existing-request
+verification, both as `SERVICE_ACTOR_SETTLEMENT_DESIGN.md` section 2.4
+specifies, from one quorum-finalized checkpoint. Any absent, ambiguous or
+mismatched authoritative value is a verification error.
+
+## Vectors
+
+Pending. The frozen [`accepted-quote-v1.json`](../test-vectors/accepted-quote-v1.json)
+and `accepted-quote-v1-2.json` encode the retired stablecoin-escrow layout and
+are not conformance vectors for this cell. Vectors for this layout,
+`ServiceRequestV1` and `terms_hash` must be generated from the changed contract
+and reproduced by the production and an independent encoder before this cell
+is frozen.

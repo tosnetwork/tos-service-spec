@@ -276,30 +276,54 @@ quorum lifecycle under the current protocol domain.
 This gate is the highest product priority after Registry assurance. It covers
 one machine-checkable software-work profile only.
 
-Deliver:
+**Rail change (owner decision 2026-11-07).** The profile settles in native TOS
+on the Service Actor contract (`docs/SERVICE_ACTOR_TVM_V1.md`,
+`docs/SERVICE_ACTOR_SETTLEMENT_DESIGN.md`). Stablecoin escrow v2 is removed
+from tos main and retired here. Items marked superseded below were delivered on
+the escrow rail; their evidence is archived pre-migration history and is not
+evidence for this gate.
+
+Deliver on the Service Actor rail:
+
+- ⬜ Service Actor contract change for D1 (ML-DSA-44 attestor), D3 (sweep
+  returns the price to the caller) and D10 (request snapshot message), with
+  sandbox tests on both VMs, gas and size measurements and an independent
+  security review (implemented on tos branch `feat/service-actor-pq` at
+  `4c62edcae`, not merged, not deployed; no part of this item is accepted);
+- ⬜ published Service Actor release manifest and code hash;
+- ⬜ vectors generated from contract execution for `NSM1`, `NSR1`, the
+  Accepted Quote rail cell, `terms_hash`, SRP2, the request snapshot and key
+  ids, reproduced by `nativecore` and an independent codec;
+- ⬜ manifest key 21 vector and negative corpus;
+- ⬜ resolver for both verification procedures of the design's section 2.4;
+- ⬜ one v16 local-network lifecycle per terminal state (responded, refunded,
+  swept) reconstructed by a second resolver.
+
+Delivered earlier:
 
 - ✅ immutable software-work Capability manifest profile — canonical CBOR,
   bounds, positive vector, eight-case negative corpus, production Go encoder,
-  and independent stdlib-only Python reproducer are frozen;
+  and independent stdlib-only Python reproducer are frozen (the vector
+  predates keys 20 and 21 of the current profile and must be regenerated);
 - ✅ deterministic Accepted Quote commitment, vector, and TOS transaction — the
   TVM cell, exact tUSDT identity, typed transport, execution authorization,
   escrow and dispute preimages, production encoder, independent vector, and
-  finalized public escrow StateInit are recorded;
+  finalized public escrow StateInit are recorded; *(superseded by the Service Actor rail; the escrow rail is retired)*
 - ✅ exact endpoint and execution-signer binding — Capability version `1.1.0`
   and the finalized Accepted Quote bind the typed transport and execution
   authorization commitments;
 - ✅ test-only TOS-network stablecoin deployment with exact master-contract
   identity, six-decimal metadata, controlled wc=0 buyer wallet, reproducible
-  code hashes, and three-endpoint state evidence;
+  code hashes, and three-endpoint state evidence; *(superseded by the Service Actor rail; the escrow rail is retired)*
 - ✅ TOS-network stablecoin escrow with bounded native TOS network fees — the
   fixed-price contract and frozen `0.1 TOS` wallet-call budget are implemented,
-  emulator-tested, and deployed as the finalized Accepted Quote StateInit;
+  emulator-tested, and deployed as the finalized Accepted Quote StateInit; *(superseded by the Service Actor rail; the escrow rail is retired)*
 - ✅ isolated compilation, deterministic emulator tests, and reproducible-build
-  execution for the frozen escrow BOC;
+  execution for the frozen escrow BOC; *(superseded by the Service Actor rail; the escrow rail is retired)*
 - ✅ canonical Receipt binding input, toolchain, result, artifacts, evidence,
   provider, and charged amount;
 - ✅ objective fixed-price release and timeout-refund transfer initiation,
-  including replay-blocking pending states and initial-wallet bounce recovery;
+  including replay-blocking pending states and initial-wallet bounce recovery; *(superseded by the Service Actor rail; the escrow rail is retired)*
 - ✅ narrowly defined dispute evidence where an automatic outcome is
   impossible — V1 freezes an objective no-arbiter policy and exact evidence
   preimage rather than introducing a gateway-controlled decision maker;
@@ -314,7 +338,7 @@ Deliver:
   finalized 25,000,000 atomic `tUSDT` software-work transaction, its immutable
   artifact and report, the provider-wallet credit, and matching escrow state
   from three validator-backed endpoints are recorded in
-  `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`.
+  `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`. *(superseded by the Service Actor rail; the escrow rail is retired)*
 
 Accept when a buyer outside the core development team pays an independent
 provider on a public TOS network and another resolver reconstructs the complete
@@ -323,8 +347,10 @@ history without a private gateway database.
 Do not block this gate on general marketplace ranking, generalized arbitration,
 multiple verticals, cross-chain support, or per-message settlement.
 
-**Gate status: 🟡 Core escrow and provider execution implementation migrated;
-current-domain chain evidence and external acceptance pending.**
+**Gate status: 🟡 Provider execution implementation migrated; the settlement
+rail changed to the Service Actor on 2026-11-07 and its contract change,
+release, vectors, current-domain chain evidence and external acceptance are
+pending.** The escrow-rail summary that follows is archived history:
 Accepted Quote primitives, the test-only `tUSDT` asset recorded in
 `deployments/archive/pre-tos-service-v1/initial-public-testnet-tusdt-2026-08-14.json`, the fixed-price
 escrow, canonical Receipt, objective transfer transitions, reproducible BOC,
@@ -605,7 +631,7 @@ gate item.
 
 - Registry mutations require finalized typed-state authority first.
 - The first commercial lifecycle precedes broad marketplace features.
-- Execution follows Accepted Quote and required escrow finality.
+- Execution follows a finalized Service Actor `call` under the Accepted Quote.
 - Settlement follows Receipt checking.
 - Convenience projections follow typed-state decoding.
 - Adapters follow one working direct protocol path.
@@ -648,27 +674,27 @@ gate item.
       typed transport digest `dca9babc…6c44c` and the objective no-arbiter
       dispute-policy digest `1b42dbb0…d76345`; Capability version `1.1.0` is
       finalized at generation 1, sequence 2, and the regenerated Quote
-      commitment is `3143417c…23ce57`;
+      commitment is `3143417c…23ce57`; *(superseded by the Service Actor rail; the escrow rail is retired)*
    4. ✅ deploy the escrow StateInit containing the complete Accepted Quote,
       finalize that TOS transaction, and resolve both the transaction and typed
       escrow state without gateway-private data; this transaction is the
       canonical Quote acceptance event — escrow `0:ee6918da…a4241f7a`,
       transaction `2e02dd6c…1f19db`, and identical typed data hash
       `c7cbb362…cda4eb` are recorded from all three endpoints in
-      `deployments/archive/pre-tos-service-v1/initial-public-testnet-escrow-2026-08-14.json`.
+      `deployments/archive/pre-tos-service-v1/initial-public-testnet-escrow-2026-08-14.json`. *(superseded by the Service Actor rail; the escrow rail is retired)*
 9. ✅ Deploy a test-only TOS-network stablecoin and controlled wc=0 buyer
    wallet. The exact `tUSDT` master identity is
    `0:ca11200a7d4a3c6822af077f035131868584f40f48fb1b7b7b1889ae51f9926a`;
-   this is test infrastructure, not a claim on real USDT reserves.
+   this is test infrastructure, not a claim on real USDT reserves. *(superseded by the Service Actor rail; the escrow rail is retired)*
 10. ✅ Implement the TOS-network stablecoin escrow contract, reproducible
-    release artifact, exact StateInit builder, and finalized typed resolver.
+    release artifact, exact StateInit builder, and finalized typed resolver. *(superseded by the Service Actor rail; the escrow rail is retired)*
 11. ✅ Freeze the canonical software-work Receipt and implement objective
     release and refund transitions. Five TVM emulator groups cover full release,
     timeout refund, source/amount/signature rejection, buyer/deadline/replay
     rejection, malformed Receipt rejection, and wallet-bounce recovery through
     the actual frozen test stablecoin wallet code. Standard-wallet `excesses`
     is explicitly non-authoritative; terminal settlement resolution remains in
-    item 13's multi-account transaction proof.
+    item 13's multi-account transaction proof. *(superseded by the Service Actor rail; the escrow rail is retired)*
 12. ✅ Integrate the bounded executor and content-addressed artifact delivery —
     `tos-ai` now maps the provider-fixed image, invocation, workspace, and
     limits into containerd; safely extracts source archives; produces
@@ -687,9 +713,10 @@ gate item.
     Receipt committed the result, artifact, report, source, toolchain, and
     sandbox; and the release credited the provider wallet. Three endpoints
     independently report the same finalized escrow and wallet state in
-    `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`.
+    `deployments/archive/pre-tos-service-v1/initial-public-testnet-paid-software-work-2026-08-14.json`. *(superseded by the Service Actor rail; the escrow rail is retired)*
 
-All local Gate D implementation items are complete. The next Gate D acceptance
+The escrow-rail implementation items above were complete; on the Service Actor
+rail the Gate D items listed in section 4 are open. The next Gate D acceptance
 task is an external pilot with a buyer outside the core team, an independent
 provider, and an independently operated resolver or endpoint set. The
 same-host transaction is reproducible deployment evidence, not grounds to mark

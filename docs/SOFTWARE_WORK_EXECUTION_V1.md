@@ -1,5 +1,12 @@
 # Software-Work Execution and Artifact Delivery V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Funded-escrow and execution-signer checks below are superseded by a pending Service Actor request under the quoted terms and the manifest-pinned attestor key. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 ## Scope and authority
 
 This document freezes the provider-local execution boundary used by the first

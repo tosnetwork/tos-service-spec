@@ -3,14 +3,15 @@
 ## Canonical role
 
 A Receipt commits to one completed execution under one Accepted Quote. The
-Receipt cell itself is evidence, not payment authority. Release additionally
-requires the execution signer selected by the Accepted Quote to sign the exact
-escrow settlement intent. Finalized escrow state remains the sole settlement
-authority.
+Receipt cell itself is evidence, not payment authority. Release on the Service
+Actor rail ([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md)) requires the
+attestor key that the manifest pins and the request snapshotted to sign the
+SRP2 statement whose `response_hash` is this Receipt's cell hash, and the actor
+owner to submit it as `respond`. Finalized Service Actor transactions remain
+the sole settlement authority.
 
-The first profile is intentionally fixed-price: the Receipt charge must equal
-the Quote amount and the complete funded balance. A lower charge plus change
-would require two non-atomic stablecoin transfers and is not supported in V1.
+The first profile is intentionally fixed-price: the Receipt charge equals the
+quoted price, the request's snapshotted `price_per_call` in nanoTOS.
 
 ## Receipt cell
 
@@ -34,119 +35,71 @@ economic$_ charged_atomic_amount:uint128 provider_agent_id:uint256
 
 Every digest and identifier is non-zero. `completed_at` is a Unix timestamp,
 `exit_code` must be zero for release, and the unsigned charge must be positive
-and below `2^120`.
+and below `2^120`. For the Service Actor rail, `quote_commitment`,
+`execution_id` and `input_digest` equal the request's `ServiceRequestV1`
+preimage, `charged_atomic_amount` equals the price, and `provider_agent_id`
+equals the quoted provider.
 The Quote commitment transitively binds the Capability ID, immutable version,
-manifest, endpoint, asset, provider, signer authorization, terms, and expiry.
+manifest, endpoint, actor, terms, attestor, provider, and expiry.
 Bulk output, reports, source, and artifacts remain content-addressed off-chain.
-The Paid Demand Quote commits an execution deadline; its Gate and Receipt
-builder must additionally prove `completed_at <= execution_deadline`, and the
-escrow v2 contract decodes the bound deadline and enforces the same comparison
-before accepting release. Provider-side tooling alone cannot enforce a buyer
-term.
-The timestamp remains signed evidence; it does not extend the escrow cutoff or
-reserve a settlement position.
+
+The contract does not decode the Receipt. It does not check `exit_code`,
+`completed_at`, the charge, or any digest; any attested response before
+`response_deadline` releases the price. These conditions are enforced by
+attestor custody (D9): the attestor signer must refuse to sign SRP2 for a
+Receipt that is not releasable under the manifest, including a non-zero exit
+code, a charge other than the price, a binding that differs from the request,
+or `completed_at` after the request's `response_deadline`. The timestamp
+remains signed evidence; it does not extend the response deadline or reserve a
+settlement position.
 
 That comparison does not independently prove wall-clock truth. The successor
-profile makes the Quote-bound execution signer the explicit time attestor and
+profile makes the manifest-pinned attestor the explicit time attestor and
 requires its custody policy to sign only an immutable completion record bound to
 the same Gate claim, runner journal, and conservative clock interval. An
 arbitrary or backdated timestamp, or a signer detached from those records, is
 not releasable under that profile.
 
-## Settlement intent and message
+## Response statement and message
 
-The execution signer signs the TVM representation hash of the version 2
-settlement intent that the escrow v2 contract rebuilds before checking the
-signature:
+The attestor signs the Service Actor response statement SRP2
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md) section 6), which binds
+`GLOBALID`, the actor address, the request ID, `request_hash`,
+`response_hash = cell_hash(receipt)`, the caller, `terms_hash`, the price and
+both deadlines. Pure ML-DSA-44 signs the 32 raw bytes of the SRP2 hash under the
+context `TOS-SERVICE-ACTOR-RESPOND-V1`. A signature for one network, actor,
+request, caller, policy, price or deadline cannot authorize another.
 
-```text
-settlement_intent$_ magic:uint32=0x4e534931 version:uint16=2
-  global_id:int32 query_id:uint64 charged_atomic_amount:uint128
-  escrow:MsgAddressInt ^settlement_hashes = EscrowSettlementIntentV2;
-
-settlement_hashes$_ quote_commitment:uint256 receipt_commitment:uint256
-  = EscrowSettlementHashesV2;
-```
-
-`global_id` is the network's ConfigParam 19 (`GLOBALID`), so a signature made
-for one network does not settle the same escrow state on another. The version 1
-intent, which named no network and carried the hashes inline, was retired with
-escrow version 1 on 2026-10-05; the contract refuses it with exit code 2407.
-
-The release message is:
+The owner submits:
 
 ```text
-release$_ op:uint32=0x4e450001 query_id:uint64 signature:bits512
-  ^receipt = EscrowReleaseV2;
+respond#53564302 query_id:uint64 request_id:uint64 response_hash:uint256
+  ^StoredSignatureV1
 ```
 
-The retry-stable semantic release template is the domain-separated tuple of
-escrow, Quote commitment, Receipt commitment, and charged amount; it excludes
-`query_id`, signature bytes, local revision/cursor/time, and transport-attempt
-metadata. A stable release action ID commits to that template. Each protocol
-attempt then selects one `query_id`, constructs the exact
-`EscrowSettlementIntentV2` for the network's global ID, and obtains its exact signature. An ambiguous
-broadcast reuses those same bytes until resolved. After an authenticated bounce
-restores `funded`, operator-controlled recovery tooling may create a new query-
-specific intent and signature under the unchanged semantic release action, but
-automatic policy does not retry and query distinctness is not an escrow
-contract invariant.
+The contract verifies the signature against the key the request snapshotted at
+`call`, before `response_deadline`, and deletes the request; a second
+`respond` for the same request fails because the request is no longer pending.
+ML-DSA-44 signatures may be randomized, so a response is identified by its
+request and `response_hash`, never by signature bytes. `response_hash` and the
+signature exist only in the finalized `respond` transaction's inbound body; a
+resolver reads them from the actor's transaction history.
 
-The contract reconstructs the intent from its own address and stored Quote,
-checks Ed25519 over `cell_hash(settlement_intent)`, validates the complete
-Receipt, requires `charged == funded == Quote amount`, and enters
-`release_pending`. While pending, any replay or different request fails before
-another transfer request can be created. An authenticated bounce clears
-`pending_query_id` and restores `funded` without retaining consumed-query
-history. Consequently, any previously public valid release message—including
-the same query ID and signature—may be permissionlessly replayed and accepted
-again if the other `funded` and deadline predicates still hold. The resolver
-must group old and new query-specific attempts under the one semantic release
-action and use finalized transaction order/pending state to identify the
-attempt actually accepted; it must not report an old-query replay as a new
-commercial action or an impossible contract conflict.
+Provider tooling must preserve the attestor custody boundary. It first emits the
+32-byte SRP2 hash as the signing payload together with the Receipt and request
+snapshot it covers, accepts only a signature response that repeats the exact
+payload and the manifest-pinned key id, verifies ML-DSA-44 locally under the
+context above, and only then constructs `respond`. The custody service checks
+the Receipt against the manifest before signing. Receipt tooling must never
+accept a mnemonic, private seed, or test-identity fixture as an operational
+signing input.
 
-Provider tooling must preserve the execution-signing custody boundary. It
-first emits `cell_hash(settlement_intent)` as a 32-byte signing payload, accepts
-only a signature response that repeats the exact payload and Quote-bound public
-key, verifies Ed25519 locally, and only then constructs the release message.
-Receipt tooling must never accept a mnemonic, private seed, or test-identity
-fixture as an operational signing input.
-
-The timeout refund message is:
-
-```text
-refund$_ op:uint32=0x4e450002 query_id:uint64 = EscrowRefundV2;
-```
-
-The retry-stable semantic refund template binds the domain, escrow, Quote
-commitment, committed buyer, and objective refund rule, but excludes `query_id`
-and attempt metadata. An ambiguous refund broadcast reuses one exact attempt;
-after an authenticated bounce restores `funded`, operator-controlled recovery
-tooling may use a new query ID under the unchanged semantic refund action, while
-automatic policy does not retry. The contract does not enforce freshness or
-retain old refund query IDs, so a prior public refund message may also be
-permissionlessly replayed after the bounce.
-
-Anyone may trigger it only from `funded` at or after `refund_available_at`;
-the sole destination is the committed buyer. Both release and refund enter a
-pending state that blocks another request while pending. Only an authenticated
-bounce of the initial request from the escrow's own wallet restores `funded`;
-otherwise the request cannot be retried or replaced. Standard-wallet `excesses`
-is not a payment proof because it binds neither amount nor source. The finalized
-resolver derives the terminal economic outcome from the exact wallet transaction
-chain; an ambiguous downstream outcome remains pending and is never blindly
-replayed.
-
-Conformance tests must race old-query replay against a newly generated release
-attempt after bounce and do the same for refund. They must prove that only the
-first valid `funded -> *_pending` transaction takes effect, every observed query
-is grouped under the unchanged semantic action, and no resolver or client
-mistakes off-chain distinct-query policy for replay protection. A stronger
-consumed-query or settlement-generation invariant requires a new escrow schema.
+No refund message names the Receipt. If no attested `respond` lands before
+`response_deadline`, the request is refunded to the caller through `expire` and
+`claim_refund` or a sweep (`SERVICE_ACTOR_TVM_V1.md` section 7).
 
 The Receipt contains no Evaluator identity, score, approval, fee, or challenge
 authority. A market, buyer, or third party may publish a separately signed
 advisory assessment, but software-work V1 must ignore it for release and refund.
-A binding evaluation step requires a new Quote/escrow profile; it cannot be
-smuggled into `report_digest`, `evidence`, or the execution-signing key.
+A binding evaluation step requires a new Quote and settlement profile; it
+cannot be smuggled into `report_digest`, `evidence`, or the attestor key.

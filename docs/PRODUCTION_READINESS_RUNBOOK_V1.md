@@ -1,5 +1,12 @@
 # TOS Service Protocol Production Readiness Runbook V1
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+Escrow and stablecoin reconciliation items below describe the retired rail; operators reconcile Service Actor transactions, revenue, liabilities and refunds in nanoTOS. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 This runbook defines the minimum operational controls for a production Native
 deployment. It does not grant a Gateway semantic authority: finalized TOS
 state, quorum evidence, and contract code identity remain canonical.

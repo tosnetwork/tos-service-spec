@@ -318,34 +318,56 @@ message TOSAssetIdentityV1 {
   uint32 decimals = 3;
 }
 
-message MoneyV1 {
-  // Canonical TOS-network asset contract identity, never a display ticker.
-  TOSAssetIdentityV1 asset = 1;
-  // Unsigned canonical base-10 atomic units: 0 or [1-9][0-9]*.
-  string atomic_amount = 2;
-}
-
 // A Quote Proposal is gateway-local and non-canonical until accepted on TOS.
+// It settles on the Service Actor rail (docs/SERVICE_ACTOR_TVM_V1.md): the
+// price is native TOS and every rail field must equal finalized actor state
+// and manifest key 21 before a buyer builds a call.
 message QuoteProposalV1 {
+  // The stablecoin price, escrow terms and dispute policy of the retired
+  // escrow rail.
+  reserved 7, 8, 9;
+  reserved "maximum_price", "escrow_terms_digest", "dispute_policy_digest";
+
   string proposal_id = 1;
   string capability_id = 2;
   string capability_version = 3;
   string provider_agent_id = 4;
   string manifest_digest = 5;
   string transport_binding_digest = 6;
-  MoneyV1 maximum_price = 7;
-  string escrow_terms_digest = 8;
-  string dispute_policy_digest = 9;
+  // Buyer-side acceptance deadline only; the actor does not enforce it.
   uint64 expires_at_unix_seconds = 10;
+  // Service Actor account; workchain 0 only.
+  TOSAccountAddressV1 actor = 11;
+  // tvm-cell-sha256:<64 lowercase hex>; must equal a published release.
+  string actor_code_hash = 12;
+  uint32 policy_version = 13;
+  // 64 lowercase hex; the actor's terms_hash for the quoted policy.
+  string terms_hash = 14;
+  // Exact price_per_call in nanoTOS: positive, [1-9][0-9]*, below 2^120. A
+  // zero price is refused, as in ACCEPTED_QUOTE_TVM_V1 and SETTLEMENT.
+  string price_nanotos = 15;
+  // Non-refundable storage fee in nanoTOS, same encoding and bound.
+  string storage_fee_nanotos = 16;
+  // mldsa44:<64 lowercase hex key id>; equals manifest key 21 field 5.
+  string attestor_key_id = 17;
 }
 
 message AcceptedQuoteV1 {
+  // The client-chosen execution signer of the retired escrow rail; the
+  // attestor key now comes from the proposal and manifest.
+  reserved 4;
+  reserved "execution_signer_authorization";
+
   string protocol = 1; // exactly tos_service_v1
   string quote_commitment = 2;
   QuoteProposalV1 proposal = 3;
-  string execution_signer_authorization = 4;
+  // The finalized Service Actor call transaction that accepted the Quote.
   ChainReference reference = 5;
   NetworkDomain network = 6;
+  // Request ID from the call's request snapshot message.
+  uint64 request_id = 7;
+  // 64 lowercase hex; cell_hash of the NSR1 service request.
+  string request_hash = 8;
 }
 
 // Discovery is explicitly derived and may be incomplete. Each returned state
@@ -414,7 +436,7 @@ message GetSoftwareWorkManifestResponse {
 }
 
 // A buyer requests non-canonical terms for one exact Capability version.
-// The provider decides price, expiry, transport, and escrow policy.
+// The provider decides price, expiry, transport, and Service Actor policy.
 message RequestQuoteProposalRequest {
   RequestContext context = 1;
   string capability_id = 2;
@@ -423,13 +445,16 @@ message RequestQuoteProposalRequest {
 }
 
 // Every digest-bearing proposal field has its complete portable preimage.
-// The package remains non-canonical until the Accepted Quote escrow finalizes.
+// The package remains non-canonical until the Service Actor call finalizes.
+// The terms_hash preimage is the finalized actor policy, not package data.
 message QuoteProposalPackageV1 {
+  // Escrow terms and dispute policy preimages of the retired escrow rail.
+  reserved 3, 5;
+  reserved "escrow_terms_boc", "dispute_policy_boc";
+
   QuoteProposalV1 proposal = 1;
   bytes canonical_manifest_cbor = 2;
-  bytes escrow_terms_boc = 3;
   bytes transport_binding_boc = 4;
-  bytes dispute_policy_boc = 5;
 }
 
 message RequestQuoteProposalResponse {

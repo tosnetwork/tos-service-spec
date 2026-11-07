@@ -53,11 +53,13 @@ pre-migration evidence is not a finalized purchase lifecycle.
 
 1. Resolve the Capability and immutable version.
 2. Obtain one or more gateway Quote Proposals.
-3. Validate provider, manifest, endpoint, price, expiry, escrow, dispute, and
-   execution-signer terms locally.
-4. Build the Accepted Quote commitment locally.
-5. Sign and submit the TOS transaction.
-6. Consider the Quote canonical only after finalized chain verification.
+3. Validate provider, manifest, endpoint, expiry, and the Service Actor rail
+   (actor, code hash, policy version, `terms_hash`, nanoTOS price and storage
+   fee, manifest-pinned attestor key) against finalized state locally.
+4. Build the Accepted Quote commitment and the `request_hash` locally.
+5. Sign and submit the Service Actor `call` with the quoted `terms_hash`.
+6. Consider the Quote canonical only after finalized chain verification of the
+   `call` and its request snapshot.
 
 ## Safety rules
 

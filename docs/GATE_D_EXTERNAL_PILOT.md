@@ -1,5 +1,12 @@
 # Gate D External Pilot
 
+**Rail change (2026-11-07).** Stablecoin escrow v2 is retired and the
+software-work profile settles in native TOS on the Service Actor
+([`SERVICE_ACTOR_TVM_V1.md`](SERVICE_ACTOR_TVM_V1.md),
+[`SERVICE_ACTOR_SETTLEMENT_DESIGN.md`](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)).
+The escrow funding, stablecoin, and release/refund steps below describe the retired rail and cannot produce Gate D evidence; the pilot runs on the Service Actor once the items `ROADMAP.md` Gate D lists as open are met. Where this document conflicts with those, they govern; its in-place
+rewrite follows the implementation change listed in the design's section 7.
+
 ## Purpose
 
 This runbook closes the only remaining Gate D acceptance condition. The local
