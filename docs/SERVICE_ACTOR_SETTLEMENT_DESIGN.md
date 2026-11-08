@@ -302,7 +302,7 @@ is meant to pin; buyer tooling must always pass the quoted value.
 |---|---|
 | `network_domain` | none in `terms_hash`; SRP2 binds `GLOBALID` and the actor address (SD:14-21); the proposed `metadata_hash` binds the domain |
 | `capability_id`, `provider_agent_id`, version, `manifest_digest` | `metadata_hash` (section 2.3) |
-| `transport_binding_digest` | none on chain; manifest key 17 and `quote_commitment` |
+| `transport_binding_digest` | none on chain; manifest key 17 and `quote_commitment`; mode `2` delivers work as Agent Packets to the provider Agent, at most 1 MiB inline |
 | `expires_at` | **none**: `call` has no acceptance deadline; a quote is usable while the terms are unchanged (D7) |
 | `escrow_terms_digest` | `terms_hash` (SA:241-264) |
 | `dispute_policy_digest` | fixed by contract code: attested response pays, otherwise timeout refund |
