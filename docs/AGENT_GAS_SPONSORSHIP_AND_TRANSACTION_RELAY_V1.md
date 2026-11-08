@@ -1201,11 +1201,12 @@ substitution.
 `LP32(x)` is an unsigned big-endian 32-bit byte length followed by the UTF-8
 bytes. Every duplicated top-level network field equals the corresponding
 domain field. Payment authorization retains prefix `TOS-EAA\0`; effect
-authorization retains prefix `TOS-CEA\0`; both continue to sign the SHA-256 of
-their complete preimage with the owner-pinned Ed25519 custody authorization
-key. That key is separately pinned and is not the ML-DSA-44 Action Authority
-key of `SEMANTIC_ACTION_IDENTITY_V1.md` section 9; it is a recorded classical
-residual of the custody host until its own migration.
+authorization retains prefix `TOS-CEA\0`; both sign the SHA-256 of their
+complete preimage with the owner-pinned ML-DSA-44 custody authorization key
+under `TOS-CUSTODY-AUTHORIZATION-V1` and carry `key_id` and `proof` as
+specified in `PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md` section 3.1. That
+key is separately pinned and is not the Action Authority key of
+`SEMANTIC_ACTION_IDENTITY_V1.md` section 9.
 The fixed cross-language preimage SHA-256 fixtures are:
 
 ```text

@@ -98,12 +98,58 @@ The preimage is:
 "TOS-PCEA\0" || fields_above
 ```
 
-The signature digest is `SHA256(preimage)`. `public_key` is canonical
-`ed25519:` plus 64 lowercase hex and `proof` is canonical `ed25519:` plus 128
-lowercase hex. Neither is included in the preimage. The key is the owner's
-separately pinned custody authorization key, not the ML-DSA-44 Action
-Authority key of `SEMANTIC_ACTION_IDENTITY_V1.md` section 9; it is a recorded
-classical residual of the custody host until its own migration.
+The signature message is `SHA256(preimage)`. `key_id` and `proof` are the
+custody authorization key ID and proof of section 3.1. Neither is included in
+the preimage.
+
+### 3.1 Custody authorization signature suite
+
+This section is normative for all three custody authorizations: the payment
+authorization (`TOS-EAA\0`) and the effect authorization (`TOS-CEA\0`) of
+`AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md` and the Prediction effect
+authorization (`TOS-PCEA\0`) above.
+
+- Suite. Pure ML-DSA-44 (FIPS 204 ML-DSA.Sign and ML-DSA.Verify with a context
+  string, no pre-hash) under the context `TOS-CUSTODY-AUTHORIZATION-V1` (28
+  bytes). There is exactly one suite and no algorithm field. The context is
+  distinct from every other ML-DSA-44 context, in particular from the Action
+  Authority context `TOS-ACTION-AUTHORITY-V1`; the three object kinds are
+  separated inside the message by their preimage prefixes.
+- Message. `M = SHA256(preimage)`, exactly 32 bytes; a message of any other
+  length is refused before verification.
+  `signature = ML-DSA-44.Sign(sk, M, ctx = "TOS-CUSTODY-AUTHORIZATION-V1")`.
+- Key reference. `key_id` is `mldsa44:` and 64 lowercase hex characters of the
+  controller key ID `SHA-256("TOS-PQ-CONSENSUS-KEY-v1" || 0x01 0x00 ||
+  public_key)` (`NATIVE_IDENTIFIERS_V1.md`); the all-zero ID is invalid. No key
+  bytes are carried and there is no `public_key` field.
+- Proof. `proof` is `mldsa44:` and the canonical unpadded URL-safe Base64 of
+  exactly 2,420 bytes (3,227 characters): no padding, no other alphabet, no
+  whitespace and no non-zero trailing bits.
+- Pin. The custody host pins the owner's 1,312-byte custody authorization
+  public key per authority, owner and Agent, independently of any request. It
+  derives the key ID of its pin, requires `key_id` to equal it, and only then
+  verifies. A host that stores admitted authorizations stores the pinned key
+  bytes with them and re-verifies every stored proof with those bytes, deriving
+  the key ID again, whenever it reloads its state.
+- Separation. The custody authorization key is not the Action Authority key of
+  `SEMANTIC_ACTION_IDENTITY_V1.md` section 9. The signing key stays in key
+  custody (a tosctl vault controller); no raw key file is used.
+- Refusals. An `ed25519:` key or proof, a `public_key` field, an Ed25519 pin
+  (32 bytes), a signature under any other context or under HashML-DSA, a
+  truncated or oversized signature, any non-canonical `mldsa44:` text, and a
+  key ID that is not the ID of the pinned key are all refused. There is no
+  Ed25519 fallback.
+- Size. Against the removed Ed25519 forms each authorization grows from 72 + 136
+  to 72 + 3,235 bytes of key and proof text (+3,099 bytes); the Prediction
+  authorization JSON bound of 16 KiB is unchanged.
+- Vector. `test-vectors/custody-authorization-signature-vector-v1.json` is
+  produced by the tosctl test from the public seed `0x43`×32 with deterministic
+  signing over the published payment V2, payment V3, sponsorship payment V3,
+  effect V2 and Prediction preimages, with a HashML-DSA refusal and eight
+  other-context refusals (the empty context, the six other controller
+  contexts including `TOS-ACTION-AUTHORITY-V1`, and the Service Actor
+  context). `scripts/mldsa44_reference.py --self-test` reproduces it byte for
+  byte.
 
 ## 4. Verification
 

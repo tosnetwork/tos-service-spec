@@ -467,7 +467,8 @@ carries an algorithm field, and no verifier accepts any other suite. The same
 key and the same rule cover four objects; each is separated from the others by
 its own domain inside the signed digest, and from every other ML-DSA-44 use
 (Native Registry, Agent Packet and contact, Agent Guarantor native evidence,
-Agent Account authentication, Service Actor) by the context:
+Agent Account authentication, Service Actor, custody authorization) by the
+context:
 
 | Signed object | Domain `D` | Canonical object `C` |
 |---|---|---|
@@ -530,9 +531,10 @@ The custody authorization key that signs the `TOS-EAA`, `TOS-CEA` and
 `TOS-PCEA` custody authorizations
 (`AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`,
 `PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md`) is a separately pinned
-Ed25519 key. It is not the Action Authority key, it never verifies an object
-of this section, and it remains a recorded classical residual of the custody
-host until its own migration.
+Pure ML-DSA-44 key under its own context `TOS-CUSTODY-AUTHORIZATION-V1`
+(`PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md` section 3.1). It is not the
+Action Authority key: a signature under either context is refused under the
+other, and the custody key never verifies an object of this section.
 
 ### 9.4 Size budget
 
