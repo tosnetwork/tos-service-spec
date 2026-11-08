@@ -61,7 +61,7 @@ evidence; they cannot create coverage or enlarge the guarantor's liability.
 | coverage resolution | `application/vnd.tos.service.agent-guarantor-resolution.v1+cbor` |
 | generic commerce profile event | `application/vnd.tos.service.commerce-profile-event.v1+cbor` |
 | native ML-DSA-44 Agent authorization evidence | `application/vnd.tos.service.agent-guarantor-native-authorization.v1+cbor` |
-| stage-action admission Action Authority evidence | `application/vnd.tos.service.agent-guarantor-action-authority-ed25519-evidence.v1+cbor` |
+| stage-action admission Action Authority evidence | `application/vnd.tos.service.agent-guarantor-action-authority-mldsa44-evidence.v1+cbor` |
 
 The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
 RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL are interpreted as BCP 14.
@@ -2404,14 +2404,23 @@ The admission authorization's object kind is exactly
 digest, and its validation time equals `admitted_at_unix`. It is **not**
 native Agent evidence and never uses the `TOS-AGENT-GUARANTOR-V1` context. It
 is signed by the immutable stage's scalar Action Authority under that
-authority's `SEMANTIC_ACTION_IDENTITY_V1` signature scheme (its key type and
-signature encoding are exactly those of the authority's `AuthorizedActionV1`)
-over the section 9 statement digest with signature domain
-`tos.service.agent-guarantor-stage-action-admission-signature.v1`, and its
-`evidence_content_type` is exactly
-`application/vnd.tos.service.agent-guarantor-action-authority-ed25519-evidence.v1+cbor`
-(distinct from the native type, so neither can be presented as the other). Its subject,
-key, and proof equal the immutable stage's scalar Action Authority; a
+authority's `SEMANTIC_ACTION_IDENTITY_V1` section 9 scheme: Pure ML-DSA-44
+under the context `TOS-ACTION-AUTHORITY-V1`, over the section 9 statement
+digest with signature domain
+`tos.service.agent-guarantor-stage-action-admission-signature.v1`. Its evidence
+is `{key_id, signature, historical_authority_proof}`: `key_id` is the
+admitted action's `authority_key_id` (`mldsa44:` and 64 lowercase hex) and
+`signature` is `mldsa44:` and the canonical unpadded URL-safe Base64 of 2,420
+bytes. The verifier resolves the key through the Action Authority resolver at
+`validation_time_unix`, requires the resolved key to derive `key_id`, verifies
+the signature, and then still requires the Guarantor resolver to authorize the
+historical proof for the complete scope. Its `evidence_content_type` is exactly
+`application/vnd.tos.service.agent-guarantor-action-authority-mldsa44-evidence.v1+cbor`.
+Because the native evidence carries the same three field names, the content
+type and the context are what keep the two apart: a native authorization is
+refused here by its content type, and a stage signature presented as native
+evidence is refused by its context. Its subject,
+key ID, and proof equal the immutable stage's scalar Action Authority; a
 business-decision signer, Writer-Fence proof alone, threshold projection, or
 second authorization profile cannot satisfy it. The complete evidence digest
 uses `tos.service.agent-guarantor-stage-action-admission-evidence.v1`.

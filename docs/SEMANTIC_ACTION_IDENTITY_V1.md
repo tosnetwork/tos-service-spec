@@ -458,20 +458,112 @@ authorize an action. Every side effect still requires `AuthorizedActionV1`, its
 authority signature, a valid `WriterFenceV1`, resolved policy/mandate/approval content, expected prior
 state, Portfolio admission where relevant, and sink-side durable resolution.
 
-The V1 action authorization signature is Ed25519 over:
+### 9.1 Action Authority signature suite
+
+Every Action Authority signature is Pure ML-DSA-44 (FIPS 204, ML-DSA.Sign and
+ML-DSA.Verify with a context string, no pre-hash) under the context string
+`TOS-ACTION-AUTHORITY-V1` (23 bytes). There is exactly one suite: no object
+carries an algorithm field, and no verifier accepts any other suite. The same
+key and the same rule cover four objects; each is separated from the others by
+its own domain inside the signed digest, and from every other ML-DSA-44 use
+(Native Registry, Agent Packet and contact, Agent Guarantor native evidence,
+Agent Account authentication, Service Actor) by the context:
+
+| Signed object | Domain `D` | Canonical object `C` |
+|---|---|---|
+| `AuthorizedActionV1.authorization_proof` | `tos.authorized-action-proof.v1` | the AuthorizedAction with an empty `authorization_proof` |
+| `WriterFenceV1.fence_proof` | `tos.writer-fence.v1` | the Writer Fence `body` |
+| relay side-effect admission receipt `signature` | `tos.agent-relay-side-effect-admission-receipt-signature.v1` | the receipt `body` |
+| Guarantor stage-action admission evidence `signature` | `tos.service.agent-guarantor-stage-action-admission-signature.v1` | the authorization statement (`AGENT_GUARANTOR_SERVICE_V1.md`) |
+
+The ML-DSA-44 message is exactly the 32-byte digest
 
 ```text
-SHA-256("tos.authorized-action-proof.v1\0" ||
-        uint32_big_endian(len(canonical_authorized_action_without_proof)) ||
-        canonical_authorized_action_without_proof)
+M = SHA-256(D || 0x00 || uint32_big_endian(len(C)) || C)
+signature = ML-DSA-44.Sign(sk, M, ctx = "TOS-ACTION-AUTHORITY-V1")
 ```
 
-The canonical object includes `authority_id` and `authority_public_key` and has
-an empty `authorization_proof`. The public key must equal the key in the
-referenced Writer Fence and must independently resolve as authorized for the
-named authority. This proof is deliberately separate from semantic identity:
-identity deduplicates an intended effect, while the proof grants permission for
-the exact request and policy context.
+where `C` is the canonical CBOR of the object. A message of any other length
+is refused before verification.
+
+### 9.2 Key reference and resolution
+
+The signed objects carry a key ID, never the key. `authority_key_id` (in
+AuthorizedActionV1), `key_id` (in WriterFenceV1, the relay admission receipt
+and the Guarantor stage evidence) is the only text form of an ML-DSA-44
+controller key ID (`NATIVE_IDENTIFIERS_V1.md`): `mldsa44:` and 64 lowercase
+hex characters of `SHA-256("TOS-PQ-CONSENSUS-KEY-v1" || 0x01 0x00 ||
+public_key)`. The all-zero ID is invalid.
+
+The canonical AuthorizedAction includes `authority_id` and `authority_key_id`
+and has an empty `authorization_proof`. Its key ID must equal the key ID of the
+referenced Writer Fence; the relay admission receipt and the stage evidence
+must name that same key ID. A verifier obtains the 1,312-byte public key only
+by resolving `(authority_id, key_id)` as authorized for the named authority at
+the authority instant (the fence or action time, the receipt's
+`issued_at_unix`, or the statement's `validation_time_unix`), recomputes the
+key ID of the resolved key and requires it to equal the carried ID, and only
+then verifies the signature. An unresolvable, revoked or ambiguous key fails
+closed. The key ID binds the exact key (substituting another key needs a
+SHA-256 second preimage), so the resolver, not the object, is the only source
+of key bytes.
+
+The signature text form is `mldsa44:` and the canonical unpadded URL-safe
+Base64 of exactly 2,420 bytes (3,227 characters): no padding, no other
+alphabet, no embedded whitespace and no non-zero trailing bits.
+
+This proof is deliberately separate from semantic identity: identity
+deduplicates an intended effect, while the proof grants permission for the
+exact request and policy context.
+
+### 9.3 Refusals
+
+Ed25519 is not an Action Authority suite. A key or signature text with the
+`ed25519:` prefix, the field names `authority_public_key` and `public_key` on
+these objects, a signature under any other context or under HashML-DSA, a
+signature of one of the four objects presented as another, a truncated or
+oversized signature, any non-canonical `mldsa44:` text, a resolved key whose
+ID differs from the carried ID, and a fence, action, receipt or stage evidence
+whose key IDs differ are all refused.
+
+The custody authorization key that signs the `TOS-EAA`, `TOS-CEA` and
+`TOS-PCEA` custody authorizations
+(`AGENT_GAS_SPONSORSHIP_AND_TRANSACTION_RELAY_V1.md`,
+`PREDICTION_CUSTODY_EFFECT_AUTHORIZATION_V1.md`) is a separately pinned
+Ed25519 key. It is not the Action Authority key, it never verifies an object
+of this section, and it remains a recorded classical residual of the custody
+host until its own migration.
+
+### 9.4 Size budget
+
+Against the removed Ed25519 forms, a key ID text is 72 bytes, the length of the
+removed key text, and a signature text grows from 94 to 3,235 bytes (+3,141;
++3,142 in canonical CBOR, whose text header grows from 2 to 3 bytes). The field
+renames save 4 bytes each. Each of the four signed objects therefore grows by
+3,138 canonical CBOR bytes; an execution request or admission wire carrying
+action, fence and receipt grows by 9,414, and a submission carrying action and
+fence by 6,276. Every bound that contains these objects keeps its value: the
+complete canonical object and HTTP bound of 1 MiB, the 192 KiB underlying
+action request, the Guarantor 1 MiB complete-object and 256 KiB in-band proof
+bounds, and the 64 KiB `historical_authority_proof` bound (the historical
+proof binds the same 72-byte key ID text and is not a signature of this
+section).
+
+### 9.5 Vectors
+
+`test-vectors/action-authority-signature-vector-v1.json` is produced by the
+tosctl test from the public seed `0x41`×32 with deterministic signing (all-zero
+randomness). It records the canonical object and domain of each of the four
+signed objects, the message, the signature, eleven refusals (HashML-DSA, seven
+other contexts and three other domains) and 388 differential signatures over
+16 seeds, 6 message lengths and 4 contexts. `scripts/mldsa44_reference.py`, an
+independent standard-library implementation, reproduces every key, key ID and
+signature byte for byte and refuses each refusal and each malformed signature,
+key and hint encoding:
+
+```text
+python3 -I scripts/mldsa44_reference.py --self-test test-vectors/action-authority-signature-vector-v1.json
+```
 
 The registry is not a global transaction database. Each owner and participating
 sink retains only the actions it must authorize or resolve. No Carrier, market,

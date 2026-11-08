@@ -511,11 +511,11 @@
     "signedRelaySideEffectAdmissionReceipt": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["body", "public_key", "signature"],
+      "required": ["body", "key_id", "signature"],
       "properties": {
         "body": {"$ref": "#/$defs/relaySideEffectAdmissionReceiptBody"},
-        "public_key": {"$ref": "#/$defs/ed25519PublicKey"},
-        "signature": {"$ref": "#/$defs/ed25519Signature"}
+        "key_id": {"$ref": "economic-action-authority-v1.json#/$defs/actionAuthorityKeyId"},
+        "signature": {"$ref": "economic-action-authority-v1.json#/$defs/actionAuthoritySignature"}
       }
     },
     "resolveAdmissionCall": {

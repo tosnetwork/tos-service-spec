@@ -13,8 +13,8 @@
   "$defs": {
     "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "identifier": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000]+$"},
-    "ed25519PublicKey": {"type": "string", "pattern": "^ed25519:[0-9a-f]{64}$"},
-    "ed25519Signature": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9_-]{86}$"},
+    "actionAuthorityKeyId": {"type": "string", "pattern": "^mldsa44:[0-9a-f]{64}$", "not": {"const": "mldsa44:0000000000000000000000000000000000000000000000000000000000000000"}},
+    "actionAuthoritySignature": {"type": "string", "pattern": "^mldsa44:[A-Za-z0-9_-]{3227}$"},
     "writerFenceBody": {
       "type": "object",
       "additionalProperties": false,
@@ -35,17 +35,17 @@
     "writerFence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["body", "public_key", "fence_proof"],
+      "required": ["body", "key_id", "fence_proof"],
       "properties": {
         "body": {"$ref": "#/$defs/writerFenceBody"},
-        "public_key": {"$ref": "#/$defs/ed25519PublicKey"},
-        "fence_proof": {"$ref": "#/$defs/ed25519Signature"}
+        "key_id": {"$ref": "#/$defs/actionAuthorityKeyId"},
+        "fence_proof": {"$ref": "#/$defs/actionAuthoritySignature"}
       }
     },
     "authorizedAction": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema_version", "owner_id", "agent_id", "action_kind", "stable_action_id", "exact_request_digest", "writer_generation", "writer_fence_digest", "policy_revision", "mandate_digest", "expected_prior_state", "expires_at_unix", "authority_id", "authority_public_key", "authorization_proof"],
+      "required": ["schema_version", "owner_id", "agent_id", "action_kind", "stable_action_id", "exact_request_digest", "writer_generation", "writer_fence_digest", "policy_revision", "mandate_digest", "expected_prior_state", "expires_at_unix", "authority_id", "authority_key_id", "authorization_proof"],
       "properties": {
         "schema_version": {"const": 1},
         "owner_id": {"$ref": "#/$defs/identifier"},
@@ -61,8 +61,8 @@
         "expected_prior_state": {"$ref": "#/$defs/identifier"},
         "expires_at_unix": {"type": "integer", "minimum": 1},
         "authority_id": {"$ref": "#/$defs/identifier"},
-        "authority_public_key": {"$ref": "#/$defs/ed25519PublicKey"},
-        "authorization_proof": {"$ref": "#/$defs/ed25519Signature"}
+        "authority_key_id": {"$ref": "#/$defs/actionAuthorityKeyId"},
+        "authorization_proof": {"$ref": "#/$defs/actionAuthoritySignature"}
       }
     },
     "actionResolution": {

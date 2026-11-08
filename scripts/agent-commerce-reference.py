@@ -13,6 +13,7 @@ import base64
 import binascii
 import copy
 import hashlib
+import importlib.util
 import json
 import re
 import struct
@@ -292,7 +293,55 @@ def _decode_signature(value: str) -> bytes:
     return raw
 
 
+def _load_mldsa44() -> Any:
+    path = Path(__file__).resolve().with_name("mldsa44_reference.py")
+    spec = importlib.util.spec_from_file_location("mldsa44_reference", path)
+    if spec is None or spec.loader is None:
+        raise ConformanceError("the ML-DSA-44 reference is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    # A conformance run must not write bytecode next to the reference.
+    sys.dont_write_bytecode = True
+    spec.loader.exec_module(module)
+    return module
+
+
+ACTION_AUTHORITY_CONTEXT = "TOS-ACTION-AUTHORITY-V1"
+
+
+def _decode_mldsa44_signature(value: str) -> bytes:
+    if not isinstance(value, str) or not re.fullmatch(r"mldsa44:[A-Za-z0-9_-]{3227}", value):
+        raise ConformanceError("non-canonical ML-DSA-44 signature text")
+    encoded = value[len("mldsa44:"):]
+    raw = base64.urlsafe_b64decode(encoded + "=")
+    if len(raw) != 2420 or base64.urlsafe_b64encode(raw).decode().rstrip("=") != encoded:
+        raise ConformanceError("non-canonical ML-DSA-44 signature text")
+    return raw
+
+
+def _verify_action_authority_signature(item: dict[str, Any], message: bytes, mldsa44: Any) -> None:
+    """The key ID resolves only to the vector's declared key; the resolved key
+    must derive it; the signature is Pure ML-DSA-44 under the Action Authority
+    context."""
+    if item.get("context") != ACTION_AUTHORITY_CONTEXT:
+        raise ConformanceError(f"{item.get('name')}: wrong Action Authority context")
+    resolved = bytes.fromhex(item.get("resolved_public_key_hex", ""))
+    key_id = item.get("public_key")
+    if not isinstance(key_id, str) or not re.fullmatch(r"mldsa44:[0-9a-f]{64}", key_id) or \
+            "mldsa44:" + mldsa44.key_id(resolved).hex() != key_id:
+        raise ConformanceError(f"{item.get('name')}: key ID does not derive from the resolved key")
+    signature = _decode_mldsa44_signature(item.get("signature"))
+    if not mldsa44.verify(resolved, message, signature, ACTION_AUTHORITY_CONTEXT.encode()):
+        raise ConformanceError(f"{item.get('name')}: ML-DSA-44 signature mismatch")
+    mutated = bytearray(signature)
+    mutated[0] ^= 1
+    if mldsa44.verify(resolved, message, bytes(mutated), ACTION_AUTHORITY_CONTEXT.encode()):
+        raise ConformanceError(f"{item.get('name')}: mutated ML-DSA-44 signature was accepted")
+    if mldsa44.verify(resolved, message, signature, b"TOS-AGENT-GUARANTOR-V1"):
+        raise ConformanceError(f"{item.get('name')}: signature verified under another context")
+
+
 def verify_core_vectors(path: Path) -> None:
+    mldsa44 = _load_mldsa44()
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") != "tos.agent-commerce-core-conformance.v1":
         raise ConformanceError("unknown core vector schema")
@@ -329,6 +378,14 @@ def verify_core_vectors(path: Path) -> None:
             message = hashlib.sha256(framed).digest()
         if message.hex() != item.get("expected_message_hex"):
             raise ConformanceError(f"{item.get('name')}: signature message mismatch")
+        suite = item.get("suite")
+        if item.get("name") in {"writer_fence", "authorized_action"} and suite != "ml-dsa-44":
+            raise ConformanceError(f"{item.get('name')}: Action Authority signatures must be ML-DSA-44")
+        if suite == "ml-dsa-44":
+            _verify_action_authority_signature(item, message, mldsa44)
+            continue
+        if suite != "ed25519":
+            raise ConformanceError(f"{item.get('name')}: unknown signature suite")
         public = _decode_prefixed_hex(item.get("public_key"), "ed25519:", 32)
         signature = _decode_signature(item.get("signature"))
         if not verify_ed25519(public, message, signature):
@@ -367,7 +424,7 @@ def main() -> int:
     except (ConformanceError, OSError, json.JSONDecodeError) as error:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: independent Agent Commerce V1 action, CBOR, digest, and Ed25519 vectors")
+    print("PASS: independent Agent Commerce V1 action, CBOR, digest, Ed25519 and ML-DSA-44 Action Authority vectors")
     return 0
 
 

@@ -1,13 +1,13 @@
 {
   "$defs": {
-    "ActionAuthorityEd25519EvidenceV1": {
+    "ActionAuthorityMLDSA44EvidenceV1": {
       "additionalProperties": false,
       "properties": {
         "historical_authority_proof": {
           "contentEncoding": "base64",
           "type": "string"
         },
-        "public_key": {
+        "key_id": {
           "type": "string"
         },
         "signature": {
@@ -15,7 +15,7 @@
         }
       },
       "required": [
-        "public_key",
+        "key_id",
         "signature",
         "historical_authority_proof"
       ],
@@ -1149,7 +1149,7 @@
         "authority_id": {
           "type": "string"
         },
-        "authority_public_key": {
+        "authority_key_id": {
           "type": "string"
         },
         "authorization_proof": {
@@ -1207,7 +1207,7 @@
         "expected_prior_state",
         "expires_at_unix",
         "authority_id",
-        "authority_public_key",
+        "authority_key_id",
         "authorization_proof"
       ],
       "type": "object"
@@ -11878,7 +11878,7 @@
           "type": "string"
         },
         "evidence": {
-          "$ref": "#/$defs/ActionAuthorityEd25519EvidenceV1"
+          "$ref": "#/$defs/ActionAuthorityMLDSA44EvidenceV1"
         },
         "evidence_content_type": {
           "type": "string"
@@ -12362,13 +12362,13 @@
         "fence_proof": {
           "type": "string"
         },
-        "public_key": {
+        "key_id": {
           "type": "string"
         }
       },
       "required": [
         "body",
-        "public_key",
+        "key_id",
         "fence_proof"
       ],
       "type": "object"

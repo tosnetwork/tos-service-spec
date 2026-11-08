@@ -1382,7 +1382,7 @@ AuthorizedActionV1 {
   expected_prior_state
   expires_at
   authority_id
-  authority_public_key
+  authority_key_id
   authorization_proof
 }
 
@@ -1429,16 +1429,18 @@ ID with different request bytes is `conflict`.
 
 The fence proves who currently owns the writer lease; it does not, by itself,
 authorize every possible action in that lease's scope. `authorization_proof`
-is therefore an Ed25519 signature by the same resolved `authority_id` and key
-as the referenced fence over the complete canonical `AuthorizedActionV1` with
-only `authorization_proof` empty, under the domain
-`tos.authorized-action-proof.v1`. Every sink verifies this proof in addition to
-the fence. A process that observes or retains a valid fence but cannot access
-the Action Authority signing key cannot change the action kind, semantic ID,
-request digest, policy, mandate, approval, expected state, expiry, or any other
-field. `authority_public_key` is explicit to make verification deterministic;
-the authority resolver must still authorize that exact key for `authority_id`
-at admission time, so merely supplying a public key carries no authority.
+is therefore a Pure ML-DSA-44 signature under the context
+`TOS-ACTION-AUTHORITY-V1` by the same resolved `authority_id` and key as the
+referenced fence over the complete canonical `AuthorizedActionV1` with only
+`authorization_proof` empty, under the domain `tos.authorized-action-proof.v1`
+(`SEMANTIC_ACTION_IDENTITY_V1.md` section 9). Every sink verifies this proof in
+addition to the fence. A process that observes or retains a valid fence but
+cannot access the Action Authority signing key cannot change the action kind,
+semantic ID, request digest, policy, mandate, approval, expected state, expiry,
+or any other field. `authority_key_id` names the key by its ML-DSA-44 key ID
+and must equal the fence's `key_id`; the key bytes come only from the
+authority resolver, which must authorize that exact key for `authority_id` at
+admission time, so merely naming a key carries no authority.
 
 A timeout queries `(stable_action_id, exact_request_digest)`. `prepared`,
 `submitted`, or `accepted` is not permission to create a replacement action.
