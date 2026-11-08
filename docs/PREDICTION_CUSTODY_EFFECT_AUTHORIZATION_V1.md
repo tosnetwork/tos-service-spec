@@ -100,7 +100,10 @@ The preimage is:
 
 The signature digest is `SHA256(preimage)`. `public_key` is canonical
 `ed25519:` plus 64 lowercase hex and `proof` is canonical `ed25519:` plus 128
-lowercase hex. Neither is included in the preimage.
+lowercase hex. Neither is included in the preimage. The key is the owner's
+separately pinned custody authorization key, not the ML-DSA-44 Action
+Authority key of `SEMANTIC_ACTION_IDENTITY_V1.md` section 9; it is a recorded
+classical residual of the custody host until its own migration.
 
 ## 4. Verification
 

@@ -554,8 +554,12 @@ Those four values have different purposes and are never substituted.
 
 ### 4.1 Signature domains
 
-Requester quote requests, Provider quotes, Action Authority admission receipts,
-Provider resolutions, and Provider terminal evidence use Ed25519 over:
+Requester quote requests, Provider quotes, Provider resolutions, and Provider
+terminal evidence use Ed25519; the Action Authority side-effect admission
+receipt uses the Action Authority suite of `SEMANTIC_ACTION_IDENTITY_V1.md`
+section 9 (Pure ML-DSA-44 under the context `TOS-ACTION-AUTHORITY-V1`, a
+`key_id` instead of a public key, and the key resolved for the receipt's
+`authority_id` at `issued_at_unix`). All of them sign:
 
 ```text
 message = SHA-256(domain_with_trailing_NUL ||
@@ -1039,8 +1043,8 @@ RelaySideEffectAdmissionReceiptBodyV1 {
 
 SignedRelaySideEffectAdmissionReceiptV1 {
   body
-  public_key
-  signature
+  key_id                   # mldsa44:<64 hex>, equal to the fence key ID
+  signature                # mldsa44:<Base64url of 2,420 bytes>
 }
 ```
 
@@ -1198,7 +1202,10 @@ substitution.
 bytes. Every duplicated top-level network field equals the corresponding
 domain field. Payment authorization retains prefix `TOS-EAA\0`; effect
 authorization retains prefix `TOS-CEA\0`; both continue to sign the SHA-256 of
-their complete preimage with the owner-pinned Ed25519 Action Authority key.
+their complete preimage with the owner-pinned Ed25519 custody authorization
+key. That key is separately pinned and is not the ML-DSA-44 Action Authority
+key of `SEMANTIC_ACTION_IDENTITY_V1.md` section 9; it is a recorded classical
+residual of the custody host until its own migration.
 The fixed cross-language preimage SHA-256 fixtures are:
 
 ```text

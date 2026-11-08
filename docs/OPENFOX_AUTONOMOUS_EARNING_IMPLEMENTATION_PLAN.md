@@ -869,7 +869,7 @@ AuthorizedActionV1 {
   expected_prior_state
   expires_at
   authority_id
-  authority_public_key
+  authority_key_id
   authorization_proof
 }
 
@@ -891,11 +891,12 @@ transfer, escrow, billing, settlement, reservation release, and applied
 reconciliation each use an appropriate registered `action_kind`.
 Typed wrappers may add fields but must embed the exact common envelope.
 
-`authorization_proof` is an Ed25519 signature from the owner Action Authority
-over the complete canonical envelope with that proof field empty, domain
-separated by `tos.authorized-action-proof.v1`. The signer and
-`authority_public_key` must be the same currently authorized authority/key that
-issued the referenced Writer Fence. A valid fence alone never permits its
+`authorization_proof` is a Pure ML-DSA-44 signature under the context
+`TOS-ACTION-AUTHORITY-V1` from the owner Action Authority over the complete
+canonical envelope with that proof field empty, domain separated by
+`tos.authorized-action-proof.v1` (`SEMANTIC_ACTION_IDENTITY_V1.md` section 9).
+The signer and `authority_key_id` must be the same currently authorized
+authority/key that issued the referenced Writer Fence. A valid fence alone never permits its
 holder to manufacture another action within the fence scope. Every sink
 verifies both proofs and resolves the exact authority key independently.
 

@@ -2,7 +2,10 @@
 """Independent Agent Relay Service V1 vector generator and verifier.
 
 Only the Python standard library is used. The implementation shares neither
-the Go codec nor the Go Ed25519 implementation used by pkg/agentrelay.
+the Go codec nor the Go Ed25519 implementation used by pkg/agentrelay, and
+the owner Action Authority signatures (Writer Fence, AuthorizedAction and the
+side-effect admission receipt) use the independent ML-DSA-44 reference in
+mldsa44_reference.py rather than the tosctl helper the Go side calls.
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ import base64
 import binascii
 import copy
 import hashlib
+import importlib.util
 import ipaddress
 import json
 import re
@@ -421,6 +425,72 @@ def encode_public(seed: bytes) -> str:
 
 def encode_signature(seed: bytes, message: bytes) -> str:
     return "ed25519:" + base64.urlsafe_b64encode(sign_ed25519(seed, message)).decode().rstrip("=")
+
+
+def _load_mldsa44() -> Any:
+    path = Path(__file__).resolve().with_name("mldsa44_reference.py")
+    spec = importlib.util.spec_from_file_location("mldsa44_reference", path)
+    if spec is None or spec.loader is None:
+        raise ConformanceError("the ML-DSA-44 reference is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    # A conformance run must not write bytecode next to the reference.
+    sys.dont_write_bytecode = True
+    spec.loader.exec_module(module)
+    return module
+
+
+MLDSA44 = _load_mldsa44()
+ACTION_AUTHORITY_CONTEXT = b"TOS-ACTION-AUTHORITY-V1"
+KEY_ID = re.compile(r"^mldsa44:[0-9a-f]{64}$")
+# The independent resolver of this reference: the Action Authority keys a
+# document's test_keys declare, by key ID. A key ID that is not registered
+# never verifies.
+_ACTION_AUTHORITY_KEYS: dict[str, bytes] = {}
+_ACTION_AUTHORITY_SIGNERS: dict[bytes, Any] = {}
+
+
+def _authority_signer(seed: bytes) -> Any:
+    if seed not in _ACTION_AUTHORITY_SIGNERS:
+        _ACTION_AUTHORITY_SIGNERS[seed] = MLDSA44.PrivateKey(seed)
+    return _ACTION_AUTHORITY_SIGNERS[seed]
+
+
+def register_action_authority_key(public_key: bytes) -> str:
+    key_id = "mldsa44:" + MLDSA44.key_id(public_key).hex()
+    _ACTION_AUTHORITY_KEYS[key_id] = bytes(public_key)
+    return key_id
+
+
+def encode_authority_key_id(seed: bytes) -> str:
+    return register_action_authority_key(_authority_signer(seed).public_key)
+
+
+def encode_authority_signature(seed: bytes, message: bytes) -> str:
+    signature = _authority_signer(seed).sign(message, ACTION_AUTHORITY_CONTEXT)
+    return "mldsa44:" + base64.urlsafe_b64encode(signature).decode().rstrip("=")
+
+
+def decode_authority_signature(value: str) -> bytes:
+    if not isinstance(value, str) or not value.startswith("mldsa44:"):
+        raise ConformanceError("Action Authority signature is not mldsa44:")
+    encoded = value[len("mldsa44:"):]
+    if not re.fullmatch(r"[A-Za-z0-9_-]{3227}", encoded):
+        raise ConformanceError("Action Authority signature is not canonical")
+    raw = base64.urlsafe_b64decode(encoded + "=")
+    if len(raw) != MLDSA44.SIGNATURE_BYTES or base64.urlsafe_b64encode(raw).decode().rstrip("=") != encoded:
+        raise ConformanceError("Action Authority signature is not canonical")
+    return raw
+
+
+def verify_action_authority(key_id: Any, message: bytes, signature: Any) -> bool:
+    """Resolve the key ID, require the resolved key to derive it, verify Pure
+    ML-DSA-44 under TOS-ACTION-AUTHORITY-V1 over the 32-byte message."""
+    if not isinstance(key_id, str) or not KEY_ID.fullmatch(key_id) or key_id == "mldsa44:" + "0" * 64:
+        raise ConformanceError("Action Authority key ID is invalid")
+    public_key = _ACTION_AUTHORITY_KEYS.get(key_id)
+    if public_key is None or "mldsa44:" + MLDSA44.key_id(public_key).hex() != key_id or len(message) != 32:
+        return False
+    return MLDSA44.verify(public_key, message, decode_authority_signature(signature), ACTION_AUTHORITY_CONTEXT)
 
 
 def decode_public(value: str) -> bytes:
@@ -1357,7 +1427,7 @@ def derive_semantic_id(registry: dict[str, dict[str, Any]], action_kind: str,
 
 
 def validate_writer_fence(fence: Any) -> None:
-    require_keys(fence, {"body", "public_key", "fence_proof"})
+    require_keys(fence, {"body", "key_id", "fence_proof"})
     body = fence["body"]
     required = {"schema_version", "owner_id", "agent_id", "instance_id", "lease_id", "writer_generation",
                 "issued_at_unix", "expires_at_unix", "authority_id", "scope"}
@@ -1373,7 +1443,7 @@ def validate_writer_fence(fence: Any) -> None:
     if not isinstance(body["scope"], list) or not body["scope"] or body["scope"] != sorted(set(body["scope"])) or any(not TOKEN.fullmatch(item) for item in body["scope"]):
         raise ConformanceError("writer fence scope is invalid")
     message = signature_message(b"tos.writer-fence.v1\x00", body)
-    if not verify_ed25519(decode_public(fence["public_key"]), message, decode_signature(fence["fence_proof"])):
+    if not verify_action_authority(fence["key_id"], message, fence["fence_proof"]):
         raise ConformanceError("writer fence signature is invalid")
 
 
@@ -1381,7 +1451,7 @@ def validate_authorized_action(action: Any, fence: dict[str, Any], fields: list[
                                request_bytes: bytes, registry: dict[str, dict[str, Any]]) -> None:
     required = {"schema_version", "owner_id", "agent_id", "action_kind", "stable_action_id", "exact_request_digest",
                 "writer_generation", "writer_fence_digest", "policy_revision", "mandate_digest", "expected_prior_state",
-                "expires_at_unix", "authority_id", "authority_public_key", "authorization_proof"}
+                "expires_at_unix", "authority_id", "authority_key_id", "authorization_proof"}
     require_keys(action, required, {"approval_digest"})
     if (not u16(action["schema_version"]) or action["schema_version"] != 1 or
             action["action_kind"] not in registry or
@@ -1398,12 +1468,12 @@ def validate_authorized_action(action: Any, fence: dict[str, Any], fields: list[
         raise ConformanceError("authorized action owner or Agent mismatch")
     if action["writer_generation"] != fence["body"]["writer_generation"] or action["writer_fence_digest"] != protocol_digest("tos.writer-fence-envelope.v1", fence):
         raise ConformanceError("authorized action writer fence mismatch")
-    if action["authority_id"] != fence["body"]["authority_id"] or action["authority_public_key"] != fence["public_key"]:
+    if action["authority_id"] != fence["body"]["authority_id"] or action["authority_key_id"] != fence["key_id"]:
         raise ConformanceError("authorized action authority mismatch")
     unsigned = copy.deepcopy(action)
     unsigned["authorization_proof"] = ""
     message = signature_message(b"tos.authorized-action-proof.v1\x00", unsigned)
-    if not verify_ed25519(decode_public(action["authority_public_key"]), message, decode_signature(action["authorization_proof"])):
+    if not verify_action_authority(action["authority_key_id"], message, action["authorization_proof"]):
         raise ConformanceError("authorized action signature is invalid")
 
 
@@ -1814,7 +1884,7 @@ def validate_admission_request(value: Any, execution: dict[str, Any]) -> None:
 
 def validate_admission_receipt(signed: Any, admission_request: dict[str, Any],
                                execution: dict[str, Any]) -> None:
-    require_keys(signed, {"body", "public_key", "signature"})
+    require_keys(signed, {"body", "key_id", "signature"})
     body = signed["body"]
     required = {
         "schema_version", "owner_id", "agent_id", "authenticated_principal_id",
@@ -1844,8 +1914,8 @@ def validate_admission_receipt(signed: Any, admission_request: dict[str, Any],
     if (not identifier(body["authority_id"]) or
             body["authority_id"] != action["authority_id"] or
             body["authority_id"] != fence["body"]["authority_id"] or
-            signed["public_key"] != action["authority_public_key"] or
-            signed["public_key"] != fence["public_key"]):
+            signed["key_id"] != action["authority_key_id"] or
+            signed["key_id"] != fence["key_id"]):
         raise ConformanceError("relay admission receipt authority is invalid")
     if (((body["route_attempt"] == 1) !=
          ("predecessor_receipt_digest" not in body)) or
@@ -1879,8 +1949,7 @@ def validate_admission_receipt(signed: Any, admission_request: dict[str, Any],
         raise ConformanceError("relay admission receipt exceeds a signed prerequisite")
     message = signature_message(
         b"tos.agent-relay-side-effect-admission-receipt-signature.v1\x00", body)
-    if not verify_ed25519(decode_public(signed["public_key"]), message,
-                          decode_signature(signed["signature"])):
+    if not verify_action_authority(signed["key_id"], message, signed["signature"]):
         raise ConformanceError("relay admission receipt signature is invalid")
 
 
@@ -1890,7 +1959,7 @@ def validate_stored_admission_receipt(signed: Any) -> None:
     This is the reference durable-load boundary. A later route-head verifier
     must first authenticate every stored receipt before comparing lineage.
     """
-    require_keys(signed, {"body", "public_key", "signature"})
+    require_keys(signed, {"body", "key_id", "signature"})
     body = signed["body"]
     required = {
         "schema_version", "owner_id", "agent_id", "authenticated_principal_id",
@@ -1931,8 +2000,7 @@ def validate_stored_admission_receipt(signed: Any) -> None:
         raise ConformanceError("stored relay admission receipt is invalid")
     message = signature_message(
         b"tos.agent-relay-side-effect-admission-receipt-signature.v1\x00", body)
-    if not verify_ed25519(decode_public(signed["public_key"]), message,
-                          decode_signature(signed["signature"])):
+    if not verify_action_authority(signed["key_id"], message, signed["signature"]):
         raise ConformanceError("stored relay admission receipt signature is invalid")
 
 
@@ -3056,6 +3124,15 @@ def _signed(body: dict[str, Any], seed: bytes, domain: bytes, proof_name: str = 
     }
 
 
+def _authority_signed(body: dict[str, Any], seed: bytes, domain: bytes,
+                      proof_name: str = "signature") -> dict[str, Any]:
+    return {
+        "body": copy.deepcopy(body),
+        "key_id": encode_authority_key_id(seed),
+        proof_name: encode_authority_signature(seed, signature_message(domain, body)),
+    }
+
+
 def verify_route_chain_mutations(base: dict[str, Any], authority_seed: bytes) -> None:
     domain = b"tos.agent-relay-side-effect-admission-receipt-signature.v1\x00"
     first_body = copy.deepcopy(base["body"])
@@ -3065,7 +3142,7 @@ def verify_route_chain_mutations(base: dict[str, Any], authority_seed: bytes) ->
     first_body["route_attempt"] = 1
     first_body.pop("predecessor_receipt_digest", None)
     first_body["approval_digest"] = _repeated("b")
-    first = _signed(first_body, authority_seed, domain)
+    first = _authority_signed(first_body, authority_seed, domain)
 
     successor_body = copy.deepcopy(first_body)
     successor_body["provider_agent_id"] = "agent:provider-successor"
@@ -3080,7 +3157,7 @@ def verify_route_chain_mutations(base: dict[str, Any], authority_seed: bytes) ->
     successor_body["predecessor_receipt_digest"] = protocol_digest(
         "tos.agent-relay-side-effect-admission-receipt.v1", first_body)
     successor_body["admission_sequence"] += 1
-    successor = _signed(successor_body, authority_seed, domain)
+    successor = _authority_signed(successor_body, authority_seed, domain)
     validate_admission_route_chain([first, successor])
 
     mutations = {
@@ -3092,7 +3169,7 @@ def verify_route_chain_mutations(base: dict[str, Any], authority_seed: bytes) ->
     for name, replacement in mutations.items():
         mutated_body = copy.deepcopy(successor_body)
         mutated_body[name] = replacement
-        mutated = _signed(mutated_body, authority_seed, domain)
+        mutated = _authority_signed(mutated_body, authority_seed, domain)
         try:
             validate_admission_route_chain([first, mutated])
         except ConformanceError:
@@ -3696,7 +3773,7 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "authority_id": "authority:client",
         "scope": ["payment.direct"],
     }
-    fence = _signed(fence_body, authority_seed, b"tos.writer-fence.v1\x00", "fence_proof")
+    fence = _authority_signed(fence_body, authority_seed, b"tos.writer-fence.v1\x00", "fence_proof")
     authorized_action = {
         "schema_version": 1,
         "owner_id": "owner:client",
@@ -3711,10 +3788,10 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "expected_prior_state": "unknown",
         "expires_at_unix": now + 480,
         "authority_id": "authority:client",
-        "authority_public_key": fence["public_key"],
+        "authority_key_id": fence["key_id"],
         "authorization_proof": "",
     }
-    authorized_action["authorization_proof"] = encode_signature(
+    authorized_action["authorization_proof"] = encode_authority_signature(
         authority_seed,
         signature_message(b"tos.authorized-action-proof.v1\x00", authorized_action),
     )
@@ -3790,7 +3867,7 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "issued_at_unix": now,
         "start_not_after_unix": admission_request["requested_start_not_after_unix"],
     }
-    signed_admission_receipt = _signed(
+    signed_admission_receipt = _authority_signed(
         admission_receipt_body, authority_seed,
         b"tos.agent-relay-side-effect-admission-receipt-signature.v1\x00")
     execution["admission_receipt"] = signed_admission_receipt
@@ -4641,7 +4718,13 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
          "path": ["body", "start_not_after_unix"], "replacement": now + 61,
          "resign_as": "authority_admission", "expected": "reject"},
         {"name": "admission-receipt-bad-signature", "target": "signed_admission_receipt",
+         "path": ["signature"], "replacement": "mldsa44:" + "A" * 3227,
+         "expected": "reject"},
+        {"name": "admission-receipt-ed25519-signature", "target": "signed_admission_receipt",
          "path": ["signature"], "replacement": "ed25519:" + "A" * 86,
+         "expected": "reject"},
+        {"name": "admission-receipt-unresolved-key", "target": "signed_admission_receipt",
+         "path": ["key_id"], "replacement": "mldsa44:" + "1" * 64,
          "expected": "reject"},
         {"name": "resolve-admission-route-substitution", "target": "resolve_admission_call",
          "path": ["provider_quote_digest"], "replacement": _repeated("f"),
@@ -5375,6 +5458,8 @@ def build_vectors(registry: dict[str, dict[str, Any]]) -> dict[str, Any]:
             "requester_seed_hex": client_seed.hex(),
             "provider_seed_hex": provider_seed.hex(),
             "authority_seed_hex": authority_seed.hex(),
+            "authority_suite": "ML-DSA-44",
+            "authority_public_key_hex": _authority_signer(authority_seed).public_key.hex(),
         },
         "objects": objects,
         "signatures": signatures,
@@ -5617,7 +5702,15 @@ def verify_document(path: Path, registry_path: Path) -> None:
     if document.get("schema") != "tos.agent-relay-service-conformance.v1":
         raise ConformanceError("relay vector schema is unknown")
     registry = load_semantic_registry(registry_path)
+    keys = document.get("test_keys", {})
+    if keys.get("authority_suite") != "ML-DSA-44":
+        raise ConformanceError("relay Action Authority suite is not ML-DSA-44")
+    authority_public_key = bytes.fromhex(keys["authority_public_key_hex"])
+    if MLDSA44.PrivateKey(bytes.fromhex(keys["authority_seed_hex"])).public_key != authority_public_key:
+        raise ConformanceError("relay Action Authority key does not derive from its seed")
     expected_document = build_vectors(registry)
+    _ACTION_AUTHORITY_KEYS.clear()
+    register_action_authority_key(authority_public_key)
     if document.get("sponsorship_payment_commitment_vector") != \
             expected_document["sponsorship_payment_commitment_vector"]:
         raise ConformanceError(
@@ -5724,8 +5817,12 @@ def verify_document(path: Path, registry_path: Path) -> None:
         message = signature_message(domain, body)
         if message.hex() != signature["expected_message_hex"]:
             raise ConformanceError(f"{signature['name']}: signature message mismatch")
-        if not verify_ed25519(decode_public(envelope["public_key"]), message,
-                              decode_signature(envelope[signature["signature_field"]])):
+        if "key_id" in envelope:
+            valid = verify_action_authority(envelope["key_id"], message, envelope[signature["signature_field"]])
+        else:
+            valid = verify_ed25519(decode_public(envelope["public_key"]), message,
+                                   decode_signature(envelope[signature["signature_field"]]))
+        if not valid:
             raise ConformanceError(f"{signature['name']}: signature mismatch")
     validate_bundle(models, registry)
     verify_route_chain_mutations(
@@ -5766,7 +5863,7 @@ def verify_document(path: Path, registry_path: Path) -> None:
         elif mutation.get("resign_as") == "authority_admission":
             envelope = mutated[mutation["target"]]
             seed = bytes.fromhex(document["test_keys"]["authority_seed_hex"])
-            envelope["signature"] = encode_signature(
+            envelope["signature"] = encode_authority_signature(
                 seed,
                 signature_message(
                     b"tos.agent-relay-side-effect-admission-receipt-signature.v1\x00",
