@@ -1373,8 +1373,9 @@ CanonicalGuarantorEvidenceItemV1 {
   content_type
   evidence_profile_digest
   evidence_envelope_digest
-  representation                     # inline or content_addressed
-  canonical_envelope_bytes?          # bounded CBOR byte string
+  representation                     # inline or content_addressed; content_addressed
+                                     # for every Guarantor media type (section 9.2)
+  canonical_envelope_bytes?          # bounded CBOR byte string, external evidence only
   immutable_descriptor?
 }
 
@@ -4955,8 +4956,10 @@ timeout or locally written-off invoice is not such evidence. Every obligation
 must have exactly one profile-qualified paid or default terminal disposition.
 `evidence_required` and `disputed` cannot produce either terminal object.
 The nested evidence set always uses purpose `claim-terminal-payment` and the
-materialized obligation-set digest as context; its inline objects or immutable
-descriptors must resolve every materialized obligation exactly once.
+materialized obligation-set digest as context; its immutable descriptors (the
+payout execution evidence and the no-payout marker are Guarantor media types and
+therefore descriptor-only, section 9.2) must resolve every materialized
+obligation exactly once.
 
 The coverage aggregate is a digest index, not a second carriage of those
 objects. For every contiguous claim admission sequence, its entry digest is
@@ -7641,8 +7644,9 @@ embedded filing-close receipt. A body digest cannot satisfy either field.
 For zero admitted claims, `ClaimTerminalResolutionRefSetV1` is still a canonical
 coverage- and obligation-bound object with `admission_high_water = 0` and
 `refs = []`; its digest is not a global empty-list digest. Every closure evidence
-set member is carried inline or by an immutable descriptor in the exact closure
-action. The output envelope may repeat those objects but cannot discover them
+set member is carried by an immutable descriptor in the exact closure action
+(the filing-close envelope and the resolution bundles are Guarantor media types
+and therefore descriptor-only, section 9.2). The output envelope may repeat those objects but cannot discover them
 later from Provider-private state.
 
 `coverage_closure_evidence_set` uses purpose `coverage-closure` and
