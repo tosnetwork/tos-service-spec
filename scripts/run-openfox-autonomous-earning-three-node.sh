@@ -54,6 +54,7 @@ python3 "$workspace/tos-service-spec/scripts/agent-commerce-reference.py" \
   | tee "$artifacts/logs/escrow-sandbox.log"
 
 TOS_WORKSPACE="$workspace" ACCEPTANCE_ARTIFACT_DIR="$artifacts/source-loss" \
+  TOS_SERVICE_TOSCTL="$tosctl" TOS_SERVICE_TOSCTL_SHA256="$(sha256sum "$tosctl" | cut -d' ' -f1)" \
   "$workspace/tos-service-spec/scripts/run-independent-carrier-source-loss.sh" \
   | tee "$artifacts/logs/source-loss.log"
 

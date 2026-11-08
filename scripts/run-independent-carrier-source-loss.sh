@@ -28,6 +28,11 @@ printf '%s\n' "$init_output" >"$artifacts/logs/init.log"
 # and the Carriers pin only its key ID and public key.
 tosctl=${TOS_SERVICE_TOSCTL:?TOS_SERVICE_TOSCTL must name the pinned tosctl helper}
 tosctl_sha256=$(sha256sum "$tosctl" | cut -d' ' -f1)
+if [[ -n "${TOS_SERVICE_TOSCTL_SHA256:-}" && "$TOS_SERVICE_TOSCTL_SHA256" != "$tosctl_sha256" ]]; then
+  echo "carrier acceptance: TOS_SERVICE_TOSCTL does not match TOS_SERVICE_TOSCTL_SHA256" >&2
+  exit 1
+fi
+export TOS_SERVICE_TOSCTL="$tosctl" TOS_SERVICE_TOSCTL_SHA256="$tosctl_sha256"
 custody="$artifacts/custody"
 mkdir -p "$custody"
 chmod 700 "$custody"
