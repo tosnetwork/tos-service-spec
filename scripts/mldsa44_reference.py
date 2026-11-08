@@ -19,6 +19,7 @@ Run with `--self-test VECTOR.json ...` to reproduce signature vectors of the
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import sys
@@ -529,7 +530,14 @@ def _self_test(path: Path) -> None:
     secret = PrivateKey(seed)
     if secret.public_key.hex() != vector["public_key_hex"]:
         raise SystemExit(f"{path}: public key does not reproduce from the seed")
-    if key_id(secret.public_key).hex() != vector["key_id_hex"]:
+    if "key_id" in vector:
+        expected_key_id = vector["key_id"]
+        if not expected_key_id.startswith("mldsa44:"):
+            raise SystemExit(f"{path}: key ID is not mldsa44:<64 lowercase hex>")
+        expected_key_id = expected_key_id[len("mldsa44:"):]
+    else:
+        expected_key_id = vector["key_id_hex"]
+    if key_id(secret.public_key).hex() != expected_key_id:
         raise SystemExit(f"{path}: key ID does not reproduce")
     if vector["schema"] == "tos.agent-guarantor-signature-vector.v1":
         signed = [(bytes.fromhex(vector["message_hex"]), vector["signature_hex"])]
@@ -542,6 +550,19 @@ def _self_test(path: Path) -> None:
             if framed.hex() != entry["message_hex"]:
                 raise SystemExit(f"{path}: {entry['name']} message is not the framed digest of its object")
             signed.append((framed, entry["signature_hex"]))
+    elif vector["schema"] == "tos.custody-authorization-signature-vector.v1":
+        signed = []
+        for entry in vector["messages"]:
+            preimage = bytes.fromhex(entry["preimage_hex"])
+            if not preimage.startswith((b"TOS-EAA\x00", b"TOS-CEA\x00", b"TOS-PCEA\x00")):
+                raise SystemExit(f"{path}: {entry['name']} preimage has no custody authorization prefix")
+            digest = hashlib.sha256(preimage).digest()
+            if digest.hex() != entry["message_hex"]:
+                raise SystemExit(f"{path}: {entry['name']} message is not the SHA-256 of its preimage")
+            proof = "mldsa44:" + base64.urlsafe_b64encode(bytes.fromhex(entry["signature_hex"])).rstrip(b"=").decode()
+            if entry["proof"] != proof:
+                raise SystemExit(f"{path}: {entry['name']} proof is not the canonical text of its signature")
+            signed.append((digest, entry["signature_hex"]))
     else:
         raise SystemExit(f"{path}: unknown vector schema {vector['schema']!r}")
     for index, (message, expected) in enumerate(signed):

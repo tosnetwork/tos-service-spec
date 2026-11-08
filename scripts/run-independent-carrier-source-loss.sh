@@ -22,11 +22,29 @@ trap stop_processes EXIT INT TERM
 
 init_output=$($artifacts/bin/campaign --init-dir "$artifacts/control")
 printf '%s\n' "$init_output" >"$artifacts/logs/init.log"
-pin=$(printf '%s\n' "$init_output" | sed -n 's/.*authority_pin=\([^ ]*\).*/\1/p')
-if [[ -z "$pin" ]]; then
-  echo "carrier acceptance: campaign did not produce an authority pin" >&2
+
+# The Action Authority is an ML-DSA-44 controller in a private tosctl vault.
+# TOS_SERVICE_TOSCTL names the pinned helper; the campaign never sees the key,
+# and the Carriers pin only its key ID and public key.
+tosctl=${TOS_SERVICE_TOSCTL:?TOS_SERVICE_TOSCTL must name the pinned tosctl helper}
+tosctl_sha256=$(sha256sum "$tosctl" | cut -d' ' -f1)
+custody="$artifacts/custody"
+mkdir -p "$custody"
+chmod 700 "$custody"
+vault_url="file://$custody/vault.json?master_key=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
+(umask 077 && printf '%s\n' "$vault_url" >"$custody/vault.url")
+VAULT_URL=$vault_url "$tosctl" config generate --output="$custody/tosctl-config.json" >/dev/null
+controller=carrier-campaign-authority
+created=$(VAULT_URL=$vault_url "$tosctl" agent native-registry new-controller \
+  --config "$custody/tosctl-config.json" --name "$controller" --format json)
+key_id=$(printf '%s' "$created" | python3 -I -c 'import json,sys; v=json.load(sys.stdin); print(v["key_id"])')
+(umask 077 && printf '%s' "$created" | python3 -I -c 'import json,sys; print(json.load(sys.stdin)["public_key"])' \
+  >"$artifacts/control/authority-public-key.hex")
+if [[ ${#key_id} -ne 64 ]]; then
+  echo "carrier acceptance: tosctl did not create an ML-DSA-44 Action Authority controller" >&2
   exit 1
 fi
+pin="mldsa44:$key_id@$artifacts/control/authority-public-key.hex"
 
 gateway_id=carrier:gateway-independent
 messenger_id=carrier:messenger-independent
@@ -59,8 +77,9 @@ done
 grep -q 'ready=true' "$artifacts/logs/gateway.log"
 grep -q 'ready=true' "$artifacts/logs/messenger.log"
 
-common=(--authority-key "$artifacts/control/authority.key" --issuer-key "$artifacts/control/issuer.key"
-  --digest-file "$artifacts/control/intent.digest")
+common=(--tosctl "$tosctl" --tosctl-sha256 "$tosctl_sha256" --tosctl-config "$custody/tosctl-config.json"
+  --vault-url-file "$custody/vault.url" --authority-controller "$controller"
+  --issuer-key "$artifacts/control/issuer.key" --digest-file "$artifacts/control/intent.digest")
 gateway=(--carrier "$gateway_id,$gateway_endpoint,$read_token,$write_token")
 messenger=(--carrier "$messenger_id,$messenger_endpoint,$read_token,$write_token")
 "$artifacts/bin/campaign" "${common[@]}" "${gateway[@]}" "${messenger[@]}" | tee "$artifacts/logs/publish-and-verify.log"
