@@ -75,7 +75,10 @@ The transport digest is `cell_hash(transport_binding)`. Security mode `0` is
 Connect RPC over plaintext HTTP and is permitted only for an explicit loopback
 bootstrap endpoint; mode `1` is Connect RPC over HTTPS. For modes `0` and `1`
 the base URL is a canonical absolute ASCII URL with no credentials, query,
-fragment, or trailing slash, and the service is fixed by this schema to
+fragment, or trailing slash. It may carry a path prefix of `/`-separated
+non-empty segments of RFC 3986 unreserved characters (`A-Z a-z 0-9 - . _ ~`),
+with no `.` or `..` segment and no percent-escape, for example
+`https://provider.example/tos/rpc`. The service is fixed by this schema to
 `tos.service.v1.NativeService`; it is not supplied by a gateway.
 
 Mode `2` is Agent Packet V1 (`AGENT_PACKET_V1.md`) carried by the Messenger to

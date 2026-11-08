@@ -93,10 +93,21 @@ def valid(mode: int, maximum: int, base_url: str) -> bool:
     if mode == 2:
         return maximum <= MAX_AGENT_PACKET_REQUEST and bool(AGENT_PACKET.match(base_url))
     if mode == 0:
-        return re.match(r"^http://(127\.0\.0\.1|localhost|\[::1\])(:[0-9]+)?$", base_url) is not None
-    if mode == 1:
-        return re.match(r"^https://[a-z0-9.-]+(:[0-9]+)?$", base_url) is not None
-    return False
+        match = re.match(r"^http://(127\.0\.0\.1|localhost|\[::1\])(:[0-9]+)?(?P<path>.*)$", base_url)
+    elif mode == 1:
+        match = re.match(r"^https://[a-z0-9.-]+(:[0-9]+)?(?P<path>.*)$", base_url)
+    else:
+        return False
+    return match is not None and valid_path_prefix(match.group("path"))
+
+
+def valid_path_prefix(path: str) -> bool:
+    """An optional path prefix: "/"-separated non-empty segments of RFC 3986
+    unreserved characters with no dot segments. Credentials, query, fragment,
+    escapes and a trailing slash are refused."""
+    if re.fullmatch(r"(/[A-Za-z0-9._~-]+)*", path) is None:
+        return False
+    return all(segment not in (".", "..") for segment in path.split("/")[1:])
 
 
 def main() -> int:
