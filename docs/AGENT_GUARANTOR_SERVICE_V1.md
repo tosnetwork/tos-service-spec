@@ -935,7 +935,8 @@ an Adapter callback, or local recovery.
 
 The V1 schema freezes at least these limits:
 
-- complete canonical object or event envelope: 1 MiB;
+- complete canonical Guarantor object: 2,000,000 bytes (section 9.1);
+- encoded commerce profile event envelope: 1 MiB;
 - inline service-profile detail: 64 KiB;
 - complete `GuarantorServiceProfileArtifactV1` revision lineage: 512 KiB;
 - terms or policy descriptor collection: 256 KiB;
@@ -951,6 +952,80 @@ The V1 schema freezes at least these limits:
 Large or private evidence remains content addressed and out of band. Declared
 size does not authorize retrieval; retrieval and model-ingress budgets are
 separate and stricter.
+
+### 9.1 Size budget under ML-DSA-44 authority
+
+Every Guarantor V1 object is encoded, decoded and digested under its own
+canonical limits. Those limits are scoped to this profile: the shared protocol
+codec and every other profile keep 1 MiB (1,048,576-byte) objects and strings.
+The limits are:
+
+- complete canonical object: 2,000,000 bytes (decimal);
+- longest text string inside an object: equal to the object limit. A
+  stage result carries its canonical request as base64 text, so the string can
+  never usefully exceed the object that contains it; a lower string bound would
+  be a second ceiling a valid history reaches first;
+- JSON data model of an object: 4,000,000 bytes (the codec's ratio of 2).
+
+A registered kind whose type belongs to another profile (the commerce Agreement
+body, the commerce profile event) keeps that profile's limits when it is
+decoded through the Guarantor registry. The stage `maximum_request_bytes`
+ceiling stays 1,048,576.
+
+The budget is computed, not estimated. Every ML-DSA-44 authorization carries a
+`mldsa44:` key id (72 characters) and a 3,235-character signature, and stage
+results embed their predecessors' complete envelopes as base64 text, so each
+nesting level costs about 4/3 of its content. The authorized claim-decision
+admission receipt is the largest released object on the authorized path:
+
+| construction (real Go types) | canonical bytes |
+|---|---|
+| receipt measured from a complete provider flow (35 signatures, 42 key ids) | 1,068,868 |
+| claim envelope at the reference profile's 65,536-byte admitted maximum, replaced at every nested copy | about 1,391,500 |
+| plus a successor decision: predecessor claim-state transition receipt (decision proof repeating the maximum claim and the decision), prior pending token, every optional body field, two payout lines, four descriptor evidence items per set | 1,511,787 |
+| the same with decision and transition evidence carried inline at 64 KiB | 1,887,364 |
+
+With descriptor-only evidence (section 9.2) the worst case is 1,511,787 bytes:
+488,213 bytes (24.4%) under the ceiling. Its longest nested string is 1,165,192
+characters, over the shared 1 MiB string bound, which is why the string limit
+is scoped with the object limit; the claim admission request inside it is
+873,894 bytes, under the stage request ceiling. The conformance corpus carries
+exact-size vectors: an object of exactly 2,000,000 bytes (accepted), one of
+2,000,001 bytes (refused), and a 1,165,360-character nested request string
+(accepted); none is accepted under the shared default limits.
+
+The deterministic-fallback variant of claim-decision admission embeds a
+complete claim admission receipt in its request and cannot be encoded for a
+realistic coverage (at least 2,451,854 bytes for the measured history). It is
+a known defect tracked as tos-service-spec issue 71 and is not covered by this
+budget.
+
+### 9.2 Descriptor-only Guarantor evidence
+
+An evidence item whose `content_type` begins with
+`application/vnd.tos.service.agent-guarantor-` (every Guarantor media type,
+including the no-payout marker, payout execution evidence, collateral,
+collateral-control and operational-independence evidence, the filing-close
+envelope and the claim-resolution bundle) MUST use
+`representation = "content_addressed"` with an `immutable_descriptor`. An
+inline copy would repeat, as base64 text, an object the containing envelope
+already carries or references, and is what pushed nested envelopes past the
+ceiling (1,887,364 bytes above). Inline representation remains valid only for
+external, non-Guarantor evidence under the profile's evidence byte ceiling.
+
+Where the containing envelope already carries the object (terminal closure
+evidence, payout settlement evidence, the recomputed no-payout marker), the
+verifier checks the descriptor's media type, digest, length and retrieval
+policy against those exact bytes without retrieval. Collateral activation
+prerequisites are resolved through the owner-selected immutable evidence
+resolver (fail closed when absent); the item's `evidence_profile_digest` and
+the descriptor's `retrieval_policy_digest` must both equal the Agreement's
+`selected_collateral_profile_digest` for collateral and collateral-control
+evidence, and the operational-independence terms digest for
+operational-independence evidence
+(`application/vnd.tos.service.agent-guarantor-operational-independence-evidence.v1+cbor`);
+the resolved length must equal `content_size`, and the decoded envelope's
+digest must equal `evidence_envelope_digest`.
 
 ## 10. Common profile types
 
@@ -1298,8 +1373,9 @@ CanonicalGuarantorEvidenceItemV1 {
   content_type
   evidence_profile_digest
   evidence_envelope_digest
-  representation                     # inline or content_addressed
-  canonical_envelope_bytes?          # bounded CBOR byte string
+  representation                     # inline or content_addressed; content_addressed
+                                     # for every Guarantor media type (section 9.2)
+  canonical_envelope_bytes?          # bounded CBOR byte string, external evidence only
   immutable_descriptor?
 }
 
@@ -1436,7 +1512,7 @@ reservation.
 Every maximum count except the two negotiated round maxima is a positive
 checked integer; either round maximum may be zero. Remaining-capacity entries
 may reach zero only in a terminal profile state. Each complete-object, ingress-
-cut, or request ceiling is no more than 1,048,576 canonical bytes.
+cut, or request ceiling is no more than 2,000,000 canonical bytes (section 9.1).
 Checked multiplication requires `maximum_claim_ingress_actions >=
 maximum_claims * maximum_claim_revisions_per_claim`, so every valid maximum
 history has an ingress slot before any allowance for terminally rejected
@@ -1589,7 +1665,8 @@ largest semantically valid normal branch (activation plus optional accepted
 cancellation) and never-activated branch; an impossible mixture is not counted
 as though it were valid. The terminal builder embeds that complete maximum
 filing-close receipt, and every later builder embeds its actual predecessor
-wrapper at every canonical path. Thus an inner object being under 1 MiB is
+wrapper at every canonical path. Thus an inner object being under the
+complete-object ceiling is
 never, by itself, proof that its mandatory parent is encodable.
 
 For a profile that permits collateral-backed payout, the “max terminal payout-
@@ -1640,7 +1717,7 @@ a receipt is invalid.
 
 Every recomputed integer must equal its corresponding
 `computed_worst_case_*_bytes` field and be no larger than its corresponding
-`maximum_*_bytes` field or the global 1 MiB ceiling. The accepted terminal-set
+`maximum_*_bytes` field or the 2,000,000-byte complete-object ceiling. The accepted terminal-set
 ceiling is therefore no greater than the smallest residual capacity left by
 the terminal envelope, exposure-release request, exposure-release receipt,
 coverage-resolution request, and coverage-resolution envelope builders after
@@ -2083,8 +2160,8 @@ mutable Provider endpoint. Before a next revision would exceed either 64
 entries or the 512 KiB canonical artifact limit, the Provider must publish a
 new profile ID and Intent. A revision that crosses either bound is not a
 selectable continuation and cannot issue a firm offer. The lineage selected by
-an existing firm offer is never truncated. The 512 KiB cap leaves at least 512
-KiB inside the 1 MiB complete-object ceiling for the offer, exposure receipt,
+an existing firm offer is never truncated. The 512 KiB cap leaves at least
+1,475,712 bytes inside the 2,000,000-byte complete-object ceiling for the offer, exposure receipt,
 authorizations, and wrapper overhead; every complete wrapper must still satisfy
 its own stricter encoded-size bound. The cap is exactly
 `len(canonical_cbor(GuarantorServiceProfileArtifactV1))`, including array and
@@ -2097,7 +2174,7 @@ The 512 KiB lineage ceiling is an upper bound, not permission to create an
 unusable offer. Before issuance, the authority uses the released maximum-size
 table for the Agreement's authorization profiles to prove that the final firm
 offer, single-carriage acceptance request, acceptance receipt, activation, and
-non-activation wrappers can each remain below 1 MiB. It then executes the full
+non-activation wrappers can each remain below the complete-object ceiling. It then executes the full
 section 10.1 closure-capacity builders through filing close, terminal claim set,
 exposure release, and coverage resolution; every computed value must equal the
 request/offer terms and fit both its claim-profile ceiling and every containing
@@ -4879,8 +4956,10 @@ timeout or locally written-off invoice is not such evidence. Every obligation
 must have exactly one profile-qualified paid or default terminal disposition.
 `evidence_required` and `disputed` cannot produce either terminal object.
 The nested evidence set always uses purpose `claim-terminal-payment` and the
-materialized obligation-set digest as context; its inline objects or immutable
-descriptors must resolve every materialized obligation exactly once.
+materialized obligation-set digest as context; its immutable descriptors (the
+payout execution evidence and the no-payout marker are Guarantor media types and
+therefore descriptor-only, section 9.2) must resolve every materialized
+obligation exactly once.
 
 The coverage aggregate is a digest index, not a second carriage of those
 objects. For every contiguous claim admission sequence, its entry digest is
@@ -6119,9 +6198,13 @@ without those bytes, two expectations, or a mismatch in Agreement, obligation,
 claim, epoch, log, state revision, or selected claim revision fails before
 action admission. `late_filing_close_receipt_digest` and the embedded receipt
 are both present exactly for `late_recovery_terminal_fallback`; they equal the
-tagged variant and source-head digest and are absent otherwise. The released
-maximum-size table budgets this additional complete envelope in every wrapper
-that may carry the late path.
+tagged variant and source-head digest and are absent otherwise. A verifier of an
+`authorized_decision` receipt refuses it, before any other check, when it
+carries `late_filing_close_receipt`, `late_filing_close_receipt_digest` or
+`fallback_trigger_cutoff_unix`: those fields exist only for deterministic
+fallback, and an authorized receipt carrying them would sign over an object no
+check reads. The released maximum-size table budgets this additional complete
+envelope in every wrapper that may carry the late path.
 
 The receipt is also the immutable, portable proof of its stage-action
 authorization. `authorized_action_digest` is recomputed from
@@ -7493,7 +7576,7 @@ digest, unsigned projection, locally reconstructed summary, or mutable database
 key is invalid. A verifier validates both the original receipt authorization
 and the seal and MAY retrieve the descriptor to re-run full stage verification;
 high-assurance profiles MUST do so. This compact proof rule prevents recursive
-receipt embedding from making every non-empty claim history exceed the 1 MiB
+receipt embedding from making every non-empty claim history exceed the
 complete-object ceiling without weakening content identity or authority.
 Before admitting closure, the sink also recomputes the accepted
 `ClaimClosureCapacityV1`, checks every per-claim count and encoded-size bound,
@@ -7502,7 +7585,7 @@ its authorization quorum. The measured bytes must not exceed the bound and the
 section 10.1 worst-case proof must still verify. Since capacity was reserved at
 Agreement and item admission time, a conforming terminal history cannot fail
 closure for size. Truncation, digest-only replacement, pagination under the V1
-identifier, or treating the 1 MiB ceiling separately for body and
+identifier, or treating the complete-object ceiling separately for body and
 authorizations is invalid.
 The sole complete Agreement path in the terminal envelope is
 `ResolveFilingCloseCoverageAgreementV1(
@@ -7561,8 +7644,9 @@ embedded filing-close receipt. A body digest cannot satisfy either field.
 For zero admitted claims, `ClaimTerminalResolutionRefSetV1` is still a canonical
 coverage- and obligation-bound object with `admission_high_water = 0` and
 `refs = []`; its digest is not a global empty-list digest. Every closure evidence
-set member is carried inline or by an immutable descriptor in the exact closure
-action. The output envelope may repeat those objects but cannot discover them
+set member is carried by an immutable descriptor in the exact closure action
+(the filing-close envelope and the resolution bundles are Guarantor media types
+and therefore descriptor-only, section 9.2). The output envelope may repeat those objects but cannot discover them
 later from Provider-private state.
 
 `coverage_closure_evidence_set` uses purpose `coverage-closure` and
@@ -8829,7 +8913,8 @@ registry:
 
 The exact media type and complete-envelope domain are the entries in sections
 1 and 9. `object_size_bytes` is the length of the complete canonical object and
-must be no more than the profile's 1 MiB complete-object ceiling. Inline
+must be no more than the profile's 2,000,000-byte complete-object ceiling
+(section 9.1). Inline
 carriage is valid only when `canonical_object_bytes` is a CBOR byte string,
 `object_descriptor` is absent, the canonical object is no larger than 96 KiB,
 the complete event content is no larger than Messenger's 128 KiB event-content
@@ -8837,7 +8922,7 @@ ceiling, and the complete encoded `CommerceProfileEventV1` including all
 metadata and outer Agent Packet remains within the existing 1 MiB encrypted
 packet ceiling. The 96 KiB rule reserves deterministic space for the event and
 signed-envelope wrappers; it is a protocol limit, not an implementation hint.
-There is no assumption that a 1 MiB object can fit inline: the encoder computes
+There is no assumption that a complete object can fit inline: the encoder computes
 the actual wrapper size before sending.
 
 Content-addressed carriage is required when the object or either wrapper would
@@ -10153,7 +10238,7 @@ Required tests include:
   sequence, plus an omitted/interchanged intermediate authorized claim,
   manifest or authorization mutation, body-only terminal claim, revision-log
   fork/gap/order failure, and post-close new-claim rejection;
-- terminal-claim-set worst-case computation at exactly 1,048,576 bytes and one
+- terminal-claim-set worst-case computation at exactly 2,000,000 bytes and one
   byte over; profile/request/Agreement capacity mismatch; oversized admitted
   claim; claim, decision, state-transition, and payout-line count exhaustion;
   independent recomputation of requested and final `computed_worst_case_*`
@@ -10514,7 +10599,7 @@ Required tests include:
   dispatch using a body or nested-proof digest instead of the complete envelope;
 - Messenger inline carriage whose complete event or outer Agent Packet is at
   the 1 MiB limit and one byte over; automatic content-addressed carriage of a
-  valid near-1-MiB terminal claim set; both/neither carriage fields, descriptor
+  valid terminal claim set near the 2,000,000-byte ceiling; both/neither carriage fields, descriptor
   type/digest/size substitution, locator-only admission, partial retrieval,
   digest mismatch, unsafe redirect/DNS/proxy/credential origin, and recovery
   after descriptor delivery but before durable verified-object retention;
