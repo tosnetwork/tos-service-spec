@@ -131,3 +131,11 @@ definition of TOS.
 
 Implementation evidence for one profile must be labeled as such and cannot be
 used to claim completion of the root Agentic Internet architecture.
+
+## 10. Cross-repository provider product requirements
+
+- [TOS AI Service Provider — Product Requirements & Architecture V1](AI_SERVICE_PROVIDER_REQUIREMENTS_V1.md)
+
+This proposed product document covers provider onboarding and the existing
+software-work commercial path, with general model inference as gated incubation
+work. It does not freeze a new wire profile or change roadmap acceptance status.
