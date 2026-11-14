@@ -1,0 +1,673 @@
+{
+  "schema": "tos.service.service-actor-buyer.local-acceptance.v1",
+  "qualifies_as_public_acceptance": false,
+  "reason": "one host runs every validator and endpoint",
+  "started_utc": "2026-11-14T09:47:20.533127+00:00",
+  "tos_source": "/tos/tosctl-main-build",
+  "tos_build": "/tos/tosctl-main-build/build-clang21",
+  "tosctl": {
+    "path": "/tos/tosctl-main-build/target/release/tosctl",
+    "sha256": "6de21cb218b009fee3ff342af90f4a341e02e3465c5c425c3265a98107cffd1b"
+  },
+  "protocol_commit": "8e6e50fb42ab785fa16214ed060d64e7a57eaabc",
+  "actor_code_hash": "tvm-cell-sha256:0594f9a5743440f9c5f63913ab790c0ea6f4fd5c627d9962d63e09428e42aa0c",
+  "network_label": "tos:global-id:3",
+  "stand_ins": {
+    "manifest_store": "local directory of canonical manifest CBOR files named by sha256 digest",
+    "quote_source": "service-actor-e2e-fixture quote: pkg/quoteprovider over finalized state, no gateway"
+  },
+  "network": {
+    "network_id": "tos:global-id:3",
+    "genesis_root_hash": "sha256:52f8c930f93c93b01ce3fd11c623e9aae2070972707d51239ef83f16cb909854",
+    "genesis_file_hash": "sha256:82fd2734f6d9ace7a73f39ae217ac5a3159d37dea1d1ad4caa6442e8a7805ed8",
+    "validators": 3,
+    "json_rpc": [
+      "http://127.0.0.1:49280/jsonRPC",
+      "http://127.0.0.1:49281/jsonRPC",
+      "http://127.0.0.1:49282/jsonRPC"
+    ],
+    "base_port": 49200
+  },
+  "wallets": {
+    "provider": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+    "buyer": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8"
+  },
+  "objects": {
+    "agent_id": "agent_06840f0596b096962751b46e6da72e9a56db951277088afc563fedd21500e4ed",
+    "agent_address": "0:fc66931faf66d62181d3c1e3507091ae714a171ba5564da589d1f4ec82d94303",
+    "capability_id": "cap_f5e14aae8b15b15c55a8d0621445baeb0b489be510eb975d1d3122b97b347f11",
+    "capability_address": "0:dde81c1134143c97c5921222d6dd50079ebd8241e70f038eb33e9b476edbf381",
+    "actor": "0:1ae33b633c916730e0c1e16929e3f3978b7731f73f4c0c8f0e6aea7f3663c047",
+    "manifest_digest": "sha256:7b274c3ca82b53f21f3e79665fdb9603b05f1e8b4504b1f52c040098e0dc6ff4",
+    "attestor": "mldsa44:f4e7622363d66458531f05a35578cafbfa96769bfb03add3454bada02077e7e8",
+    "metadata_hash": "8f117c1b765c7e980e2dc63eb73b0e7f79ccd52e2615cc62f022af9f07fd7924"
+  },
+  "lifecycle": {
+    "crash_before_broadcast": {
+      "requests_created": 0,
+      "phase": "ambiguous",
+      "status": {
+        "checkpoint": 163,
+        "phase": "ambiguous",
+        "found": false
+      },
+      "resend_stderr": "tos-service-buyer: call a9aa620bf85de5239ec9ed0ab41d74df4ad376c92414640be582ba6dfe8f8e7e is ambiguous and is never sent again",
+      "buyer_wallet_delta": 0
+    },
+    "crash_after_broadcast": {
+      "phase": "admitted",
+      "status": {
+        "checkpoint": 173,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 1,
+        "state": "pending",
+        "status": "pending",
+        "response_deadline": 1794653312,
+        "refund_claim_deadline": 1794656912,
+        "call_transaction": {
+          "lt": 168000003,
+          "hash": "ba18b85991654b933b5dc0db2e20357dbc9841de5816bb2fd6516c992595e840"
+        }
+      },
+      "requests_created": 1,
+      "resend_stderr": "tos-service-buyer: call 4f1a68666bbf130756a95af64a92b4cc3c74e23b2387a21e0d62fa6766d7d2a8 is admitted and is never sent again",
+      "orphaned_sender_exited": true
+    },
+    "withdrawal": {
+      "amount_nanotos": 305000000,
+      "wallet_delta_nanotos": 304782609
+    },
+    "requests": {
+      "refund": 2,
+      "sweep": 3
+    },
+    "refund": {
+      "request_id": 2,
+      "price_nanotos": 110000000,
+      "buyer_wallet_delta_nanotos": 109742058,
+      "storage_fee_nanotos": 200000000
+    },
+    "sweep": {
+      "request_id": 3,
+      "price_nanotos": 110000000,
+      "storage_fee_nanotos": 200000000,
+      "cleanup_bounty_nanotos": 100000000,
+      "buyer_wallet_delta_nanotos": 109995820,
+      "revenue_delta_nanotos": 100000000,
+      "sweeper_wallet_delta_nanotos": 99726060
+    }
+  },
+  "steps": [
+    {
+      "name": "every validator serves finalized JSON-RPC",
+      "pass": true,
+      "detail": null,
+      "at": "2026-11-14T09:47:30.778339+00:00"
+    },
+    {
+      "name": "provider wallet funded",
+      "pass": true,
+      "detail": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+      "at": "2026-11-14T09:47:33.081150+00:00"
+    },
+    {
+      "name": "provider wallet active",
+      "pass": true,
+      "detail": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+      "at": "2026-11-14T09:47:35.276457+00:00"
+    },
+    {
+      "name": "buyer wallet funded",
+      "pass": true,
+      "detail": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8",
+      "at": "2026-11-14T09:47:37.489838+00:00"
+    },
+    {
+      "name": "buyer wallet active",
+      "pass": true,
+      "detail": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8",
+      "at": "2026-11-14T09:47:39.694306+00:00"
+    },
+    {
+      "name": "provider Agent registered in the Native Registry",
+      "pass": true,
+      "detail": {
+        "agent_id": "agent_06840f0596b096962751b46e6da72e9a56db951277088afc563fedd21500e4ed",
+        "address": "0:fc66931faf66d62181d3c1e3507091ae714a171ba5564da589d1f4ec82d94303"
+      },
+      "at": "2026-11-14T09:47:42.740394+00:00"
+    },
+    {
+      "name": "Service Actor deployed with an ML-DSA-44 attestor",
+      "pass": true,
+      "detail": {
+        "actor": "0:1ae33b633c916730e0c1e16929e3f3978b7731f73f4c0c8f0e6aea7f3663c047",
+        "attestor": "mldsa44:f4e7622363d66458531f05a35578cafbfa96769bfb03add3454bada02077e7e8"
+      },
+      "at": "2026-11-14T09:47:45.141582+00:00"
+    },
+    {
+      "name": "deployed actor runs the pinned release code",
+      "pass": true,
+      "detail": {
+        "account": "tvm-cell-sha256:0594f9a5743440f9c5f63913ab790c0ea6f4fd5c627d9962d63e09428e42aa0c",
+        "pinned": "tvm-cell-sha256:0594f9a5743440f9c5f63913ab790c0ea6f4fd5c627d9962d63e09428e42aa0c"
+      },
+      "at": "2026-11-14T09:47:45.169699+00:00"
+    },
+    {
+      "name": "Capability registered with the key 21 manifest",
+      "pass": true,
+      "detail": {
+        "capability_id": "cap_f5e14aae8b15b15c55a8d0621445baeb0b489be510eb975d1d3122b97b347f11",
+        "address": "0:dde81c1134143c97c5921222d6dd50079ebd8241e70f038eb33e9b476edbf381",
+        "manifest_digest": "sha256:7b274c3ca82b53f21f3e79665fdb9603b05f1e8b4504b1f52c040098e0dc6ff4"
+      },
+      "at": "2026-11-14T09:47:47.733592+00:00"
+    },
+    {
+      "name": "actor metadata_hash is NSM1 of the Capability version",
+      "pass": true,
+      "detail": {
+        "metadata_hash": "8f117c1b765c7e980e2dc63eb73b0e7f79ccd52e2615cc62f022af9f07fd7924",
+        "proof_scheme_hash": "42d2913f1ad35c71597b62a52a15c9f86fbf4a0f179685acee10230957cafb19"
+      },
+      "at": "2026-11-14T09:47:50.145361+00:00"
+    },
+    {
+      "name": "discovery pinned to another actor code hash is refused",
+      "pass": true,
+      "detail": "tos-service-buyer: quorum not reached: 0 value groups and 3 endpoint errors (first: NATIVE_WRONG_CONTRACT: Native account code hash mismatch)",
+      "at": "2026-11-14T09:47:50.211446+00:00"
+    },
+    {
+      "name": "buyer discovered and verified the offer",
+      "pass": true,
+      "detail": {
+        "checkpoint": 61,
+        "capability_id": "cap_f5e14aae8b15b15c55a8d0621445baeb0b489be510eb975d1d3122b97b347f11",
+        "capability_version": "1.0.0",
+        "provider_agent_id": "agent_06840f0596b096962751b46e6da72e9a56db951277088afc563fedd21500e4ed",
+        "manifest_digest": "sha256:7b274c3ca82b53f21f3e79665fdb9603b05f1e8b4504b1f52c040098e0dc6ff4",
+        "actor": "0:1ae33b633c916730e0c1e16929e3f3978b7731f73f4c0c8f0e6aea7f3663c047",
+        "actor_code_hash": "tvm-cell-sha256:0594f9a5743440f9c5f63913ab790c0ea6f4fd5c627d9962d63e09428e42aa0c",
+        "attestor_key_id": "mldsa44:f4e7622363d66458531f05a35578cafbfa96769bfb03add3454bada02077e7e8",
+        "policy_version": 1,
+        "terms_hash": "39ea0723ac17ee5df80e23cf022768f2570df38a47f04274b21e4e84d4c40f02",
+        "price_nanotos": "100000000",
+        "storage_fee_nanotos": "200000000",
+        "cleanup_bounty_nanotos": "100000000",
+        "response_sla_seconds": 3600,
+        "refund_claim_window_seconds": 3600,
+        "open_access": true,
+        "storage_fee_refundable": false
+      },
+      "at": "2026-11-14T09:47:50.293037+00:00"
+    },
+    {
+      "name": "provider quoted the finalized actor terms",
+      "pass": true,
+      "detail": {
+        "expires_at": 1794650570,
+        "package": "/tos/m1-e2e/lifecycle-5/private/quote-1.json",
+        "price_nanotos": "100000000",
+        "terms_hash": "39ea0723ac17ee5df80e23cf022768f2570df38a47f04274b21e4e84d4c40f02"
+      },
+      "at": "2026-11-14T09:47:50.350840+00:00"
+    },
+    {
+      "name": "buyer prepared the call",
+      "pass": true,
+      "detail": {
+        "request_hash": "1ca2a373bfe2a2fcb0770306251742aaa982d03ee8489dfe87eaa97996b1ed76",
+        "query_id": 2167275228233411724,
+        "terms_hash": "39ea0723ac17ee5df80e23cf022768f2570df38a47f04274b21e4e84d4c40f02",
+        "payment_nanotos": "500000000"
+      },
+      "at": "2026-11-14T09:47:50.422102+00:00"
+    },
+    {
+      "name": "buyer called through tosctl agent service send with the quoted terms hash",
+      "pass": true,
+      "detail": "",
+      "at": "2026-11-14T09:47:53.145987+00:00"
+    },
+    {
+      "name": "the finalized call is admitted and pending, verified from its snapshot",
+      "pass": true,
+      "detail": {
+        "checkpoint": 69,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 0,
+        "state": "pending",
+        "status": "pending",
+        "response_deadline": 1794653271,
+        "refund_claim_deadline": 1794656871,
+        "call_transaction": {
+          "lt": 65000003,
+          "hash": "1a024e58a759b8ead4e1dba844d46e8575fbea8ad9516042907989aca3b5f99d"
+        }
+      },
+      "at": "2026-11-14T09:47:53.226189+00:00"
+    },
+    {
+      "name": "the buyer resolves the request as responded with the attested response hash",
+      "pass": true,
+      "detail": {
+        "checkpoint": 74,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 0,
+        "state": "responded",
+        "status": "responded",
+        "response_deadline": 1794653271,
+        "refund_claim_deadline": 1794656871,
+        "call_transaction": {
+          "lt": 65000003,
+          "hash": "1a024e58a759b8ead4e1dba844d46e8575fbea8ad9516042907989aca3b5f99d"
+        },
+        "outcome": {
+          "lt": 71000003,
+          "hash": "8a5a5e4814854a925d70da127b89ec15684ca437f1f701a91f2187395e51ab0f",
+          "now": 1794649673,
+          "kind": "respond",
+          "sender": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+          "value_nanotos": "10000000",
+          "exit_code": 0,
+          "opcode": 1398162178,
+          "response_hash": "a75829b5609815439a27f3c11ee29995be05d8cdf88b04e8f40065d8a6c34a27",
+          "signed": true
+        },
+        "response_hash": "a75829b5609815439a27f3c11ee29995be05d8cdf88b04e8f40065d8a6c34a27"
+      },
+      "at": "2026-11-14T09:47:55.528192+00:00"
+    },
+    {
+      "name": "the rebuilt request index shows the responded request",
+      "pass": true,
+      "detail": {
+        "actor": "0:1ae33b633c916730e0c1e16929e3f3978b7731f73f4c0c8f0e6aea7f3663c047",
+        "checkpoint": 75,
+        "requests": [
+          {
+            "request_id": 0,
+            "caller": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8",
+            "request_hash": "1ca2a373bfe2a2fcb0770306251742aaa982d03ee8489dfe87eaa97996b1ed76",
+            "terms_hash": "39ea0723ac17ee5df80e23cf022768f2570df38a47f04274b21e4e84d4c40f02",
+            "price_nanotos": "100000000",
+            "storage_fee_nanotos": "200000000",
+            "attestor_key_id": "mldsa44:f4e7622363d66458531f05a35578cafbfa96769bfb03add3454bada02077e7e8",
+            "response_deadline": 1794653271,
+            "refund_claim_deadline": 1794656871,
+            "call_transaction": {
+              "lt": 65000003,
+              "hash": "1a024e58a759b8ead4e1dba844d46e8575fbea8ad9516042907989aca3b5f99d"
+            },
+            "query_id": 2167275228233411724,
+            "state": "responded",
+            "status": "responded",
+            "outcome": {
+              "lt": 71000003,
+              "hash": "8a5a5e4814854a925d70da127b89ec15684ca437f1f701a91f2187395e51ab0f",
+              "now": 1794649673,
+              "kind": "respond",
+              "sender": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+              "value_nanotos": "10000000",
+              "exit_code": 0,
+              "opcode": 1398162178,
+              "response_hash": "a75829b5609815439a27f3c11ee29995be05d8cdf88b04e8f40065d8a6c34a27",
+              "signed": true
+            }
+          }
+        ],
+        "authority": "derived index; verify against finalized state before acting"
+      },
+      "at": "2026-11-14T09:47:55.574481+00:00"
+    },
+    {
+      "name": "a call prepared under terms the provider changed is refused before sending",
+      "pass": true,
+      "detail": {
+        "stderr": "tos-service-buyer: Service Actor admission step 8: the Quote terms_hash is not the actor's current terms_hash",
+        "phase": "prepared",
+        "next_request_id_before": 1,
+        "next_request_id_after": 1
+      },
+      "at": "2026-11-14T09:47:58.609050+00:00"
+    },
+    {
+      "name": "crash before broadcast: the buyer was killed while its send was starting",
+      "pass": true,
+      "detail": {
+        "sender_seen": true,
+        "buyer_exit": -9,
+        "phase_at_kill": "sending"
+      },
+      "at": "2026-11-14T09:47:59.583861+00:00"
+    },
+    {
+      "name": "crash before broadcast: no request was created and the record stays quarantined as ambiguous",
+      "pass": true,
+      "detail": {
+        "requests_created": 0,
+        "phase": "ambiguous",
+        "status": {
+          "checkpoint": 163,
+          "phase": "ambiguous",
+          "found": false
+        },
+        "resend_stderr": "tos-service-buyer: call a9aa620bf85de5239ec9ed0ab41d74df4ad376c92414640be582ba6dfe8f8e7e is ambiguous and is never sent again",
+        "buyer_wallet_delta": 0
+      },
+      "at": "2026-11-14T09:48:31.055679+00:00"
+    },
+    {
+      "name": "crash before broadcast: the quarantined call is never sent again and costs the buyer nothing",
+      "pass": true,
+      "detail": {
+        "requests_created": 0,
+        "phase": "ambiguous",
+        "status": {
+          "checkpoint": 163,
+          "phase": "ambiguous",
+          "found": false
+        },
+        "resend_stderr": "tos-service-buyer: call a9aa620bf85de5239ec9ed0ab41d74df4ad376c92414640be582ba6dfe8f8e7e is ambiguous and is never sent again",
+        "buyer_wallet_delta": 0
+      },
+      "at": "2026-11-14T09:48:31.055756+00:00"
+    },
+    {
+      "name": "crash after broadcast: the buyer was killed after its call reached the chain",
+      "pass": true,
+      "detail": {
+        "call_on_chain": true,
+        "buyer_still_waiting": true,
+        "phase_at_kill": "sending",
+        "buyer_exit": -9
+      },
+      "at": "2026-11-14T09:48:32.825737+00:00"
+    },
+    {
+      "name": "crash after broadcast: the restarted journal resolves the one finalized call",
+      "pass": true,
+      "detail": {
+        "phase": "admitted",
+        "status": {
+          "checkpoint": 173,
+          "phase": "admitted",
+          "found": true,
+          "request_id": 1,
+          "state": "pending",
+          "status": "pending",
+          "response_deadline": 1794653312,
+          "refund_claim_deadline": 1794656912,
+          "call_transaction": {
+            "lt": 168000003,
+            "hash": "ba18b85991654b933b5dc0db2e20357dbc9841de5816bb2fd6516c992595e840"
+          }
+        },
+        "requests_created": 1,
+        "resend_stderr": "tos-service-buyer: call 4f1a68666bbf130756a95af64a92b4cc3c74e23b2387a21e0d62fa6766d7d2a8 is admitted and is never sent again",
+        "orphaned_sender_exited": true
+      },
+      "at": "2026-11-14T09:48:35.335609+00:00"
+    },
+    {
+      "name": "crash after broadcast: the call is never sent again",
+      "pass": true,
+      "detail": {
+        "phase": "admitted",
+        "status": {
+          "checkpoint": 173,
+          "phase": "admitted",
+          "found": true,
+          "request_id": 1,
+          "state": "pending",
+          "status": "pending",
+          "response_deadline": 1794653312,
+          "refund_claim_deadline": 1794656912,
+          "call_transaction": {
+            "lt": 168000003,
+            "hash": "ba18b85991654b933b5dc0db2e20357dbc9841de5816bb2fd6516c992595e840"
+          }
+        },
+        "requests_created": 1,
+        "resend_stderr": "tos-service-buyer: call 4f1a68666bbf130756a95af64a92b4cc3c74e23b2387a21e0d62fa6766d7d2a8 is admitted and is never sent again",
+        "orphaned_sender_exited": true
+      },
+      "at": "2026-11-14T09:48:35.335760+00:00"
+    },
+    {
+      "name": "crash after broadcast: the recovered request settles once by an attested respond",
+      "pass": true,
+      "detail": {
+        "checkpoint": 180,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 1,
+        "state": "responded",
+        "status": "responded",
+        "response_deadline": 1794653312,
+        "refund_claim_deadline": 1794656912,
+        "call_transaction": {
+          "lt": 168000003,
+          "hash": "ba18b85991654b933b5dc0db2e20357dbc9841de5816bb2fd6516c992595e840"
+        },
+        "outcome": {
+          "lt": 177000003,
+          "hash": "835ae9189031fa3726359aec8349940d37c17f44280cc566b259b833584c0a1c",
+          "now": 1794649715,
+          "kind": "respond",
+          "sender": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+          "value_nanotos": "10000000",
+          "exit_code": 0,
+          "opcode": 1398162178,
+          "request_id": 1,
+          "response_hash": "2898f0f7cc16cc748354e536cb55318a97db0cdc45f57032616cbc295b4e62dd",
+          "signed": true
+        },
+        "response_hash": "2898f0f7cc16cc748354e536cb55318a97db0cdc45f57032616cbc295b4e62dd"
+      },
+      "at": "2026-11-14T09:48:37.864885+00:00"
+    },
+    {
+      "name": "withdraw_revenue debits credited revenue by exactly the amount",
+      "pass": true,
+      "detail": {
+        "credited_before": 610000000,
+        "amount": 305000000,
+        "credited_after": 305000000
+      },
+      "at": "2026-11-14T09:48:40.665884+00:00"
+    },
+    {
+      "name": "the provider wallet receives the withdrawal less only network fees",
+      "pass": true,
+      "detail": {
+        "amount": 305000000,
+        "wallet_delta": 304782609
+      },
+      "at": "2026-11-14T09:48:40.665972+00:00"
+    },
+    {
+      "name": "request refund is called and pending",
+      "pass": true,
+      "detail": {
+        "checkpoint": 195,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 2,
+        "state": "pending",
+        "status": "pending",
+        "response_deadline": 1794653321,
+        "refund_claim_deadline": 1794656921,
+        "call_transaction": {
+          "lt": 192000003,
+          "hash": "10b234cf78fcf894a402496d7de47d87d8487512eacbb181a45b65e2100a049b"
+        }
+      },
+      "at": "2026-11-14T09:48:43.769982+00:00"
+    },
+    {
+      "name": "request sweep is called and pending",
+      "pass": true,
+      "detail": {
+        "checkpoint": 203,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 3,
+        "state": "pending",
+        "status": "pending",
+        "response_deadline": 1794653325,
+        "refund_claim_deadline": 1794656925,
+        "call_transaction": {
+          "lt": 200000003,
+          "hash": "6f9fd1ccde9b05f230267b407637e964570e325d0abff20e8ad9327118fd2796"
+        }
+      },
+      "at": "2026-11-14T09:48:46.903200+00:00"
+    },
+    {
+      "name": "an unanswered request is expired after its response deadline",
+      "pass": true,
+      "detail": {
+        "checkpoint": 9417,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 2,
+        "state": "expired",
+        "status": "refundable",
+        "required_action": "send claim_refund from the caller wallet before the refund claim deadline",
+        "response_deadline": 1794653321,
+        "refund_claim_deadline": 1794656921,
+        "call_transaction": {
+          "lt": 192000003,
+          "hash": "10b234cf78fcf894a402496d7de47d87d8487512eacbb181a45b65e2100a049b"
+        }
+      },
+      "at": "2026-11-14T10:50:13.370480+00:00"
+    },
+    {
+      "name": "the caller's claim_refund returns the price",
+      "pass": true,
+      "detail": {
+        "state": "refunded",
+        "price": 110000000,
+        "wallet_delta": 109742058,
+        "refund_entry": {
+          "request_id": 2,
+          "found": true,
+          "caller": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8",
+          "price": "0.11",
+          "storage_fee": "0.2",
+          "cleanup_bounty": "0.1",
+          "refund_claim_deadline": "2026-11-14 11:48:41 UTC"
+        }
+      },
+      "at": "2026-11-14T10:50:16.133137+00:00"
+    },
+    {
+      "name": "the storage fee is not refunded and is credited to the provider",
+      "pass": true,
+      "detail": {
+        "revenue_delta": 200000000,
+        "storage_fee": 200000000
+      },
+      "at": "2026-11-14T10:50:16.524770+00:00"
+    },
+    {
+      "name": "a never-expired request is swept after its refund-claim deadline",
+      "pass": true,
+      "detail": {
+        "checkpoint": 18253,
+        "phase": "admitted",
+        "found": true,
+        "request_id": 3,
+        "state": "swept",
+        "status": "swept",
+        "response_deadline": 1794653325,
+        "refund_claim_deadline": 1794656925,
+        "call_transaction": {
+          "lt": 200000003,
+          "hash": "6f9fd1ccde9b05f230267b407637e964570e325d0abff20e8ad9327118fd2796"
+        },
+        "outcome": {
+          "lt": 18261000003,
+          "hash": "602d9dc002e743dcc2081759744094e153fef3e32e44a79512dd4b9eece8cf34",
+          "now": 1794657015,
+          "kind": "sweep",
+          "sender": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+          "value_nanotos": "200000000",
+          "exit_code": 0,
+          "opcode": 1398162181,
+          "request_id": 3,
+          "payouts": [
+            {
+              "destination": "0:6cb9984f0eedd6e3b5e6f56e15939403fd50fbdcc8ae0add7472bca9fa4832a8",
+              "amount_nanotos": "110000000",
+              "bounce": false,
+              "empty_body": true
+            },
+            {
+              "destination": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+              "amount_nanotos": "100000000",
+              "bounce": false,
+              "empty_body": true
+            },
+            {
+              "destination": "0:dbb33b210ddccd9faeafd28628b1fefa579eceefb1c06d47496e0190439c2ef6",
+              "amount_nanotos": "199778550",
+              "bounce": false,
+              "empty_body": true
+            }
+          ]
+        }
+      },
+      "at": "2026-11-14T11:50:17.764878+00:00"
+    },
+    {
+      "name": "the sweep sends exactly the price to the caller",
+      "pass": true,
+      "detail": {
+        "price": 110000000,
+        "payout_message_value": 110000000,
+        "payout_transactions": 1
+      },
+      "at": "2026-11-14T11:50:17.769627+00:00"
+    },
+    {
+      "name": "the caller's balance moves by the payout less only its own account fees",
+      "pass": true,
+      "detail": {
+        "payout_message_value": 110000000,
+        "caller_transaction_fee": 4180,
+        "buyer_wallet_delta": 109995820
+      },
+      "at": "2026-11-14T11:50:17.769666+00:00"
+    },
+    {
+      "name": "the provider is credited the storage fee less the cleanup bounty",
+      "pass": true,
+      "detail": {
+        "storage_fee": 200000000,
+        "cleanup_bounty": 100000000,
+        "revenue_delta": 100000000
+      },
+      "at": "2026-11-14T11:50:17.769682+00:00"
+    },
+    {
+      "name": "the sweeper receives the bounty less only network fees",
+      "pass": true,
+      "detail": {
+        "cleanup_bounty": 100000000,
+        "sweeper_wallet_delta": 99726060
+      },
+      "at": "2026-11-14T11:50:17.769693+00:00"
+    }
+  ],
+  "finished_utc": "2026-11-14T11:50:18.335269+00:00",
+  "result": "ALL PASS"
+}

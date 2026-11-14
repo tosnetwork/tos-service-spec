@@ -273,9 +273,13 @@ service price, non-refundable storage fee, request limits, and deadlines.
 Enforce per-purchase, aggregate outstanding, and daily spending budgets through
 owner-controlled policy. Unresolved submissions continue consuming reservations.
 Current code provides a per-call maximum and count/total caps over a rolling
-window (`buyersdk`; OpenFox `servicebridge` adds an open-purchase cap and owner
-confirmation above a threshold); a distinct calendar-day budget is not yet
-implemented.
+window of up to 31 days (`buyersdk`; OpenFox `servicebridge` adds an
+open-purchase cap and owner confirmation above a threshold). An outstanding
+call (prepared and unexpired, sending, submitted, or ambiguous) keeps its
+reservation whatever its age, so the window total also bounds aggregate
+outstanding spend; a 24-hour window is the daily budget, and is stricter than a
+calendar day because it has no boundary at which two days' allowance can be
+spent back to back.
 
 The buyer must refuse an actor that does not snapshot the manifest-bound
 attestor for new requests, as [settlement design](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)
@@ -633,7 +637,7 @@ reviewed acceptance; every item still needs the evidence that WP-07 requires.
 | WP-03: bounded provider execution | `tos-ai` (execution) and OpenFox `pkg/servicebridge` (provider loop) | Container executor with digest pinning and resource limits, single-owner job journal, artifact store, `pkg/railgate` admission, OpenFox admit/execute/respond/redeliver loop. | Shared multi-worker execution claim, artifact retention and deletion, `railgate` use in `tos-ai`'s own CLI, independent review, per-job VRAM limits where GPUs are offered; approved model adapters belong to WP-08. |
 | WP-04: discovery and public interfaces | `tos-service-gateway`, `tos-service-protocol` | Derived catalog (`capabilitycatalog`), actor index and verified offers (`serviceactorindex`, `cmd/tos-service-discovery`), manifest retrieval and federation package. | Harden the public Gateway: its Connect handlers currently have no request-body cap or rate limit, only the server's 30 s read timeout, despite an advertised 1 MiB bound (the Capability Carrier has both a body cap and a rate limit; the Intent Carrier has body caps only). |
 | WP-05: custody and contract gaps | `tos` / `tosctl` | Registry, wallet, and Service Actor `tosctl` commands. | Change contracts only for a demonstrated invariant gap with separate review and vectors. |
-| WP-06: buyer/runtime composition | `tos-service-protocol` Buyer SDK and OpenFox | Single `call` with re-verified terms and attestor binding, crash-safe buyer journal that never re-sends an ambiguous call, rolling-window budgets, OpenFox owner confirmation and refund recovery. | One purchase identity across more than the Agent Packet transport, and a calendar-day budget if required. |
+| WP-06: buyer/runtime composition | `tos-service-protocol` Buyer SDK and OpenFox | Single `call` with re-verified terms and attestor binding, crash-safe buyer journal that never re-sends an ambiguous call, rolling-window budgets, OpenFox owner confirmation and refund recovery. | One purchase identity across more than the Agent Packet transport. |
 | WP-07: independent commercial acceptance | `tos-service-spec` evidence plus participating repositories | Current-domain paid execution, refund, withdrawal, and independent reconstruction under the existing roadmap. |
 | WP-08: inference expansion | `tos-service-spec`, then `tos-ai` and protocol/adapters | New inference profile, canonical vectors, at least one reviewed backend, and fresh acceptance; locked until expansion eligibility. |
 
