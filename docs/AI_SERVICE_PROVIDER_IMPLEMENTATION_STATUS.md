@@ -42,14 +42,18 @@ the real `tosctl agent service` and `tos-service-buyer` commands through
 
 | Record | What it proves | Script commit | Result |
 |---|---|---|---|
+| [`local-service-actor-provider-m1-20261114.json`](../deployments/local-service-actor-provider-m1-20261114.json) | **M1 record.** `E2E_LIFECYCLE=1 E2E_EXECUTE=1` in one run, 13:33–15:37 UTC, with the checks hardened by the review of PR #47: real paid execution and its attested Receipt, rerun and failing-test controls; crash before broadcast (the buyer's whole process group killed, no request created) and after broadcast (journal resolved to `admitted`, settled once); `withdraw_revenue`; after the real one-hour deadline `expire` and `claim_refund` for the lifecycle request and for the request whose execution failed; after the real refund-claim deadline `sweep_expired_request`. Every payout is checked against its payout message value and every wallet reconciles exactly | `3eb4dd3` (clean tree; merged as `49a2571` via PR #47, whose head `95f203a` differs only in comments) | ALL PASS, 66 of 66 |
 | [`local-service-actor-settlement-lifecycle-20261114.json`](../deployments/local-service-actor-settlement-lifecycle-20261114.json) | `E2E_LIFECYCLE=1`, 09:47–11:50 UTC: crash before broadcast (no request, quarantined as ambiguous, never re-sent, no funds moved); crash after broadcast (one finalized call resolved, never re-sent, settled once); `withdraw_revenue`; after the real one-hour deadline `expire` then `claim_refund` (price returned, storage fee credited to the provider); after the real refund-claim deadline `sweep_expired_request` (the payout message carries exactly the price, the provider is credited storage fee less bounty, the sweeper receives the bounty) | `8e6e50f` | ALL PASS, 38 of 38 |
 | [`local-service-actor-paid-execution-20261114.json`](../deployments/local-service-actor-paid-execution-20261114.json) | `E2E_EXECUTE=1`: the provider runs `software-work-execute paid` (tos-ai `3bcbd43`, executor sha256 `26801be5…`) against the private containerd with the frozen image `sha256:9624bca7…`; railgate admits the finalized request, the buyer's Go module is tested in the sandbox, the attestor's check anchors every Receipt binding to the finalized request snapshot, and the buyer resolves exactly that Receipt hash; reruns while pending and after respond are refused with the slot and journal unchanged; a failing test ends `execution_failed` and is never responded; every wallet involved reconciles exactly | `ef3c03c` (clean tree) | ALL PASS, 37 of 37 |
 
-The settlement-lifecycle record predates the review of PR #47, whose fixes
-replaced its bounded refund and withdrawal checks with exact payout-message
-checks and made the crash-before-broadcast case kill the whole buyer process
-group. A combined run of both phases at `ef3c03c` (including the refund of the
-request whose execution failed) is in progress and will be added here.
+The two earlier records are kept as supporting runs: the settlement-lifecycle
+record predates the review of PR #47, whose fixes replaced its bounded refund
+and withdrawal checks with exact payout-message checks and made the
+crash-before-broadcast case kill the whole buyer process group; the
+paid-execution record covers the execution phase alone. A combined run at
+`f97420b`, before those fixes, also caught a test-ordering defect (the
+failed-execution refund was attempted after its refund window had closed,
+which the contract correctly refused), fixed in `3eb4dd3` before the M1 record.
 
 The private containerd host deployment used for these runs was installed from
 `tos-ai` `deploy/provider` and surfaced three defects that are fixed in
