@@ -629,6 +629,11 @@ choice, not a new protocol authority.
 
 "Exists" below records source present at the implementation baseline, not
 reviewed acceptance; every item still needs the evidence that WP-07 requires.
+Work merged after that baseline, with its reviewed commits and local evidence,
+is tracked in the [implementation status record](AI_SERVICE_PROVIDER_IMPLEMENTATION_STATUS.md).
+In particular, the WP-03 artifact retention and `railgate` use in the CLI, and
+the WP-04 Connect body cap and rate limit, listed below as remaining, have
+since been delivered; the shared multi-worker execution claim has not.
 
 | Work package | Primary repository | Exists at baseline | Remaining deliverable |
 |---|---|---|---|
