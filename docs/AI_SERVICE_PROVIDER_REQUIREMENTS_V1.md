@@ -277,11 +277,13 @@ window (`buyersdk`; OpenFox `servicebridge` adds an open-purchase cap and owner
 confirmation above a threshold); a distinct calendar-day budget is not yet
 implemented.
 
-Before payment the buyer must also verify that the actor snapshots an attestor
-for new requests (`has_attestor`). The current actor accepts an owner `respond`
-without any signature when no attestor is configured or after `revoke_attestor`;
-such an actor provides owner-asserted settlement only and must be refused, or
-presented with that weaker trust model, before funding.
+The buyer must refuse an actor that does not snapshot the manifest-bound
+attestor for new requests, as [settlement design](SERVICE_ACTOR_SETTLEMENT_DESIGN.md)
+steps 5 and 7 already require (`has_attestor = 1`). The contract itself accepts
+an owner `respond` without any signature when no attestor is configured or after
+`revoke_attestor`, so this refusal is a client obligation; the current Buyer SDK
+enforces it in `serviceactor.VerifyAdmission` before funding and again on the
+request snapshot.
 
 For the current rail, amounts are canonical unsigned integer nanoTOS strings
 with checked arithmetic within the contract's Coins bound. Do not use floating
@@ -301,20 +303,21 @@ Accepted Quote hash, the execution ID, and the input digest; it is not the
 Accepted Quote commitment itself. The contract treats it as an opaque 256-bit
 value. The buyer obtains the contract-assigned request ID and committed terms
 from the finalized call and its `SAR1` request snapshot. The `get_request`
-getter answers only while a request is pending; after `respond`, `claim_refund`,
-or `sweep_expired_request` the entry is deleted, so recovery after resolution
-depends on the retained snapshot and transaction history. A proposal, signed
+getter answers only while a request is pending: `expire` moves it to
+`get_refund`, and `respond`, `claim_refund`, or `sweep_expired_request` delete
+it, so recovery after resolution depends on the retained snapshot and
+transaction history. A proposal, signed
 Quote alone, HTTP response, or Gateway ledger entry does not create an accepted
 on-chain purchase.
 
-A `call` can also be refused because the actor is inactive, the caller is not
-authorized, the daily rate limit is reached, or a live-request capacity cap
-(global or per caller) is reached. These refusals must surface as
+A `call` can also be refused for reasons such as an inactive actor, an
+unauthorized caller, the daily rate limit, a live-request capacity cap (global
+or per caller), an unfunded operating reserve, or a failed policy-bounds check. These refusals must surface as
 pre-execution failures, with the buyer verifying where the attached value
 actually went, and never as a started job.
 
 A separate native-coin Task Escrow contract (`task-escrow-code.fc`, `tosctl
-agent task-escrow`) still exists in `tos` but is not connected to the Service
+agent task`) still exists in `tos` but is not connected to the Service
 Actor; it is not part of this product's commercial path.
 The initial product does not add a second Task Escrow, facilitator balance,
 stablecoin rail, or Gateway-managed balance around that call. Native TOS pays for
@@ -342,11 +345,10 @@ Read each logical chain view at a coherent checkpoint and preserve the approved
 resolver's rollback/finality protections. Multiple URLs owned by one operator do
 not establish independent operators; RPC agreement is not automatically a portable
 validator-finality proof. Expose the assurance actually available. The current
-Native resolver (`toschain`) requires a strict majority of 3–8 endpoints that
-differ only by host and port; it does not bind endpoints to operators, and
-persisted rollback high-water marks cover Service Actor and relay reads but not
-plain Registry reads. Operator independence is therefore a configuration
-responsibility until the resolver enforces it.
+Native resolver (`toschain`) requires a strict majority of 3–8 endpoints with
+distinct host:port authorities and keeps a persisted checkpoint high-water mark,
+but it does not bind endpoints to operators. Operator independence is therefore
+a configuration responsibility until the resolver enforces it.
 
 A short-lived local capacity reservation may reduce stale quotations. It is not
 a chain guarantee. Do not begin with insufficient time for execution, result
@@ -363,7 +365,7 @@ of changing its price, provider, model, or deadline.
 | No valid response by the response deadline | Permissionless `expire` (between response deadline and refund-claim deadline) marks the request refundable | Trigger or explain `expire` and the caller's claim path. |
 | Caller sends `claim_refund` before the refund-claim deadline | Price is paid to a caller-chosen destination; the storage fee is credited to provider revenue | Verify the actual terminal transaction and account for non-refundable fees. |
 | Pending or refundable request reaches the refund-claim deadline | Permissionless `sweep_expired_request` (no prior `expire` needed) returns the price to the caller and pays the sweeper a 0.1–1 TOS cleanup bounty from the storage fee; the provider is credited `storage_fee − bounty` | Maintain a bounded keeper/watch process; time passing alone is not a transaction. |
-| Owner sends `withdraw_revenue` | Separate payout, limited to the balance left after pending, refundable, and locked liabilities and a 1 TOS operating reserve | Verify the withdrawal outcome and wallet credit before claiming received funds. Reject a zero-amount withdrawal in the product; the contract does not. |
+| Owner sends `withdraw_revenue` | Separate payout of at most the smaller of accrued revenue and the balance left after pending, refundable, and locked liabilities and a 1 TOS operating reserve; the message must carry a 0.2 TOS payout gas allowance (as must `claim_refund` and `sweep_expired_request`), returned as change | Verify the withdrawal outcome and wallet credit before claiming received funds. Reject a zero-amount withdrawal in the product; the contract does not. |
 
 The storage fee is not refunded; network fees already incurred are not undone.
 An operator may offer a separate voluntary commercial refund, but it is not a
@@ -389,7 +391,8 @@ wall-clock, disk, artifact, network, and retention limits appropriate to the
 backend. GPU visibility must follow operator-approved device assignments; a
 claim of isolation requires backend-specific evidence. Current `tos-ai` assigns
 GPUs through operator-fixed CDI device mappings with exclusive leases and
-enforces a device count only; it has no per-job VRAM limit. Run no unbounded queue
+enforces a device count only; it has no per-job VRAM limit (its resource guard
+checks host-level VRAM capacity, not per-job use). Run no unbounded queue
 while waiting for chain or model availability.
 
 The provider remains responsible for its own infrastructure. Private container
@@ -628,9 +631,9 @@ reviewed acceptance; every item still needs the evidence that WP-07 requires.
 | WP-01: current-rail inventory | `tos-service-spec`, with all implementers | Source-level reconciliation recorded in this document. | Executable evidence matrix bound to exact commits and release hashes; fix stale component docs (for example the `tos-ai` README gate statement) without inflating gate status. |
 | WP-02: onboarding and service publication | `tos-service-protocol` | External-signing prepare/apply CLI (`cmd/tos-service-provider-publish`), exact manifest publication (`PublishManifest`), finalized-state check, no private-key option. | Persisted publication state for restart (PRV-04), pre-signing preview of actor/attestor/terms/costs, and a clean-room operator guide. |
 | WP-03: bounded provider execution | `tos-ai` (execution) and OpenFox `pkg/servicebridge` (provider loop) | Container executor with digest pinning and resource limits, single-owner job journal, artifact store, `pkg/railgate` admission, OpenFox admit/execute/respond/redeliver loop. | Shared multi-worker execution claim, artifact retention and deletion, `railgate` use in `tos-ai`'s own CLI, independent review, per-job VRAM limits where GPUs are offered; approved model adapters belong to WP-08. |
-| WP-04: discovery and public interfaces | `tos-service-gateway`, `tos-service-protocol` | Derived catalog (`capabilitycatalog`), actor index and verified offers (`serviceactorindex`, `cmd/tos-service-discovery`), manifest retrieval and federation package. | Harden the public Gateway: its Connect handlers currently have no request-body cap or rate limit (only the carrier endpoints do), despite an advertised 1 MiB bound. |
-| WP-05: custody and contract gaps | `tos` / `tosctl` | Registry, wallet, and Service Actor `tosctl` commands. | Decide whether attestor-less Service Actors are acceptable for this product or need a client or contract guard; change contracts only for a demonstrated invariant gap with separate review and vectors. |
-| WP-06: buyer/runtime composition | `tos-service-protocol` Buyer SDK and OpenFox | Single `call` with re-verified terms, crash-safe buyer journal that never re-sends an ambiguous call, rolling-window budgets, OpenFox owner confirmation and refund recovery. | One purchase identity across more than the Agent Packet transport, a calendar-day budget if required, and the attestor-presence check in PAY-01. |
+| WP-04: discovery and public interfaces | `tos-service-gateway`, `tos-service-protocol` | Derived catalog (`capabilitycatalog`), actor index and verified offers (`serviceactorindex`, `cmd/tos-service-discovery`), manifest retrieval and federation package. | Harden the public Gateway: its Connect handlers currently have no request-body cap or rate limit, only the server's 30 s read timeout, despite an advertised 1 MiB bound (the Capability Carrier has both a body cap and a rate limit; the Intent Carrier has body caps only). |
+| WP-05: custody and contract gaps | `tos` / `tosctl` | Registry, wallet, and Service Actor `tosctl` commands. | Change contracts only for a demonstrated invariant gap with separate review and vectors. |
+| WP-06: buyer/runtime composition | `tos-service-protocol` Buyer SDK and OpenFox | Single `call` with re-verified terms and attestor binding, crash-safe buyer journal that never re-sends an ambiguous call, rolling-window budgets, OpenFox owner confirmation and refund recovery. | One purchase identity across more than the Agent Packet transport, and a calendar-day budget if required. |
 | WP-07: independent commercial acceptance | `tos-service-spec` evidence plus participating repositories | Current-domain paid execution, refund, withdrawal, and independent reconstruction under the existing roadmap. |
 | WP-08: inference expansion | `tos-service-spec`, then `tos-ai` and protocol/adapters | New inference profile, canonical vectors, at least one reviewed backend, and fresh acceptance; locked until expansion eligibility. |
 
@@ -649,7 +652,7 @@ following are requirements, not recorded passing results.
 | ID | Scenario | Required observable result |
 |---|---|---|
 | AT-01 | New independent provider follows public instructions | Publishes and sells one exact Capability without source/database edits or shared developer keys. |
-| AT-02 | Wrong network, code, owner, version, manifest, or attestor, or an actor with no attestor | Refused before spending or execution (or the attestor-less trust model shown explicitly); no substituted fallback. |
+| AT-02 | Wrong network, code, owner, version, manifest, or attestor, or an actor with no attestor | Refused before spending or execution; no substituted fallback. |
 | AT-03 | Registration/relay acknowledgement without finality | Remains pending/unknown, never reported as published or funded. |
 | AT-04 | Terms change between quotation and `call` | Old expected terms cannot silently buy the changed service; no job starts on a rejected call. |
 | AT-05 | Paid happy path | One funded request, one execution, retrievable matching result, valid Receipt, finalized response, and independently verified revenue credit. |
